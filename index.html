@@ -45,6 +45,10 @@ body.touch #controls{display:block}
 .btn{position:absolute;pointer-events:auto;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:900;color:#fff;font-size:20px;background:radial-gradient(circle,rgba(40,60,90,.55),rgba(10,15,35,.7));border:2px solid rgba(110,220,255,.6);box-shadow:0 0 12px rgba(80,210,255,.35);text-shadow:0 1px 3px rgba(0,0,0,.6)}
 .btn.on{filter:brightness(1.5);transform:scale(.94)}
 #bBeam{right:14px;bottom:40px;width:108px;height:108px;font-size:19px;letter-spacing:1px;background:radial-gradient(circle at 50% 40%,#5dff8f,#18b34a 60%,#0b6b2a);border:4px solid #7dffa8;box-shadow:0 0 26px rgba(60,255,120,.8),inset 0 0 16px rgba(255,255,255,.25)}
+#bLand{display:none;left:26px;bottom:250px;width:76px;height:76px;font-size:22px;line-height:1;flex-direction:column;background:radial-gradient(circle,rgba(70,20,90,.7),rgba(20,5,35,.75));border:3px solid #c58bff;box-shadow:0 0 18px rgba(197,139,255,.7)}
+#bLand small{font-size:11px;font-weight:900}
+body.canland #bLand{display:flex}
+body.walking #bFire,body.walking #bDown{display:none}
 #bFire{right:118px;bottom:190px;width:62px;height:62px;font-size:13px;background:radial-gradient(circle,rgba(10,50,70,.7),rgba(5,15,30,.75));border:3px solid #45eaff;box-shadow:0 0 18px rgba(70,230,255,.6)}
 #bBoost{right:30px;bottom:164px;width:74px;height:74px;font-size:13px;background:radial-gradient(circle,rgba(70,45,10,.7),rgba(25,15,5,.75));border:3px solid #ffbe46;box-shadow:0 0 18px rgba(255,180,60,.6)}
 #bUp{right:134px;bottom:118px;width:58px;height:58px}
@@ -122,6 +126,7 @@ body.promo #hud,body.promo #controls,body.promo #keys,body.promo #mute,body.prom
   <div class="btn" id="bBoost" data-k="boost">BOOST</div>
   <div class="btn" id="bBeam" data-k="beam">BEAM</div>
   <div class="btn" id="bFire" data-k="fire">FIRE</div>
+  <div class="btn" id="bLand">🛬<br><small>LAND</small></div>
 </div>
 <div id="keys">W/S fly · A/D turn · R/F up/down · SPACE beam · X fire lasers · SHIFT boost · climb past 250m for space</div>
 <button id="mute">🔊</button>
@@ -142,6 +147,7 @@ body.promo #hud,body.promo #controls,body.promo #keys,body.promo #mute,body.prom
       <b>BEAM</b> – hold over a cow or car<br>
       <b>BOOST</b> – fly fast (uses power)<br>
       <b>FIRE</b> – shoot lasers at helicopters, jets &amp; missiles<br>
+      <b>🛬 LAND</b> – fly low and tap LAND to walk around as your alien (▲ jumps, tap twice to double-jump). Find 5 💠 relics on each world for an 🏅 Explorer Badge!<br>
       <b>Power-ups</b> – fly through glowing icons: 🧲 🛡️ ✖️2 ⏱️ 🔥 ⚡<br>
       Tip: the beam only reaches when you're <b>below 70m</b>.
     </div>
@@ -1534,7 +1540,7 @@ function spawnEnemy(type){
 const bulletSprites=[];
 function bulletSprite(i){if(!bulletSprites[i]){const s=navSprite(0xfff080,1.5);scene.add(s);bulletSprites[i]=s;}return bulletSprites[i];}
 function updateEnemies(dt,t,canGrab,bR){
-  const playing=state==='play'&&mode==='ground';
+  const playing=state==='play'&&mode==='ground'&&!onFoot;
   // heat / wanted level
   if(playing){
     heatIdle+=dt;if(heatIdle>10)heat=Math.max(0,heat-dt/8);
@@ -2018,7 +2024,7 @@ window.__moonEarth.material.map=SECTORS.earth.tex;window.__moonEarth.material.ne
 // ---------- promo camera (for TikTok / Reels) ----------
 const promo={t:0,prev:'menu',shot:-1,anchor:new V3(),ang:0};
 function startPromo(){
-  if(mode==='warp')return;initAudio();
+  if(mode==='warp'||onFoot)return;initAudio();
   promo.prev=state;promo.t=0;promo.shot=-1;state='promo';document.body.classList.add('promo');
   const c=promoCenter();promo.ang=Math.atan2(pos.z-c.z,pos.x-c.x);
   const h=$('promoHint');h.style.opacity=1;setTimeout(()=>h.style.opacity=0,3000);
@@ -2114,6 +2120,97 @@ function grabPU(k){if(k==='time'){timer+=20;pop('⏰ +20 SECONDS!');blip(700,170
 const shieldBubble=new THREE.Mesh(new THREE.SphereGeometry(6.2,28,18),new THREE.MeshBasicMaterial({color:0x6fe8ff,transparent:true,opacity:.22,blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide}));
 shieldBubble.visible=false;ufo.add(shieldBubble);
 function resetPU(){for(const k in pu)pu[k]=0;puKey='';}
+
+// ---------- ALIEN EXPLORER (land and walk around) ----------
+let onFoot=false,shipYaw=0,wv=0,wGround=true,wJumps=0,prevJump=false,prevShip=false,walkPh=0,heartCd=0;
+const shipPark=new V3();
+const walker=new THREE.Group();walker.visible=false;scene.add(walker);
+const wParts={};
+(function(){
+  const skin=new THREE.MeshLambertMaterial({color:0x6dff7a,emissive:0x1a5a20}),suit=new THREE.MeshStandardMaterial({color:0x2a3142,metalness:0.5,roughness:0.35,emissive:0x080a12});
+  const body=new THREE.Mesh(new THREE.CylinderGeometry(0.42,0.55,1.15,12),suit);body.position.y=1.45;walker.add(body);
+  const belt=new THREE.Mesh(new THREE.TorusGeometry(0.52,0.06,6,20),basic(0x3de1ff));belt.rotation.x=PI/2;belt.position.y=1.05;walker.add(belt);
+  const head=new THREE.Mesh(new THREE.SphereGeometry(0.62,18,14),skin);head.position.y=2.55;head.scale.set(1,1.15,1);walker.add(head);
+  for(const x of[-0.24,0.24]){const e=new THREE.Mesh(new THREE.SphereGeometry(0.2,12,10),basic(0x050505));e.position.set(x,2.62,-0.5);e.scale.set(1,1.5,0.6);e.rotation.z=x>0?-0.4:0.4;walker.add(e);
+    const an=new THREE.Mesh(new THREE.CylinderGeometry(0.03,0.03,0.6,5),skin);an.position.set(x*1.3,3.35,0);an.rotation.z=-x;walker.add(an);
+    const tip=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:0xff5ad8,transparent:true,depthWrite:false}));tip.position.set(x*1.9,3.65,0);tip.scale.set(0.7,0.7,1);walker.add(tip);}
+  const pack=new THREE.Mesh(new THREE.BoxGeometry(0.6,0.7,0.3),suit);pack.position.set(0,1.55,0.45);walker.add(pack);
+  const jet=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:0x7ffcff,transparent:true,depthWrite:false}));jet.position.set(0,1.1,0.55);jet.scale.set(0.8,0.8,1);walker.add(jet);wParts.jet=jet;
+  const limb=(x,y,len,mat)=>{const piv=new THREE.Group();piv.position.set(x,y,0);const m=new THREE.Mesh(new THREE.CylinderGeometry(0.13,0.11,len,8),mat);m.position.y=-len/2;piv.add(m);walker.add(piv);return piv;};
+  wParts.lArm=limb(-0.56,1.95,0.85,skin);wParts.rArm=limb(0.56,1.95,0.85,skin);
+  wParts.lLeg=limb(-0.22,0.92,0.92,suit);wParts.rLeg=limb(0.22,0.92,0.92,suit);
+  walker.scale.setScalar(1.15);
+})();
+// relics
+const RELICS={};let relicFx=[];
+let badges={};try{badges=JSON.parse(localStorage.getItem('ufoBadges')||'{}');}catch(e){}
+const TOWN_NAMES={city:'Neon City',desert:'Area 51',ice:'Frostara',lava:'Magmor',jungle:'Verdana',moon:'The Moon',mars:'Mars'};
+function makeRelic(){const g=new THREE.Group();const c=new THREE.Mesh(new THREE.OctahedronGeometry(0.9),new THREE.MeshBasicMaterial({color:0xc58bff}));c.scale.y=1.5;g.add(c);
+  const gl=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:0xb46bff,transparent:true,depthWrite:false}));gl.scale.set(6,6,1);g.add(gl);
+  const pil=new THREE.Mesh(new THREE.CylinderGeometry(0.25,0.25,60,6,1,true),new THREE.MeshBasicMaterial({color:0xc58bff,transparent:true,opacity:.22,blending:THREE.AdditiveBlending,depthWrite:false}));pil.position.y=30;g.add(pil);
+  g.userData.gem=c;scene.add(g);return g;}
+function freeAt(x,z){for(const b of colliders){if(x>b.x0-1.5&&x<b.x1+1.5&&z>b.z0-1.5&&z<b.z1+1.5&&b.y0<4)return false;}return Math.hypot(x,z)<600;}
+function setupRelics(){
+  const n=curTown;relicFx.forEach(r=>r.g.visible=false);
+  if(!RELICS[n]){RELICS[n]=[];const c=new V3(pos.x,0,pos.z);
+    for(let i=0;i<5;i++){let x,z,k=0;do{const a=rand(0,2*PI),r=rand(40,230);x=c.x+Math.cos(a)*r;z=c.z+Math.sin(a)*r;k++;}while(!freeAt(x,z)&&k<60);
+      RELICS[n].push({p:new V3(x,i===4?5:1.6,z),got:false,g:makeRelic()});}}
+  relicFx=RELICS[n];relicFx.forEach(r=>{r.g.visible=!r.got;r.g.position.copy(r.p);});
+}
+function relicCount(){return relicFx.filter(r=>r.got).length;}
+function landShip(){
+  if(state!=='play'||mode!=='ground'||onFoot)return;
+  onFoot=true;clearEnemies();heat=0;beamActive=false;speed=0;vy=0;
+  shipPark.set(pos.x,4,pos.z);shipYaw=yaw;
+  pos.copy(shipPark).addScaledVector(right,7);pos.y=0;wv=0;wJumps=0;
+  walker.visible=true;document.body.classList.add('walking');setupRelics();
+  pop('🚶 EXPLORE ON FOOT');pop(`Find the 5 💠 relics · ${relicCount()}/5`,'t');blip(300,600,0.25,'sine',0.12);lastHud='';
+}
+function boardShip(){
+  onFoot=false;walker.visible=false;document.body.classList.remove('walking');relicFx.forEach(r=>r.g.visible=false);
+  pos.copy(shipPark);pos.y=10;yaw=shipYaw;speed=0;vy=0;fadeIn();snapCam();
+  pop('🛸 BACK IN THE SHIP');blip(600,300,0.25,'sine',0.12);lastHud='';
+}
+function walkUpdate(dt,ix,iy,jumpBtn,run,shipBtn,t){
+  yaw-=ix*2.6*dt;fwd.set(-Math.sin(yaw),0,-Math.cos(yaw));
+  const sp=(iy>0?iy*(run?17:9):iy*5);pos.addScaledVector(fwd,sp*dt);
+  const grav=30*(curTown==='moon'?0.35:curTown==='mars'?0.6:1);
+  if(jumpBtn&&!prevJump){if(wGround){wv=14;wJumps=1;blip(300,700,0.12,'sine',0.08);}else if(wJumps<2){wv=12;wJumps=2;blip(500,1100,0.12,'sine',0.08);spawnFx(pos,tmpV.set(0,-3,0),0.4,2.5,3,0x7ffcff,true);}}
+  prevJump=jumpBtn;
+  pos.y+=wv*dt;wv-=grav*dt;
+  const hd=Math.hypot(pos.x,pos.z);if(hd>620){pos.x*=620/hd;pos.z*=620/hd;}
+  let gh=0;const R=0.7;
+  for(const b of colliders){
+    const cx=clamp(pos.x,b.x0,b.x1),cz=clamp(pos.z,b.z0,b.z1),dx=pos.x-cx,dz=pos.z-cz,d2=dx*dx+dz*dz;if(d2>=R*R)continue;
+    if(pos.y>=b.h-0.9){gh=Math.max(gh,b.h);continue;}
+    if(pos.y+3<b.y0)continue;
+    const d=Math.sqrt(d2);if(d>0.001){pos.x+=dx/d*(R-d);pos.z+=dz/d*(R-d);}
+    else{const e=[pos.x-b.x0,b.x1-pos.x,pos.z-b.z0,b.z1-pos.z],mi=Math.min(...e);if(mi===e[0])pos.x=b.x0-R;else if(mi===e[1])pos.x=b.x1+R;else if(mi===e[2])pos.z=b.z0-R;else pos.z=b.z1+R;}
+  }
+  if(pos.y<=gh){pos.y=gh;if(wv<0)wv=0;wGround=true;wJumps=0;}else wGround=false;
+  // animate
+  const mv=Math.abs(sp)>0.5&&wGround;walkPh+=dt*(run?14:9)*(mv?1:0);
+  const sw=mv?Math.sin(walkPh)*0.7:(wGround?0:0.4);
+  wParts.lLeg.rotation.x=sw;wParts.rLeg.rotation.x=wGround?-sw:-0.4;wParts.lArm.rotation.x=-sw*0.8;wParts.rArm.rotation.x=sw*0.8;
+  wParts.jet.visible=!wGround;wParts.jet.scale.setScalar(0.8+Math.random()*0.5);
+  walker.position.copy(pos);walker.position.y+=mv?Math.abs(Math.sin(walkPh))*0.15:0;walker.rotation.y=yaw;
+  // relics
+  for(const r of relicFx){if(r.got)continue;r.g.userData.gem.rotation.y+=dt*2;r.g.position.y=r.p.y+Math.sin(t*2)*0.3;
+    if(Math.hypot(pos.x-r.p.x,pos.z-r.p.z)<2.2&&Math.abs(pos.y+1.5-r.p.y)<2.6){r.got=true;r.g.visible=false;doBurst(r.p);score+=50;
+      const n=relicCount();pop(`💠 RELIC ${n}/5  +50`);blip(700,1900,0.3,'triangle',0.14);setTimeout(()=>blip(1000,2400,0.2,'triangle',0.1),130);
+      if(n===5){score+=300;if(!badges[curTown]){badges[curTown]=true;try{localStorage.setItem('ufoBadges',JSON.stringify(badges));}catch(e){}}
+        setTimeout(()=>{pop(`🏅 ${TOWN_NAMES[curTown]} EXPLORED! +300`);pop(`Badges: ${Object.keys(badges).length}/7`,'t');},700);}}}
+  // say hi to critters
+  heartCd-=dt;if(heartCd<=0)for(const T of targets){if(T.state==='ground'&&T.mesh.position.distanceTo(pos)<3.5){heartCd=1.2;spawnFx(T.mesh.position.clone().add(new V3(0,3.5,0)),tmpV.set(0,2,0),1,2.5,1,0xff5ad8,true);pop('💖','t');break;}}
+  if(shipBtn&&!prevShip)boardShip();prevShip=shipBtn;
+  energy=Math.min(100,energy+15*dt);
+}
+function walkCam(dt){
+  desired.copy(pos).addScaledVector(fwd,-12);desired.y=pos.y+5.5;camera.position.lerp(desired,1-Math.exp(-6*dt));
+  if(camera.position.y<1)camera.position.y=1;look.copy(pos).addScaledVector(fwd,8);look.y=pos.y+2;camera.lookAt(look);
+}
+$('bLand').addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();landShip();});
+addEventListener('keydown',e=>{if(e.key.toLowerCase()==='l'){if(onFoot)boardShip();else landShip();}});
 
 // ---------- input ----------
 const keys={},inp={up:false,down:false,beam:false,boost:false,fire:false},joy={x:0,y:0};
@@ -2254,6 +2351,7 @@ function startGame(){
   mode='ground';spaceGroup.visible=false;sky.visible=true;setTown('city');
   for(const k in towns)towns[k].targets.forEach(T=>T.spawn(T));
   crystals.forEach(placeCrystal);
+  if(onFoot){onFoot=false;walker.visible=false;document.body.classList.remove('walking');}for(const k in RELICS){RELICS[k].forEach(r=>scene.remove(r.g));delete RELICS[k];}relicFx=[];
   clearEnemies();clearSpaceFoes();spaceKills=0;heat=0;resetPU();puScoreSeen=0;if(boss){enemyGroup.remove(boss.g);boss=null;}bossNext=8;$('bossbar').style.display='none';warpGroup.visible=false;heatIdle=0;lastHurt=99;spawnT=3;
   $('menu').classList.add('hidden');$('over').classList.add('hidden');
   state='play';perfT=0;perfN=0;perfSum=0;
@@ -2355,7 +2453,7 @@ function abduct(T){
 }
 function cowWalk(T,dt){
   const m=T.mesh,f=T.field,dx=m.position.x-pos.x,dz=m.position.z-pos.z;let sp=T.sp;
-  if(state==='play'&&dx*dx+dz*dz<900&&pos.y<45){T.h=Math.atan2(dz,dx);sp=4;}
+  if(state==='play'&&!onFoot&&dx*dx+dz*dz<900&&pos.y<45){T.h=Math.atan2(dz,dx);sp=4;}
   else{T.wt-=dt;if(T.wt<=0){T.wt=rand(2,5);T.h=rand(0,2*PI);T.sp=Math.random()<0.4?0:rand(0.6,1.6);}}
   if(Math.abs(m.position.x-f.x)>42||Math.abs(m.position.z-f.z)>42){T.h=Math.atan2(f.z-m.position.z,f.x-m.position.x);sp=Math.max(sp,1);}
   m.position.x+=Math.cos(T.h)*sp*dt;m.position.z+=Math.sin(T.h)*sp*dt;m.rotation.set(0,-T.h,0);
@@ -2392,6 +2490,7 @@ function drawRadar(t){
   rx.globalAlpha=1;
   for(const e of enemies){let [r,f]=proj(e.p.x,e.p.z);const d=Math.hypot(f,r);if(d>320){f*=320/d;r*=320/d;}rx.fillStyle='#ff3b4a';rx.beginPath();if(e.type==='jet'){rx.moveTo(60+r*S,60-f*S-4);rx.lineTo(60+r*S-3.5,60-f*S+3);rx.lineTo(60+r*S+3.5,60-f*S+3);}else rx.arc(60+r*S,60-f*S,3.2,0,2*PI);rx.fill();}
   if(boss&&mode==='space'){let [r,f]=proj(boss.p.x,boss.p.z);const d=Math.hypot(f,r);if(d>320){f*=320/d;r*=320/d;}rx.fillStyle='#ff2a4a';rx.beginPath();rx.arc(60+r*S,60-f*S,6,0,2*PI);rx.fill();}
+  if(onFoot)for(const r of relicFx){if(r.got)continue;let [rr,f]=proj(r.p.x,r.p.z);const d=Math.hypot(f,rr);if(d>320){f*=320/d;rr*=320/d;}rx.fillStyle='#c58bff';rx.shadowColor='#c58bff';rx.shadowBlur=8;rx.beginPath();rx.arc(60+rr*S,60-f*S,4,0,2*PI);rx.fill();rx.shadowBlur=0;}
   for(const P of pickups){if(!P.g.visible)continue;let [r,f]=proj(P.g.position.x,P.g.position.z);const d=Math.hypot(f,r);if(d>320){f*=320/d;r*=320/d;}rx.fillStyle='#'+new THREE.Color(PU_TYPES[P.type].c).getHexString();rx.beginPath();rx.moveTo(60+r*S,60-f*S-4);rx.lineTo(60+r*S+4,60-f*S);rx.lineTo(60+r*S,60-f*S+4);rx.lineTo(60+r*S-4,60-f*S);rx.fill();}
   if(mode==='space'&&curSector==='earth')for(const B of SOLAR){let [r,f]=proj(B.p.x,B.p.z);const d=Math.hypot(f,r);if(d>320){f*=320/d;r*=320/d;}rx.fillStyle=B.css;rx.beginPath();rx.arc(60+r*S,60-f*S,7,0,2*PI);rx.fill();}
   if(mode==='space'&&curSector==='earth')for(const B of BODIES){let [r,f]=proj(B.p.x,B.p.z);const d=Math.hypot(f,r);if(d>320){f*=320/d;r*=320/d;}rx.fillStyle=B.css;rx.beginPath();rx.arc(60+r*S,60-f*S,B.town==='moon'?5:6,0,2*PI);rx.fill();rx.font='bold 9px system-ui';rx.fillStyle='#fff';rx.fillText(B.town==='moon'?'MOON':'MARS',60+r*S-12,60-f*S-8);}
@@ -2403,12 +2502,12 @@ function drawRadar(t){
 let lastHud='';
 function hud(){
   const tm=Math.ceil(timer),ts=Math.floor(tm/60)+':'+String(tm%60).padStart(2,'0');
-  const reach=pos.y<BEAM_MAX,altTxt=mode==='warp'?'🌀 WORMHOLE':mode==='space'?'🚀 SPACE':`ALT ${Math.round(pos.y)}m`;
-  const key=score+'|'+ts+'|'+cows+'|'+cars+'|'+altTxt+reach+mode;
+  const reach=pos.y<BEAM_MAX,altTxt=onFoot?`🚶 ON FOOT · 💠 ${relicCount()}/5`:mode==='warp'?'🌀 WORMHOLE':mode==='space'?'🚀 SPACE':`ALT ${Math.round(pos.y)}m`;
+  const key=score+'|'+ts+'|'+cows+'|'+cars+'|'+altTxt+reach+mode+onFoot;
   if(key!==lastHud){lastHud=key;
-    $('bBeam').textContent=mode==='space'?'FIRE':'BEAM';$('score').textContent=score;$('time').textContent=ts;$('time').classList.toggle('low',timer<10);
+    $('bBeam').textContent=onFoot?'🛸 SHIP':mode==='space'?'FIRE':'BEAM';$('bBoost').textContent=onFoot?'RUN':'BOOST';$('bUp').innerHTML=onFoot?'<span style="font-size:13px">JUMP</span>':'▲';$('score').textContent=score;$('time').textContent=ts;$('time').classList.toggle('low',timer<10);
     $('tally').innerHTML=`🐄 ${cows} &nbsp;|&nbsp; 🚗 ${cars}`;
-    $('alt').innerHTML=altTxt+' · '+(mode!=='ground'?(mode==='warp'?'<b>HOLD ON!</b>':'<b>FIND A PORTAL</b>'):towns[curTown].planet?(pos.y>150?'<b class="no">⬆ SPACE ABOVE</b>':reach?'<b>BEAM OK</b>':'<b class="no">TOO HIGH</b>'):pos.y>CLOUD_Y+10?'<b class="no">☁️ SKY REALM</b>':pos.y>120?'<b class="no">⬆ CLOUDS ABOVE</b>':reach?'<b>BEAM OK</b>':'<b class="no">TOO HIGH</b>');
+    $('alt').innerHTML=altTxt+' · '+(onFoot?'<b>JUMP ▲ ×2</b>':mode!=='ground'?(mode==='warp'?'<b>HOLD ON!</b>':'<b>FIND A PORTAL</b>'):towns[curTown].planet?(pos.y>150?'<b class="no">⬆ SPACE ABOVE</b>':reach?'<b>BEAM OK</b>':'<b class="no">TOO HIGH</b>'):pos.y>CLOUD_Y+10?'<b class="no">☁️ SKY REALM</b>':pos.y>120?'<b class="no">⬆ CLOUDS ABOVE</b>':reach?'<b>BEAM OK</b>':'<b class="no">TOO HIGH</b>');
   }
   $('shieldBar').style.width=shield+'%';
   const pb=$('powerBar');pb.style.width=energy+'%';pb.classList.toggle('lock',lock);
@@ -2430,10 +2529,11 @@ function loop(now){
   ix=clamp(ix,-1,1);iy=clamp(iy,-1,1);
   const up=inp.up||keys.r||keys.e,down=inp.down||keys.f||keys.q;
   const beamBtn=inp.beam||keys[' '],boostBtn=inp.boost||keys.shift;
-  const fireBtn=inp.fire||keys.x||(mode==='space'&&beamBtn);
+  const fireBtn=!onFoot&&(inp.fire||keys.x||(mode==='space'&&beamBtn));
 
   let boosting=false;
-  if(state==='play'){
+  if(state==='play'&&onFoot){walkUpdate(dt,ix,iy,up||keys[' ']&&false,boostBtn,beamBtn,t);beamActive=false;speed=0;}
+  else if(state==='play'){
     if(energy<=0.5)lock=true;if(lock&&energy>25)lock=false;
     boosting=boostBtn&&!lock&&iy>0.1;
     yaw-=ix*1.7*dt;
@@ -2461,7 +2561,9 @@ function loop(now){
 
   // UFO visuals
   ufo.position.set(pos.x,pos.y+Math.sin(t*2.2)*0.25,pos.z);ufo.rotation.y=yaw;
-  bank+=((state==='play'?-ix*0.38:state==='promo'?-0.22:0)-bank)*(1-Math.exp(-5*dt));
+  if(onFoot){ufo.position.set(shipPark.x,shipPark.y+Math.sin(t*2.2)*0.25,shipPark.z);ufo.rotation.y=shipYaw;}
+  document.body.classList.toggle('canland',state==='play'&&mode==='ground'&&!onFoot&&pos.y<14);
+  bank+=((state==='play'&&!onFoot?-ix*0.38:state==='promo'?-0.22:0)-bank)*(1-Math.exp(-5*dt));
   pitch+=(-(speed/80)*0.3-pitch)*(1-Math.exp(-4*dt));
   tilt.rotation.set(pitch,0,bank);
   stealthCraft.userData.update(t,beamActive);
@@ -2488,7 +2590,7 @@ function loop(now){
   beamRing.rotation.y=t*0.42;
   spot.position.set(pos.x,0.2,pos.z);spot.scale.setScalar(bR*1.15);
   uLight.intensity=beamActive?2.2:1.0;
-  shadow.visible=mode==='ground';shadow.position.set(pos.x,0.05,pos.z);shadow.scale.setScalar(4.3+pos.y*0.02);shadow.material.opacity=0.4*(1-pos.y/170);
+  shadow.visible=mode==='ground'&&!onFoot;shadow.position.set(pos.x,0.05,pos.z);shadow.scale.setScalar(4.3+pos.y*0.02);shadow.material.opacity=0.4*(1-pos.y/170);
   if(parts.visible){
     const top=pos.y-0.9,bot=top-blen;
     for(let i=0;i<NP;i++){const p=pData[i];p.h+=p.sp*dt*(reach?1:1.6);if(p.h>1){p.h=0;p.a=rand(0,2*PI);p.rf=Math.sqrt(Math.random());}
@@ -2599,6 +2701,7 @@ function loop(now){
 
   // camera
   if(state==='promo'){promoCam(dt,t);}
+  else if(onFoot&&state==='play'){walkCam(dt);}
   else if(state==='menu'){
     const a=t*0.25;desired.set(pos.x+Math.sin(a)*22,pos.y+6,pos.z+Math.cos(a)*22);
     camera.position.lerp(desired,1-Math.exp(-2*dt));camera.lookAt(pos);

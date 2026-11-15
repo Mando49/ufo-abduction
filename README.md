@@ -21,6 +21,8 @@ Sponsored by [Mando Window Tinting](https://lasvegaswindowtintnv.com): window ti
 
 3D models for the cows, cars, police cars, army trucks, helicopters, jets and the Shadow Triangle ship were made with AI (Higgsfield / Tripo) and are in `assets/models/`.
 
+🛬 **Alien Explorer:** fly low and tap LAND to step out as your little green alien. Walk, run and double-jump around any world (lower gravity on the Moon and Mars!). Each world hides 5 💠 relics (purple dots on the radar); find all 5 for that world's 🏅 Explorer Badge (7 to collect, saved on your device). The timer pauses while you're on foot. Tap 🛸 SHIP to fly again.
+
 🎵 **Music:** a synthwave soundtrack generated live in the browser, with its own song for every area (Neon City, Area 51, the clouds, space, wormholes, boss fights/high wanted level, Frostara, Magmor, Verdana, the Moon and Mars). Toggle with the 🎵 button.
 
 🎬 **Promo Camera:** tap 🎬 (or PROMO CAMERA on the menu) to hide the controls and let the ship fly itself while the camera cuts between cinematic shots — perfect for screen-recording TikTok / Reels clips. Tap anywhere to exit.
