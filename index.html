@@ -94,6 +94,7 @@ body.touch #keys{display:none}
   <div id="pops"></div>
   <div id="warn">⚠ MISSILE LOCK</div>
   <div id="flash"></div>
+  <div id="lflash" style="position:absolute;inset:0;background:#dfe8ff;opacity:0;pointer-events:none"></div>
   <div id="fade" style="position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none"></div>
 </div>
 
@@ -129,7 +130,7 @@ body.touch #keys{display:none}
     </div>
     <p style="font-size:13px">🐄 Cow 10 · 🚗 Car 25 · 🚓 Police car 40 · 🚚 Army truck 40 · 🚁 Helicopter 60 · 💎 Space crystal 5</p>
     <p style="font-size:13px">⭐ Every abduction raises your <b>wanted level</b>. Helicopters, then fighter jets with homing missiles come after you. Boost to outrun missiles. Beam up helicopters flying below you!</p>
-    <p style="font-size:13px">🚀 Fly up through the clouds (250m+) to reach space, then fly through a portal to travel to the <b>Area 51 desert</b>.</p>
+    <p style="font-size:13px">🚀 Fly up through the stormy Sky Realm (360m+) to reach space, then fly through a portal to travel to the <b>Area 51 desert</b>.</p>
     <button class="play" id="playBtn">PLAY</button>
     <div><button class="hbtn" id="shopBtn">🛠️ HANGAR</button></div>
     <div class="best" id="bankMenu"></div>
@@ -194,7 +195,7 @@ renderer.setPixelRatio(PR);
 const scene=new THREE.Scene();
 const FOG=new THREE.Color(0x1f2448);
 scene.fog=new THREE.Fog(FOG,160,820);
-scene.background=FOG.clone();const SPACE_C=new THREE.Color(0x02030a),CLOUD_C=new THREE.Color(0xa77f9e);
+scene.background=FOG.clone();const SPACE_C=new THREE.Color(0x02030a),CLOUD_C=new THREE.Color(0xa77f9e),STORM_C=new THREE.Color(0x3a3048),ABOVE_C=new THREE.Color(0x4a3a58);
 const camera=new THREE.PerspectiveCamera(65,1,0.5,3000);
 
 let composer=null,bloom=null;
@@ -1012,8 +1013,105 @@ const cloudLayer=new THREE.Group();scene.add(cloudLayer);
   for(let i=0;i<14;i++){const x=rand(30,98),y=rand(40,88),r=rand(18,36);const gr=g.createRadialGradient(x,y,0,x,y,r);gr.addColorStop(0,'rgba(255,255,255,.6)');gr.addColorStop(1,'rgba(255,255,255,0)');g.fillStyle=gr;g.fillRect(0,0,128,128);}
   const t=new THREE.CanvasTexture(c);
   for(let i=0;i<150;i++){const s=new THREE.Sprite(new THREE.SpriteMaterial({map:t,color:new THREE.Color().setHSL(rand(0.86,0.98),0.4,rand(0.7,0.85)),transparent:true,opacity:rand(0.7,0.95),depthWrite:false,fog:false}));
-    s.position.set(rand(-600,600),rand(165,235),rand(-600,600));const sc=rand(120,260);s.scale.set(sc,sc*0.5,1);cloudLayer.add(s);}
+    s.position.set(rand(-600,600),rand(184,206),rand(-600,600));const sc=rand(120,260);s.scale.set(sc,sc*0.45,1);cloudLayer.add(s);}
 })();
+
+// ---------- SKY REALM (cloud sea between the towns and space) ----------
+const CLOUD_Y=188,SPACE_Y=360;
+function puffTex(kind){
+  const c=document.createElement('canvas');c.width=c.height=256;const g=c.getContext('2d');
+  const pal={sun:['#fff2dc','#f0b98a','#8a5a78'],storm:['#8d93ad','#4a4e66','#1c1d2c'],fire:['#fff0b0','#ff9a3a','#5a2a26']}[kind];
+  for(let i=0;i<46;i++){const x=rand(40,216),y=rand(70,200)-((i/46)*40),r=rand(22,58);
+    const gr=g.createRadialGradient(x-r*0.25,y-r*0.35,r*0.1,x,y,r);
+    gr.addColorStop(0,pal[0]);gr.addColorStop(0.55,pal[1]);gr.addColorStop(1,'rgba(0,0,0,0)');
+    g.globalAlpha=0.55;g.fillStyle=gr;g.beginPath();g.arc(x,y,r,0,2*PI);g.fill();}
+  // fade edges
+  g.globalAlpha=1;g.globalCompositeOperation='destination-in';const m=g.createRadialGradient(128,140,40,128,140,128);m.addColorStop(0,'rgba(0,0,0,1)');m.addColorStop(1,'rgba(0,0,0,0)');g.fillStyle=m;g.fillRect(0,0,256,256);
+  return new THREE.CanvasTexture(c);
+}
+const PUFF={sun:puffTex('sun'),storm:puffTex('storm'),fire:puffTex('fire')};
+const skyRealm=new THREE.Group();scene.add(skyRealm);
+const stormTowers=[],bolts=[],volcanoFx=[];let boltT=2,flashLvl=0;
+(function(){
+  // solid cloud floor (hides the towns from above)
+  const c=document.createElement('canvas');c.width=c.height=512;const g=c.getContext('2d');
+  g.fillStyle='#6d5a78';g.fillRect(0,0,512,512);
+  for(let i=0;i<420;i++){const x=rand(0,512),y=rand(0,512),r=rand(10,48);const gr=g.createRadialGradient(x-r*0.3,y-r*0.3,1,x,y,r);
+    const lit=Math.random();gr.addColorStop(0,lit>0.6?'rgba(255,214,170,.55)':'rgba(200,180,215,.45)');gr.addColorStop(1,'rgba(60,45,75,0)');g.fillStyle=gr;
+    for(const ox of[-512,0,512])for(const oy of[-512,0,512]){g.beginPath();g.arc(x+ox,y+oy,r,0,2*PI);g.fill();}}
+  const t=new THREE.CanvasTexture(c);t.wrapS=t.wrapT=THREE.RepeatWrapping;t.repeat.set(10,10);t.anisotropy=renderer.capabilities.getMaxAnisotropy();
+  const floor=new THREE.Mesh(new THREE.PlaneGeometry(4200,4200),new THREE.MeshBasicMaterial({map:t,side:THREE.DoubleSide}));
+  floor.rotation.x=-PI/2;floor.position.y=CLOUD_Y;skyRealm.add(floor);
+  const under=new THREE.Mesh(new THREE.PlaneGeometry(4200,4200),new THREE.MeshBasicMaterial({color:0x2c2638,side:THREE.BackSide}));
+  under.rotation.x=-PI/2;under.position.y=CLOUD_Y-1.5;skyRealm.add(under);
+  // storm cloud towers with glowing fiery hearts
+  for(let i=0;i<7;i++){const a=i/7*2*PI+rand(-0.3,0.3),R=rand(220,520),x=Math.cos(a)*R,z=Math.sin(a)*R;
+    const T={x,z,glow:[],h:rand(70,120)};
+    for(let k=0;k<11;k++){const y=CLOUD_Y+k*T.h/11,sc=rand(70,120)*(1.15-k/14);
+      const kind=k<3?'storm':(k<8&&Math.random()<0.55?'fire':(Math.random()<0.5?'storm':'sun'));
+      const s=new THREE.Sprite(new THREE.SpriteMaterial({map:PUFF[kind],transparent:true,depthWrite:false}));
+      s.position.set(x+rand(-25,25),y,z+rand(-25,25));s.scale.set(sc,sc*0.8,1);skyRealm.add(s);
+      if(kind==='fire')T.glow.push(s);}
+    const core=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:0xff9a40,transparent:true,opacity:.5,blending:THREE.AdditiveBlending,depthWrite:false}));
+    core.position.set(x,CLOUD_Y+T.h*0.45,z);core.scale.set(140,110,1);skyRealm.add(core);T.core=core;
+    stormTowers.push(T);}
+  // snowy peaks rising out of the clouds
+  const pg=new THREE.ConeGeometry(1,1,16,14);pg.translate(0,0.5,0);
+  const p=pg.attributes.position,cols=[];const rock=new THREE.Color(0x2a2730),dark=new THREE.Color(0x15141a),snow=new THREE.Color(0xffffff);
+  for(let i=0;i<p.count;i++){const x=p.getX(i),y=p.getY(i),z=p.getZ(i);
+    if(y<0.99){const an=Math.atan2(z,x),n=1+0.3*Math.sin(an*5+y*9)*Math.sin(y*13)+0.18*Math.sin(an*11)+rand(-0.16,0.16);p.setX(i,x*n);p.setZ(i,z*n);if(y>0.05)p.setY(i,y+rand(-0.04,0.04));}
+    const yy=p.getY(i);const c=yy>0.62+rand(-0.12,0.08)&&Math.random()<0.85?snow:(Math.random()<0.5?rock:dark);cols.push(c.r,c.g,c.b);}
+  pg.setAttribute('color',new THREE.Float32BufferAttribute(cols,3));pg.computeVertexNormals();
+  const pm=new THREE.MeshLambertMaterial({vertexColors:true,flatShading:true});
+  for(let i=0;i<16;i++){const a=i/16*2*PI+rand(-0.1,0.1),R=rand(720,980),h=rand(300,470),w=rand(120,210);
+    const m=new THREE.Mesh(pg,pm);m.position.set(Math.cos(a)*R,0,Math.sin(a)*R);m.scale.set(w,h,w*rand(0.8,1.2));m.rotation.y=rand(0,6);skyRealm.add(m);}
+  // volcano with lava glow and smoke
+  const VX=-780,VZ=-560;
+  const vg=new THREE.CylinderGeometry(40,260,380,14,6,true);vg.translate(0,190,0);
+  const vp=vg.attributes.position,vc=[];const lava=new THREE.Color(0xff5a1a),vr=new THREE.Color(0x2a2226);
+  for(let i=0;i<vp.count;i++){const y=vp.getY(i),x=vp.getX(i),z=vp.getZ(i);const n=1+rand(-0.08,0.08);vp.setX(i,x*n);vp.setZ(i,z*n);
+    const streak=y>200&&Math.sin(Math.atan2(z,x)*5)>0.82;const c=streak?lava:vr;vc.push(c.r,c.g,c.b);}
+  vg.setAttribute('color',new THREE.Float32BufferAttribute(vc,3));vg.computeVertexNormals();
+  const vol=new THREE.Mesh(vg,new THREE.MeshLambertMaterial({vertexColors:true,emissive:0x220a04}));vol.position.set(VX,0,VZ);skyRealm.add(vol);
+  const crater=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:0xff6a20,transparent:true,blending:THREE.AdditiveBlending,depthWrite:false}));crater.position.set(VX,385,VZ);crater.scale.set(180,120,1);skyRealm.add(crater);volcanoFx.push({crater});
+  for(let i=0;i<14;i++){const s=new THREE.Sprite(new THREE.SpriteMaterial({map:PUFF.storm,transparent:true,opacity:.8,depthWrite:false}));s.position.set(VX,390,VZ);skyRealm.add(s);volcanoFx.push({s,ph:i/14,dx:rand(-1,1),dz:rand(-0.4,0.4)});}
+})();
+// sun rays above the clouds (live in the sky dome, which follows the camera)
+const raysMat=(function(){const c=document.createElement('canvas');c.width=c.height=512;const g=c.getContext('2d');g.translate(256,256);
+  for(let i=0;i<70;i++){const a=rand(0,2*PI),w=rand(0.008,0.04),L=rand(150,256);g.fillStyle=`rgba(255,${(190+rand(0,50))|0},140,${rand(0.05,0.18).toFixed(2)})`;g.beginPath();g.moveTo(0,0);g.lineTo(Math.cos(a-w)*L,Math.sin(a-w)*L);g.lineTo(Math.cos(a+w)*L,Math.sin(a+w)*L);g.fill();}
+  const gr=g.createRadialGradient(0,0,0,0,0,140);gr.addColorStop(0,'rgba(255,240,200,.9)');gr.addColorStop(1,'rgba(255,200,140,0)');g.fillStyle=gr;g.fillRect(-256,-256,512,512);
+  return new THREE.SpriteMaterial({map:new THREE.CanvasTexture(c),transparent:true,opacity:0,blending:THREE.AdditiveBlending,depthWrite:false,fog:false});})();
+const rays=new THREE.Sprite(raysMat);rays.position.set(-700,60,-1300);rays.scale.set(1500,1500,1);sky.add(rays);
+// lightning
+const boltMatL=new THREE.MeshBasicMaterial({color:0xdde8ff,transparent:true,blending:THREE.AdditiveBlending,depthWrite:false});
+const segGeo=new THREE.CylinderGeometry(0.7,0.7,1,5);segGeo.translate(0,0.5,0);
+function strike(x,z,top){
+  const g=new THREE.Group();let p=new V3(x,top,z);const pts=[p.clone()];
+  while(p.y>CLOUD_Y-4){p=p.clone().add(new V3(rand(-9,9),-rand(8,16),rand(-9,9)));pts.push(p);}
+  const addSeg=(a,b,w)=>{const d=b.clone().sub(a),m=new THREE.Mesh(segGeo,boltMatL);m.position.copy(a);m.scale.set(w,d.length(),w);m.quaternion.setFromUnitVectors(Y_AXIS,d.normalize());g.add(m);};
+  for(let i=1;i<pts.length;i++){addSeg(pts[i-1],pts[i],1);
+    if(Math.random()<0.35){let q=pts[i].clone();for(let k=0;k<3;k++){const n=q.clone().add(new V3(rand(-12,12),-rand(5,10),rand(-12,12)));addSeg(q,n,0.5);q=n;}}}
+  const glow=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:0xb8c8ff,transparent:true,blending:THREE.AdditiveBlending,depthWrite:false}));glow.position.set(x,(top+CLOUD_Y)/2,z);glow.scale.set(160,160,1);g.add(glow);
+  skyRealm.add(g);bolts.push({g,life:0.35,x,z,top,pts});
+  flashLvl=1;
+  const d=Math.hypot(pos.x-x,pos.z-z);setTimeout(()=>boom(clamp(0.6-d/900,0.08,0.6)),Math.min(1500,d*2));
+  if(state==='play'&&d<22&&pos.y<top+5&&pos.y>CLOUD_Y-10){hurt(10);pop('⚡ STRUCK BY LIGHTNING!');}
+}
+function skyAnim(dt,t){
+  if(!skyRealm.visible)return;
+  // lightning: more often near storm towers, warning glow first
+  boltT-=dt;
+  if(boltT<=0&&pos.y>130){boltT=rand(1.2,3.2);
+    let T=stormTowers[0],bd=1e9;for(const S of stormTowers){const d=Math.hypot(S.x-pos.x,S.z-pos.z)+rand(0,250);if(d<bd){bd=d;T=S;}}
+    const nearMe=Math.random()<0.25&&pos.y>CLOUD_Y-20;
+    const x=nearMe?pos.x+rand(-60,60):T.x+rand(-40,40),z=nearMe?pos.z+rand(-60,60):T.z+rand(-40,40);
+    T.flash=1;strike(x,z,CLOUD_Y+rand(90,150));}
+  for(let i=bolts.length-1;i>=0;i--){const B=bolts[i];B.life-=dt;B.g.visible=(B.life*20|0)%3!==1;if(B.life<=0){B.g.traverse(o=>{if(o.isSprite)o.material.dispose();});skyRealm.remove(B.g);bolts.splice(i,1);}}
+  stormTowers.forEach((S,i)=>{S.flash=Math.max(0,(S.flash||0)-dt*2.5);const k=0.45+0.15*Math.sin(t*1.7+i)+S.flash*0.8;S.core.material.opacity=Math.min(1,k);S.glow.forEach(g=>g.material.color.setScalar(0.85+S.flash*0.6));});
+  flashLvl=Math.max(0,flashLvl-dt*4);$('lflash').style.opacity=(flashLvl*0.35*clamp((pos.y-110)/60,0,1)).toFixed(3);
+  for(const V of volcanoFx){if(V.crater){V.crater.material.opacity=0.7+0.3*Math.sin(t*3);continue;}
+    const ph=(V.ph+t*0.06)%1;V.s.position.set(-780+V.dx*ph*160+ph*120,390+ph*260,-560+V.dz*ph*80);const sc=40+ph*200;V.s.scale.set(sc,sc*0.8,1);V.s.material.opacity=0.85*(1-ph);}
+}
 
 // ---------- SPACE ----------
 const spaceGroup=new THREE.Group();spaceGroup.visible=false;scene.add(spaceGroup);
@@ -1577,12 +1675,12 @@ function snapCam(){fwd.set(-Math.sin(yaw),0,-Math.cos(yaw));camera.position.copy
 function setTown(n){
   curTown=n;const T=towns[n];for(const k in towns)towns[k].group.visible=(k===n);
   colliders=T.colliders;fields=T.fields;targets=T.targets;torusCols=T.torusCols;
-  scene.fog.near=T.fog[0];scene.fog.far=T.fog[1];cloudLayer.visible=true;
+  scene.fog.near=T.fog[0];scene.fog.far=T.fog[1];cloudLayer.visible=true;skyRealm.visible=true;
 }
 function enterSpace(){
   clearEnemies();clearSpaceFoes();foeSpawnT=4;mode='space';fadeIn();
   for(const k in towns)towns[k].group.visible=false;
-  spaceGroup.visible=true;cloudLayer.visible=false;sky.visible=false;
+  spaceGroup.visible=true;cloudLayer.visible=false;skyRealm.visible=false;sky.visible=false;
   colliders=[];targets=[];torusCols=[];
   scene.background.set(0x02030a);scene.fog.color.set(0x02030a);scene.fog.near=3000;scene.fog.far=9000;
   pos.set(0,0,90);yaw=0;vy=0;speed=Math.max(speed,20);snapCam();
@@ -1590,7 +1688,7 @@ function enterSpace(){
 }
 function landAt(n){
   clearSpaceFoes();mode='ground';fadeIn();spaceGroup.visible=false;sky.visible=true;setTown(n);
-  pos.set(0,235,n==='city'?420:380);yaw=0;vy=-8;speed=15;snapCam();
+  pos.set(0,300,n==='city'?420:380);yaw=0;vy=-8;speed=15;snapCam();
   pop(n==='city'?'🌃 NEON CITY':'🏜️ AREA 51');blip(900,200,0.8,'sine',0.15);
 }
 function spaceUpdate(dt){
@@ -1696,7 +1794,7 @@ function hud(){
   if(key!==lastHud){lastHud=key;
     $('bBeam').textContent=mode==='space'?'FIRE':'BEAM';$('score').textContent=score;$('time').textContent=ts;$('time').classList.toggle('low',timer<10);
     $('tally').innerHTML=`🐄 ${cows} &nbsp;|&nbsp; 🚗 ${cars}`;
-    $('alt').innerHTML=altTxt+' · '+(mode==='space'?'<b>FIND A PORTAL</b>':pos.y>150?'<b class="no">⬆ SPACE ABOVE</b>':reach?'<b>BEAM OK</b>':'<b class="no">TOO HIGH</b>');
+    $('alt').innerHTML=altTxt+' · '+(mode==='space'?'<b>FIND A PORTAL</b>':pos.y>CLOUD_Y+10?'<b class="no">☁️ SKY REALM</b>':pos.y>120?'<b class="no">⬆ CLOUDS ABOVE</b>':reach?'<b>BEAM OK</b>':'<b class="no">TOO HIGH</b>');
   }
   $('shieldBar').style.width=shield+'%';
   const pb=$('powerBar');pb.style.width=energy+'%';pb.classList.toggle('lock',lock);
@@ -1734,7 +1832,7 @@ function loop(now){
       if(pos.y<3){pos.y=3;if(vy<0)vy=0;}
       const hd=Math.hypot(pos.x,pos.z);if(hd>620){pos.x*=620/hd;pos.z*=620/hd;}
       collide();
-      if(pos.y>258)enterSpace();
+      if(pos.y>SPACE_Y)enterSpace();
     }else spaceUpdate(dt);
     beamActive=beamBtn&&!lock&&mode==='ground';
     if(beamActive)energy-=20*dt*M.pow;if(boosting)energy-=14*dt*M.pow;
@@ -1893,12 +1991,15 @@ function loop(now){
     look.copy(pos).addScaledVector(fwd,16);look.y-=1.5;camera.lookAt(look);
   }
   sky.position.copy(camera.position);
-  if(mode==='ground'){const a=clamp((pos.y-100)/90,0,1),k=clamp((pos.y-212)/40,0,1),TF=towns[curTown].fog;
+  if(mode==='ground'){const y=pos.y,TF=towns[curTown].fog,below=clamp((y-110)/70,0,1),inF=clamp(1-Math.abs(y-CLOUD_Y)/18,0,1),above=clamp((y-CLOUD_Y-6)/22,0,1),k=clamp((y-300)/55,0,1);
     sky.material.opacity=1-k*0.9;
-    scene.fog.near=TF[0]+(6-TF[0])*a;scene.fog.far=TF[1]+(200-TF[1])*a;
-    scene.background.copy(FOG).lerp(CLOUD_C,a).lerp(SPACE_C,k);scene.fog.color.copy(scene.background);
+    let far=TF[1]+(330-TF[1])*below;far+=(1900-far)*above;far+=(30-far)*inF;
+    scene.fog.far=far;scene.fog.near=Math.min(TF[0],far*0.15);
+    scene.background.copy(FOG).lerp(STORM_C,below).lerp(ABOVE_C,above).lerp(SPACE_C,k);scene.fog.color.copy(scene.background);
+    raysMat.opacity=above*(1-k)*0.85;
+    skyAnim(dt,t);
     cloudLayer.position.set(Math.round(pos.x/300)*300,0,Math.round(pos.z/300)*300);
-    if(bloom)bloom.strength=0.75*(1-0.7*a);}
+    if(bloom)bloom.strength=0.75*(1-0.5*inF);}
 
   if(AC&&hum){hum.frequency.setTargetAtTime(50+Math.abs(speed)*0.9,AC.currentTime,0.1);beamGain.gain.setTargetAtTime(beamActive?0.05:0,AC.currentTime,0.05);}
 
