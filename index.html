@@ -73,10 +73,11 @@ body.touch #keys{display:none}
 .sb{flex:none;min-width:92px;font-weight:900;font-size:13px;padding:9px 10px;border-radius:999px;border:none;background:linear-gradient(90deg,#3dff8a,#4fd8ff);color:#06122a}
 .sb.buy{background:linear-gradient(90deg,#ffbe46,#ff8a3d)}
 .sb:disabled{opacity:.4}.sb.on{background:rgba(255,255,255,.15);color:#fff;opacity:1}
+#musicBtn{position:fixed;top:220px;right:16px;width:42px;height:42px;border-radius:50%;border:1.5px solid rgba(255,190,70,.6);background:rgba(8,14,38,.7);color:#fff;font-size:18px;z-index:5;box-shadow:0 0 10px rgba(255,190,70,.35)}
 #promoBtn{position:fixed;top:172px;right:16px;width:42px;height:42px;border-radius:50%;border:1.5px solid rgba(255,79,216,.6);background:rgba(8,14,38,.7);color:#fff;font-size:18px;z-index:5;box-shadow:0 0 10px rgba(255,79,216,.35)}
 #promo{display:none;position:fixed;inset:0;z-index:20}
 body.promo #promo{display:block}
-body.promo #hud,body.promo #controls,body.promo #keys,body.promo #mute,body.promo #promoBtn,body.promo .overlay{display:none!important}
+body.promo #hud,body.promo #controls,body.promo #keys,body.promo #mute,body.promo #promoBtn,body.promo #musicBtn,body.promo .overlay{display:none!important}
 #promoHint{position:absolute;top:38%;left:0;right:0;text-align:center;font-size:22px;font-weight:900;text-shadow:0 0 14px rgba(0,0,0,.8);transition:opacity 1s}
 #promoHint small{font-size:14px;opacity:.85;font-weight:700}
 #promoMark{position:absolute;left:0;right:0;bottom:max(18px,env(safe-area-inset-bottom));text-align:center;font-size:12px;line-height:1.5;padding:0 10px;text-shadow:0 1px 6px rgba(0,0,0,.9);opacity:.92}
@@ -125,6 +126,7 @@ body.promo #hud,body.promo #controls,body.promo #keys,body.promo #mute,body.prom
 <div id="keys">W/S fly · A/D turn · R/F up/down · SPACE beam · X fire lasers · SHIFT boost · climb past 250m for space</div>
 <button id="mute">🔊</button>
 <button id="promoBtn" title="Promo camera">🎬</button>
+<button id="musicBtn" title="Music">🎵</button>
 <div id="promo">
   <div id="promoHint">🎬 Start your screen recording<br><small>Tap anywhere to exit</small></div>
   <div id="promoMark"><b>🛸 UFO ABDUCTION</b> · play free at <b>mando49.github.io/ufo-abduction</b><br><span>Sponsored by Mando Window Tinting · lasvegaswindowtintnv.com</span></div>
@@ -2167,6 +2169,75 @@ function blip(f0,f1,dur,type,vol){
   o.connect(g);g.connect(master);o.start(n);o.stop(n+dur+0.05);
 }
 $('mute').addEventListener('click',()=>{muted=!muted;$('mute').textContent=muted?'🔇':'🔊';initAudio();if(master)master.gain.value=muted?0:0.6;});
+// ---------- MUSIC: procedural synthwave soundtrack, one song per area ----------
+const MIN=[0,2,3,5,7,8,10],MAJ=[0,2,4,5,7,9,11],PHR=[0,1,3,5,7,8,10],DOR=[0,2,3,5,7,9,10],HMIN=[0,2,3,5,7,8,11];
+const TRACKS={
+  city:{name:'Neon Drive',bpm:100,root:57,sc:MIN,prog:[0,5,2,6],bass:'x.x.x.x.x.x.xoxo',bw:'sawtooth',arp:'xxxxxxxxxxxxxxxx',aw:'square',ao:2,av:.03,pad:'sawtooth',kick:'x...x...x...x...',snare:'....x.......x...',hat:'..x...x...x...x.',cut:1800},
+  desert:{name:'Area 51',bpm:92,root:50,sc:PHR,prog:[0,1,0,6],bass:'x..x..x.x..x..x.',bw:'triangle',arp:'x.x.x.x.x.x.x.x.',aw:'triangle',ao:2,av:.05,pad:'triangle',kick:'x.....x...x.....',snare:'....x.......x...',hat:'x.x.x.x.x.x.x.x.',cut:1400},
+  sky:{name:'Above the Clouds',bpm:76,root:60,sc:MAJ,prog:[0,5,3,4],bass:'x...............',bw:'sine',arp:'x..x..x..x..x...',aw:'triangle',ao:2,av:.04,pad:'triangle',cut:2500},
+  space:{name:'Deep Space',bpm:84,root:52,sc:MIN,prog:[0,5,3,6],bass:'x.......x.......',bw:'sine',arp:'x...x...x...x...',aw:'sine',ao:3,av:.05,pad:'sawtooth',hat:'....x.......x...',cut:900},
+  warp:{name:'Wormhole',bpm:140,root:52,sc:MIN,prog:[0,0,5,6],bass:'xoxoxoxoxoxoxoxo',bw:'sawtooth',arp:'xxxxxxxxxxxxxxxx',aw:'square',ao:2,av:.03,kick:'x...x...x...x...',hat:'xxxxxxxxxxxxxxxx',cut:2600},
+  boss:{name:'Danger',bpm:128,root:52,sc:HMIN,prog:[0,5,4,4],bass:'x.xxx.xxx.xxx.xo',bw:'sawtooth',arp:'xxxxxxxxxxxxxxxx',aw:'square',ao:2,av:.03,kick:'x...x...x...x..x',snare:'....x..x....x...',hat:'.x.x.x.x.x.x.x.x',cut:2200},
+  ice:{name:'Frostara',bpm:88,root:54,sc:MIN,prog:[0,3,5,4],bass:'x.......x.......',bw:'sine',arp:'x.x.x.x.x.x.x.x.',aw:'sine',ao:3,av:.05,pad:'triangle',kick:'x.......x.......',hat:'..x...x...x...x.',cut:3000},
+  lava:{name:'Magmor',bpm:108,root:48,sc:PHR,prog:[0,1,0,1],bass:'xx.xxx.xxx.xxx.x',bw:'sawtooth',arp:'x...x...x..x.x..',aw:'sawtooth',ao:1,av:.04,kick:'x..x..x.x..x..x.',snare:'....x.......x...',hat:'x.x.x.x.x.x.x.x.',cut:900},
+  jungle:{name:'Verdana',bpm:104,root:55,sc:DOR,prog:[0,3,0,3],bass:'x..x.x..x..x.x..',bw:'triangle',arp:'x.xx.x.xx.x.x.xx',aw:'triangle',ao:2,av:.06,kick:'x...x...x...x...',snare:'......x.......x.',hat:'xxxxxxxxxxxxxxxx',cut:2200,short:1},
+  moon:{name:'Tranquility',bpm:66,root:50,sc:MIN,prog:[0,5,2,6],bass:'x...............',bw:'sine',arp:'x.......x.......',aw:'sine',ao:3,av:.05,pad:'triangle',cut:1200},
+  mars:{name:'Red Planet',bpm:96,root:47,sc:MIN,prog:[0,5,6,4],bass:'x.x...x.x.x...x.',bw:'sawtooth',arp:'x.xx.xx.x.xx.xx.',aw:'square',ao:2,av:.03,pad:'sawtooth',kick:'x.......x.......',snare:'....x.......x...',hat:'..x...x...x...x.',cut:1500}
+};
+let musicOn=true;try{musicOn=localStorage.getItem('ufoMusic')!=='off';}catch(e){}
+const MU={bus:null,cur:null,want:null,wantT:0,step:0,nextT:0,switching:0,white:null};
+const mtof=m=>440*Math.pow(2,(m-69)/12);
+function chordNotes(T,d){const s=T.sc,n=i=>T.root+s[i%7]+12*Math.floor(i/7);return[n(d),n(d+2),n(d+4)];}
+function mVoice(f,t,dur,type,vol,cut,att,rel,det){
+  const o=AC.createOscillator(),fl=AC.createBiquadFilter(),g=AC.createGain();
+  o.type=type;o.frequency.value=f;if(det)o.detune.value=det;fl.type='lowpass';fl.frequency.value=cut;
+  g.gain.setValueAtTime(0.0001,t);g.gain.linearRampToValueAtTime(vol,t+att);g.gain.setValueAtTime(vol,t+Math.max(att,dur-rel));g.gain.linearRampToValueAtTime(0.0001,t+dur);
+  o.connect(fl);fl.connect(g);g.connect(MU.bus);o.start(t);o.stop(t+dur+0.05);
+}
+function mNoise(t,dur,vol,hp){const s=AC.createBufferSource();s.buffer=MU.white;const f=AC.createBiquadFilter();f.type='highpass';f.frequency.value=hp;const g=AC.createGain();
+  g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(0.001,t+dur);s.connect(f);f.connect(g);g.connect(MU.bus);s.start(t);s.stop(t+dur+0.02);}
+function mKick(t){const o=AC.createOscillator(),g=AC.createGain();o.frequency.setValueAtTime(150,t);o.frequency.exponentialRampToValueAtTime(42,t+0.14);
+  g.gain.setValueAtTime(0.55,t);g.gain.exponentialRampToValueAtTime(0.001,t+0.3);o.connect(g);g.connect(MU.bus);o.start(t);o.stop(t+0.32);}
+function mStep(T,i,t){
+  const s16=60/T.bpm/4,bar=Math.floor(i/16)%T.prog.length,st=i%16,ch=chordNotes(T,T.prog[bar]);
+  if(st===0&&T.pad)ch.forEach(m=>{for(const d of[-8,8])mVoice(mtof(m),t,s16*16,T.pad,0.022,T.cut,0.35,0.5,d);});
+  const b=T.bass[st];if(b!=='.')mVoice(mtof(ch[0]-12+(b==='o'?12:0)),t,s16*0.9,T.bw,0.11,T.cut*0.6,0.005,0.05);
+  if(T.arp[st]==='x'){const seq=[ch[0],ch[1],ch[2],ch[0]+12,ch[2],ch[1]];const m=seq[i%seq.length]+12*(T.ao-1);mVoice(mtof(m),t,s16*(T.short?0.5:0.85),T.aw,T.av,T.cut*1.4,0.004,0.04);}
+  if(T.kick&&T.kick[st]==='x')mKick(t);
+  if(T.snare&&T.snare[st]==='x')mNoise(t,0.16,0.16,1500);
+  if(T.hat&&T.hat[st]==='x')mNoise(t,0.035,0.05,7000);
+}
+function wantTrack(){
+  if(state==='menu'||state==='over')return 'city';
+  if(mode==='warp')return 'warp';
+  if(boss&&mode==='space')return 'boss';
+  if(mode==='space')return 'space';
+  if(heat>=3&&state==='play'&&!towns[curTown].planet)return 'boss';
+  if(towns[curTown].planet)return curTown;
+  if(pos.y>CLOUD_Y-10)return 'sky';
+  return curTown;
+}
+function musicTick(dt){
+  if(!AC)return;
+  if(!MU.bus){MU.bus=AC.createGain();MU.bus.gain.value=0;MU.bus.connect(master);
+    MU.white=AC.createBuffer(1,AC.sampleRate*0.3|0,AC.sampleRate);const d=MU.white.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;}
+  const now=AC.currentTime;
+  if(!musicOn){MU.bus.gain.setTargetAtTime(0,now,0.1);return;}
+  const w=wantTrack();
+  if(w!==MU.want){MU.want=w;MU.wantT=0;}else MU.wantT+=dt;
+  if(!MU.cur){MU.cur=w;MU.step=0;MU.nextT=now+0.1;MU.bus.gain.setTargetAtTime(0.5,now,0.3);}
+  else if(MU.want!==MU.cur&&!MU.switching&&(MU.wantT>0.8||MU.want==='warp'||MU.want==='boss')){MU.switching=now+0.45;MU.bus.gain.setTargetAtTime(0,now,0.12);}
+  if(MU.switching&&now>=MU.switching){MU.switching=0;MU.cur=MU.want;MU.step=0;MU.nextT=now+0.05;MU.bus.gain.setTargetAtTime(0.5,now,0.25);
+    if(state==='play')pop('🎵 '+TRACKS[MU.cur].name,'t');}
+  if(MU.switching)return;
+  const T=TRACKS[MU.cur],s16=60/T.bpm/4;
+  if(MU.nextT<now-0.3)MU.nextT=now+0.05;
+  while(MU.nextT<now+0.15){mStep(T,MU.step,MU.nextT);MU.step++;MU.nextT+=s16;}
+}
+function setMusicBtn(){$('musicBtn').textContent=musicOn?'🎵':'🎵̸';$('musicBtn').style.opacity=musicOn?1:0.45;}
+$('musicBtn').addEventListener('click',e=>{e.stopPropagation();musicOn=!musicOn;try{localStorage.setItem('ufoMusic',musicOn?'on':'off');}catch(_){}initAudio();setMusicBtn();});
+setMusicBtn();
+
 
 // ---------- game state ----------
 const BEAM_MAX=70;
@@ -2553,6 +2624,7 @@ function loop(now){
     cloudLayer.position.set(Math.round(pos.x/300)*300,0,Math.round(pos.z/300)*300);
     if(bloom)bloom.strength=0.75*(1-0.5*inF);}
 
+  musicTick(dt);
   if(AC&&hum){hum.frequency.setTargetAtTime(50+Math.abs(speed)*0.9,AC.currentTime,0.1);beamGain.gain.setTargetAtTime(beamActive?0.05:0,AC.currentTime,0.05);}
 
   if(state!=='menu'){hud();if(frame%2===0)drawRadar(t);}
