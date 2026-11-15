@@ -38,6 +38,8 @@ A 3D browser game: fly a triangle UFO over a neon cyberpunk city and farmland, a
 
 🏈 **Neon City extras:** a stadium on game night (two football teams — red & white vs white & silver — a live scoreboard, a blimp to catch and a stadium parking lot with tailgaters), street racers chased by cops around the ring road, a rooftop helipad, the MANDO WINDOW TINTING tower sign, live score billboards, a low-flying news chopper and a night market with food trucks.
 
+🧊 **Antarctica & the Ice Wall:** the ice world is now Antarctica, ringed by a giant Ice Wall. Fly up and over it (the internet legend says it's all green on the other side) to find green hills, lakes, dinosaurs and a lost golden city.
+
 🧸 **Real 3D models:** your pilot alien is now a fully animated 3D character when you land (idle, walk, run and jump); camels, penguins, T-rexes, jaguars, sharks, tractors, barns and sunken treasure, plus *animated* walking people, mummies, yetis, robots, foxes and lost little aliens at Area 51 (rescue them by beaming them up!).
 
 ⚙️ **Runs on older phones:** a loading screen while the 12 worlds build, a **Graphics** button on the menu (Auto / High / Medium / Low), and Auto mode lowers the quality step by step if the game starts to stutter. Small still objects (palm trees, houses, people, cars) are merged so the phone draws far fewer pieces each frame.

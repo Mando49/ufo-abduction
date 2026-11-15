@@ -226,7 +226,7 @@ body.promo #hud,body.promo #controls,body.promo #keys,body.promo #mute,body.prom
     </div>
     <p style="font-size:13px">🐄 Cow 10 · 🚗 Car 25 · 🚓 Police car 40 · 🚚 Army truck 40 · 🚁 Helicopter 60 · 💎 Space crystal 5</p>
     <p style="font-size:13px">⭐ Every abduction raises your <b>wanted level</b>. Helicopters, then fighter jets with homing missiles come after you. Boost to outrun missiles. Beam up helicopters flying below you!</p>
-    <p style="font-size:13px">🚀 Fly up through the stormy Sky Realm (360m+) to reach space, then fly through a portal to travel to the <b>Area 51 desert</b>, or ride deep-space wormholes to alien planets: ❄️ Frostara, 🔥 Magmor and 🍄 Verdana.</p>
+    <p style="font-size:13px">🚀 Fly up through the stormy Sky Realm (360m+) to reach space, then fly through a portal to travel to the <b>Area 51 desert</b>, or ride deep-space wormholes to alien planets: ❄️ Antarctica, 🔥 Magmor and 🍄 Verdana.</p>
     <button class="play" id="playBtn">PLAY</button>
     <div><button class="hbtn" id="gfxBtn">⚙️ Graphics: Auto</button></div>
     <div><button class="hbtn" id="freeBtn" style="border-color:#7ffcff;color:#bff8ff;background:rgba(5,30,40,.6)">🌌 FREE EXPLORE <small style="font-size:11px;opacity:.8">· no timer</small></button></div>
@@ -1726,20 +1726,20 @@ const planetAnim=[];
 function glowSprite(c,x,y,z,s,op){const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:c,transparent:true,opacity:op||1,blending:THREE.AdditiveBlending,depthWrite:false}));sp.position.set(x,y,z);sp.scale.set(s,s,1);root.add(sp);return sp;}
 const freeSpot=(x,z,fl)=>!fl.some(f=>Math.abs(f.x-x)<55&&Math.abs(f.z-z)<55)&&Math.hypot(x,z)<640;
 
-// ❄️ FROSTARA
+// ❄️ ANTARCTICA
 beginTown('ice');
 (function(){
   flatPlane(3000,3000,0xc4d8ee,0,0,0);makeFields(8,480);
   fields.forEach(f=>{const m=new THREE.Mesh(new THREE.CircleGeometry(30,32),new THREE.MeshPhongMaterial({color:0xbfe6ff,emissive:0x2a5a7a,shininess:90,polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-2}));m.rotation.x=-PI/2;m.position.set(f.x+rand(-10,10),0,f.z+rand(-10,10));root.add(m);});
-  const spikes=[];for(let i=0;i<500&&spikes.length<220;i++){const x=rand(-640,640),z=rand(-640,640);if(!freeSpot(x,z,fields))continue;const big=Math.random()<0.12;spikes.push({x,z,h:big?rand(30,70):rand(4,16),w:big?rand(5,9):rand(1,3),t:rand(-0.2,0.2)});}
+  const spikes=[];for(let i=0;i<500&&spikes.length<220;i++){const x=rand(-640,640),z=rand(-640,640);if(!freeSpot(x,z,fields)||Math.hypot(x,z)>575)continue;const big=Math.random()<0.12;spikes.push({x,z,h:big?rand(30,70):rand(4,16),w:big?rand(5,9):rand(1,3),t:rand(-0.2,0.2)});}
   const sg=new THREE.ConeGeometry(1,1,6);sg.translate(0,0.5,0);
   inst(sg,new THREE.MeshLambertMaterial({color:0xa8e6ff,emissive:0x1a5a7a,flatShading:true}),spikes,s=>compose(s.x,0,s.z,s.w,s.h,s.w,s.t,rand(0,3),s.t));
   spikes.filter(s=>s.h>30).forEach(s=>colliders.push({x0:s.x-s.w*0.6,x1:s.x+s.w*0.6,z0:s.z-s.w*0.6,z1:s.z+s.w*0.6,h:s.h*0.8,y0:0}));
   const cg=new THREE.OctahedronGeometry(1);
-  for(let i=0;i<40;i++){const x=rand(-600,600),z=rand(-600,600);if(!freeSpot(x,z,fields))continue;const c=pick([0x7ffcff,0xb46bff,0x5ad8ff]);
+  for(let i=0;i<40;i++){const x=rand(-600,600),z=rand(-600,600);if(!freeSpot(x,z,fields)||Math.hypot(x,z)>570)continue;const c=pick([0x7ffcff,0xb46bff,0x5ad8ff]);
     for(let k=0;k<4;k++){const m=new THREE.Mesh(cg,basic(c));m.position.set(x+rand(-3,3),rand(1,3),z+rand(-3,3));m.scale.set(1,rand(2,4),1);m.rotation.set(rand(-0.4,0.4),0,rand(-0.4,0.4));root.add(m);}
     glowSprite(c,x,3,z,14,0.6);}
-  ringMountains(0x6a88b0,0xdfeaff,160,320,0.55);
+  ringMountains(0x2f6a32,0x6aa84a,110,230); // lush green mountains out beyond the Ice Wall
   // aurora curtains
   const c=document.createElement('canvas');c.width=64;c.height=256;const g=c.getContext('2d');const gr=g.createLinearGradient(0,0,0,256);gr.addColorStop(0,'rgba(120,80,255,0)');gr.addColorStop(0.4,'rgba(90,255,180,.55)');gr.addColorStop(1,'rgba(40,255,160,0)');g.fillStyle=gr;g.fillRect(0,0,64,256);
   const at=new THREE.CanvasTexture(c);
@@ -1747,7 +1747,7 @@ beginTown('ice');
     const m=new THREE.Mesh(geo,new THREE.MeshBasicMaterial({map:at,transparent:true,blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide,fog:false}));m.position.set(Math.cos(a)*700,330,Math.sin(a)*700);m.lookAt(0,330,0);root.add(m);
     planetAnim.push({town:'ice',f:t=>{m.material.opacity=0.55+0.35*Math.sin(t*0.8+i*1.7);}});}
   addCritters('snow',22);
-  // ================= FROSTARA UPGRADE =================
+  // ================= ANTARCTICA UPGRADE =================
   // ---- falling snow ----
   {const N=1600,sp=[];for(let i=0;i<N;i++)sp.push(rand(-260,260),rand(0,220),rand(-260,260));
     const sg=new THREE.BufferGeometry();sg.setAttribute('position',new THREE.Float32BufferAttribute(sp,3));
@@ -1838,7 +1838,42 @@ beginTown('ice');
   // penguin waddle
   planetAnim.push({town:'ice',f:t=>{targets.forEach(T=>{if(T.state==='ground'&&T.mesh.userData.waddle)T.mesh.rotation.x=Math.sin(t*9+T.mesh.id)*0.18;});}});
 })();
-endTown('ice',[180,1100]);Object.assign(towns.ice,{planet:true,fogC:new THREE.Color(0x9fb8d8),skyTint:0x9fc4ff,label:'❄️ FROSTARA',bloom:0.3});
+// ================= 🧊 THE ICE WALL — and the green land the theory says lies beyond it =================
+(function(){const RW=600,HW=110;
+  const wt=texCanvas(512,256,g=>{const gr=g.createLinearGradient(0,0,0,256);gr.addColorStop(0,'#f4fbff');gr.addColorStop(1,'#9fd0ee');g.fillStyle=gr;g.fillRect(0,0,512,256);
+    for(let i=0;i<220;i++){g.fillStyle=`rgba(${pick(['120,190,230','255,255,255','90,160,210'])},.35)`;const x=rand(0,512);g.fillRect(x,0,rand(2,9),256);}
+    for(let i=0;i<40;i++){g.fillStyle='rgba(60,130,190,.25)';g.fillRect(0,rand(0,256),512,rand(1,3));}});
+  wt.wrapS=THREE.RepeatWrapping;wt.repeat.set(30,1);
+  const wm=new THREE.MeshLambertMaterial({map:wt,color:0xc8dcec,emissive:0x0e1a26,side:THREE.DoubleSide});
+  for(const r of[RW-14,RW+14]){const w=new THREE.Mesh(new THREE.CylinderGeometry(r,r,HW,160,1,true),wm);w.position.y=HW/2;root.add(w);}
+  const top=new THREE.Mesh(new THREE.RingGeometry(RW-14,RW+14,160),new THREE.MeshLambertMaterial({color:0xf4fbff,emissive:0x3a5a7a,side:THREE.DoubleSide}));top.rotation.x=-PI/2;top.position.y=HW;root.add(top);
+  const sp=[];for(let i=0;i<260;i++){const a=i/260*2*PI+rand(-0.01,0.01),r=RW+rand(-14,14);sp.push({x:Math.cos(a)*r,z:Math.sin(a)*r,h:rand(6,22),w:rand(3,7)});}
+  const sgg=new THREE.ConeGeometry(1,1,5);sgg.translate(0,0.5,0);inst(sgg,new THREE.MeshLambertMaterial({color:0xe8f6ff,emissive:0x2a4a66,flatShading:true}),sp,o=>compose(o.x,HW-1,o.z,o.w,o.h,o.w,0,rand(0,3),0));
+  // the land beyond: grass ring, lakes, trees, a lost golden city, dinosaurs
+  const grass=new THREE.Mesh(new THREE.RingGeometry(RW+14,1400,120,1),new THREE.MeshLambertMaterial({color:0x4f9a3a,polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-2}));grass.rotation.x=-PI/2;grass.position.y=0.05;root.add(grass);
+  const lakes=[];for(let i=0;i<7;i++){const a=rand(0,2*PI),r=rand(680,860);const m=new THREE.Mesh(new THREE.CircleGeometry(rand(22,40),28),new THREE.MeshPhongMaterial({color:0x2a8ad0,emissive:0x0a3050,shininess:100,polygonOffset:true,polygonOffsetFactor:-4,polygonOffsetUnits:-4}));m.rotation.x=-PI/2;m.position.set(Math.cos(a)*r,0.1,Math.sin(a)*r);root.add(m);lakes.push(m);}
+  const tr=[],cr=[];for(let i=0;i<700&&tr.length<320;i++){const a=rand(0,2*PI),r=rand(RW+30,940),x=Math.cos(a)*r,z=Math.sin(a)*r;if(Math.hypot(x,z-780)<110)continue;tr.push({x,z,s:rand(1,2.2)});cr.push({x,z,s:rand(1,2.2),c:new THREE.Color().setHSL(rand(0.24,0.36),rand(0.5,0.7),rand(0.25,0.4)).getHex()});}
+  const tg=new THREE.CylinderGeometry(0.5,0.7,6,6);tg.translate(0,3,0);inst(tg,lam(0x5a3a22),tr,o=>compose(o.x,0,o.z,o.s,o.s,o.s));
+  const cg=new THREE.IcosahedronGeometry(3.6,0);cg.translate(0,7.5,0);inst(cg,new THREE.MeshLambertMaterial({color:0xffffff,flatShading:true}),cr,o=>compose(o.x,0,o.z,o.s,o.s,o.s));
+  const fl=[];for(let i=0;i<500;i++){const a=rand(0,2*PI),r=rand(RW+20,940);fl.push({x:Math.cos(a)*r,z:Math.sin(a)*r,c:pick([0xff6ad5,0xffe14a,0xffffff,0xff7a4a,0xb48aff])});}
+  inst(new THREE.SphereGeometry(0.5,6,4),lam(0xffffff),fl,o=>compose(o.x,0.4,o.z,1,1,1));
+  // 🏛️ the lost golden city
+  {const X=0,Z=780,gold=new THREE.MeshPhongMaterial({color:0xffd060,emissive:0x5a3a00,shininess:120,specular:0xfff0c0}),wht=lam(0xf4f0e6);
+    for(let i=0;i<9;i++){const a=i/9*2*PI,x=X+Math.cos(a)*55,z=Z+Math.sin(a)*40,h=rand(20,46);box(root,10,h,10,wht,x,h/2,z);const d=new THREE.Mesh(new THREE.SphereGeometry(6.5,20,12,0,2*PI,0,PI/2),gold);d.position.set(x,h,z);root.add(d);colliders.push({x0:x-5,x1:x+5,z0:z-5,z1:z+5,h:h+6,y0:0});}
+    const tower=new THREE.Mesh(new THREE.CylinderGeometry(6,10,90,10),wht);tower.position.set(X,45,Z);root.add(tower);const dome=new THREE.Mesh(new THREE.SphereGeometry(14,24,14,0,2*PI,0,PI/2),gold);dome.position.set(X,90,Z);root.add(dome);
+    const crys=new THREE.Mesh(new THREE.OctahedronGeometry(7),new THREE.MeshBasicMaterial({color:0x7ffcff}));crys.scale.y=2;crys.position.set(X,118,Z);root.add(crys);const cgl=glowSprite(0x7ffcff,X,118,Z,60,0.7);
+    colliders.push({x0:X-12,x1:X+12,z0:Z-12,z1:Z+12,h:104,y0:0});sign('THE LOST CITY','#ffd84a',30,5,X,30,Z-70,PI);
+    planetAnim.push({town:'ice',f:t=>{crys.rotation.y=t;crys.position.y=118+Math.sin(t*1.5)*3;cgl.material.opacity=0.5+0.3*Math.sin(t*2);}});}
+  // 🦖 prehistoric animals roaming beyond the wall
+  const beyond=[];for(let i=0;i<6;i++){const a=i/6*2*PI+0.4;beyond.push({x:Math.cos(a)*760,z:Math.sin(a)*760});}
+  for(let i=0;i<10;i++){const g=new THREE.Group();box(g,4,2.4,1.6,0x4aa84a,0,2.4,0);g.userData.emoji='🦕';g.userData.pts=140;root.add(g);useModel('dino',g);
+    const T={type:'critter',mesh:g,spawn:spawnCow,fl:beyond,rad:60};T.spawn(T);targets.push(T);}
+  // crossing the wall (only by flying over it)
+  let was=false;
+  planetAnim.push({town:'ice',f:(t,dt)=>{const r=Math.hypot(pos.x,pos.z),out=r>RW+16;if(out&&!was&&state==='play'){pop('🌿 BEYOND THE ICE WALL…');pop('…it\'s all green! (just a legend — but here it\'s real)','t');mEvent('icewall');}was=out;
+    lakes.forEach((m,i)=>{m.material.emissiveIntensity=0.8+0.2*Math.sin(t+i);});}});
+})();
+endTown('ice',[180,1100]);Object.assign(towns.ice,{planet:true,fogC:new THREE.Color(0x9fb8d8),skyTint:0x9fc4ff,label:'🧊 ANTARCTICA',bloom:0.3});
 
 // 🔥 MAGMOR
 beginTown('lava');
@@ -3637,7 +3672,7 @@ const SECTORS={
   earth:{name:'EARTH ORBIT',tex:planet.material.map,atm:[0.35,0.7,1],emis:0x0a1430,rock:[0x6a6058,0x5a5048],bg:0x02030a,home:'city',
     portals:[{dest:'city',c:0x45eaff,label:'NEON CITY'},{dest:'sector:ice',c:0xd8f4ff,label:'FROST SECTOR ➜'},{dest:'desert',c:0xffa040,label:'AREA 51 DESERT'},{dest:'ocean',c:0x2ad8ff,label:'🌊 THE OCEAN'},{dest:'egypt',c:0xffc850,label:'🇪🇬 GIZA, EGYPT'},{dest:'maya',c:0x6dffb0,label:'🌴 YUCATÁN, MEXICO'},{dest:'vegas',c:0xff3fd2,label:'🎰 LAS VEGAS'}]},
   ice:{name:'FROST SECTOR',tex:planetTex('ice'),atm:[0.7,0.9,1],emis:0x1a2a40,rock:[0xbfe6ff,0x9fc8ef],bg:0x020a14,home:'ice',
-    portals:[{dest:'ice',c:0x9fe8ff,label:'LAND: FROSTARA'},{dest:'sector:lava',c:0xff7a30,label:'INFERNO SECTOR ➜'},{dest:'sector:earth',c:0x45eaff,label:'⟲ EARTH ORBIT'}]},
+    portals:[{dest:'ice',c:0x9fe8ff,label:'LAND: ANTARCTICA'},{dest:'sector:lava',c:0xff7a30,label:'INFERNO SECTOR ➜'},{dest:'sector:earth',c:0x45eaff,label:'⟲ EARTH ORBIT'}]},
   lava:{name:'INFERNO SECTOR',tex:planetTex('lava'),atm:[1,0.4,0.15],emis:0x2a0800,rock:[0x2a1a1a,0x5a2010],bg:0x0a0202,home:'lava',
     portals:[{dest:'lava',c:0xff5a1a,label:'LAND: MAGMOR'},{dest:'sector:jungle',c:0x6dff7a,label:'JUNGLE NEBULA ➜'},{dest:'sector:earth',c:0x45eaff,label:'⟲ EARTH ORBIT'}]},
   jungle:{name:'JUNGLE NEBULA',tex:planetTex('jungle'),atm:[0.5,1,0.5],emis:0x10200a,rock:[0x3a2a4a,0x2a4a3a],bg:0x050210,home:'jungle',
@@ -3956,7 +3991,7 @@ function pilotPlay(k){if(!PILOT.mixer)return;if(!PILOT.acts[k])k=PILOT.acts.walk
 // relics
 const RELICS={};let relicFx=[];
 let badges={};try{badges=JSON.parse(localStorage.getItem('ufoBadges')||'{}');}catch(e){}
-const TOWN_NAMES={egypt:'Giza, Egypt',maya:'Yucatán, Mexico',vegas:'Las Vegas',fifth:'The 5th Dimension',ocean:'The Ocean',city:'Neon City',desert:'Area 51',ice:'Frostara',lava:'Magmor',jungle:'Verdana',moon:'The Moon',mars:'Mars'};
+const TOWN_NAMES={egypt:'Giza, Egypt',maya:'Yucatán, Mexico',vegas:'Las Vegas',fifth:'The 5th Dimension',ocean:'The Ocean',city:'Neon City',desert:'Area 51',ice:'Antarctica',lava:'Magmor',jungle:'Verdana',moon:'The Moon',mars:'Mars'};
 function makeRelic(){const g=new THREE.Group();const c=new THREE.Mesh(new THREE.OctahedronGeometry(0.9),new THREE.MeshBasicMaterial({color:0xc58bff}));c.scale.y=1.5;g.add(c);
   const gl=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:0xb46bff,transparent:true,depthWrite:false}));gl.scale.set(6,6,1);g.add(gl);
   const pil=new THREE.Mesh(new THREE.CylinderGeometry(0.25,0.25,60,6,1,true),new THREE.MeshBasicMaterial({color:0xc58bff,transparent:true,opacity:.22,blending:THREE.AdditiveBlending,depthWrite:false}));pil.position.y=30;g.add(pil);
@@ -4027,7 +4062,8 @@ function walkUpdate(dt,ix,iy,jumpBtn,run,shipBtn,t){
   const jetting=jumpBtn&&!wGround&&wv<6&&energy>1&&pos.y<140;
   if(jetting){wv=Math.min(wv+48*dt,9);energy-=16*dt;if(Math.random()<0.6)spawnFx(pos.clone().add(new V3(0,1.1,0)).addScaledVector(fwd,-0.7),tmpV.set(rand(-1,1),-8,rand(-1,1)),0.35,1.6,2.5,pick([0x7ffcff,0xffa040]),true);}
   pos.y+=wv*dt;wv-=grav*dt;
-  const hd=Math.hypot(pos.x,pos.z);if(hd>620){pos.x*=620/hd;pos.z*=620/hd;}
+  const hd=Math.hypot(pos.x,pos.z),HL=curTown==='ice'?930:620;if(hd>HL){pos.x*=HL/hd;pos.z*=HL/hd;}
+  if(curTown==='ice')iceWallBlock(1.2);
   let gh=0;const R=0.7;
   for(const b of colliders){
     const cx=clamp(pos.x,b.x0,b.x1),cz=clamp(pos.z,b.z0,b.z1),dx=pos.x-cx,dz=pos.z-cz,d2=dx*dx+dz*dz;if(d2>=R*R)continue;
@@ -4311,7 +4347,7 @@ const MISSIONS=[
   {id:'moon',t:'Land on the Moon',ev:'visit',m:d=>d.town==='moon',g:1,r:400},
   {id:'mars',t:'Land on Mars',ev:'visit',m:d=>d.town==='mars',g:1,r:400},
   {id:'desert',t:'Travel to Area 51',ev:'visit',m:d=>d.town==='desert',g:1,r:200},
-  {id:'ice',t:'Visit the ice planet Frostara',ev:'visit',m:d=>d.town==='ice',g:1,r:500},
+  {id:'ice',t:'Visit Antarctica',ev:'visit',m:d=>d.town==='ice',g:1,r:500},
   {id:'lava',t:'Visit the lava planet Magmor',ev:'visit',m:d=>d.town==='lava',g:1,r:600},
   {id:'fifth',t:'Reach the 5th Dimension (black hole)',ev:'visit',m:d=>d.town==='fifth',g:1,r:1000},
   {id:'egypt',t:'Visit the pyramids of Giza',ev:'visit',m:d=>d.town==='egypt',g:1,r:500},
@@ -4337,7 +4373,9 @@ const MISSIONS=[
   {id:'bounce',t:'Bounce on a giant flower',ev:'bounce',g:1,r:250},
   {id:'sleeper',t:'Beam up 5 sleeping humans from their beds',ev:'abduct',m:d=>d.emoji==='😴',g:5,r:700},
   {id:'walker',t:'Abduct 5 people out walking',ev:'abduct',m:d=>d.emoji==='🚶',g:5,r:500},
-  {id:'yeti',t:'Abduct a Yeti (Frostara)',ev:'abduct',m:d=>d.emoji==='🦍',g:1,r:700},
+  {id:'icewall',t:'Fly over the Ice Wall in Antarctica',ev:'icewall',g:1,r:600},
+  {id:'lostcity',t:'Abduct 3 dinosaurs beyond the Ice Wall',ev:'abduct',m:d=>d.emoji==='🦕',g:3,r:700},
+  {id:'yeti',t:'Abduct a Yeti (Antarctica)',ev:'abduct',m:d=>d.emoji==='🦍',g:1,r:700},
   {id:'penguin',t:'Abduct 5 penguins',ev:'abduct',m:d=>d.emoji==='🐧',g:5,r:400},
   {id:'icearch',t:'Fly through the Frost Palace gate',ev:'icearch',g:1,r:300},
   {id:'sharks',t:'Abduct 3 sharks',ev:'abduct',m:d=>d.emoji==='🦈',g:3,r:500},
@@ -4651,7 +4689,7 @@ const TRACKS={
   space:{name:'Deep Space',bpm:84,root:52,sc:MIN,prog:[0,5,3,6],bass:'x.......x.......',bw:'sine',arp:'x...x...x...x...',aw:'sine',ao:3,av:.05,pad:'sawtooth',hat:'....x.......x...',cut:900},
   warp:{name:'Wormhole',bpm:140,root:52,sc:MIN,prog:[0,0,5,6],bass:'xoxoxoxoxoxoxoxo',bw:'sawtooth',arp:'xxxxxxxxxxxxxxxx',aw:'square',ao:2,av:.03,kick:'x...x...x...x...',hat:'xxxxxxxxxxxxxxxx',cut:2600},
   boss:{name:'Danger',bpm:128,root:52,sc:HMIN,prog:[0,5,4,4],bass:'x.xxx.xxx.xxx.xo',bw:'sawtooth',arp:'xxxxxxxxxxxxxxxx',aw:'square',ao:2,av:.03,kick:'x...x...x...x..x',snare:'....x..x....x...',hat:'.x.x.x.x.x.x.x.x',cut:2200},
-  ice:{name:'Frostara',bpm:88,root:54,sc:MIN,prog:[0,3,5,4],bass:'x.......x.......',bw:'sine',arp:'x.x.x.x.x.x.x.x.',aw:'sine',ao:3,av:.05,pad:'triangle',kick:'x.......x.......',hat:'..x...x...x...x.',cut:3000},
+  ice:{name:'Antarctica',bpm:88,root:54,sc:MIN,prog:[0,3,5,4],bass:'x.......x.......',bw:'sine',arp:'x.x.x.x.x.x.x.x.',aw:'sine',ao:3,av:.05,pad:'triangle',kick:'x.......x.......',hat:'..x...x...x...x.',cut:3000},
   lava:{name:'Magmor',bpm:108,root:48,sc:PHR,prog:[0,1,0,1],bass:'xx.xxx.xxx.xxx.x',bw:'sawtooth',arp:'x...x...x..x.x..',aw:'sawtooth',ao:1,av:.04,kick:'x..x..x.x..x..x.',snare:'....x.......x...',hat:'x.x.x.x.x.x.x.x.',cut:900},
   jungle:{name:'Verdana',bpm:104,root:55,sc:DOR,prog:[0,3,0,3],bass:'x..x.x..x..x.x..',bw:'triangle',arp:'x.xx.x.xx.x.x.xx',aw:'triangle',ao:2,av:.06,kick:'x...x...x...x...',snare:'......x.......x.',hat:'xxxxxxxxxxxxxxxx',cut:2200,short:1},
   moon:{name:'Tranquility',bpm:66,root:50,sc:MIN,prog:[0,5,2,6],bass:'x...............',bw:'sine',arp:'x.......x.......',aw:'sine',ao:3,av:.05,pad:'triangle',cut:1200},
@@ -4838,6 +4876,7 @@ function enterSpace(sec){
 function enterHangar18(){clearEnemies();heat=0;fadeIn();setTown('sub51');pos.set(0,22,270);yaw=0;speed=Math.min(speed,22);vy=0;snapCam();
   pop('🛸 HANGAR 18');pop('Top-secret underground base · fly into the far elevator to leave','t');blip(300,90,0.8,'sawtooth',0.08);mEvent('h18');}
 function exitHangar18(){fadeIn();setTown('desert');pos.set(420,26,-385);yaw=PI;speed=Math.min(speed,22);vy=0;snapCam();pop('🏜️ BACK TO AREA 51');blip(90,300,0.6,'sine',0.1);}
+function iceWallBlock(R){const RW=600,r=Math.hypot(pos.x,pos.z);if(pos.y>=111||r<RW-15-R||r>RW+15+R)return;const k=(r<RW?RW-15-R:RW+15+R)/r;pos.x*=k;pos.z*=k;if(typeof speed!=='undefined'&&!onFoot)speed=Math.min(speed,8);}
 function landAt(n){
   mEvent('visit',{town:n});
   clearSpaceFoes();mode='ground';fadeIn();spaceGroup.visible=false;sky.visible=true;setTown(n);
@@ -5026,7 +5065,8 @@ function loop(now){
     pos.addScaledVector(fwd,speed*dt);pos.y+=vy*dt;
     if(mode==='ground'){
       if(pos.y<3){pos.y=3;if(vy<0)vy=0;}
-      const hd=Math.hypot(pos.x,pos.z);if(hd>620){pos.x*=620/hd;pos.z*=620/hd;}
+      const hd=Math.hypot(pos.x,pos.z),HL=curTown==='ice'?930:620;if(hd>HL){pos.x*=HL/hd;pos.z*=HL/hd;}
+      if(curTown==='ice')iceWallBlock(3);
       if(curTown==='desert'&&state==='play'&&pos.z<-406&&pos.z>-440&&Math.abs(pos.x-420)<44&&pos.y<34)enterHangar18();
       collide();
       if(curTown==='sub51'){pos.y=Math.min(pos.y,60);pos.x=clamp(pos.x,-88,88);pos.z=clamp(pos.z,-300,292);if(pos.z<-282&&Math.abs(pos.x)<34&&pos.y<46)exitHangar18();}
