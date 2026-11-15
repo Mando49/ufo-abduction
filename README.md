@@ -28,6 +28,8 @@ A 3D browser game: fly a triangle UFO over a neon cyberpunk city and farmland, a
 
 📱 **Install it like an app:** open the link in Safari → Share → *Add to Home Screen* (Android: Chrome menu → *Install app*). It opens full screen with its own icon.
 
+🛸 **Area 51 crash site:** a crashed saucer smoking in a scorched crater, quarantine tape, hazmat tents, black SUVs, Men in Black guards and glowing wreckage to beam up. Tumbleweeds roll across the desert.
+
 🧸 **Real 3D models:** your pilot alien is now a fully animated 3D character when you land (idle, walk, run and jump); camels, penguins, T-rexes, jaguars, sharks, tractors, barns and sunken treasure, plus *animated* walking people, mummies, yetis, robots, foxes and lost little aliens at Area 51 (rescue them by beaming them up!).
 
 ⚙️ **Runs on older phones:** a loading screen while the 12 worlds build, a **Graphics** button on the menu (Auto / High / Medium / Low), and Auto mode lowers the quality step by step if the game starts to stutter. Small still objects (palm trees, houses, people, cars) are merged so the phone draws far fewer pieces each frame.

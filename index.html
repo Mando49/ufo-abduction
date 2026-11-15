@@ -1035,7 +1035,7 @@ function useAnim(type,g,town){const A=ANIM[type];g.userData.animType=type;g.user
 function attachAnim(A,g){if(!THREE.SkeletonUtils)return;g.children.forEach(c=>{if(!c.isSprite)c.visible=false;});
   const m=THREE.SkeletonUtils.clone(A.proto);g.add(m);const mixer=new THREE.AnimationMixer(m),acts={};
   for(const k in A.clips){const n=A.clips[k],c=typeof n==='number'?A.anims[n]:A.anims.find(a=>a.name===n);if(c)acts[k]=mixer.clipAction(c);}
-  if(A.tint){m.traverse(o=>{if(o.isMesh){o.material=o.material.clone();o.material.color.setHSL(Math.random(),0.35,0.85);}});}
+  if(A.tint||g.userData.tintHex){m.traverse(o=>{if(o.isMesh){o.material=o.material.clone();if(g.userData.tintHex)o.material.color.setHex(g.userData.tintHex);else o.material.color.setHSL(Math.random(),0.35,0.85);}});}
   const I={g,m,mixer,acts,cur:null,town:g.userData.animTown,last:new V3().copy(g.position)};
   const play=k=>{if(!acts[k]){const w=acts.walk;if(w&&I.cur==='walk'){w.timeScale=k==='run'||k==='wave'?1.8:k==='idle'?0.15:1;}return;}if(acts.walk&&k==='walk')acts.walk.timeScale=1;if(I.cur===k)return;const a=acts[k];a.reset().fadeIn(0.25).play();if(I.cur&&acts[I.cur])acts[I.cur].fadeOut(0.25);I.cur=k;};I.play=play;play('walk');
   mixer.update(Math.random()*2);animInst.push(I);}
@@ -3965,22 +3965,66 @@ function pyramid(x,z,side,h,col,cap){
   const n=Math.ceil(h/2.8);for(let k=0;k<n;k++){const half=side/2*(1-k/n)*0.98,top=h*(k+0.6)/n;colliders.push({x0:x-half,x1:x+half,z0:z-half,z1:z+half,h:top,y0:0});}
 }
 function obelisk(x,z,h,glow){box(root,2.2,h,2.2,0xc8a868,x,h/2,z);const tip=new THREE.Mesh(new THREE.ConeGeometry(1.6,3,4),new THREE.MeshBasicMaterial({color:glow}));tip.rotation.y=PI/4;tip.position.set(x,h+1.5,z);root.add(tip);glowSprite(glow,x,h+1.5,z,7);colliders.push({x0:x-1.1,x1:x+1.1,z0:z-1.1,z1:z+1.1,h:h+3,y0:0});}
+// ---------- AREA 51: the Roswell-style CRASH SITE (replaces the old pyramid valley) ----------
 inTown('desert',()=>{
-  const X=230,Z=-320;
-  flatPlane(320,240,0xd0b070,-1,X,Z);
-  pyramid(X-60,Z+20,80,62,0xffffff,0xffd84a);
-  pyramid(X+40,Z-40,62,48,0xf0e0c0,0x45eaff);
-  pyramid(X+95,Z+45,40,31,0xe8d4b0,0xff4fd8);
-  for(const [dx,dz] of[[-110,-60],[-110,90],[130,-90],[140,100],[0,105]])obelisk(X+dx,Z+dz,14,0x6dff7a);
-  // alien sphinx guarding the valley
-  const SX=X-20,SZ=Z+85;box(root,10,5,22,0xd8b878,SX,2.5,SZ);box(root,9,4,8,0xd8b878,SX,2,SZ-14);
-  const hd=new THREE.Mesh(new THREE.SphereGeometry(5,18,14),new THREE.MeshLambertMaterial({color:0xd8b878}));hd.position.set(SX,9,SZ-9);hd.scale.set(1,1.2,1);root.add(hd);
-  for(const ex of[-1.8,1.8]){const e=new THREE.Mesh(new THREE.SphereGeometry(1.4,12,10),basic(0x1a1a1a));e.position.set(SX+ex,9.5,SZ-13.3);e.scale.set(1,1.5,0.5);e.rotation.z=ex>0?-0.4:0.4;root.add(e);}
-  const eyes=glowSprite(0x6dff7a,SX,9.5,SZ-14,8,0.6);secretAnim.push(t=>{eyes.material.opacity=0.3+0.3*Math.sin(t*1.5);});
-  colliders.push({x0:SX-5,x1:SX+5,z0:SZ-18,z1:SZ+11,h:5,y0:0},{x0:SX-5,x1:SX+5,z0:SZ-14,z1:SZ-4,h:14,y0:0});
-  // little oasis
-  const pool=new THREE.Mesh(new THREE.CircleGeometry(14,32),new THREE.MeshPhongMaterial({color:0x2a8ab0,emissive:0x0a3a50,shininess:90,polygonOffset:true,polygonOffsetFactor:-3,polygonOffsetUnits:-3}));pool.rotation.x=-PI/2;pool.position.set(X+150,0,Z-10);root.add(pool);
-  sign('PYRAMID VALLEY','#ffd84a',22,4,X-150,6,Z+10,PI/2);box(root,0.5,6,0.5,0x555a66,X-150,3,Z+21);box(root,0.5,6,0.5,0x555a66,X-150,3,Z-1);
+  const X=230,Z=-320,T51=towns.desert.targets;
+  const po={polygonOffset:true,polygonOffsetFactor:-3,polygonOffsetUnits:-3};
+  // scorched crater + skid trench the saucer dug when it came down
+  const scorch=new THREE.Mesh(new THREE.CircleGeometry(48,40),new THREE.MeshLambertMaterial(Object.assign({color:0x3a2a22},po)));scorch.rotation.x=-PI/2;scorch.position.set(X,0.05,Z);root.add(scorch);
+  const burn=new THREE.Mesh(new THREE.CircleGeometry(30,36),new THREE.MeshBasicMaterial(Object.assign({color:0x1a120e},po)));burn.rotation.x=-PI/2;burn.position.set(X,0.08,Z);root.add(burn);
+  const trench=new THREE.Mesh(new THREE.PlaneGeometry(14,120),new THREE.MeshLambertMaterial(Object.assign({color:0x4a3628},po)));trench.rotation.x=-PI/2;trench.rotation.z=0.5;trench.position.set(X-30,0.06,Z+55);root.add(trench);
+  const rim=new THREE.Mesh(new THREE.TorusGeometry(46,5,8,40),lam(0xb08a60));rim.rotation.x=PI/2;rim.scale.z=0.22;rim.position.set(X,0.4,Z);root.add(rim);
+  // the crashed saucer: tilted, half buried, lights still blinking
+  const ufo=new THREE.Group();ufo.position.set(X+4,3.5,Z-2);ufo.rotation.set(0.12,0.6,0.42);root.add(ufo);
+  const hull=new THREE.Mesh(new THREE.SphereGeometry(17,32,16),new THREE.MeshPhongMaterial({color:0x8a94a6,shininess:90,specular:0x99aabb}));hull.scale.y=0.24;ufo.add(hull);
+  const ring=new THREE.Mesh(new THREE.TorusGeometry(16.5,0.7,8,48),new THREE.MeshPhongMaterial({color:0x55606e,shininess:60}));ring.rotation.x=PI/2;ufo.add(ring);
+  const dome=new THREE.Mesh(new THREE.SphereGeometry(6,24,12,0,2*PI,0,PI/2),new THREE.MeshPhongMaterial({color:0x6af0ff,emissive:0x0a4a5a,transparent:true,opacity:0.55,shininess:120}));dome.position.y=3;ufo.add(dome);
+  const crack=new THREE.Mesh(new THREE.BoxGeometry(9,3,6),lam(0x1a1414));crack.position.set(12,0,4);crack.rotation.y=0.5;ufo.add(crack); // torn open hull
+  const rimLights=[];for(let i=0;i<14;i++){const a=i/14*2*PI;const L=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:i%2?0x6dff7a:0x45eaff,transparent:true,blending:THREE.AdditiveBlending,depthWrite:false}));L.position.set(Math.cos(a)*16.8,0.2,Math.sin(a)*16.8);L.scale.set(3,3,1);ufo.add(L);rimLights.push(L);}
+  const leak=glowSprite(0x6dff7a,X+16,4,Z+6,18,0.6); // green alien goo glow from the breach
+  const fire=glowSprite(0xff7a2a,X-8,3,Z+10,14,0.7);
+  colliders.push({x0:X-15,x1:X+19,z0:Z-17,z1:Z+13,h:7,y0:0});
+  // smoke columns
+  const smokeM=new THREE.SpriteMaterial({map:GLOW,color:0x4a4a52,transparent:true,depthWrite:false,opacity:0.5});const smoke=[];
+  for(const [sx,sz] of[[X+14,Z+6],[X-8,Z+10],[X+2,Z-8]])for(let i=0;i<9;i++){const sp=new THREE.Sprite(smokeM.clone());root.add(sp);smoke.push({sp,x:sx,z:sz,ph:i/9});}
+  // quarantine perimeter: posts + yellow tape, floodlights, hazmat tents, black SUVs
+  const tapeM=basic(0xffd21a);
+  for(let i=0;i<20;i++){const a=i/20*2*PI,a2=(i+1)/20*2*PI,r=64,x1=X+Math.cos(a)*r,z1=Z+Math.sin(a)*r,x2=X+Math.cos(a2)*r,z2=Z+Math.sin(a2)*r;
+    box(root,0.35,2.6,0.35,0xff8a2a,x1,1.3,z1);const L=Math.hypot(x2-x1,z2-z1),t=box(root,L,0.35,0.06,tapeM,(x1+x2)/2,2.2,(z1+z2)/2);t.rotation.y=-Math.atan2(z2-z1,x2-x1);}
+  const floods=[];for(const a of[0.4,1.9,3.5,5.1]){const fx=X+Math.cos(a)*56,fz=Z+Math.sin(a)*56;
+    for(const k of[-1,0,1]){const leg=box(root,0.25,9,0.25,0x30343c,fx+k*0.9,4.5,fz);leg.rotation.z=k*0.12;}
+    box(root,3,2,1.2,0x22262e,fx,9.5,fz);floods.push(glowSprite(0xfff2c8,fx,9.5,fz,8,0.55));}
+  for(const [tx,tz,ry] of[[X-58,Z-30,0.3],[X-48,Z+42,-0.5],[X+62,Z+30,1.2]]){const g=new THREE.Group();g.position.set(tx,0,tz);g.rotation.y=ry;root.add(g);
+    box(g,12,5,9,0xeef2f6,0,2.5,0);const rf=new THREE.Mesh(new THREE.CylinderGeometry(4.6,4.6,12.2,3,1),lam(0xdde4ea));rf.rotation.z=PI/2;rf.position.y=6.4;rf.scale.set(1,1,0.98);g.add(rf);
+    box(g,0.1,3.6,3.2,basic(0x1a2230),6.02,1.8,0);box(g,0.12,0.9,9.1,basic(0xff3a3a),0,4.2,0);
+    colliders.push({x0:tx-7,x1:tx+7,z0:tz-7,z1:tz+7,h:8,y0:0});}
+  for(const [cx,cz,ry] of[[X+78,Z-20,0.2],[X+84,Z-8,0.25],[X+74,Z+48,1.4]]){const g=new THREE.Group();g.position.set(cx,0,cz);g.rotation.y=ry;root.add(g);
+    box(g,5.6,1.8,2.5,0x0c0e12,0,1.3,0);box(g,3.6,1.3,2.4,0x14181e,-0.4,2.7,0);box(g,0.1,0.8,2.2,basic(0x2a3a4a),1.4,2.7,0);
+    for(const wx of[-1.8,1.8])for(const wz of[-1.25,1.25]){const w=new THREE.Mesh(new THREE.CylinderGeometry(0.62,0.62,0.4,10),lam(0x0a0a0a));w.rotation.x=PI/2;w.position.set(wx,0.62,wz);g.add(w);}
+    const lb=glowSprite(0xff2a2a,0,0,0,2.5,0.9);g.add(lb);lb.position.set(1.4,3.5,0.6);const lr=glowSprite(0x2a5aff,0,0,0,2.5,0.9);g.add(lr);lr.position.set(1.4,3.5,-0.6);floods.push(lb,lr);}
+  sign('CRASH SITE · KEEP OUT','#ffd21a',30,4,X-75,6,Z,PI/2);box(root,0.5,6,0.5,0x555a66,X-75,3,Z+14);box(root,0.5,6,0.5,0x555a66,X-75,3,Z-14);
+  // 🔩 alien wreckage scattered around the crater (beam it up before the Men in Black do)
+  const debM=new THREE.MeshPhongMaterial({color:0x9aa6b8,shininess:100,specular:0xaaccff});
+  const mkDebris=()=>{const g=new THREE.Group();const n=2+((Math.random()*2)|0);
+    for(let i=0;i<n;i++){const pl=new THREE.Mesh(new THREE.BoxGeometry(rand(1.6,3),0.25,rand(1,2)),debM);pl.position.set(rand(-0.8,0.8),0.4+i*0.3,rand(-0.6,0.6));pl.rotation.set(rand(-0.6,0.6),rand(0,3),rand(-0.6,0.6));g.add(pl);}
+    const strip=new THREE.Mesh(new THREE.BoxGeometry(2.4,0.12,0.18),basic(pick([0x45eaff,0x6dff7a])));strip.position.y=0.75;strip.rotation.y=rand(0,3);g.add(strip);
+    const gl=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:0x6dff7a,transparent:true,blending:THREE.AdditiveBlending,depthWrite:false,opacity:0.7}));gl.position.y=1;gl.scale.set(4,4,1);g.add(gl);
+    g.userData.emoji='🔩';g.userData.pts=80;g.userData.heat=0.6;root.add(g);return g;};
+  const spawnDebris=T=>{const a=rand(0,2*PI),r=rand(22,58);T.mesh.position.set(X+Math.cos(a)*r,0,Z+Math.sin(a)*r);resetRot(T.mesh);T.mesh.rotation.y=rand(0,6);T.mesh.visible=true;T.state='ground';};
+  for(let i=0;i<10;i++){const T={type:'critter',mesh:mkDebris(),still:true,spawn:spawnDebris};T.spawn(T);T51.push(T);}
+  // 🕴️ Men in Black guarding the wreck (they raise your wanted level fast)
+  for(let i=0;i<6;i++){const g=makeHuman(false);g.userData.emoji='🕴️';g.userData.pts=90;g.userData.heat=1.4;g.userData.tintHex=0x2a2c34;
+    const T={type:'critter',mesh:useAnim('person',g,'desert'),spawn:spawnCow,fl:[{x:X,z:Z}],rad:62};T.mesh.userData.T=T;T.spawn(T);T51.push(T);}
+  // 🌾 tumbleweeds rolling across the desert on the wind
+  const twM=new THREE.MeshLambertMaterial({color:0x9a7a4a,wireframe:true});const tws=[];
+  for(let i=0;i<14;i++){const m=new THREE.Mesh(new THREE.IcosahedronGeometry(rand(1.2,2.2),1),twM);m.position.set(rand(-600,600),1.5,rand(-600,600));root.add(m);tws.push({m,v:rand(7,13),ph:rand(0,6)});}
+  desertAnim.push((dt,t)=>{
+    rimLights.forEach((L,i)=>{L.visible=((t*3+i)|0)%3!==0;});
+    leak.material.opacity=0.4+0.25*Math.sin(t*2.3);fire.material.opacity=0.5+0.3*Math.sin(t*9)*Math.sin(t*5.3);
+    floods.forEach((f,i)=>{if(i>=4)f.visible=((t*2.5+i*0.5)|0)%2===0;});
+    smoke.forEach(S=>{const k=(t*0.12+S.ph)%1;S.sp.position.set(S.x+Math.sin(k*4+S.ph*9)*3+k*10,2+k*40,S.z+k*4);const sz=4+k*18;S.sp.scale.set(sz,sz,1);S.sp.material.opacity=0.55*(1-k);});
+    tws.forEach(W=>{W.m.position.x+=W.v*dt;W.m.position.z+=Math.sin(t*0.7+W.ph)*2*dt;W.m.position.y=1.4+Math.abs(Math.sin(t*3+W.ph))*1.6;W.m.rotation.z-=W.v*dt*0.6;if(W.m.position.x>620)W.m.position.x=-620;});
+  });
 });
 inTown('mars',()=>{
   const X=300,Z=260;
@@ -4055,7 +4099,9 @@ const MISSIONS=[
   {id:'secret',t:'Discover a hidden secret',ev:'secret',g:1,r:600},
   {id:'pu',t:'Grab 5 power-ups',ev:'pu',g:5,r:300},
   {id:'jetpack',t:'Fly 100m high with your jetpack',ev:'jetHigh',g:1,r:400},
-  {id:'pyramid',t:'Stand on top of a pyramid',ev:'pyramid',g:1,r:500},
+  {id:'pyramid',t:'Stand on top of a pyramid (Egypt or Mars)',ev:'pyramid',g:1,r:500},
+  {id:'debris',t:'Recover 5 pieces of UFO wreckage (Area 51)',ev:'abduct',m:d=>d.emoji==='🔩',g:5,r:600},
+  {id:'mib',t:'Abduct 3 Men in Black',ev:'abduct',m:d=>d.emoji==='🕴️',g:3,r:700},
   {id:'wanted',t:'Reach a 5-star wanted level',ev:'heat5',g:1,r:400},
   {id:'score',t:'Score 2,000 in one game',ev:'score2k',g:1,r:500},
   {id:'race',t:'Finish the Sky Race',ev:'race',g:1,r:500},
@@ -4090,7 +4136,7 @@ function missionTick(){
   if(heat>=5&&!runFlags.heat5){runFlags.heat5=1;mEvent('heat5');}
   if(score>=2000&&!runFlags.score2k){runFlags.score2k=1;mEvent('score2k');}
   if(onFoot&&pos.y>=100&&!runFlags.jet){runFlags.jet=1;mEvent('jetHigh');}
-  if(onFoot&&wGround&&pos.y>40&&(curTown==='desert'||curTown==='mars')&&!runFlags.pyr){runFlags.pyr=1;mEvent('pyramid');}
+  if(onFoot&&wGround&&pos.y>40&&(curTown==='egypt'||curTown==='mars')&&!runFlags.pyr){runFlags.pyr=1;mEvent('pyramid');}
 }
 let mLast='';
 function renderMissions(){
