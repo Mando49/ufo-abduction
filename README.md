@@ -10,6 +10,8 @@ A 3D browser game: fly a triangle UFO over a neon cyberpunk city and farmland, a
 
 🕳️ **The Black Hole:** in Earth Orbit, fly toward the giant black hole (past Mars). Its gravity pulls you in — boost away, or let it take you: the ship spirals and stretches, the screen goes dark, you ride through the inside, and get spat out on a random planet or town (+250).
 
+✨ **The 5th Dimension:** a secret world you can only reach through the black hole (about a 40% chance). Neon grid floor, real 4D tesseracts spinning through the 4th dimension, upside-down floating islands, melting-time clocks, color-shifting sky, and glowing cube beings to abduct.
+
 🎯 **Missions:** 3 goals are always on screen (abduct police cars, beat the Mothership, land on Mars, Ring Run Saturn, find a secret, climb a pyramid… 30 in all). Finish one for Hangar credits and a new one takes its place. Progress is saved between games; tap the panel to hide it.
 
 📱 **Install it like an app:** open the link in Safari → Share → *Add to Home Screen* (Android: Chrome menu → *Install app*). It opens full screen with its own icon.
