@@ -57,6 +57,16 @@ body.touch #keys{display:none}
 .best{font-size:13px;opacity:.75;margin-top:10px}
 .sponsor{display:block;margin-top:14px;padding:10px;border-radius:12px;border:1px solid rgba(255,79,216,.5);color:#ffb3ef;text-decoration:none;font-size:13px;line-height:1.4;box-shadow:0 0 14px rgba(255,79,216,.25)}
 .sponsor b{color:#fff}
+.hbtn{margin-top:12px;font-size:16px;font-weight:900;padding:11px 28px;border-radius:999px;border:2px solid #ffbe46;background:rgba(40,25,5,.6);color:#ffd27a;box-shadow:0 0 16px rgba(255,180,60,.35)}
+.shopcard{max-height:88vh;overflow-y:auto;-webkit-overflow-scrolling:touch;touch-action:pan-y}
+.bankline{font-size:18px;font-weight:900;color:#ffe08a;margin:4px 0 8px}
+.sec{text-align:left;font-size:11px;letter-spacing:2px;color:#7fe3ff;margin:12px 0 4px;font-weight:800}
+.row{display:flex;align-items:center;justify-content:space-between;gap:10px;text-align:left;background:rgba(255,255,255,.05);border-radius:12px;padding:9px 10px;margin:6px 0}
+.row b{font-size:15px}.row small{display:block;font-size:12px;opacity:.8;margin-top:2px}
+.pips{color:#6dff8a;letter-spacing:1px}
+.sb{flex:none;min-width:92px;font-weight:900;font-size:13px;padding:9px 10px;border-radius:999px;border:none;background:linear-gradient(90deg,#3dff8a,#4fd8ff);color:#06122a}
+.sb.buy{background:linear-gradient(90deg,#ffbe46,#ff8a3d)}
+.sb:disabled{opacity:.4}.sb.on{background:rgba(255,255,255,.15);color:#fff;opacity:1}
 .final{font-size:48px;font-weight:900;margin:4px 0;text-shadow:0 0 18px rgba(120,255,200,.6)}
 </style>
 </head>
@@ -118,6 +128,8 @@ body.touch #keys{display:none}
     <p style="font-size:13px">⭐ Every abduction raises your <b>wanted level</b>. Helicopters, then fighter jets with homing missiles come after you. Boost to outrun missiles. Beam up helicopters flying below you!</p>
     <p style="font-size:13px">🚀 Fly up through the clouds (250m+) to reach space, then fly through a portal to travel to the <b>Area 51 desert</b>.</p>
     <button class="play" id="playBtn">PLAY</button>
+    <div><button class="hbtn" id="shopBtn">🛠️ HANGAR</button></div>
+    <div class="best" id="bankMenu"></div>
     <div class="best" id="bestMenu"></div>
   </div>
 </div>
@@ -128,9 +140,20 @@ body.touch #keys{display:none}
     <div class="final" id="finalScore">0</div>
     <p id="finalTally"></p>
     <p id="newBest" style="color:#ffe08a;font-weight:800"></p>
+    <p id="earned" style="color:#ffe08a;font-weight:800"></p>
     <button class="play" id="againBtn">PLAY AGAIN</button>
+    <div><button class="hbtn" id="shopBtn2">🛠️ HANGAR</button></div>
     <div class="best" id="bestOver"></div>
     <a class="sponsor" href="https://lasvegaswindowtintnv.com" target="_blank" rel="noopener">Sponsored by <b>Mando Window Tinting</b><br>Window Tint &amp; PPF in Las Vegas →</a>
+  </div>
+</div>
+
+<div id="shop" class="overlay hidden">
+  <div class="card shopcard">
+    <h1>🛠️ HANGAR</h1>
+    <div id="bank" class="bankline"></div>
+    <div id="shopList"></div>
+    <button class="play" id="shopBack">BACK</button>
   </div>
 </div>
 
@@ -153,7 +176,7 @@ const isTouch=('ontouchstart' in window)||matchMedia('(pointer:coarse)').matches
 if(isTouch) document.body.classList.add('touch');
 $(isTouch?'howKeys':'howTouch').style.display='none';
 ['contextmenu','gesturestart','dblclick'].forEach(ev=>document.addEventListener(ev,e=>e.preventDefault(),{passive:false}));
-document.addEventListener('touchmove',e=>e.preventDefault(),{passive:false});
+document.addEventListener('touchmove',e=>{if(e.target.closest&&e.target.closest('.shopcard'))return;e.preventDefault();},{passive:false});
 
 let best=0; try{best=+localStorage.getItem('ufoBest')||0;}catch(e){}
 function showBest(){const s=best?('Best: '+best):'';$('bestMenu').textContent=s;$('bestOver').textContent=s;}
@@ -1163,7 +1186,7 @@ function boom(vol){if(!AC||muted)return;if(!noiseBuf){noiseBuf=AC.createBuffer(1
   const s=AC.createBufferSource();s.buffer=noiseBuf;const f=AC.createBiquadFilter();f.type='lowpass';f.frequency.value=700;const g=AC.createGain();g.gain.value=vol;s.connect(f);f.connect(g);g.connect(master);s.start();}
 function inCollider(p){for(const b of colliders){if(p.y<b.h&&p.y>b.y0&&p.x>b.x0&&p.x<b.x1&&p.z>b.z0&&p.z<b.z1)return b;}return null;}
 function hurt(n){
-  shield-=n;lastHurt=0;shake=Math.max(shake,0.45);
+  shield-=n*M.armor;lastHurt=0;shake=Math.max(shake,0.45);
   const f=$('flash');f.style.transition='none';f.style.opacity=0.7;requestAnimationFrame(()=>{f.style.transition='opacity .4s';f.style.opacity=0;});
   if(navigator.vibrate)try{navigator.vibrate(40);}catch(e){}
   if(shield<=0){shield=0;explode(pos,true);endGame('shield');}
@@ -1266,6 +1289,60 @@ function updateEnemies(dt,t,canGrab,bR){
   if(danger!==warnOn){warnOn=danger;$('warn').style.display=danger?'block':'none';}
 }
 
+// ---------- hangar: ships + upgrades ----------
+function makeSaucer(sc,ca,cb){
+  const g=new THREE.Group();
+  const top=new THREE.Mesh(new THREE.SphereGeometry(4.8,48,20,0,2*PI,0,PI/2),new THREE.MeshStandardMaterial({color:0x323846,metalness:0.55,roughness:0.32,emissive:0x0a0c14}));top.scale.y=0.27;g.add(top);
+  const bot=new THREE.Mesh(new THREE.SphereGeometry(4.8,48,20,0,2*PI,PI/2,PI/2),new THREE.MeshStandardMaterial({color:0x1d212b,metalness:0.5,roughness:0.4}));bot.scale.y=0.2;g.add(bot);
+  const rim=new THREE.Mesh(new THREE.TorusGeometry(4.78,0.16,8,64),new THREE.MeshStandardMaterial({color:0x9aa3b3,metalness:0.7,roughness:0.25}));rim.rotation.x=PI/2;g.add(rim);
+  for(let i=0;i<10;i++){const c=i%2?ca:cb;const seg=new THREE.Mesh(new THREE.TorusGeometry(3.2,0.1,6,10,0.38),new THREE.MeshBasicMaterial({color:c}));
+    seg.rotation.x=-PI/2;seg.rotation.z=i/10*2*PI;seg.position.y=0.27*Math.sqrt(4.8*4.8-3.2*3.2)+0.04;seg.userData.base=c;g.add(seg);neonUp.push(seg);}
+  for(let i=0;i<12;i++){const a=(i+0.5)/12*2*PI,m=new THREE.Mesh(new THREE.SphereGeometry(0.2,8,6),basic(i%3===0?ca:0xff5a2a));m.position.set(Math.cos(a)*4.25,-0.42,Math.sin(a)*4.25);g.add(m);lowLights.push(m);}
+  const dm=new THREE.Mesh(new THREE.SphereGeometry(1.95,32,16,0,2*PI,0,PI/2),new THREE.MeshStandardMaterial({color:0x7fefff,roughness:0.05,transparent:true,opacity:0.55,emissive:0x1f8fb0,emissiveIntensity:0.9}));dm.position.y=1.0;g.add(dm);
+  const hd=new THREE.Mesh(new THREE.SphereGeometry(0.55,16,12),new THREE.MeshLambertMaterial({color:0x6dff7a,emissive:0x1d5a20}));hd.position.y=1.55;hd.scale.set(1,1.15,1);g.add(hd);
+  for(const ex of[-0.22,0.22]){const e=new THREE.Mesh(new THREE.SphereGeometry(0.18,10,8),basic(0x050505));e.position.set(ex,1.65,-0.44);e.scale.set(1,1.5,0.6);e.rotation.z=ex>0?-0.4:0.4;g.add(e);}
+  const port=new THREE.Mesh(new THREE.CylinderGeometry(1.5,1.9,0.25,28),botMat);port.position.y=-0.95;g.add(port);
+  const pr=new THREE.Mesh(new THREE.TorusGeometry(2.2,0.12,6,40),basic(ca));pr.rotation.x=PI/2;pr.position.y=-0.85;g.add(pr);
+  g.scale.setScalar(sc);g.visible=false;tilt.add(g);return g;
+}
+const SHIPS={
+  stealth:{name:'Stealth Triangle',cost:0,g:stealthCraft,spd:1,beam:1,armor:1,r:1,desc:'Balanced all-rounder'},
+  saucer:{name:'Classic Saucer',cost:1500,g:makeSaucer(1,0x3de1ff,0xb44dff),spd:1.08,beam:1.25,armor:1,r:1,desc:'Faster, bigger beam'},
+  mother:{name:'Mothership',cost:4000,g:makeSaucer(1.6,0xff8a3d,0xff3fd2),spd:0.92,beam:1.45,armor:0.65,r:1.45,desc:'Huge beam, heavy armor, slower'}
+};
+const UPG={engine:{name:'⚡ Engine',desc:'+8% speed'},beam:{name:'🛸 Tractor Beam',desc:'+12% beam size'},armor:{name:'🛡️ Shield Armor',desc:'-10% damage'},power:{name:'🔋 Power Cell',desc:'-12% power use'}};
+const upgCost=l=>200*(l+1);
+let save={bank:0,upg:{engine:0,beam:0,armor:0,power:0},ship:'stealth',owned:{stealth:true}};
+try{const sv=JSON.parse(localStorage.getItem('ufoSave')||'null');if(sv)save=Object.assign(save,sv,{upg:Object.assign(save.upg,sv.upg||{}),owned:Object.assign({stealth:true},sv.owned||{})});}catch(e){}
+function persist(){try{localStorage.setItem('ufoSave',JSON.stringify(save));}catch(e){}}
+let M={spd:1,beam:1,armor:1,pow:1,r:1};
+function applyShip(){const S=SHIPS[save.ship]||SHIPS.stealth,u=save.upg;for(const k in SHIPS)SHIPS[k].g.visible=(SHIPS[k]===S);
+  M={spd:S.spd*(1+0.08*u.engine),beam:S.beam*(1+0.12*u.beam),armor:S.armor*(1-0.1*u.armor),pow:1-0.12*u.power,r:S.r};}
+applyShip();
+const fmt=n=>Math.floor(n).toLocaleString();
+function renderShop(){
+  $('bank').textContent='💰 '+fmt(save.bank)+' credits';$('bankMenu').textContent='💰 '+fmt(save.bank)+' credits';
+  let h='<div class="sec">SHIPS</div>';
+  for(const k in SHIPS){const S=SHIPS[k],own=save.owned[k],sel=save.ship===k;
+    h+=`<div class="row"><div><b>${S.name}</b><small>${S.desc}</small></div>`+
+      (sel?'<button class="sb on" disabled>FLYING</button>':own?`<button class="sb" data-ship="${k}">SELECT</button>`:`<button class="sb buy" data-buyship="${k}" ${save.bank<S.cost?'disabled':''}>💰 ${fmt(S.cost)}</button>`)+'</div>';}
+  h+='<div class="sec">UPGRADES</div>';
+  for(const k in UPG){const l=save.upg[k],max=l>=5;
+    h+=`<div class="row"><div><b>${UPG[k].name}</b><small>${UPG[k].desc} · <span class="pips">${'●'.repeat(l)}${'○'.repeat(5-l)}</span></small></div>`+
+      (max?'<button class="sb on" disabled>MAX</button>':`<button class="sb buy" data-upg="${k}" ${save.bank<upgCost(l)?'disabled':''}>💰 ${fmt(upgCost(l))}</button>`)+'</div>';}
+  $('shopList').innerHTML=h;
+}
+$('shopList').addEventListener('click',e=>{const b=e.target.closest('button');if(!b||b.disabled)return;
+  if(b.dataset.ship){save.ship=b.dataset.ship;}
+  else if(b.dataset.buyship){const k=b.dataset.buyship,c=SHIPS[k].cost;if(save.bank>=c){save.bank-=c;save.owned[k]=true;save.ship=k;blip(500,1500,0.3,'triangle',0.12);}}
+  else if(b.dataset.upg){const k=b.dataset.upg,c=upgCost(save.upg[k]);if(save.bank>=c&&save.upg[k]<5){save.bank-=c;save.upg[k]++;blip(500,1500,0.3,'triangle',0.12);}}
+  persist();applyShip();renderShop();});
+let shopFrom='menu';
+function openShop(from){initAudio();shopFrom=from;renderShop();$('menu').classList.add('hidden');$('over').classList.add('hidden');$('shop').classList.remove('hidden');}
+$('shopBtn').addEventListener('click',()=>openShop('menu'));$('shopBtn2').addEventListener('click',()=>openShop('over'));
+$('shopBack').addEventListener('click',()=>{$('shop').classList.add('hidden');$(shopFrom).classList.remove('hidden');});
+renderShop();
+
 // ---------- input ----------
 const keys={},inp={up:false,down:false,beam:false,boost:false},joy={x:0,y:0};
 document.addEventListener('visibilitychange',()=>{
@@ -1345,6 +1422,7 @@ function endGame(why){
   $('overTitle').textContent=why==='shield'?'SHIELD DESTROYED!':"TIME'S UP!";
   $('finalScore').textContent=score;
   $('finalTally').textContent=`🐄 ${cows} cows · 🚗 ${cars} cars abducted`;
+  save.bank+=score;persist();$('earned').textContent=`+${fmt(score)} credits → 💰 ${fmt(save.bank)}`;renderShop();
   if(score>best){best=score;try{localStorage.setItem('ufoBest',best);}catch(e){}$('newBest').textContent='🏆 NEW BEST!';}else $('newBest').textContent='';
   showBest();
   if(why==='shield')blip(200,40,0.9,'sawtooth',0.2);else blip(600,200,0.6,'triangle',0.15);
@@ -1389,14 +1467,14 @@ function spaceUpdate(dt){
 }
 
 function hit(){
-  if(hitCd>0)return;hitCd=0.7;shield-=12;shake=0.9;
+  if(hitCd>0)return;hitCd=0.7;shield-=12*M.armor;shake=0.9;
   const f=$('flash');f.style.transition='none';f.style.opacity=1;requestAnimationFrame(()=>{f.style.transition='opacity .5s';f.style.opacity=0;});
   blip(140,50,0.35,'sawtooth',0.22);
   if(navigator.vibrate)try{navigator.vibrate(60);}catch(e){}
   if(shield<=0){shield=0;endGame('shield');}
 }
 function collide(){
-  const R=5.4;
+  const R=5.4*M.r;
   for(const b of colliders){
     if(pos.y-1.2>b.h||pos.y+1.2<b.y0)continue;
     const cx=clamp(pos.x,b.x0,b.x1),cz=clamp(pos.z,b.z0,b.z1);
@@ -1506,7 +1584,7 @@ function loop(now){
     if(energy<=0.5)lock=true;if(lock&&energy>25)lock=false;
     boosting=boostBtn&&!lock&&iy>0.1;
     yaw-=ix*1.7*dt;
-    const maxS=boosting?80:40,tgt=iy>0?iy*maxS:iy*maxS*0.5;
+    const maxS=(boosting?80:40)*M.spd,tgt=iy>0?iy*maxS:iy*maxS*0.5;
     speed+=(tgt-speed)*(1-Math.exp(-(boosting?3:2.2)*dt));
     const tv=((up?1:0)-(down?1:0))*26;vy+=(tv-vy)*(1-Math.exp(-4*dt));
     fwd.set(-Math.sin(yaw),0,-Math.cos(yaw));
@@ -1518,7 +1596,7 @@ function loop(now){
       if(pos.y>258)enterSpace();
     }else spaceUpdate(dt);
     beamActive=beamBtn&&!lock&&mode==='ground';
-    if(beamActive)energy-=20*dt;if(boosting)energy-=14*dt;
+    if(beamActive)energy-=20*dt*M.pow;if(boosting)energy-=14*dt*M.pow;
     if(!beamActive&&!boosting)energy+=11*dt;energy=clamp(energy,0,100);
     hitCd-=dt;ringCd-=dt;timer-=dt;if(timer<=0){timer=0;endGame('time');}
   }else{
@@ -1541,7 +1619,7 @@ function loop(now){
   portGlow.material.opacity=beamActive?1:0.6;
 
   // beam
-  const reach=pos.y<BEAM_MAX,bR=6+pos.y*0.14,blen=Math.min(pos.y,BEAM_MAX)-0.9;
+  const reach=pos.y<BEAM_MAX,bR=(6+pos.y*0.14)*M.beam,blen=Math.min(pos.y,BEAM_MAX)-0.9;
   const tgtOp=beamActive?(reach?1:0.45):0;
   const op=beamMat.uniforms.op.value+(tgtOp-beamMat.uniforms.op.value)*0.25;
   beamMat.uniforms.op.value=op;coreMat.uniforms.op.value=op*0.5;beamMat.uniforms.t.value=t;coreMat.uniforms.t.value=t*1.3;
@@ -1665,7 +1743,7 @@ function loop(now){
     const a=t*0.25;desired.set(pos.x+Math.sin(a)*22,pos.y+6,pos.z+Math.cos(a)*22);
     camera.position.lerp(desired,1-Math.exp(-2*dt));camera.lookAt(pos);
   }else{
-    desired.copy(pos).addScaledVector(fwd,-25);desired.y=pos.y+8.5;
+    desired.copy(pos).addScaledVector(fwd,-25*M.r);desired.y=pos.y+8.5*M.r;
     camera.position.lerp(desired,1-Math.exp(-4.5*dt));
     if(mode==='ground'&&camera.position.y<2)camera.position.y=2;
     if(shake>0){camera.position.x+=rand(-1,1)*shake;camera.position.y+=rand(-1,1)*shake;shake=Math.max(0,shake-dt*2);}
