@@ -4,6 +4,10 @@ A 3D browser game: fly a triangle UFO over a neon cyberpunk city and farmland, a
 
 **Play:** https://mando49.github.io/ufo-abduction/
 
+📱 **Install it like an app:** open the link in Safari → Share → *Add to Home Screen* (Android: Chrome menu → *Install app*). It opens full screen with its own icon.
+
+🌌 **Two ways to play:** *Arcade* (2:30 on the clock, beat your best score) or *Free Explore* (no timer, your shield reboots instead of game over; tap ⏹ to end and bank your credits).
+
 ## How to play
 - **Phone:** left stick to fly and turn · ▲▼ to go up/down · hold **BEAM** over a cow or car · **BOOST** to fly fast
 - **Keyboard:** W/S fly · A/D turn · R/F up/down · Space beam · Shift boost
