@@ -20,4 +20,6 @@ Sponsored by [Mando Window Tinting](https://lasvegaswindowtintnv.com): window ti
 
 3D models for the cows, cars, police cars, army trucks, helicopters, jets and the Shadow Triangle ship were made with AI (Higgsfield / Tripo) and are in `assets/models/`.
 
+🎬 **Promo Camera:** tap 🎬 (or PROMO CAMERA on the menu) to hide the controls and let the ship fly itself while the camera cuts between cinematic shots — perfect for screen-recording TikTok / Reels clips. Tap anywhere to exit.
+
 Built with three.js. No install needed: it's a single `index.html` file.

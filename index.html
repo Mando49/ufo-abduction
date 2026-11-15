@@ -70,6 +70,14 @@ body.touch #keys{display:none}
 .sb{flex:none;min-width:92px;font-weight:900;font-size:13px;padding:9px 10px;border-radius:999px;border:none;background:linear-gradient(90deg,#3dff8a,#4fd8ff);color:#06122a}
 .sb.buy{background:linear-gradient(90deg,#ffbe46,#ff8a3d)}
 .sb:disabled{opacity:.4}.sb.on{background:rgba(255,255,255,.15);color:#fff;opacity:1}
+#promoBtn{position:fixed;top:172px;right:16px;width:42px;height:42px;border-radius:50%;border:1.5px solid rgba(255,79,216,.6);background:rgba(8,14,38,.7);color:#fff;font-size:18px;z-index:5;box-shadow:0 0 10px rgba(255,79,216,.35)}
+#promo{display:none;position:fixed;inset:0;z-index:20}
+body.promo #promo{display:block}
+body.promo #hud,body.promo #controls,body.promo #keys,body.promo #mute,body.promo #promoBtn,body.promo .overlay{display:none!important}
+#promoHint{position:absolute;top:38%;left:0;right:0;text-align:center;font-size:22px;font-weight:900;text-shadow:0 0 14px rgba(0,0,0,.8);transition:opacity 1s}
+#promoHint small{font-size:14px;opacity:.85;font-weight:700}
+#promoMark{position:absolute;left:0;right:0;bottom:max(18px,env(safe-area-inset-bottom));text-align:center;font-size:12px;line-height:1.5;padding:0 10px;text-shadow:0 1px 6px rgba(0,0,0,.9);opacity:.92}
+#promoMark b{color:#7ffcff}#promoMark span{color:#ffb3ef;font-weight:700}
 .final{font-size:48px;font-weight:900;margin:4px 0;text-shadow:0 0 18px rgba(120,255,200,.6)}
 </style>
 </head>
@@ -111,6 +119,11 @@ body.touch #keys{display:none}
 </div>
 <div id="keys">W/S fly · A/D turn · R/F up/down · SPACE beam · X fire lasers · SHIFT boost · climb past 250m for space</div>
 <button id="mute">🔊</button>
+<button id="promoBtn" title="Promo camera">🎬</button>
+<div id="promo">
+  <div id="promoHint">🎬 Start your screen recording<br><small>Tap anywhere to exit</small></div>
+  <div id="promoMark"><b>🛸 UFO ABDUCTION</b> · play free at <b>mando49.github.io/ufo-abduction</b><br><span>Sponsored by Mando Window Tinting · lasvegaswindowtintnv.com</span></div>
+</div>
 
 <div id="menu" class="overlay">
   <div class="card">
@@ -135,6 +148,7 @@ body.touch #keys{display:none}
     <p style="font-size:13px">⭐ Every abduction raises your <b>wanted level</b>. Helicopters, then fighter jets with homing missiles come after you. Boost to outrun missiles. Beam up helicopters flying below you!</p>
     <p style="font-size:13px">🚀 Fly up through the stormy Sky Realm (360m+) to reach space, then fly through a portal to travel to the <b>Area 51 desert</b>, or ride deep-space wormholes to alien planets: ❄️ Frostara, 🔥 Magmor and 🍄 Verdana.</p>
     <button class="play" id="playBtn">PLAY</button>
+    <div><button class="hbtn" id="promoBtn2" style="border-color:#ff4fd8;color:#ffb3ef;background:rgba(40,5,30,.6)">🎬 PROMO CAMERA</button></div>
     <div><button class="hbtn" id="shopBtn">🛠️ HANGAR</button></div>
     <div class="best" id="bankMenu"></div>
     <div class="best" id="bestMenu"></div>
@@ -1846,6 +1860,45 @@ function homeTown(sec){return sec==='earth'?(TOWN_SECTOR[curTown]==='earth'?curT
 spaceGroup.children.filter(o=>o.isGroup&&Math.abs(o.position.z+300)<1&&Math.abs(Math.abs(o.position.x)-110)<1&&!portals.some(P=>P.g===o)).forEach(o=>spaceGroup.remove(o));
 applySector('earth');
 
+// ---------- promo camera (for TikTok / Reels) ----------
+const promo={t:0,prev:'menu',shot:-1,anchor:new V3(),ang:0};
+function startPromo(){
+  if(mode==='warp')return;initAudio();
+  promo.prev=state;promo.t=0;promo.shot=-1;state='promo';document.body.classList.add('promo');
+  const c=promoCenter();promo.ang=Math.atan2(pos.z-c.z,pos.x-c.x);
+  const h=$('promoHint');h.style.opacity=1;setTimeout(()=>h.style.opacity=0,3000);
+}
+function stopPromo(){
+  if(state!=='promo')return;document.body.classList.remove('promo');beamActive=false;
+  state=promo.prev;if(state==='menu')$('menu').classList.remove('hidden');else if(state==='over')$('over').classList.remove('hidden');
+  lastHud='';
+}
+function promoCenter(){return mode==='space'?new V3(0,20,-200):new V3(0,0,0);}
+function promoFly(dt){
+  promo.t+=dt;const c=promoCenter(),R=mode==='space'?170:(towns[curTown].planet?260:330),w=36/R;
+  promo.ang+=w*dt;const a=promo.ang,h=mode==='space'?c.y+Math.sin(promo.t*0.4)*18:55+Math.sin(promo.t*0.5)*8;
+  pos.set(c.x+Math.cos(a)*R,h,c.z+Math.sin(a)*R);
+  const dx=-Math.sin(a),dz=Math.cos(a);yaw=Math.atan2(-dx,-dz);speed=36;vy=0;
+  const shot=Math.floor(promo.t/6)%5;beamActive=mode==='ground'&&(shot===1||shot===3)&&pos.y<BEAM_MAX;
+  energy=100;
+}
+function promoCam(dt,t){
+  const shot=Math.floor(promo.t/6)%5,P=pos,F=fwd,Rt=right;
+  if(shot!==promo.shot){promo.shot=shot;promo.anchor.copy(P).addScaledVector(F,62).addScaledVector(Rt,12);promo.anchor.y=P.y-2;}
+  const cp=new V3(),lk=new V3();
+  if(shot===0){cp.copy(P).addScaledVector(F,-15);cp.y-=1.5;lk.copy(P).addScaledVector(F,12);lk.y+=2;}
+  else if(shot===1){const an=promo.t*0.5;cp.set(P.x+Math.cos(an)*19,P.y+5,P.z+Math.sin(an)*19);lk.copy(P);}
+  else if(shot===2){cp.copy(promo.anchor);lk.copy(P);}
+  else if(shot===3){cp.copy(P).addScaledVector(F,-35);cp.y+=55;lk.copy(P).addScaledVector(F,25);}
+  else{cp.copy(P).addScaledVector(F,20);cp.y+=2.5;lk.copy(P);}
+  if(mode==='ground'&&cp.y<2)cp.y=2;
+  camera.position.copy(cp);camera.lookAt(lk);
+}
+$('promoBtn').addEventListener('click',e=>{e.stopPropagation();startPromo();});
+$('promoBtn2').addEventListener('click',e=>{e.stopPropagation();$('menu').classList.add('hidden');startPromo();});
+$('promo').addEventListener('pointerdown',e=>{e.preventDefault();stopPromo();});
+addEventListener('keydown',e=>{if(e.key==='Escape')stopPromo();});
+
 // ---------- input ----------
 const keys={},inp={up:false,down:false,beam:false,boost:false,fire:false},joy={x:0,y:0};
 document.addEventListener('visibilitychange',()=>{
@@ -2105,7 +2158,8 @@ function loop(now){
     if(beamActive)energy-=20*dt*M.pow;if(boosting)energy-=14*dt*M.pow;
     if(!beamActive&&!boosting)energy+=11*dt;energy=clamp(energy,0,100);
     hitCd-=dt;ringCd-=dt;timer-=dt;if(timer<=0){timer=0;endGame('time');}
-  }else{
+  }else if(state==='promo'){promoFly(dt);}
+  else{
     beamActive=false;speed*=0.95;
     if(state==='menu'){yaw+=dt*0.15;pos.y=60+Math.sin(t*0.5)*3;}
   }
@@ -2113,7 +2167,7 @@ function loop(now){
 
   // UFO visuals
   ufo.position.set(pos.x,pos.y+Math.sin(t*2.2)*0.25,pos.z);ufo.rotation.y=yaw;
-  bank+=((state==='play'?-ix*0.38:0)-bank)*(1-Math.exp(-5*dt));
+  bank+=((state==='play'?-ix*0.38:state==='promo'?-0.22:0)-bank)*(1-Math.exp(-5*dt));
   pitch+=(-(speed/80)*0.3-pitch)*(1-Math.exp(-4*dt));
   tilt.rotation.set(pitch,0,bank);
   stealthCraft.userData.update(t,beamActive);
@@ -2248,7 +2302,8 @@ function loop(now){
   });
 
   // camera
-  if(state==='menu'){
+  if(state==='promo'){promoCam(dt,t);}
+  else if(state==='menu'){
     const a=t*0.25;desired.set(pos.x+Math.sin(a)*22,pos.y+6,pos.z+Math.cos(a)*22);
     camera.position.lerp(desired,1-Math.exp(-2*dt));camera.lookAt(pos);
   }else{
@@ -2263,7 +2318,7 @@ function loop(now){
     sky.material.opacity=1-k*0.9;scene.fog.near=T.fog[0];scene.fog.far=T.fog[1]+(1500-T.fog[1])*clamp((pos.y-120)/140,0,1);
     scene.background.copy(T.fogC).lerp(SPACE_C,k);scene.fog.color.copy(scene.background);raysMat.opacity=0;if(bloom)bloom.strength=0.75;
     planetAnim.forEach(a=>{if(a.town===curTown)a.f(t,dt);});}
-  else if(mode==='ground'){const y=pos.y,TF=towns[curTown].fog,below=clamp((y-110)/70,0,1),inF=clamp(1-Math.abs(y-CLOUD_Y)/18,0,1),above=clamp((y-CLOUD_Y-6)/22,0,1),k=clamp((y-300)/55,0,1);
+  else if(mode==='ground'){skyRealm.visible=cloudLayer.visible=Math.max(pos.y,camera.position.y)>115;const y=pos.y,TF=towns[curTown].fog,below=clamp((y-110)/70,0,1),inF=clamp(1-Math.abs(y-CLOUD_Y)/18,0,1),above=clamp((y-CLOUD_Y-6)/22,0,1),k=clamp((y-300)/55,0,1);
     sky.material.opacity=1-k*0.9;
     let far=TF[1]+(330-TF[1])*below;far+=(1900-far)*above;far+=(30-far)*inF;
     scene.fog.far=far;scene.fog.near=Math.min(TF[0],far*0.15);
