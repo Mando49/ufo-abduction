@@ -468,6 +468,35 @@ const fields=[];
   inst(pg,lam(0x6e4f33),posts,p=>compose(p.x,0,p.z,1,1,1));
   inst(new THREE.BoxGeometry(96,0.18,0.14),lam(0x7a5a3a),rails,r=>compose(r.x,r.y,r.z,1,1,1,0,r.ry,0));
 })();
+// crop rows and harvest details — instanced for mobile-friendly performance
+(function(){
+  const cropRows=[],hayBales=[];
+  fields.forEach((field,index)=>{
+    const angle=(index/7)*2*PI+PI/2;
+    const c=Math.cos(angle),sn=Math.sin(angle);
+    // Parallel rows inside each fenced field, leaving a clear central tractor lane.
+    for(let row=-5;row<=5;row++){
+      const offset=row*7.2;
+      const x=field.x+Math.cos(angle+PI/2)*offset;
+      const z=field.z+Math.sin(angle+PI/2)*offset;
+      cropRows.push({x,z,ry:-angle});
+    }
+    for(let n=0;n<5;n++){
+      const along=rand(-34,34),across=rand(-32,32);
+      const x=field.x+c*along-Math.sin(angle)*across;
+      const z=field.z+sn*along+Math.cos(angle)*across;
+      hayBales.push({x,z,ry:rand(0,PI)});
+    }
+  });
+  const rowGeo=new THREE.BoxGeometry(0.48,0.62,74);
+  rowGeo.translate(0,0.31,0);
+  const rowMat=lam(0x8cae3d);
+  inst(rowGeo,rowMat,cropRows,r=>compose(r.x,0.04,r.z,1,1,1,0,r.ry,0));
+  const baleGeo=new THREE.CylinderGeometry(1.25,1.25,2.3,10);
+  baleGeo.rotateZ(PI/2);
+  const baleMat=lam(0xb99a57);
+  inst(baleGeo,baleMat,hayBales,b=>compose(b.x,1.25,b.z,1,1,1,0,b.ry,0));
+})();
 // trees: round trees near farms, pines further out
 (function(){
   const round=[],pines=[];
