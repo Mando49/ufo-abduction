@@ -601,7 +601,23 @@ const roofLights=[];
     const tip=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:0xff3a3a,transparent:true,depthWrite:false}));tip.position.set(Hh.x,Hh.h+spL+1,Hh.z);tip.scale.set(6,6,1);root.add(tip);roofLights.push(tip);
   });
 })();
+// glowing 🎰 VEGAS portal ring — fly through it to reach the Las Vegas Strip
 // giant neon ring arch (fly through it for bonus time)
+const VEGAS_PORTAL={x:180,y:45,z:180,R:26};
+(function(){
+  const cx=VEGAS_PORTAL.x,cy=VEGAS_PORTAL.y,cz=VEGAS_PORTAL.z,R=VEGAS_PORTAL.R;
+  const g=new THREE.Group();g.position.set(cx,cy,cz);
+  g.add(new THREE.Mesh(new THREE.TorusGeometry(R,2.4,14,120),new THREE.MeshStandardMaterial({color:0x3a2f1a,metalness:.55,roughness:.35})));
+  for(const off of[-1.9,1.9]){const n=new THREE.Mesh(new THREE.TorusGeometry(R,0.35,6,120),basic(0xffd84a));n.position.z=off;g.add(n);}
+  g.add(new THREE.Mesh(new THREE.TorusGeometry(R-2.3,0.3,6,120),basic(0xffd84a)));
+  g.add(new THREE.Mesh(new THREE.TorusGeometry(R+2.3,0.28,6,120),basic(0xff3fd2)));
+  const swirl=new THREE.Mesh(new THREE.CircleGeometry(R-2,48),new THREE.MeshBasicMaterial({color:0xffd84a,transparent:true,opacity:0.12,blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide}));g.add(swirl);
+  for(let i=0;i<12;i++){const a=i/12*2*PI;const s=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:0xff3fd2,transparent:true,depthWrite:false}));s.position.set(Math.cos(a)*(R+2.5),Math.sin(a)*(R+2.5),0);s.scale.set(4,4,1);g.add(s);}
+  root.add(g);
+  box(root,12,7,16,0x2a2f3c,cx,3.5,cz);box(root,12.4,0.5,16.4,basic(0xffd84a),cx,7,cz);
+  const lbl=neonText('🎰 VEGAS',0xffd84a,40,10);lbl.position.set(cx,cy+R+12,cz);root.add(lbl);
+})();
+
 (function(){
   const cx=-120,cy=40,cz=120,R=36;
   const g=new THREE.Group();g.position.set(cx,cy,cz);g.rotation.y=PI/2;
@@ -2029,7 +2045,36 @@ beginTown('maya');
 endTown('maya',[180,1000]);Object.assign(towns.maya,{planet:true,fogC:new THREE.Color(0x8ab890),skyTint:0xa8e0b0,label:'🌴 YUCATÁN, MEXICO',bloom:0.4});
 
 // 🎰 LAS VEGAS — the neon Strip, a glass pyramid with a sky beam, fountains, a giant slot machine
-beginTown('vegas');
+beginTown('vegas');function makeElvis(){
+  const g=new THREE.Group(),body=new THREE.Group();g.add(body);
+  const suit=lam(0xf8f8f8),skin=lam(0xe8c8a0),gold=basic(0xffd84a),pink=basic(0xff3fd2);
+  const tor=new THREE.Mesh(new THREE.BoxGeometry(0.72,0.85,0.42),suit);tor.position.y=1.1;body.add(tor);
+  const hd=new THREE.Mesh(new THREE.SphereGeometry(0.32,10,8),skin);hd.position.y=1.78;body.add(hd);
+  const hair=new THREE.Mesh(new THREE.SphereGeometry(0.33,10,8,0,2*PI,0,PI/2),lam(0x1a1a1a));hair.position.y=1.83;body.add(hair);
+  box(body,0.76,0.1,0.46,gold,0,0.72,0); // gold belt
+  box(body,0.06,0.55,0.95,pink,-0.26,1.15,0); // cape
+  const legs=[],arms=[];
+  for(const z of[-0.15,0.15]){const pv=new THREE.Group();pv.position.set(0,0.7,z);body.add(pv);const l=new THREE.Mesh(new THREE.BoxGeometry(0.26,0.7,0.3),suit);l.position.y=-0.35;pv.add(l);legs.push(pv);
+    const pa=new THREE.Group();pa.position.set(0,1.5,z*2.6);body.add(pa);const a=new THREE.Mesh(new THREE.BoxGeometry(0.2,0.7,0.24),suit);a.position.y=-0.35;pa.add(a);arms.push(pa);}
+  g.userData.legs=legs;g.userData.arms=arms;g.userData.body=body;
+  g.userData.pts=100;g.userData.emoji='🕺';g.userData.heat=0.8;
+  root.add(g);return g;
+}
+function makeShowgirl(){
+  const g=new THREE.Group(),body=new THREE.Group();g.add(body);
+  const dress=lam(0xff3fd2),skin=lam(0xe8c8a0),gold=basic(0xffd84a);
+  const tor=new THREE.Mesh(new THREE.BoxGeometry(0.62,0.8,0.4),dress);tor.position.y=1.1;body.add(tor);
+  const hd=new THREE.Mesh(new THREE.SphereGeometry(0.3,10,8),skin);hd.position.y=1.75;body.add(hd);
+  for(let i=-2;i<=2;i++){const f=new THREE.Mesh(new THREE.ConeGeometry(0.09,0.7,5),gold);f.position.set(i*0.16,2.2,0);f.rotation.z=-i*0.22;body.add(f);}
+  box(body,0.66,0.1,0.44,gold,0,0.78,0); // sequin belt
+  const legs=[],arms=[];
+  for(const z of[-0.14,0.14]){const pv=new THREE.Group();pv.position.set(0,0.7,z);body.add(pv);const l=new THREE.Mesh(new THREE.BoxGeometry(0.24,0.7,0.28),skin);l.position.y=-0.35;pv.add(l);legs.push(pv);
+    const pa=new THREE.Group();pa.position.set(0,1.45,z*2.6);body.add(pa);const a=new THREE.Mesh(new THREE.BoxGeometry(0.18,0.65,0.22),skin);a.position.y=-0.32;pa.add(a);arms.push(pa);}
+  g.userData.legs=legs;g.userData.arms=arms;g.userData.body=body;
+  g.userData.pts=80;g.userData.emoji='💃';g.userData.heat=0.7;
+  root.add(g);return g;
+}
+
 (function(){
   flatPlane(3000,3000,0x6a5040,0,0,0);
   for(let i=0;i<20;i++)flatPlane(rand(80,200),rand(80,200),pick([0x7a5a44,0x5e4636,0x846450]),-1,rand(-640,640),rand(-640,640)).rotation.z=rand(0,PI);
@@ -2084,7 +2129,20 @@ beginTown('vegas');
   const lever=new THREE.Group();lever.position.set(MX+27,30,MZ);root.add(lever);const stick=new THREE.Mesh(new THREE.CylinderGeometry(0.6,0.6,16,8),lam(0xd8d8e8));stick.position.y=8;lever.add(stick);const knob=new THREE.Mesh(new THREE.SphereGeometry(3,12,8),basic(0xff2a4a));knob.position.y=16;lever.add(knob);
   const knobGlow=glowSprite(0xff2a4a,MX+27,46,MZ,22,0.7);box(root,7,3,3,0xd8d8e8,MX+23,30,MZ);
   const slot={spin:0,cd:0,res:[0,0,0]};
+  // 🌐 the Sphere — giant glowing orb at the north-west end of the Strip
   // "Welcome to Las Vegas" diamond sign at the south end of the Strip
+  const sphereMat=new THREE.MeshStandardMaterial({color:0xffd84a,emissive:0xff9a00,emissiveIntensity:0.9,roughness:0.3,metalness:0.1});
+  const sphere=new THREE.Mesh(new THREE.SphereGeometry(42,48,32),sphereMat);sphere.position.set(-260,44,-520);root.add(sphere);
+  (function(){const rb=new THREE.Mesh(new THREE.TorusGeometry(43,1.5,8,64),basic(0xffd84a));rb.rotation.x=PI/2;rb.position.set(-260,2,-520);root.add(rb);})();
+  colliders.push({x0:-260-42,x1:-260+42,z0:-520-42,z1:-520+42,h:88,y0:0});
+  // 🚝 monorail gliding down the west side of the Strip
+  box(root,2,1.2,1200,0x3a3f4c,-34,16,0);
+  for(let z=-600;z<=600;z+=60){box(root,1.5,16,1.5,0x2c3140,-34,8,z);colliders.push({x0:-34.75,x1:-33.25,z0:z-0.75,z1:z+0.75,h:16,y0:0});}
+  colliders.push({x0:-35,x1:-33,z0:-600,z1:600,h:17.2,y0:15.4});
+  const mono=new THREE.Group();
+  for(let i=0;i<3;i++){const car=new THREE.Mesh(new THREE.BoxGeometry(3,3.4,12),lam(i===0?0xffd84a:0x45eaff));car.position.set(0,0,i*-13);mono.add(car);}
+  mono.position.set(-34,18.6,-580);root.add(mono);
+
   {const g=new THREE.Group();g.position.set(SX,0,560);root.add(g);box(g,1.2,16,1.2,0xd8d8d8,-6,8,0);box(g,1.2,16,1.2,0xd8d8d8,6,8,0);
     const c=document.createElement('canvas');c.width=512;c.height=512;const x=c.getContext('2d');x.translate(256,256);x.rotate(PI/4);x.fillStyle='#f8f4e8';x.fillRect(-170,-170,340,340);x.rotate(-PI/4);
     x.fillStyle='#e8203a';x.font='900 40px system-ui';x.textAlign='center';x.fillText('WELCOME TO',0,-60);x.fillStyle='#1a5ac8';x.font='900 30px system-ui';x.fillText('FABULOUS',0,-10);x.fillStyle='#e8203a';x.font='900 66px system-ui';x.fillText('LAS VEGAS',0,58);x.fillStyle='#1a5ac8';x.font='900 30px system-ui';x.fillText('NEVADA',0,100);
@@ -2117,9 +2175,15 @@ beginTown('vegas');
       const r=Math.random();slot.res=r<0.12?[6,6,6]:r<0.25?[5,5,5]:r<0.38?(()=>{const s=(Math.random()*5)|0;return[s,s,s];})():[(Math.random()*7)|0,(Math.random()*7)|0,(Math.random()*7)|0];
       pop('🎰 SPINNING…');blip(800,1200,0.15,'square',0.08);}
     targets.forEach(T=>{const u=T.mesh.userData;if(u.legs&&T.state==='ground'){const sw=Math.sin(t*7+T.mesh.id)*0.4;u.legs[0].rotation.z=sw;u.legs[1].rotation.z=-sw;u.arms[0].rotation.z=-sw;u.arms[1].rotation.z=sw;}});
+    sphereMat.emissive.setHSL((t*0.04)%1,0.85,0.55);sphere.rotation.y+=dt*0.1;
+    mono.position.z=((t*14)%1160)-580;
   }});
   // tourists everywhere
   for(let i=0;i<34;i++){const T={type:'critter',mesh:makeHuman(false),spawn:spawnCow,fl:fields,rad:20};T.spawn(T);targets.push(T);}
+  // 🕺 Elvis impersonators (100 pts) strolling the west sidewalk
+  for(let i=0;i<4;i++){const T={type:'critter',mesh:makeElvis(),spawn:spawnCow,fl:[{x:-45,z:40,rad:10}],rad:10};T.spawn(T);targets.push(T);}
+  // 💃 showgirls (80 pts) by the fountains on the east side
+  for(let i=0;i<4;i++){const T={type:'critter',mesh:makeShowgirl(),spawn:spawnCow,fl:[{x:48,z:40,rad:10}],rad:10};T.spawn(T);targets.push(T);}
 })();
 endTown('vegas',[200,1100]);Object.assign(towns.vegas,{planet:true,fogC:new THREE.Color(0x1a1030),skyTint:0x6a3a8a,label:'🎰 LAS VEGAS',bloom:0.7});
 
@@ -2888,10 +2952,10 @@ function renderShop(){
     h+=`<div class="row"><div><b>${UPG[k].name}</b><small>${UPG[k].desc} · <span class="pips">${'●'.repeat(l)}${'○'.repeat(5-l)}</span></small></div>`+
       (max?'<button class="sb on" disabled>MAX</button>':`<button class="sb buy" data-upg="${k}" ${save.bank<upgCost(l)?'disabled':''}>💰 ${fmt(upgCost(l))}</button>`)+'</div>';}
   try{const nb=Object.keys(badges).length,ns=Object.keys(secretsFound).length;
-  h+=`<div class="sec">EXPLORER LOG · 🏅 ${nb}/12 BADGES · 🔍 ${ns}/8 SECRETS</div>`;
+  h+=`<div class="sec">EXPLORER LOG · 🏅 ${nb}/12 BADGES · 🔍 ${ns}/9 SECRETS</div>`;
   for(const k of['city','desert','ocean','moon','mars','ice','lava','jungle','fifth','egypt','maya','vegas']){const S=SECRETS[k]||{emoji:'',name:''};
     h+=`<div class="row"><div><b>${badges[k]?'🏅':'⚪'} ${TOWN_NAMES[k]}</b><small>${badges[k]?'All 5 relics found':'Land and find 5 💠 relics'} · ${secretsFound[k]?'🔍 '+S.emoji+' '+S.name:'🔍 ??? secret not found'}</small></div></div>`;}
-  if(nb>=12&&ns>=8)h+='<div class="row"><div><b>👑 MASTER EXPLORER</b><small>You found everything. Legend!</small></div></div>';}catch(e){}
+  if(nb>=12&&ns>=9)h+='<div class="row"><div><b>👑 MASTER EXPLORER</b><small>You found everything. Legend!</small></div></div>';}catch(e){}
   $('shopList').innerHTML=h;try{renderMissions();}catch(e){}
 }
 $('shopList').addEventListener('click',e=>{const b=e.target.closest('button');if(!b||b.disabled)return;
@@ -3528,7 +3592,8 @@ const SECRETS={
   jungle:{name:'Blob Village',x:-380,z:-330,emoji:'🛖'},
   moon:{name:'Mystery Monolith',x:330,z:-340,emoji:'⬛'},
   mars:{name:'Ancient Ruins',x:-340,z:-370,emoji:'🏛️'},
-  ocean:{name:'Sunken Galleon',x:360,z:-380,emoji:'🏴‍☠️'}
+  ocean:{name:'Sunken Galleon',x:360,z:-380,emoji:'🏴‍☠️'},
+  vegas:{name:'High-Roller Suite',x:250,z:-480,emoji:'🎰'}
 };
 let secretsFound={};try{secretsFound=JSON.parse(localStorage.getItem('ufoSecrets')||'{}');}catch(e){}
 const secretAnim=[];
@@ -3572,6 +3637,19 @@ inTown('mars',(X,Z)=>{for(let i=0;i<10;i++){const a=i/10*2*PI,h=rand(3,10),x=X+M
   const ob=new THREE.Mesh(new THREE.ConeGeometry(2.2,14,4),new THREE.MeshLambertMaterial({color:0x6a2a14,emissive:0x5a1a8a,emissiveIntensity:.4}));ob.position.set(X,7,Z);root.add(ob);solid(X,Z,3,3,14);
   const gl=glowSprite(0xc58bff,X,10,Z,16);secretAnim.push(t=>{gl.material.opacity=0.5+0.4*Math.sin(t*2.2);});});
 // ---------- PYRAMIDS ----------
+inTown('vegas',(X,Z)=>{
+  // hidden High-Roller Suite — a gold penthouse platform in the north-east corner
+  box(root,10,0.3,10,0x3a2f1a,X,0.15,Z);
+  for(const px of[-4.5,4.5])for(const pz of[-4.5,4.5])box(root,0.6,6,0.6,0x8a6a2a,X+px,3,Z+pz);
+  box(root,10.6,0.6,10.6,basic(0xffd84a),X,6.3,Z);
+  const table=new THREE.Mesh(new THREE.CylinderGeometry(2.2,2.2,0.8,16),lam(0x2a6a3a));table.position.set(X,0.7,Z);root.add(table);
+  const chipC=[0xffd84a,0xff3fd2,0x45eaff,0x2dff9a,0xff8a3d];
+  for(let i=0;i<5;i++){const chip=new THREE.Mesh(new THREE.CylinderGeometry(0.5,0.5,0.3,10),basic(chipC[i]));chip.position.set(X-1+i*0.5,1.5,Z+1);root.add(chip);}
+  glowSprite(0xffd84a,X,4,Z,14,0.7);glowSprite(0xff3fd2,X,8,Z,10,0.6);
+  sign('HIGH ROLLER',0xffd84a,16,4,X,9,Z+4.3,0);
+});
+
+
 const SAND_TEX=texCanvas(256,256,g=>{g.fillStyle='#d8b878';g.fillRect(0,0,256,256);
   for(let y=0;y<256;y+=16){g.fillStyle='rgba(120,80,40,.35)';g.fillRect(0,y,256,2);const off=(y/16)%2?16:0;for(let x=off;x<256;x+=32){g.fillRect(x,y,2,16);}}
   for(let i=0;i<400;i++){g.fillStyle=`rgba(${pick(['255,240,200','150,110,60'])},.15)`;g.fillRect(rand(0,256),rand(0,256),3,3);}});
@@ -3646,6 +3724,8 @@ const MISSIONS=[
   {id:'goal',t:'Fly through a ball-court ring (Yucatán)',ev:'goal',g:1,r:400},
   {id:'jaguar',t:'Abduct 3 jaguars',ev:'abduct',m:d=>d.emoji==='🐆',g:3,r:500},
   {id:'vegas',t:'Visit Las Vegas',ev:'visit',m:d=>d.town==='vegas',g:1,r:500},
+  {id:'elvis',t:'Beam up 3 Elvis impersonators',ev:'abduct',m:d=>d.emoji==='🕺',g:3,r:600},
+  {id:'showgirl',t:'Abduct 4 showgirls',ev:'abduct',m:d=>d.emoji==='💃',g:4,r:500},
   {id:'jackpot',t:'Hit a jackpot on the giant slot machine',ev:'jackpot',g:1,r:800},
   {id:'skybeam',t:'Ride the Sky Beam in Las Vegas',ev:'skybeam',g:1,r:300},
   {id:'ocean',t:'Dive into the ocean',ev:'visit',m:d=>d.town==='ocean',g:1,r:300},
@@ -4321,6 +4401,7 @@ function loop(now){
       const hd=Math.hypot(pos.x,pos.z);if(hd>620){pos.x*=620/hd;pos.z*=620/hd;}
       collide();
       if(pos.y>SPACE_Y||(curTown==='ocean'&&pos.y>SURF-3))enterSpace();
+      if(curTown==='city'&&state==='play'){const pdx=pos.x-VEGAS_PORTAL.x,pdy=pos.y-VEGAS_PORTAL.y,pdz=pos.z-VEGAS_PORTAL.z;if(Math.abs(pdz)<5&&Math.hypot(pdx,pdy)<VEGAS_PORTAL.R+3)enterWarp('vegas');}
     }else if(mode==='space'){spaceUpdate(dt);if(mode==='space')stationUpdate(dt);}else warpUpdate(dt,ix,(up?1:0)-(down?1:0));
     beamActive=beamBtn&&!lock&&mode==='ground';
     if(beamActive)energy-=20*dt*M.pow;if(boosting)energy-=14*dt*M.pow;
