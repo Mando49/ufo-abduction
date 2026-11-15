@@ -21,6 +21,8 @@ Sponsored by [Mando Window Tinting](https://lasvegaswindowtintnv.com): window ti
 
 3D models for the cows, cars, police cars, army trucks, helicopters, jets and the Shadow Triangle ship were made with AI (Higgsfield / Tripo) and are in `assets/models/`.
 
+🔺 **Pyramid Valley** in the Area 51 desert (three climbable pyramids, an alien sphinx, obelisks and an oasis) plus alien pyramids on Mars.
+
 🛬 **Alien Explorer:** fly low and tap LAND to step out as your little green alien. Walk, run and double-jump around any world (lower gravity on the Moon and Mars!). Each world hides 5 💠 relics (purple dots on the radar); find all 5 for that world's 🏅 Explorer Badge (7 to collect, saved on your device). The timer pauses while you're on foot. Tap 🛸 SHIP to fly again. Every world also has a 🔍 hidden secret to discover on foot (crashed saucer, secret bunker, crystal cave, lava temple, blob village, mystery monolith, ancient ruins) worth +200 and +500 bonus credits the first time. Track everything in the Hangar's Explorer Log.
 
 🎵 **Music:** a synthwave soundtrack generated live in the browser, with its own song for every area (Neon City, Area 51, the clouds, space, wormholes, boss fights/high wanted level, Frostara, Magmor, Verdana, the Moon and Mars). Toggle with the 🎵 button.
