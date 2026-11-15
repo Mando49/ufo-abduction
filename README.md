@@ -4,6 +4,8 @@ A 3D browser game: fly a triangle UFO over a neon cyberpunk city and farmland, a
 
 **Play:** https://mando49.github.io/ufo-abduction/
 
+🎯 **Missions:** 3 goals are always on screen (abduct police cars, beat the Mothership, land on Mars, Ring Run Saturn, find a secret, climb a pyramid… 30 in all). Finish one for Hangar credits and a new one takes its place. Progress is saved between games; tap the panel to hide it.
+
 📱 **Install it like an app:** open the link in Safari → Share → *Add to Home Screen* (Android: Chrome menu → *Install app*). It opens full screen with its own icon.
 
 🌌 **Two ways to play:** *Arcade* (2:30 on the clock, beat your best score) or *Free Explore* (no timer, your shield reboots instead of game over; tap ⏹ to end and bank your credits).

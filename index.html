@@ -43,6 +43,15 @@ html,body{margin:0;height:100%;overflow:hidden;background:#0a0c2a;font-family:-a
 @keyframes blinkw{50%{opacity:.2}}
 #bossbar{display:none;position:absolute;top:205px;left:50%;transform:translateX(-50%);width:180px;text-align:center}
 #bossfill{background:linear-gradient(90deg,#ff2a4a,#ff9a4a);box-shadow:0 0 10px #ff3a4a}
+#missions{position:absolute;left:10px;top:200px;width:146px;pointer-events:auto;background:linear-gradient(180deg,rgba(10,18,45,.72),rgba(6,10,30,.62));border:1.5px solid rgba(255,190,70,.55);border-radius:14px;padding:6px 8px;box-shadow:0 0 12px rgba(255,190,70,.2)}
+#missions .lbl{color:#ffd27a;text-shadow:0 0 6px rgba(255,190,70,.6)}
+#missions.mini #mlist{display:none}
+#missions.flash{animation:mflash .9s}
+@keyframes mflash{0%,100%{box-shadow:0 0 12px rgba(255,190,70,.2)}30%{box-shadow:0 0 30px rgba(255,220,100,1);transform:scale(1.04)}}
+.mi{display:flex;align-items:baseline;gap:4px;font-size:10.5px;line-height:1.2;margin-top:3px;font-weight:700}
+.mi span{flex:1}.mi b{color:#7dffa8;font-size:10.5px;white-space:nowrap}
+.mi.bump{animation:mbump .5s}@keyframes mbump{40%{background:rgba(125,255,168,.25)}}
+body.promo #missions{display:none}
 #pubar{position:absolute;top:94px;left:50%;transform:translateX(-50%);display:flex;gap:5px;flex-wrap:wrap;justify-content:center;max-width:170px}
 .chip{font-size:13px;font-weight:900;padding:3px 7px;border-radius:999px;background:rgba(8,14,38,.75);border:1.5px solid #fff;box-shadow:0 0 8px rgba(255,255,255,.25)}
 #heatwarn{display:none;position:absolute;top:26%;left:0;right:0;text-align:center;font-size:18px;font-weight:900;color:#ffb040;text-shadow:0 0 14px rgba(255,120,30,.9);animation:blinkw .5s steps(2) infinite}
@@ -129,6 +138,7 @@ body.promo #hud,body.promo #controls,body.promo #keys,body.promo #mute,body.prom
   </div>
   <div id="bossbar"><div class="lbl" style="color:#ff6a7a">ALIEN MOTHERSHIP</div><div class="bar"><i id="bossfill"></i></div></div>
   <div id="pubar"></div>
+  <div id="missions"><div class="lbl">🎯 MISSIONS <span style="opacity:.6;letter-spacing:0">· tap to hide</span></div><div id="mlist"></div></div>
   <div id="heatwarn">☀️ TOO HOT! GET AWAY FROM THE SUN</div>
   <div id="pops"></div>
   <div id="sndwarn">🔇 Sound is paused · tap anywhere to turn it on</div>
@@ -167,6 +177,7 @@ body.promo #hud,body.promo #controls,body.promo #keys,body.promo #mute,body.prom
       <b>BEAM</b> – hold over a cow or car<br>
       <b>BOOST</b> – fly fast (uses power)<br>
       <b>FIRE</b> – shoot lasers at helicopters, jets &amp; missiles<br>
+      <b>🎯 Missions</b> – 3 goals on the left side of the screen; finish them for Hangar credits<br>
       <b>🛬 LAND</b> – fly low and tap LAND to walk around as your alien (▲ jumps, tap twice to double-jump). Find 5 💠 relics on each world for an 🏅 Explorer Badge!<br>
       <b>Power-ups</b> – fly through glowing icons: 🧲 🛡️ ✖️2 ⏱️ 🔥 ⚡<br>
       Tip: the beam only reaches when you're <b>below 70m</b>.
@@ -1707,6 +1718,7 @@ function renderShop(){
   for(const k in SHIPS){const S=SHIPS[k],own=save.owned[k],sel=save.ship===k;
     h+=`<div class="row"><div><b>${S.name}</b><small>${S.desc}</small></div>`+
       (sel?'<button class="sb on" disabled>FLYING</button>':own?`<button class="sb" data-ship="${k}">SELECT</button>`:`<button class="sb buy" data-buyship="${k}" ${save.bank<S.cost?'disabled':''}>💰 ${fmt(S.cost)}</button>`)+'</div>';}
+  h+='<div class="sec">🎯 ACTIVE MISSIONS</div><div id="mhangar"></div>';
   h+='<div class="sec">UPGRADES</div>';
   for(const k in UPG){const l=save.upg[k],max=l>=5;
     h+=`<div class="row"><div><b>${UPG[k].name}</b><small>${UPG[k].desc} · <span class="pips">${'●'.repeat(l)}${'○'.repeat(5-l)}</span></small></div>`+
@@ -1716,7 +1728,7 @@ function renderShop(){
   for(const k of['city','desert','moon','mars','ice','lava','jungle']){const S=SECRETS[k];
     h+=`<div class="row"><div><b>${badges[k]?'🏅':'⚪'} ${TOWN_NAMES[k]}</b><small>${badges[k]?'All 5 relics found':'Land and find 5 💠 relics'} · ${secretsFound[k]?'🔍 '+S.emoji+' '+S.name:'🔍 ??? secret not found'}</small></div></div>`;}
   if(nb===7&&ns===7)h+='<div class="row"><div><b>👑 MASTER EXPLORER</b><small>You found everything. Legend!</small></div></div>';}catch(e){}
-  $('shopList').innerHTML=h;
+  $('shopList').innerHTML=h;try{renderMissions();}catch(e){}
 }
 $('shopList').addEventListener('click',e=>{const b=e.target.closest('button');if(!b||b.disabled)return;
   if(b.dataset.ship){save.ship=b.dataset.ship;}
@@ -1759,6 +1771,7 @@ function fireLaser(){
   blip(1400,500,0.09,'square',0.05);
 }
 function killFoe(T){
+  mEvent('kill',{kind:T.kind});
   if(T.kind==='heli'||T.kind==='jet'){const e=T.o;explode(e.p,true);removeEnemy(e);const pts=T.kind==='heli'?50:80;score+=pts;timer+=3;heat=Math.max(0,heat-0.4);pop(`+${pts} 💥 ${T.kind==='heli'?'🚁':'✈️'}`);}
   else if(T.kind==='missile'){const M=T.o;explode(M.p,false);enemyGroup.remove(M.g);missiles.splice(missiles.indexOf(M),1);score+=5;pop('+5 🚀');}
   else if(T.kind==='boss'){killBoss();}
@@ -1830,6 +1843,7 @@ const warpOrbs=[];
 for(let i=0;i<14;i++){const s=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:0xffe080,transparent:true,depthWrite:false}));s.scale.set(5,5,1);warpGroup.add(s);warpOrbs.push(s);}
 let warpT=0,warpTo='city',warpOff=new V3();
 function enterWarp(dest){
+  mEvent('warp');
   clearSpaceFoes();mode='warp';warpTo=dest;warpT=0;warpOff.set(0,0,0);fadeIn();
   spaceGroup.visible=false;warpGroup.visible=true;
   scene.background.set(0x05020c);scene.fog.color.set(0x05020c);scene.fog.near=200;scene.fog.far=900;
@@ -1883,7 +1897,7 @@ function stationUpdate(dt){
   const S=station;S.cd-=dt;const lp=S.g.worldToLocal(pos.clone()),rho=Math.hypot(lp.x,lp.y),q=rho-S.R,d=Math.hypot(q,lp.z),lim=S.r+2.2;
   if(d<lim){const n=S.g.localToWorld(new V3(lp.x*(1+(lim-d)/rho*Math.sign(q||1)),lp.y*(1+(lim-d)/rho*Math.sign(q||1)),lp.z+Math.sign(lp.z||1)*(lim-d)));pos.copy(n);speed*=-0.3;hit();}
   const side=Math.sign(lp.z);
-  if(rho<S.R-3&&S.side&&side!==S.side&&S.cd<=0){S.cd=4;energy=100;shield=Math.min(100,shield+25);score+=20;timer+=5;pop('🛰️ DOCKING BOOST +20');pop('+5s · power full','t');blip(400,1600,0.4,'triangle',0.14);}
+  if(rho<S.R-3&&S.side&&side!==S.side&&S.cd<=0){S.cd=4;mEvent('station');energy=100;shield=Math.min(100,shield+25);score+=20;timer+=5;pop('🛰️ DOCKING BOOST +20');pop('+5s · power full','t');blip(400,1600,0.4,'triangle',0.14);}
   S.side=side;
 }
 
@@ -2042,7 +2056,7 @@ function solarUpdate(dt){
     if(S.kind==='sun'&&d<S.r+260){hot=true;sunHeatT-=dt;if(sunHeatT<=0){sunHeatT=0.5;hurt(4);}}
     if(d<S.r+10){pos.copy(S.p).addScaledVector(pos.clone().sub(S.p).normalize(),S.r+10);speed*=-0.3;hit();}
     if(S.kind==='saturn'){const lp=S.g.worldToLocal(pos.clone()),n=new V3(0,0,1).applyQuaternion(S.ring.quaternion),side=Math.sign(lp.dot(n)),rad=Math.sqrt(Math.max(0,lp.lengthSq()-lp.dot(n)**2));
-      if(saturnSide&&side!==saturnSide&&rad>250&&rad<470&&saturnCd<=0){saturnCd=3;score+=50;timer+=10;pop('🪐 RING RUN! +50');pop('+10s','t');blip(400,1800,0.4,'triangle',0.14);}
+      if(saturnSide&&side!==saturnSide&&rad>250&&rad<470&&saturnCd<=0){saturnCd=3;mEvent('saturn');score+=50;timer+=10;pop('🪐 RING RUN! +50');pop('+10s','t');blip(400,1800,0.4,'triangle',0.14);}
       saturnSide=side;}}
   $('heatwarn').style.display=hot?'block':'none';
 }
@@ -2143,7 +2157,7 @@ function updatePowerups(dt,t){
   const chips=activePU().map(k=>`<span class="chip" style="border-color:#${new THREE.Color(PU_TYPES[k].c).getHexString()}">${PU_TYPES[k].icon} ${Math.ceil(pu[k])}</span>`).join('');
   if(chips!==updatePowerups.last){updatePowerups.last=chips;$('pubar').innerHTML=chips;}
 }
-function grabPU(k){if(k==='time'){timer+=20;pop('⏰ +20 SECONDS!');blip(700,1700,0.3,'triangle',0.14);return;}pu[k]=PU_TIME;const T=PU_TYPES[k];pop(T.icon+' '+T.name+'!');pop(T.desc,'t');blip(500,1500,0.25,'triangle',0.14);setTimeout(()=>blip(900,2200,0.2,'triangle',0.12),120);
+function grabPU(k){mEvent('pu');if(k==='time'){timer+=20;pop('⏰ +20 SECONDS!');blip(700,1700,0.3,'triangle',0.14);return;}pu[k]=PU_TIME;const T=PU_TYPES[k];pop(T.icon+' '+T.name+'!');pop(T.desc,'t');blip(500,1500,0.25,'triangle',0.14);setTimeout(()=>blip(900,2200,0.2,'triangle',0.12),120);
   if(k==='shield')shield=Math.min(100,shield+20);}
 const shieldBubble=new THREE.Mesh(new THREE.SphereGeometry(6.2,28,18),new THREE.MeshBasicMaterial({color:0x6fe8ff,transparent:true,opacity:.22,blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide}));
 shieldBubble.visible=false;ufo.add(shieldBubble);
@@ -2263,7 +2277,7 @@ function eyeLasers(dt,fire,t){
     const side=new V3(-fwd.z,0,fwd.x).normalize();
     eyeBeams.forEach((m,i)=>{const s=head.clone().addScaledVector(side,(i?0.33:-0.33)*1.15);m.position.copy(s);m.lookAt(end);m.scale.set(1,1,s.distanceTo(end));eyeGlow[i].position.copy(s);});
     spawnFx(end,tmpV.set(0,1,0),0.3,3,6,0xff5a9a,true);blip(1800,600,0.08,'sawtooth',0.04);
-    if(tgt){tgt.hp--;if(tgt.hp<=0){tgt.dead=true;tgt.g.visible=false;explode(tgt.p.clone().add(new V3(0,1.3,0)),false);score+=25;
+    if(tgt){tgt.hp--;if(tgt.hp<=0){tgt.dead=true;tgt.g.visible=false;mEvent('crate');explode(tgt.p.clone().add(new V3(0,1.3,0)),false);score+=25;
       const r=Math.random();if(r<0.35){timer+=10;pop('📦 +25 · ⏰ +10s');}else if(r<0.6){energy=100;pop('📦 +25 · 🔋 FULL POWER');}else if(r<0.75){save.bank+=100;persist();pop('📦 +25 · 💰 +100 credits');}else pop('📦 +25');}}
   }
   const show=eyeShow>0;eyeBeams.forEach(m=>m.visible=show);eyeGlow.forEach(s=>s.visible=show);
@@ -2318,7 +2332,7 @@ function walkUpdate(dt,ix,iy,jumpBtn,run,shipBtn,t){
   walker.position.copy(pos);walker.position.y+=mv?Math.abs(Math.sin(walkPh))*0.15:0;walker.rotation.y=yaw;
   // relics
   for(const r of relicFx){if(r.got)continue;r.g.userData.gem.rotation.y+=dt*2;r.g.position.y=r.p.y+Math.sin(t*2)*0.3;
-    if(Math.hypot(pos.x-r.p.x,pos.z-r.p.z)<2.2&&Math.abs(pos.y+1.5-r.p.y)<2.6){r.got=true;r.g.visible=false;doBurst(r.p);score+=50;
+    if(Math.hypot(pos.x-r.p.x,pos.z-r.p.z)<2.2&&Math.abs(pos.y+1.5-r.p.y)<2.6){r.got=true;r.g.visible=false;doBurst(r.p);score+=50;mEvent('relic');
       const n=relicCount();pop(`💠 RELIC ${n}/5  +50`);blip(700,1900,0.3,'triangle',0.14);setTimeout(()=>blip(1000,2400,0.2,'triangle',0.1),130);
       if(n===5){score+=300;if(!badges[curTown]){badges[curTown]=true;try{localStorage.setItem('ufoBadges',JSON.stringify(badges));}catch(e){}}
         setTimeout(()=>{pop(`🏅 ${TOWN_NAMES[curTown]} EXPLORED! +300`);pop(`Badges: ${Object.keys(badges).length}/7`,'t');},700);}}}
@@ -2420,10 +2434,81 @@ inTown('mars',()=>{
 function secretUpdate(t){
   secretAnim.forEach(f=>f(t));
   if(!onFoot||state!=='play')return;const S=SECRETS[curTown];if(!S||S.foundThisRun)return;
-  if(Math.hypot(pos.x-S.x,pos.z-S.z)<20){S.foundThisRun=true;const first=!secretsFound[curTown];secretsFound[curTown]=true;try{localStorage.setItem('ufoSecrets',JSON.stringify(secretsFound));}catch(e){}
+  if(Math.hypot(pos.x-S.x,pos.z-S.z)<20){S.foundThisRun=true;mEvent('secret');const first=!secretsFound[curTown];secretsFound[curTown]=true;try{localStorage.setItem('ufoSecrets',JSON.stringify(secretsFound));}catch(e){}
     score+=200;if(first){save.bank+=500;persist();}
     pop(`🔍 SECRET FOUND: ${S.emoji} ${S.name}!`);pop(first?'+200 · +500 bonus credits':'+200','t');blip(300,1200,0.6,'triangle',0.15);setTimeout(()=>blip(600,2400,0.4,'triangle',0.12),250);}
 }
+
+// ---------- MISSIONS ----------
+const MISSIONS=[
+  {id:'cows',t:'Abduct 10 cows',ev:'abduct',m:d=>d.type==='cow',g:10,r:300},
+  {id:'cops',t:'Abduct 3 police cars',ev:'abduct',m:d=>d.cop,g:3,r:400},
+  {id:'trucks',t:'Abduct 2 army trucks',ev:'abduct',m:d=>d.type==='truck',g:2,r:400},
+  {id:'cars',t:'Abduct 8 cars',ev:'abduct',m:d=>d.type==='car',g:8,r:300},
+  {id:'critters',t:'Abduct 10 alien critters',ev:'abduct',m:d=>d.type==='critter',g:10,r:500},
+  {id:'heli',t:'Shoot down 3 helicopters',ev:'kill',m:d=>d.kind==='heli',g:3,r:400},
+  {id:'jets',t:'Shoot down 2 fighter jets',ev:'kill',m:d=>d.kind==='jet',g:2,r:500},
+  {id:'missiles',t:'Shoot down 3 missiles',ev:'kill',m:d=>d.kind==='missile',g:3,r:400},
+  {id:'hunters',t:'Destroy 5 alien hunters',ev:'kill',m:d=>d.kind==='foe',g:5,r:500},
+  {id:'boss',t:'Defeat the Alien Mothership',ev:'kill',m:d=>d.kind==='boss',g:1,r:1000},
+  {id:'rocks',t:'Blast 5 asteroids',ev:'kill',m:d=>d.kind==='rock',g:5,r:300},
+  {id:'crystals',t:'Collect 8 space crystals',ev:'crystal',g:8,r:300},
+  {id:'ring',t:'Fly through the giant neon ring',ev:'ring',g:1,r:200},
+  {id:'saturn',t:"Ring Run through Saturn's rings",ev:'saturn',g:1,r:500},
+  {id:'station',t:'Fly through the space station',ev:'station',g:1,r:300},
+  {id:'moon',t:'Land on the Moon',ev:'visit',m:d=>d.town==='moon',g:1,r:400},
+  {id:'mars',t:'Land on Mars',ev:'visit',m:d=>d.town==='mars',g:1,r:400},
+  {id:'desert',t:'Travel to Area 51',ev:'visit',m:d=>d.town==='desert',g:1,r:200},
+  {id:'ice',t:'Visit the ice planet Frostara',ev:'visit',m:d=>d.town==='ice',g:1,r:500},
+  {id:'lava',t:'Visit the lava planet Magmor',ev:'visit',m:d=>d.town==='lava',g:1,r:600},
+  {id:'jungle',t:'Visit the jungle planet Verdana',ev:'visit',m:d=>d.town==='jungle',g:1,r:700},
+  {id:'warps',t:'Ride 3 wormholes',ev:'warp',g:3,r:300},
+  {id:'relics',t:'Find 5 relics on foot',ev:'relic',g:5,r:400},
+  {id:'crates',t:'Zap 6 mystery crates',ev:'crate',g:6,r:300},
+  {id:'secret',t:'Discover a hidden secret',ev:'secret',g:1,r:600},
+  {id:'pu',t:'Grab 5 power-ups',ev:'pu',g:5,r:300},
+  {id:'jetpack',t:'Fly 100m high with your jetpack',ev:'jetHigh',g:1,r:400},
+  {id:'pyramid',t:'Stand on top of a pyramid',ev:'pyramid',g:1,r:500},
+  {id:'wanted',t:'Reach a 5-star wanted level',ev:'heat5',g:1,r:400},
+  {id:'score',t:'Score 2,000 in one game',ev:'score2k',g:1,r:500}
+];
+const MBYID={};MISSIONS.forEach(m=>MBYID[m.id]=m);
+let MS={active:[],done:[]};try{const v=JSON.parse(localStorage.getItem('ufoMissions')||'null');if(v&&v.active)MS=v;}catch(e){}
+MS.active=MS.active.filter(a=>MBYID[a.id]);
+const saveMS=()=>{try{localStorage.setItem('ufoMissions',JSON.stringify(MS));}catch(e){}};
+function drawMission(){
+  const act=MS.active.map(a=>a.id);let pool=MISSIONS.filter(m=>!act.includes(m.id)&&!MS.done.includes(m.id));
+  if(!pool.length){MS.done=[];pool=MISSIONS.filter(m=>!act.includes(m.id));}
+  const m=pick(pool);MS.active.push({id:m.id,p:0});return m;
+}
+while(MS.active.length<3)drawMission();saveMS();
+const runFlags={};
+function mEvent(ev,d){
+  if(state!=='play')return;d=d||{};
+  for(const a of MS.active.slice()){const M=MBYID[a.id];if(M.ev!==ev||(M.m&&!M.m(d)))continue;a.p++;
+    if(a.p>=M.g){MS.active.splice(MS.active.indexOf(a),1);MS.done.push(M.id);save.bank+=M.r;persist();
+      pop('🎯 MISSION COMPLETE!');pop(`${M.t} · 💰 +${M.r}`,'t');blip(523,1046,0.25,'triangle',0.15);setTimeout(()=>blip(659,1318,0.25,'triangle',0.14),150);setTimeout(()=>blip(784,1568,0.35,'triangle',0.14),300);
+      const box=$('missions');box.classList.remove('flash');void box.offsetWidth;box.classList.add('flash');
+      setTimeout(()=>{const n=drawMission();saveMS();renderMissions();pop('🎯 NEW: '+n.t,'t');},1600);}
+    else{const el=document.querySelector(`[data-mid="${M.id}"]`);if(el){el.classList.remove('bump');void el.offsetWidth;el.classList.add('bump');}}
+  }
+  saveMS();renderMissions();
+}
+function missionTick(){
+  if(state!=='play')return;
+  if(heat>=5&&!runFlags.heat5){runFlags.heat5=1;mEvent('heat5');}
+  if(score>=2000&&!runFlags.score2k){runFlags.score2k=1;mEvent('score2k');}
+  if(onFoot&&pos.y>=100&&!runFlags.jet){runFlags.jet=1;mEvent('jetHigh');}
+  if(onFoot&&wGround&&pos.y>40&&(curTown==='desert'||curTown==='mars')&&!runFlags.pyr){runFlags.pyr=1;mEvent('pyramid');}
+}
+let mLast='';
+function renderMissions(){
+  const h=MS.active.map(a=>{const M=MBYID[a.id];return `<div class="mi" data-mid="${M.id}"><span>${M.t}</span><b>${M.g>1?a.p+'/'+M.g:'○'}</b></div>`;}).join('');
+  if(h!==mLast){mLast=h;$('mlist').innerHTML=h;}
+  try{$('mhangar').innerHTML=MS.active.map(a=>{const M=MBYID[a.id];return `<div class="row"><div><b>🎯 ${M.t}</b><small>${M.g>1?`Progress ${a.p}/${M.g} · `:''}Reward 💰 ${M.r} credits</small></div></div>`;}).join('');}catch(e){}
+}
+$('missions').addEventListener('pointerdown',e=>{e.stopPropagation();$('missions').classList.toggle('mini');});
+renderMissions();
 
 // ---------- input ----------
 const keys={},inp={up:false,down:false,beam:false,boost:false,fire:false},joy={x:0,y:0};
@@ -2577,7 +2662,7 @@ function startGame(free){
   for(const k in towns)towns[k].targets.forEach(T=>T.spawn(T));
   crystals.forEach(placeCrystal);
   if(onFoot){onFoot=false;walker.visible=false;document.body.classList.remove('walking');}for(const k in RELICS){RELICS[k].forEach(r=>scene.remove(r.g));delete RELICS[k];}relicFx=[];for(const k in CRATES){CRATES[k].forEach(c=>scene.remove(c.g));delete CRATES[k];}crateFx=[];
-  for(const k in SECRETS)SECRETS[k].foundThisRun=false;
+  for(const k in SECRETS)SECRETS[k].foundThisRun=false;for(const k in runFlags)delete runFlags[k];
   clearEnemies();clearSpaceFoes();spaceKills=0;heat=0;resetPU();puScoreSeen=0;if(boss){enemyGroup.remove(boss.g);boss=null;}bossNext=8;$('bossbar').style.display='none';warpGroup.visible=false;heatIdle=0;lastHurt=99;spawnT=3;
   $('menu').classList.add('hidden');$('over').classList.add('hidden');
   state='play';perfT=0;perfN=0;perfSum=0;
@@ -2621,6 +2706,7 @@ function enterSpace(sec){
   pop('🚀 '+SECTORS[sec].name);pop(sec==='earth'?'Fly to the Moon 🌕 or Mars 🔴 · or find a portal':'Shoot alien hunters · find a portal','t');blip(200,900,0.8,'sine',0.15);
 }
 function landAt(n){
+  mEvent('visit',{town:n});
   clearSpaceFoes();mode='ground';fadeIn();spaceGroup.visible=false;sky.visible=true;setTown(n);
   pos.set(0,towns[n].planet?170:300,towns[n].planet?330:(n==='city'?420:380));yaw=0;vy=-8;speed=15;snapCam();
   pop(towns[n].label||(n==='city'?'🌃 NEON CITY':'🏜️ AREA 51'));blip(900,200,0.8,'sine',0.15);
@@ -2635,7 +2721,7 @@ function spaceUpdate(dt){
     if(d<lim){const n=pos.clone().sub(A.m.position).normalize();pos.addScaledVector(n,lim-d);speed*=-0.3;hit();}}
   for(const C of crystals){
     if(!C.m.visible){C.rt-=dt;if(C.rt<=0)placeCrystal(C);continue;}
-    if(pos.distanceTo(C.m.position)<6.5){C.m.visible=false;C.rt=6;score+=5;timer+=2;energy=Math.min(100,energy+15);pop('+5 💎');pop('+2s','t');blip(900,1800,0.15,'triangle',0.12);}
+    if(pos.distanceTo(C.m.position)<6.5){C.m.visible=false;C.rt=6;mEvent('crystal');score+=5;timer+=2;energy=Math.min(100,energy+15);pop('+5 💎');pop('+2s','t');blip(900,1800,0.15,'triangle',0.12);}
   }
   solarUpdate(dt);
   for(const P of portals){const px=pos.x-P.x,py=pos.y-P.y,pz=pos.z-P.z;if(Math.abs(pz)<5&&Math.hypot(px,py)<P.R+3){enterWarp(P.dest);return;}}
@@ -2668,11 +2754,12 @@ function collide(){
     const q=rho-T.R,dist=Math.hypot(q,ax),lim=T.r+2.4;
     if(dist<lim){const k=(lim-dist)/Math.max(dist,0.01);pos.x+=ax*k;pos.y+=dy/rho*q*k;pos.z+=dz/rho*q*k;speed*=-0.3;hit();}
     const side=Math.sign(ax);
-    if(rho<T.R-2&&T.side!==undefined&&side!==T.side&&ringCd<=0&&state==='play'){ringCd=3;timer+=5;score+=15;pop('RING BONUS +15');pop('+5s','t');blip(500,1800,0.35,'triangle',0.14);}
+    if(rho<T.R-2&&T.side!==undefined&&side!==T.side&&ringCd<=0&&state==='play'){ringCd=3;mEvent('ring');timer+=5;score+=15;pop('RING BONUS +15');pop('+5s','t');blip(500,1800,0.35,'triangle',0.14);}
     T.side=side;
   }
 }
 function abduct(T){
+  mEvent('abduct',{type:T.type,cop:!!(T.mesh&&T.mesh.userData.police)});
   T.state='gone';T.mesh.visible=false;T.rt=rand(5,9);doBurst(T.mesh.position);
   const k=T.type,isCow=k==='cow',cop=!!T.mesh.userData.police,pts={cow:10,car:cop?40:25,truck:40,critter:20}[k],tb={cow:4,car:6,truck:7,critter:5}[k];
   score+=pts;timer+=tb;if(k==='cow'||k==='critter')cows++;else cars++;heat=Math.min(5,heat+({cow:0.5,car:0.8,truck:1.5,critter:0}[k]));heatIdle=0;
@@ -2911,6 +2998,7 @@ function loop(now){
   updatePowerups(dt,t);
   updateCombat(dt,fireBtn);
   secretUpdate(t);
+  missionTick();
   bossUpdate(dt*ES,t);
   {const ph=Math.floor(t*6)%2;policeLights.forEach(([r,b])=>{r.visible=!!ph;b.visible=!ph;});}
   trains.forEach(T=>{T.s+=T.r.dir*30*dt;if(T.s>300)T.s=-300;if(T.s<-300)T.s=300;const y=T.r.h+2.2;
