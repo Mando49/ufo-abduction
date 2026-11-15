@@ -1276,6 +1276,62 @@ beginTown('fifth');
     const face=new THREE.Mesh(new THREE.CircleGeometry(8,32),new THREE.MeshBasicMaterial({map:clockT,side:THREE.DoubleSide}));g.add(face);
     const hand=box(g,0.6,6,0.3,0x3a1a6a,0,3,0.3);const hand2=box(g,0.6,4,0.3,0xff3fd2,0,2,0.4);
     g.position.set(x,y,z);root.add(g);const sp=rand(-4,4);planetAnim.push({town:'fifth',f:t=>{hand.rotation.z=t*sp;hand.position.set(Math.sin(-t*sp)*3,Math.cos(t*sp)*3,0.3);hand2.rotation.z=-t*sp*0.3;hand2.position.set(Math.sin(t*sp*0.3)*2,Math.cos(t*sp*0.3)*2,0.4);g.rotation.y=t*0.3+x;g.rotation.z=Math.sin(t*0.4+z)*0.6;}});}
+  // THE AXIOM GATE: a monumental landmark that gives the dimension a clear focal point.
+  const gate=new THREE.Group();gate.position.set(0,165,-560);root.add(gate);
+  const gateDark=new THREE.MeshStandardMaterial({color:0x17112f,metalness:.72,roughness:.24,emissive:0x160b35});
+  const gateCyan=new THREE.MeshBasicMaterial({color:0x45eaff,transparent:true,opacity:.9,blending:THREE.AdditiveBlending,depthWrite:false});
+  const gatePink=new THREE.MeshBasicMaterial({color:0xff3fd2,transparent:true,opacity:.8,blending:THREE.AdditiveBlending,depthWrite:false});
+  const pillarGeo=new THREE.BoxGeometry(24,210,26);
+  for(const x of[-112,112]){
+    const p=new THREE.Mesh(pillarGeo,gateDark);p.position.set(x,0,0);gate.add(p);
+    const stripe=new THREE.Mesh(new THREE.BoxGeometry(3,190,28),x<0?gateCyan:gatePink);stripe.position.set(x,0,-1);gate.add(stripe);
+    const cap=new THREE.Mesh(new THREE.OctahedronGeometry(25,1),gateDark);cap.position.set(x,118,0);gate.add(cap);
+  }
+  const lintel=new THREE.Mesh(new THREE.BoxGeometry(250,24,28),gateDark);lintel.position.y=108;gate.add(lintel);
+  const halo=new THREE.Mesh(new THREE.TorusGeometry(83,5,12,96),gateCyan);halo.position.set(0,12,-5);gate.add(halo);
+  const halo2=new THREE.Mesh(new THREE.TorusGeometry(64,2.5,8,96),gatePink);halo2.position.set(0,12,-7);gate.add(halo2);
+  const coreGate=new THREE.Mesh(new THREE.OctahedronGeometry(43,2),new THREE.MeshBasicMaterial({color:0xe8fbff,wireframe:true,transparent:true,opacity:.8}));coreGate.position.set(0,12,0);gate.add(coreGate);
+  const gateGlow=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:0x8d55ff,transparent:true,opacity:.55,blending:THREE.AdditiveBlending,depthWrite:false}));gateGlow.position.set(0,12,-12);gateGlow.scale.set(300,300,1);gate.add(gateGlow);
+  // Broken stairways that twist upward, suggesting gravity has no fixed direction.
+  const stairGroups=[];
+  for(let side of[-1,1]){
+    const stair=new THREE.Group();stair.position.set(side*250,38,-330);root.add(stair);
+    for(let n=0;n<13;n++){
+      const step=new THREE.Mesh(new THREE.BoxGeometry(54,7,32),n%2?gateDark:gateCyan);
+      step.position.set(side*n*8,n*13,-n*28);step.rotation.z=side*.12;stair.add(step);
+      const edge=new THREE.Mesh(new THREE.BoxGeometry(56,1.4,34),n%2?gatePink:gateCyan);edge.position.copy(step.position);edge.position.y+=4;stair.add(edge);
+    }
+    stairGroups.push({stair,side});
+  }
+  // Suspended energy causeways link the floating islands to the central gate.
+  const bridges=[];
+  for(let k=0;k<3;k++){
+    const curve=new THREE.CatmullRomCurve3([
+      new V3(-470+k*80,65+k*34,-120-k*130),new V3(-260+k*90,95+k*42,-270-k*120),
+      new V3(0,120+k*45,-390-k*110),new V3(260-k*75,90+k*38,-520-k*90)
+    ]);
+    const tube=new THREE.Mesh(new THREE.TubeGeometry(curve,72,2.4,8,false),k===1?gatePink:gateCyan);root.add(tube);
+    const beads=new THREE.Group();root.add(beads);
+    for(let j=0;j<18;j++){const bead=new THREE.Mesh(new THREE.SphereGeometry(2.8,8,6),j%2?gatePink:gateCyan);bead.userData.u=j/18;beads.add(bead);}
+    bridges.push({curve,beads,k});
+  }
+  // Slow orbital movement makes the landmark feel alive without heavy per-frame geometry work.
+  planetAnim.push({town:'fifth',f:(t,dt)=>{
+    gate.rotation.y=Math.sin(t*.12)*.12;coreGate.rotation.x=t*.35;coreGate.rotation.y=-t*.52;
+    halo.rotation.z=t*.18;halo2.rotation.z=-t*.24;
+    gateGlow.material.opacity=.38+.18*Math.sin(t*1.7);
+    stairGroups.forEach((S,i)=>{S.stair.rotation.y=Math.sin(t*.18+i)*.055;});
+    bridges.forEach(B=>B.beads.children.forEach(m=>{const u=(m.userData.u+t*(.035+B.k*.008))%1;m.position.copy(B.curve.getPointAt(u));}));
+  }});
+  // Floating crystal monoliths mark the outer edges of the playable arena.
+  for(let i=0;i<10;i++){
+    const a=i/10*2*PI,r=rand(560,760),h=rand(90,190),x=Math.cos(a)*r,z=Math.sin(a)*r;
+    const mon=new THREE.Group();mon.position.set(x,h,z);root.add(mon);
+    const crystal=new THREE.Mesh(new THREE.ConeGeometry(rand(12,22),h,6),new THREE.MeshStandardMaterial({color:pick([0x39206e,0x173d70,0x52205e]),metalness:.45,roughness:.28,emissive:0x170b36,flatShading:true}));
+    mon.add(crystal);
+    const band=new THREE.Mesh(new THREE.TorusGeometry(25,1.8,8,40),i%2?gatePink:gateCyan);band.rotation.x=PI/2;mon.add(band);
+    const ph=rand(0,6);planetAnim.push({town:'fifth',f:t=>{mon.rotation.y=t*.12+ph;mon.position.y=h+Math.sin(t*.4+ph)*10;band.rotation.z=t*.3;}});
+  }
   // star-dust
   const sp=[];for(let i=0;i<1400;i++){const v=new V3(rand(-1,1),rand(0.02,1),rand(-1,1)).normalize().multiplyScalar(rand(300,1500));sp.push(v.x,v.y,v.z);}
   const sg=new THREE.BufferGeometry();sg.setAttribute('position',new THREE.Float32BufferAttribute(sp,3));
