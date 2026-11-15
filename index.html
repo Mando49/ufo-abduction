@@ -411,6 +411,7 @@ beginTown('city');
 flatPlane(3000,3000,0x2c5228,0,0,0);
 flatPlane(580,580,0x1b1c24,-1,0,0);
 const roads=[-270,-210,-150,-90,-30,30,90,150,210,270];
+const STAD={x:-30,z:-395},inStad=(x,z,m)=>Math.hypot((x-STAD.x)/(100+(m||0)),(z-STAD.z)/(78+(m||0)))<1;let LOT=null; // stadium + its parking lot (the old farm next to it)
 const nearRoad=v=>roads.some(r=>Math.abs(v-r)<9);
 
 // ---------- city ----------
@@ -754,6 +755,7 @@ const barnLights=[],farmVanes=[],barnGroups=[];
   const barnRed=lam(0xa32a22),trim=lam(0xf2efe6),roofM=lam(0x3d3f4c),winM=basic(0xffcf70);
   for(let i=0;i<7;i++){
     const a=i/7*2*PI+PI/2+rand(-0.12,0.12),R=rand(380,470),fx=Math.cos(a)*R,fz=Math.sin(a)*R;
+    if(i===3){LOT={x:fx,z:fz,a};continue;} // this farm is now the stadium parking lot
     fields.push({x:fx,z:fz});
     flatPlane(96,96,i%2?0x4a8a32:0x6f9435,-2,fx,fz);
     for(let k=-48;k<=48;k+=6){posts.push({x:fx+k,z:fz-48},{x:fx+k,z:fz+48},{x:fx-48,z:fz+k},{x:fx+48,z:fz+k});}
@@ -786,7 +788,7 @@ const barnLights=[],farmVanes=[],barnGroups=[];
 (function(){
   const cropRows=[],hayBales=[];
   fields.forEach((field,index)=>{
-    const angle=(index/7)*2*PI+PI/2;
+    const angle=Math.atan2(field.z,field.x);
     const c=Math.cos(angle),sn=Math.sin(angle);
     // Parallel rows inside each fenced field, leaving a clear central tractor lane.
     for(let row=-5;row<=5;row++){
@@ -815,7 +817,7 @@ const barnLights=[],farmVanes=[],barnGroups=[];
 const windmillRotors=[];
 (function(){
   fields.forEach((field,index)=>{
-    const angle=(index/7)*2*PI+PI/2;
+    const angle=Math.atan2(field.z,field.x);
     const c=Math.cos(angle),sn=Math.sin(angle);
     // Keep the windmill just beyond the field fence, opposite the barn.
     const wx=field.x-c*62,wz=field.z-sn*62;
@@ -838,7 +840,7 @@ const windmillRotors=[];
   // A few shared water towers break up the farm skyline without cluttering every field.
   fields.forEach((field,index)=>{
     if(index%2!==0)return;
-    const angle=(index/7)*2*PI+PI/2;
+    const angle=Math.atan2(field.z,field.x);
     const x=field.x+Math.sin(angle)*65,z=field.z-Math.cos(angle)*65;
     const tower=new THREE.Group();tower.position.set(x,0,z);tower.rotation.y=-angle;
     const legMat=lam(0x59616a);
@@ -958,6 +960,7 @@ function makeHuman(sleeper){
   for(let i=0;i<900&&(round.length+pines.length)<520;i++){
     const a=rand(0,2*PI),r=rand(250,700),x=Math.cos(a)*r,z=Math.sin(a)*r;
     if(Math.abs(x)<300&&Math.abs(z)<300)continue;
+    if(inStad(x,z,14)||(LOT&&Math.abs(x-LOT.x)<62&&Math.abs(z-LOT.z)<62))continue;
     if(fields.some(f=>Math.abs(f.x-x)<62&&Math.abs(f.z-z)<62))continue;
     if(HOODS.some(h=>Math.hypot(h.x-x,h.z-z)<92))continue;
     if(fields.some(f=>{const a=Math.atan2(f.z,f.x);return Math.hypot(f.x+Math.cos(a+PI/2)*68-x,f.z+Math.sin(a+PI/2)*68-z)<12;}))continue;
@@ -1029,6 +1032,7 @@ if(THREE.GLTFLoader){const ld=new THREE.GLTFLoader();
     else ld.load('assets/models/'+M.file+'.glb',onLoad,undefined,()=>{});}}
 // ---------- animated models (free assets, see CREDITS.md): they really walk, run and wave ----------
 const ANIM={alien:{file:'alien',height:2.3,rotY:PI/2,clips:{walk:0},list:[]},
+  footballer:{file:'footballer',height:3.8,rotY:PI/2,clips:{walk:0},list:[]},
   soldier:{file:'soldier',height:3.5,rotY:PI/2,clips:{walk:0},list:[]},
   person:{file:'person',height:3.4,rotY:PI/2,clips:{walk:0},tint:true,list:[]},mummy:{file:'mummy',height:3.7,rotY:PI/2,clips:{walk:0},list:[]},yeti:{file:'yeti',height:7.2,rotY:PI/2,clips:{walk:0},list:[]},
   fox:{file:'fox',len:3.4,axis:'z',rotY:PI/2,clips:{idle:'Survey',walk:'Walk',run:'Run'},list:[]},
@@ -1038,7 +1042,14 @@ function useAnim(type,g,town){const A=ANIM[type];g.userData.animType=type;g.user
 function attachAnim(A,g){if(!THREE.SkeletonUtils)return;g.children.forEach(c=>{if(!c.isSprite)c.visible=false;});
   const m=THREE.SkeletonUtils.clone(A.proto);g.add(m);const mixer=new THREE.AnimationMixer(m),acts={};
   for(const k in A.clips){const n=A.clips[k],c=typeof n==='number'?A.anims[n]:A.anims.find(a=>a.name===n);if(c)acts[k]=mixer.clipAction(c);}
-  if(A.tint||g.userData.tintHex){m.traverse(o=>{if(o.isMesh){o.material=o.material.clone();if(g.userData.tintHex)o.material.color.setHex(g.userData.tintHex);else o.material.color.setHSL(Math.random(),0.35,0.85);}});}
+  if(g.userData.team){const TM=g.userData.team; // team uniforms: color by height on the body (jersey / pants / helmet)
+    m.traverse(o=>{if(!o.isMesh)return;const geo=o.geometry;if(!geo.boundingBox)geo.computeBoundingBox();const bb=geo.boundingBox;
+      const mt=o.material.clone();mt.color.setHex(0xffffff);
+      mt.onBeforeCompile=sh=>{Object.assign(sh.uniforms,{uMin:{value:bb.min.y},uMax:{value:bb.max.y},cJ:{value:new THREE.Color(TM[0])},cP:{value:new THREE.Color(TM[1])},cH:{value:new THREE.Color(TM[2])}});
+        sh.vertexShader='varying float vH;\n'+sh.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>\nvH=position.y;');
+        sh.fragmentShader='varying float vH;\nuniform float uMin,uMax;uniform vec3 cJ,cP,cH;\n'+sh.fragmentShader.replace('#include <map_fragment>','#include <map_fragment>\n{float hN=(vH-uMin)/(uMax-uMin);diffuseColor.rgb*=hN>0.84?cH:(hN>0.5?cJ:(hN>0.12?cP:vec3(1.0)));}');};
+      mt.customProgramCacheKey=()=>'team'+TM.join(',');o.material=mt;});}
+  else if(A.tint||g.userData.tintHex){m.traverse(o=>{if(o.isMesh){o.material=o.material.clone();if(g.userData.tintHex)o.material.color.setHex(g.userData.tintHex);else o.material.color.setHSL(Math.random(),0.35,0.85);}});}
   const I={g,m,mixer,acts,cur:null,town:g.userData.animTown,last:new V3().copy(g.position)};
   const play=k=>{if(!acts[k]){const w=acts.walk;if(w&&I.cur==='walk'){w.timeScale=k==='run'||k==='wave'?1.8:k==='idle'?0.15:1;}return;}if(acts.walk&&k==='walk')acts.walk.timeScale=1;if(I.cur===k)return;const a=acts[k];a.reset().fadeIn(0.25).play();if(I.cur&&acts[I.cur])acts[I.cur].fadeOut(0.25);I.cur=k;};I.play=play;play('walk');
   mixer.update(Math.random()*2);animInst.push(I);}
@@ -1164,8 +1175,26 @@ const LIVE=[];function liveScreen(w,h,draw){const c=document.createElement('canv
 function drawScore(g,W,H,title,sub){g.fillStyle='#05060c';g.fillRect(0,0,W,H);g.strokeStyle='#3de1ff';g.lineWidth=8;g.strokeRect(4,4,W-8,H-8);
   g.textAlign='center';g.fillStyle='#ff4fd8';g.font='bold 34px sans-serif';g.fillText(title,W/2,48);
   g.fillStyle='#7dffb0';g.font='bold 92px sans-serif';g.fillText(String(score),W/2,H*0.62);g.fillStyle='#ffd84a';g.font='bold 26px sans-serif';g.fillText(sub,W/2,H-24);}
+// 🅿️ STADIUM PARKING — the old farm next door paved over: striped stalls, light poles, rows of cars, tailgating fans
+if(LOT)(function(){const X=LOT.x,Z=LOT.z;
+  const lotT=texCanvas(512,512,g=>{g.fillStyle='#2a2c33';g.fillRect(0,0,512,512);g.fillStyle='#e8e8e0';
+    for(let r=0;r<6;r++){const y=40+r*80;for(let c=0;c<20;c++)g.fillRect(16+c*24,y,3,44);g.fillRect(16,y+44,483,3);}
+    g.fillStyle='#ffd84a';for(let r=0;r<5;r++)for(let c=0;c<12;c++)g.fillRect(30+c*40,104+r*80,20,4);});
+  const lot=new THREE.Mesh(new THREE.PlaneGeometry(100,100),new THREE.MeshLambertMaterial({map:lotT,polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-2}));lot.rotation.x=-PI/2;lot.position.set(X,0.06,Z);root.add(lot);
+  const cars=[],tops=[];for(let r=0;r<6;r++)for(let c=0;c<20;c++){if(Math.random()<0.28)continue;const x=X-50+(16+c*24+12)/512*100,z=Z-50+(40+r*80+22)/512*100,col=pick([0xd03a3a,0x3a6ad0,0xe8e8ec,0x1a1a20,0x8a8a92,0xe0c040,0x2a8a4a]);
+    cars.push({x,z,c:col});tops.push({x,z,c:0x1a2230});}
+  inst(new THREE.BoxGeometry(2.1,1.1,4.2),lam(0xffffff),cars,o=>compose(o.x,0.85,o.z,1,1,1));
+  inst(new THREE.BoxGeometry(1.8,0.8,2.2),lam(0xffffff),tops,o=>compose(o.x,1.75,o.z-0.2,1,1,1));
+  for(const [dx,dz] of[[-30,-30],[30,-30],[-30,30],[30,30],[0,0]]){box(root,0.6,16,0.6,0x4a505c,X+dx,8,Z+dz);box(root,4,0.6,1.4,0x30343c,X+dx,16,Z+dz);glowSprite(0xfff2c8,X+dx,15.6,Z+dz,16,0.6);}
+  box(root,4,3.4,3,0xe8e2d4,X+46,1.7,Z+46);box(root,4.4,0.3,3.4,basic(0xff4fd8),X+46,3.5,Z+46);
+  const sg=neonText('STADIUM PARKING','#3de1ff',24,3.6);sg.position.set(X,9,Z+52);root.add(sg);const sg2=neonText('STADIUM PARKING','#3de1ff',24,3.6);sg2.position.set(X,9,Z+52);sg2.rotation.y=PI;root.add(sg2);
+  box(root,0.5,9,0.5,0x555a66,X-11,4.5,Z+52);box(root,0.5,9,0.5,0x555a66,X+11,4.5,Z+52);
+  // tailgate party: grills, tents and fans to beam up
+  for(let i=0;i<3;i++){const tx=X-30+i*30,tz=Z+38;box(root,6,0.2,6,pick([0xd03a3a,0x3a6ad0,0xffd84a]),tx,4,tz);for(const [a,b] of[[-2.8,-2.8],[2.8,-2.8],[-2.8,2.8],[2.8,2.8]])box(root,0.15,4,0.15,0xcccccc,tx+a,2,tz+b);box(root,1.2,1,0.8,0x222222,tx,1,tz);glowSprite(0xff8a3a,tx,1.8,tz,3,0.7);}
+  for(let i=0;i<8;i++){const g=makeHuman(false);g.userData.emoji='📣';g.userData.pts=40;g.userData.heat=0.4;const T={type:'critter',mesh:useAnim('person',g,'city'),spawn:spawnCow,fl:[{x:X,z:Z+36}],rad:20};T.mesh.userData.T=T;T.spawn(T);targets.push(T);}
+})();
 // 🏈 STADIUM — game night under the lights
-(function(){const X=-30,Z=-395,EX=1.3;
+(function(){const X=STAD.x,Z=STAD.z,EX=1.3;
   const crowdT=texCanvas(1024,128,g=>{g.fillStyle='#14161e';g.fillRect(0,0,1024,128);for(let i=0;i<2600;i++){g.fillStyle=pick(['#ff3b3b','#ffd84a','#ffffff','#3d8bff','#c03030','#e0e0e0','#2a2a2a']);g.fillRect(rand(0,1024),rand(0,128),3,4);}});
   crowdT.wrapS=THREE.RepeatWrapping;crowdT.repeat.set(5,3);
   const stands=new THREE.Mesh(new THREE.CylinderGeometry(70,48,24,56,1,true),new THREE.MeshLambertMaterial({map:crowdT,emissiveMap:crowdT,emissive:0x888888,side:THREE.DoubleSide}));stands.scale.x=EX;stands.position.set(X,12,Z);root.add(stands);
@@ -1181,8 +1210,8 @@ function drawScore(g,W,H,title,sub){g.fillStyle='#05060c';g.fillRect(0,0,W,H);g.
   const sb=liveScreen(40,20,(g,W,H)=>drawScore(g,W,H,'HOME 17 · AWAY 16','UFO SCORE · WATCH THE SKY'));sb.position.set(X,40,Z-74);root.add(sb);box(root,2,32,2,0x30343c,X,16,Z-75);
   sign('NEON CITY STADIUM','#ffd84a',36,5,X,33,Z+76,0);
   // players on the field
-  for(let i=0;i<10;i++){const g=makeHuman(false);g.userData.emoji='🏈';g.userData.pts=80;g.userData.heat=0.6;g.userData.tintHex=i%2?0xd83a3a:0xe8ecf4;
-    const T={type:'critter',mesh:useAnim('person',g,'city'),spawn:spawnCow,fl:[{x:X,z:Z}],rad:34};T.mesh.userData.T=T;T.spawn(T);targets.push(T);}
+  for(let i=0;i<16;i++){const g=makeHuman(false);g.userData.emoji='🏈';g.userData.pts=80;g.userData.heat=0.6;g.userData.team=i%2?[0xd8202a,0xffffff,0xd8202a]:[0xffffff,0xb8c4d8,0x8a9ab8];
+    const T={type:'critter',mesh:useAnim('footballer',g,'city'),spawn:spawnCow,fl:[{x:X-20,z:Z},{x:X+20,z:Z}],rad:22};T.mesh.userData.T=T;T.spawn(T);targets.push(T);}
   // 🎈 blimp circling over the stadium (catch it!)
   const bl=new THREE.Group();const env=new THREE.Mesh(new THREE.SphereGeometry(1,24,14),new THREE.MeshLambertMaterial({color:0xd8dce4,emissive:0x202428}));env.scale.set(16,5.2,5.2);bl.add(env);
   for(const [y,z] of[[4,0],[-4,0],[0,4],[0,-4]]){const f=box(bl,4,y?3:0.4,z?3:0.4,0x3de1ff,-14,y*0.8,z*0.8);}

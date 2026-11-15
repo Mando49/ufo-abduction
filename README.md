@@ -36,7 +36,7 @@ A 3D browser game: fly a triangle UFO over a neon cyberpunk city and farmland, a
 
 🏃 **Storm Area 51 + Alien Inn:** a crowd rushing the gate (beam them up fast for combo points up to x6) and a roadside diner with tourists.
 
-🏈 **Neon City extras:** a stadium on game night (players, live scoreboard, a blimp to catch), street racers chased by cops around the ring road, a rooftop helipad, the MANDO WINDOW TINTING tower sign, live score billboards, a low-flying news chopper and a night market with food trucks.
+🏈 **Neon City extras:** a stadium on game night (two football teams — red & white vs white & silver — a live scoreboard, a blimp to catch and a stadium parking lot with tailgaters), street racers chased by cops around the ring road, a rooftop helipad, the MANDO WINDOW TINTING tower sign, live score billboards, a low-flying news chopper and a night market with food trucks.
 
 🧸 **Real 3D models:** your pilot alien is now a fully animated 3D character when you land (idle, walk, run and jump); camels, penguins, T-rexes, jaguars, sharks, tractors, barns and sunken treasure, plus *animated* walking people, mummies, yetis, robots, foxes and lost little aliens at Area 51 (rescue them by beaming them up!).
 
