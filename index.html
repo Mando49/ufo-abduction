@@ -415,6 +415,30 @@ const NEON=[0x3de1ff,0xff3fd2,0xb44dff,0x2dff9a,0xff8a3d];
 const roofLights=[];
 (function(){const mat=new THREE.SpriteMaterial({map:GLOW,color:0xff3030,transparent:true,depthWrite:false});
   bList.filter(b=>b.h>70).forEach(b=>{const s=new THREE.Sprite(mat);s.position.set(b.x,b.h+1.5,b.z);s.scale.set(5,5,1);scene.add(s);roofLights.push(s);});})();
+// Wildlife ambience: small flocks circle the fields and fireflies drift above the crops.
+const farmBirds=[],fireflies=[];
+(function(){
+  const feather=lam(0x202b35),wingMat=lam(0x303d49);
+  for(let i=0;i<9;i++){
+    const g=new THREE.Group();
+    box(g,1.9,0.38,0.62,feather,0,0,0);
+    const left=new THREE.Group(),right=new THREE.Group();
+    const wl=new THREE.Mesh(boxGeo(2.5,0.16,0.9),wingMat);
+    wl.position.set(-1.2,0,0);left.add(wl);left.position.set(-0.7,0,0);
+    const wr=new THREE.Mesh(boxGeo(2.5,0.16,0.9),wingMat);
+    wr.position.set(1.2,0,0);right.add(wr);right.position.set(0.7,0,0);
+    g.add(left,right);scene.add(g);
+    const field=fields[i%fields.length];
+    farmBirds.push({g,left,right,field,phase:i/9*2*PI,radius:rand(22,58),height:rand(58,96),speed:rand(0.16,0.28)});
+  }
+  const fireflyMat=new THREE.SpriteMaterial({map:GLOW,color:0xbaff70,transparent:true,opacity:0.8,blending:THREE.AdditiveBlending,depthWrite:false});
+  for(let i=0;i<56;i++){
+    const field=fields[i%fields.length],s=new THREE.Sprite(fireflyMat.clone());
+    s.position.set(field.x+rand(-42,42),rand(1.5,7),field.z+rand(-42,42));
+    const size=rand(1.3,2.8);s.scale.set(size,size,1);scene.add(s);
+    fireflies.push({s,field,phase:rand(0,2*PI),x:rand(-42,42),z:rand(-42,42),height:rand(1.5,7)});
+  }
+})();
 // landmark tower
 (function(){
   const g=new THREE.Group();g.position.set(60,0,-60);
@@ -1049,6 +1073,18 @@ function loop(now){
   }
 
   windmillRotors.forEach((rotor,i)=>{rotor.rotation.z=t*(0.55+(i%3)*0.12);});
+  farmBirds.forEach(B=>{
+    const a=t*B.speed+B.phase;
+    B.g.position.set(B.field.x+Math.cos(a)*B.radius,B.height+Math.sin(a*2)*3,B.field.z+Math.sin(a)*B.radius);
+    B.g.rotation.y=-a+PI/2;
+    const flap=Math.sin(t*11+B.phase)*0.58;
+    B.left.rotation.z=flap;B.right.rotation.z=-flap;
+  });
+  fireflies.forEach(F=>{
+    const a=t*0.75+F.phase;
+    F.s.position.set(F.field.x+F.x+Math.sin(a)*2.4,F.height+Math.sin(a*1.8)*1.3,F.field.z+F.z+Math.cos(a)*2.4);
+    F.s.material.opacity=0.35+0.55*(0.5+0.5*Math.sin(t*2.8+F.phase));
+  });
 
   // targets
   const canGrab=beamActive&&reach&&state==='play';
