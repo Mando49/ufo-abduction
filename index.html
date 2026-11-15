@@ -1014,8 +1014,38 @@ ufo.add(tilt);scene.add(ufo);
 const stealthCraft=createStealthUFO(THREE);
 tilt.add(stealthCraft);
 const neonUp=[],cornerLights=[],lowLights=[];
-const botMat=new THREE.MeshBasicMaterial({color:0xdffaff});
-const topBeacon={material:{opacity:1}};
+// --- neon lights & colors on the stealth craft ---
+stealthCraft.traverse(o=>{
+  if(o.name==='Dark triangular hull')o.material=new THREE.MeshStandardMaterial({color:0x2c313d,metalness:0.55,roughness:0.3,emissive:0x080a12});
+  if(o.name==='Upper armor')o.material=new THREE.MeshStandardMaterial({color:0x3a4252,metalness:0.55,roughness:0.26,emissive:0x0a0d16,side:THREE.DoubleSide});
+});
+const botMat=new THREE.MeshBasicMaterial({color:0x6dfff0,transparent:true,opacity:0.9,blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide});
+stealthCraft.traverse(o=>{if(o.name==='Tractor beam emitter')o.material=botMat;});
+function stealthShape(sc,cls){
+  const sh=cls?new cls():new THREE.Shape(),P=(x,y)=>[x*sc,y*sc];
+  sh.moveTo(...P(-5.8,-3.2));sh.quadraticCurveTo(...P(-6.25,-3.65),...P(-5.55,-3.95));sh.lineTo(...P(5.55,-3.95));
+  sh.quadraticCurveTo(...P(6.25,-3.65),...P(5.8,-3.2));sh.quadraticCurveTo(...P(3.5,0.15),...P(0.45,4.65));
+  sh.quadraticCurveTo(...P(0,5.25),...P(-0.45,4.65));sh.quadraticCurveTo(...P(-3.5,0.15),...P(-5.8,-3.2));return sh;}
+function neonRing(so,si,color,y){
+  const sh=stealthShape(so);sh.holes.push(stealthShape(si,THREE.Path));
+  const g=new THREE.ShapeGeometry(sh,12);g.rotateX(-PI/2);g.translate(0,y,0.0);
+  const m=new THREE.Mesh(g,new THREE.MeshBasicMaterial({color,side:THREE.DoubleSide}));m.userData.base=color;stealthCraft.add(m);neonUp.push(m);}
+neonRing(0.95,0.92,0x3de1ff,1.205);
+neonRing(0.6,0.575,0xb44dff,1.21);
+neonRing(1.0,0.96,0xb44dff,0.07);
+// glowing corner lights
+(stealthCraft.userData.lampPositions||[]).forEach(p=>{const g=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:0xbff4ff,transparent:true,depthWrite:false}));g.position.set(p[0],p[1],p[2]);g.scale.set(3.4,3.4,1);stealthCraft.add(g);cornerLights.push(g);});
+// running lights along the edges (orange / purple)
+[[[-5.6,3.35],[0,-4.9]],[[5.6,3.35],[0,-4.9]],[[-5.2,3.95],[5.2,3.95]]].forEach(([A,B])=>{for(let k=1;k<=5;k++){const f=k/6;
+  const m=new THREE.Mesh(new THREE.SphereGeometry(0.15,8,6),basic(k%2?0xff5a2a:0xb44dff));m.position.set((A[0]+(B[0]-A[0])*f)*1.05,0.6,(A[1]+(B[1]-A[1])*f)*1.05);stealthCraft.add(m);lowLights.push(m);}});
+// glass canopy with the pilot
+const dome=new THREE.Mesh(new THREE.SphereGeometry(1.3,28,14,0,2*PI,0,PI/2),new THREE.MeshStandardMaterial({color:0x7fefff,roughness:0.05,transparent:true,opacity:0.55,emissive:0x1f8fb0,emissiveIntensity:0.9}));
+dome.scale.set(1,0.5,1.35);dome.position.set(0,1.19,-0.9);stealthCraft.add(dome);
+const alienM=new THREE.MeshLambertMaterial({color:0x6dff7a,emissive:0x1d5a20});
+const head=new THREE.Mesh(new THREE.SphereGeometry(0.38,14,10),alienM);head.position.set(0,1.44,-0.9);head.scale.set(1,1.1,1);stealthCraft.add(head);
+for(const ex of[-0.15,0.15]){const e=new THREE.Mesh(new THREE.SphereGeometry(0.12,10,8),basic(0x050505));e.position.set(ex,1.52,-1.22);e.scale.set(1,1.5,0.6);e.rotation.z=ex>0?-0.4:0.4;stealthCraft.add(e);}
+const topBeacon=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:0x9ff6ff,transparent:true,depthWrite:false}));topBeacon.position.set(0,1.65,1.6);topBeacon.scale.set(1.3,1.3,1);stealthCraft.add(topBeacon);
+const portGlow=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:0x9ffff0,transparent:true,depthWrite:false}));portGlow.position.set(0,-1.2,0.15);portGlow.scale.set(6,3,1);stealthCraft.add(portGlow);
 const uLight=new THREE.PointLight(0xdffaff,1.2,70,1);
 uLight.position.y=-3;ufo.add(uLight);
 
@@ -1333,6 +1363,12 @@ function loop(now){
   pitch+=(-(speed/80)*0.3-pitch)*(1-Math.exp(-4*dt));
   tilt.rotation.set(pitch,0,bank);
   stealthCraft.userData.update(t,beamActive);
+  neonUp.forEach((s,i)=>{const k=0.8+0.3*Math.sin(t*(boosting?12:3)+i*1.7);s.material.color.setHex(s.userData.base).multiplyScalar(k);});
+  cornerLights.forEach((c,i)=>{const k=0.75+0.25*Math.sin(t*5+i*2.1);c.scale.set(3.4*k,3.4*k,1);});
+  lowLights.forEach((m,i)=>{m.visible=((Math.floor(t*6)+i)%4)!==0;});
+  botMat.color.setHSL(0.47,1,0.6+0.12*Math.sin(t*6)+(beamActive?0.15:0));
+  topBeacon.material.opacity=0.6+0.4*Math.sin(t*3);
+  portGlow.material.opacity=beamActive?1:0.6;
 
   // beam
   const reach=pos.y<BEAM_MAX,bR=6+pos.y*0.14,blen=Math.min(pos.y,BEAM_MAX)-0.9;
