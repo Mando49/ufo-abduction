@@ -63,6 +63,7 @@ body.promo #race{display:none!important}
 .pop{font-size:30px;font-weight:900;color:#7dffa8;text-shadow:0 0 14px rgba(80,255,150,.9),0 2px 6px rgba(0,0,0,.7);animation:pop 1.2s ease-out forwards}
 .pop.t{font-size:18px;color:#ffe08a;text-shadow:0 0 10px rgba(255,210,100,.8)}
 @keyframes pop{0%{transform:translateY(10px) scale(.6);opacity:0}15%{transform:translateY(0) scale(1.15);opacity:1}70%{opacity:1}100%{transform:translateY(-40px) scale(1);opacity:0}}
+#frost{position:absolute;inset:0;background:radial-gradient(ellipse at center,rgba(220,245,255,0) 35%,rgba(220,245,255,.75) 75%,rgba(255,255,255,.95));opacity:0;pointer-events:none;z-index:5}
 #bhflash{position:absolute;inset:0;background:radial-gradient(circle at center,#000 30%,#3a0a6a 70%,#ff8a30);opacity:0;pointer-events:none;transition:opacity .6s;z-index:5}
 #flash{position:absolute;inset:0;background:radial-gradient(ellipse at center,transparent 40%,rgba(255,40,40,.6));opacity:0;transition:opacity .4s}
 #controls{position:fixed;inset:0;pointer-events:none;display:none}
@@ -148,7 +149,7 @@ body.promo #hud,body.promo #controls,body.promo #keys,body.promo #mute,body.prom
   <div id="pops"></div>
   <div id="sndwarn">🔇 Sound is paused · tap anywhere to turn it on</div>
   <div id="warn">⚠ MISSILE LOCK</div>
-  <div id="flash"></div><div id="bhflash"></div>
+  <div id="flash"></div><div id="bhflash"></div><div id="frost"></div>
   <div id="lflash" style="position:absolute;inset:0;background:#dfe8ff;opacity:0;pointer-events:none"></div>
   <div id="fade" style="position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none"></div>
 </div>
@@ -1113,7 +1114,7 @@ const freeSpot=(x,z,fl)=>!fl.some(f=>Math.abs(f.x-x)<55&&Math.abs(f.z-z)<55)&&Ma
 // ❄️ FROSTARA
 beginTown('ice');
 (function(){
-  flatPlane(3000,3000,0xd4e8f8,0,0,0);makeFields(8,480);
+  flatPlane(3000,3000,0xc4d8ee,0,0,0);makeFields(8,480);
   fields.forEach(f=>{const m=new THREE.Mesh(new THREE.CircleGeometry(30,32),new THREE.MeshPhongMaterial({color:0xbfe6ff,emissive:0x2a5a7a,shininess:90,polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-2}));m.rotation.x=-PI/2;m.position.set(f.x+rand(-10,10),0,f.z+rand(-10,10));root.add(m);});
   const spikes=[];for(let i=0;i<500&&spikes.length<220;i++){const x=rand(-640,640),z=rand(-640,640);if(!freeSpot(x,z,fields))continue;const big=Math.random()<0.12;spikes.push({x,z,h:big?rand(30,70):rand(4,16),w:big?rand(5,9):rand(1,3),t:rand(-0.2,0.2)});}
   const sg=new THREE.ConeGeometry(1,1,6);sg.translate(0,0.5,0);
@@ -1130,9 +1131,99 @@ beginTown('ice');
   for(let i=0;i<6;i++){const a=rand(0,2*PI),geo=new THREE.PlaneGeometry(700,260,40,1);const p=geo.attributes.position;for(let k=0;k<p.count;k++)p.setZ(k,Math.sin(p.getX(k)*0.012+i)*60);
     const m=new THREE.Mesh(geo,new THREE.MeshBasicMaterial({map:at,transparent:true,blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide,fog:false}));m.position.set(Math.cos(a)*700,330,Math.sin(a)*700);m.lookAt(0,330,0);root.add(m);
     planetAnim.push({town:'ice',f:t=>{m.material.opacity=0.55+0.35*Math.sin(t*0.8+i*1.7);}});}
-  addCritters('snow',30);
+  addCritters('snow',22);
+  // ================= FROSTARA UPGRADE =================
+  // ---- falling snow ----
+  {const N=1600,sp=[];for(let i=0;i<N;i++)sp.push(rand(-260,260),rand(0,220),rand(-260,260));
+    const sg=new THREE.BufferGeometry();sg.setAttribute('position',new THREE.Float32BufferAttribute(sp,3));
+    const snow=new THREE.Points(sg,new THREE.PointsMaterial({map:GLOW,color:0xdfe8f4,size:0.8,transparent:true,opacity:.7,depthWrite:false}));snow.frustumCulled=false;root.add(snow);
+    planetAnim.push({town:'ice',f:(t,dt)=>{snow.position.set(Math.round(pos.x/20)*20,0,Math.round(pos.z/20)*20);const a=sg.attributes.position;
+      for(let k=0;k<N;k++){let y=a.getY(k)-dt*(6+k%5),x=a.getX(k)+Math.sin(t*0.7+k)*dt*2;if(y<0)y=220;a.setY(k,y);a.setX(k,x);}a.needsUpdate=true;}});}
+  // ---- 🏰 THE FROST PALACE ----
+  {const P0=new V3(0,0,-470),pal=new THREE.Group();pal.position.copy(P0);root.add(pal);
+    const iceM=new THREE.MeshPhongMaterial({color:0xbfeaff,emissive:0x1a4a6a,shininess:120,transparent:true,opacity:.82,flatShading:true});
+    const iceD=new THREE.MeshPhongMaterial({color:0x7fc4ef,emissive:0x0a3050,shininess:120,flatShading:true});
+    const tipM=new THREE.MeshBasicMaterial({color:0x9ff6ff});
+    const tower=(x,z,r,h)=>{const b=new THREE.Mesh(new THREE.CylinderGeometry(r*0.8,r,h,8),iceM);b.position.set(x,h/2,z);pal.add(b);
+      const roof=new THREE.Mesh(new THREE.ConeGeometry(r*1.25,h*0.45,8),iceD);roof.position.set(x,h+h*0.225,z);pal.add(roof);
+      const tip=new THREE.Mesh(new THREE.OctahedronGeometry(r*0.35),tipM);tip.position.set(x,h+h*0.5,z);tip.scale.y=2;pal.add(tip);
+      const gl=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:0x7ffcff,transparent:true,opacity:.6,blending:THREE.AdditiveBlending,depthWrite:false}));gl.position.copy(tip.position);gl.scale.setScalar(r*7);pal.add(gl);
+      colliders.push({x0:P0.x+x-r,x1:P0.x+x+r,z0:P0.z+z-r,z1:P0.z+z+r,h:h*1.45,y0:0});return {tip,gl};};
+    const tips=[tower(0,0,16,120)];
+    for(let i=0;i<6;i++){const a=i/6*2*PI+PI/6;tips.push(tower(Math.cos(a)*75,Math.sin(a)*75,9,rand(55,80)));}
+    // ice walls between outer towers (leave a gap at the front gate)
+    for(let i=0;i<6;i++){if(i===1)continue;const a1=i/6*2*PI+PI/6,a2=(i+1)/6*2*PI+PI/6,x1=Math.cos(a1)*75,z1=Math.sin(a1)*75,x2=Math.cos(a2)*75,z2=Math.sin(a2)*75;
+      const L=Math.hypot(x2-x1,z2-z1),w=new THREE.Mesh(new THREE.BoxGeometry(L,24,5),iceM);w.position.set((x1+x2)/2,12,(z1+z2)/2);w.rotation.y=-Math.atan2(z2-z1,x2-x1);pal.add(w);}
+    // giant ice arch gate in front — fly through it
+    const arch=new THREE.Mesh(new THREE.TorusGeometry(34,4,10,40,PI),iceD);arch.position.set(0,0,140);pal.add(arch);
+    const archG=new THREE.Mesh(new THREE.TorusGeometry(34,1.2,8,40,PI),tipM);archG.position.set(0,0,142);pal.add(archG);
+    const lc=document.createElement('canvas');lc.width=512;lc.height=128;const lg=lc.getContext('2d');lg.font='900 54px system-ui,-apple-system,sans-serif';lg.textAlign='center';lg.textBaseline='middle';lg.shadowColor='#7ffcff';lg.shadowBlur=18;lg.fillStyle='#fff';lg.fillText('🏰 FROST PALACE',256,64);
+    const lab=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(lc),transparent:true,depthWrite:false}));lab.position.set(0,215,0);lab.scale.set(110,27,1);pal.add(lab);
+    let archMsg=0;
+    planetAnim.push({town:'ice',f:(t,dt)=>{tips.forEach((T,i)=>{T.tip.rotation.y=t*(0.8+i*0.1);T.gl.material.opacity=0.45+0.25*Math.sin(t*2+i);});
+      archMsg-=dt;if(state==='play'&&!onFoot&&archMsg<=0&&Math.abs(pos.z-(P0.z+140))<4&&Math.abs(pos.x-P0.x)<30&&pos.y<34){archMsg=5;score+=50;mEvent('icearch');pop('🏰 THROUGH THE ICE GATE! +50');blip(1200,2400,0.3,'sine',0.12);}}});}
+  // ---- frozen lake with an ancient ice dragon trapped below ----
+  {const LX=-330,LZ=-150;
+    const tex=texCanvas(512,512,g=>{const gr=g.createRadialGradient(256,256,40,256,256,256);gr.addColorStop(0,'#cdefff');gr.addColorStop(1,'#8fcbec');g.fillStyle=gr;g.fillRect(0,0,512,512);
+      g.save();g.translate(256,270);g.fillStyle='rgba(20,40,80,.55)';
+      g.beginPath();g.ellipse(0,0,46,120,0,0,2*PI);g.fill();g.beginPath();g.ellipse(0,-150,30,44,0,0,2*PI);g.fill();
+      g.beginPath();g.moveTo(-10,-185);g.lineTo(-24,-235);g.lineTo(0,-196);g.lineTo(24,-235);g.lineTo(10,-185);g.fill();
+      g.beginPath();g.moveTo(0,110);g.quadraticCurveTo(70,190,20,240);g.lineTo(10,232);g.quadraticCurveTo(48,180,-10,120);g.fill();
+      for(const s of[-1,1]){g.beginPath();g.moveTo(s*30,-40);g.lineTo(s*200,-130);g.lineTo(s*170,-40);g.lineTo(s*210,10);g.lineTo(s*150,40);g.lineTo(s*40,40);g.fill();}
+      g.restore();g.strokeStyle='rgba(255,255,255,.55)';g.lineWidth=2;for(let i=0;i<26;i++){g.beginPath();let x=rand(60,452),y=rand(60,452);g.moveTo(x,y);for(let k=0;k<4;k++){x+=rand(-40,40);y+=rand(-40,40);g.lineTo(x,y);}g.stroke();}});
+    const lake=new THREE.Mesh(new THREE.CircleGeometry(95,48),new THREE.MeshPhongMaterial({map:tex,shininess:140,specular:0xffffff,polygonOffset:true,polygonOffsetFactor:-3,polygonOffsetUnits:-3}));lake.rotation.x=-PI/2;lake.position.set(LX,0.08,LZ);root.add(lake);
+    const eye=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:0xff3a2a,transparent:true,opacity:.0,blending:THREE.AdditiveBlending,depthWrite:false}));eye.position.set(LX,0.6,LZ+(150-14)*95/256-0);eye.scale.set(10,10,1);root.add(eye);
+    planetAnim.push({town:'ice',f:t=>{const near=pos.distanceTo(eye.position)<70;eye.material.opacity=near?0.6+0.4*Math.sin(t*5):0.25+0.2*Math.sin(t*0.9);}});}
+  // ---- 🏠 igloo village + 🐧 penguins ----
+  const vil=fields[0];
+  {const snowM=lam(0xf4fbff,0x3a5a7a);
+    for(let i=0;i<7;i++){const a=i/7*2*PI,x=vil.x+Math.cos(a)*48,z=vil.z+Math.sin(a)*48;
+      const ig=new THREE.Mesh(new THREE.SphereGeometry(6,16,10,0,2*PI,0,PI/2),snowM);ig.position.set(x,0,z);root.add(ig);
+      const door=new THREE.Mesh(new THREE.CylinderGeometry(2.2,2.2,4,12,1,false,0,PI),snowM);door.rotation.z=PI/2;door.rotation.y=-a;door.position.set(x-Math.cos(a)*5.5,0,z-Math.sin(a)*5.5);root.add(door);
+      const warm=glowSprite(0xffb050,x-Math.cos(a)*7.5,1.6,z-Math.sin(a)*7.5,8,0.5);}
+    const mkPeng=()=>{const g=new THREE.Group();
+      const b=new THREE.Mesh(new THREE.SphereGeometry(1,14,10),lam(0x14181f,0x05070a));b.scale.set(0.9,1.4,0.9);b.position.y=1.4;g.add(b);
+      const belly=new THREE.Mesh(new THREE.SphereGeometry(0.8,12,8),lam(0xf4f8ff,0x30343a));belly.scale.set(0.5,1.2,0.75);belly.position.set(0.5,1.3,0);g.add(belly);
+      const beak=new THREE.Mesh(new THREE.ConeGeometry(0.22,0.6,6),lam(0xffa020,0x5a2a00));beak.rotation.z=-PI/2;beak.position.set(1.05,2.2,0);g.add(beak);
+      for(const z of[-0.3,0.3]){const e=new THREE.Mesh(new THREE.SphereGeometry(0.12,8,6),basic(0xffffff));e.position.set(0.8,2.45,z);g.add(e);box(g,0.6,0.15,0.35,0xffa020,0.25,0.07,z*1.2);}
+      g.userData.emoji='🐧';g.userData.waddle=true;root.add(g);return g;};
+    for(let i=0;i<16;i++){const T={type:'critter',mesh:mkPeng(),spawn:spawnCow,fl:[vil]};T.spawn(T);targets.push(T);}}
+  // ---- 🦍 YETIS that throw snowballs ----
+  {const furM=lam(0xe8eef6,0x2a3444),faceM=lam(0x5a6a88,0x101828);
+    const mkYeti=()=>{const g=new THREE.Group(),body=new THREE.Group();g.add(body);
+      const tor=new THREE.Mesh(new THREE.SphereGeometry(2.2,14,10),furM);tor.scale.set(1,1.3,1.1);tor.position.y=4.2;body.add(tor);
+      const hd=new THREE.Mesh(new THREE.SphereGeometry(1.3,14,10),furM);hd.position.set(0.4,7,0);body.add(hd);
+      const face=new THREE.Mesh(new THREE.SphereGeometry(0.9,12,8),faceM);face.scale.set(0.5,0.9,1);face.position.set(1.3,6.9,0);body.add(face);
+      for(const z of[-0.35,0.35]){const e=new THREE.Mesh(new THREE.SphereGeometry(0.16,8,6),basic(0x9ff6ff));e.position.set(1.65,7.2,z);body.add(e);}
+      for(const z of[-0.5,0.5])box(body,0.25,0.5,0.25,0xffffff,1.62,6.35,z*0.6);
+      const arms=[];for(const z of[-1,1]){const pv=new THREE.Group();pv.position.set(0.2,5.6,z*2.2);body.add(pv);const arm=new THREE.Mesh(new THREE.CylinderGeometry(0.6,0.75,4,8),furM);arm.position.y=-2;pv.add(arm);arms.push(pv);}
+      for(const z of[-0.9,0.9]){const leg=new THREE.Mesh(new THREE.CylinderGeometry(0.75,0.85,2.4,8),furM);leg.position.set(0,1.2,z);body.add(leg);}
+      g.userData.emoji='🦍';g.userData.pts=150;g.userData.arms=arms;root.add(g);return g;};
+    const yetis=[];for(let i=0;i<3;i++){const T={type:'critter',mesh:mkYeti(),spawn:spawnCow,fl:fields.slice(1)};T.spawn(T);T.throwCd=rand(1,3);targets.push(T);yetis.push(T);}
+    const balls=[];const ballG=new THREE.SphereGeometry(1.1,10,8),ballM=lam(0xffffff,0x5a7a9a);
+    for(let i=0;i<8;i++){const m=new THREE.Mesh(ballG,ballM);m.visible=false;root.add(m);balls.push({m,v:new V3(),on:false});}
+    let slowT=0;
+    planetAnim.push({town:'ice',f:(t,dt)=>{
+      const play=state==='play'&&mode==='ground'&&!onFoot;
+      yetis.forEach(T=>{const m=T.mesh,A=m.userData.arms;
+        if(T.state!=='ground'){A.forEach(a=>a.rotation.z=0);return;}
+        T.throwCd-=dt;const d=m.position.distanceTo(pos);
+        const wind=T.throwCd<0.6&&T.throwCd>0;A[1].rotation.z=wind?-2.6:Math.sin(t*3+m.id)*0.2;A[0].rotation.z=Math.sin(t*3+m.id+1)*0.2;
+        if(play&&d<110&&pos.y<70){if(T.throwCd<=0){T.throwCd=rand(2.2,3.6);const B=balls.find(B=>!B.on);if(B){
+          const st=m.position.clone().add(new V3(0,8,0)),tm=Math.max(0.6,d/65),tg=pos.clone().addScaledVector(fwd,speed*tm*0.8);
+          B.v.copy(tg).sub(st).divideScalar(tm);B.v.y+=0.5*30*tm;B.m.position.copy(st);B.on=true;B.m.visible=true;blip(300,120,0.15,'triangle',0.06);}}}
+        else T.throwCd=Math.max(T.throwCd,1);});
+      balls.forEach(B=>{if(!B.on)return;B.v.y-=30*dt;B.m.position.addScaledVector(B.v,dt);
+        if(play&&B.m.position.distanceTo(pos)<4.5){B.on=false;B.m.visible=false;hurt(4);slowT=2;pop('❄️ SNOWBALL HIT!','t');
+          const f=$('frost');f.style.transition='none';f.style.opacity=1;requestAnimationFrame(()=>{f.style.transition='opacity 2s';f.style.opacity=0;});
+          for(let k=0;k<12;k++)spawnFx(pos,tmpV.set(rand(-1,1),rand(-1,1),rand(-1,1)).multiplyScalar(6),0.6,1.5,2,0xffffff,false);}
+        else if(B.m.position.y<0.5){B.on=false;B.m.visible=false;for(let k=0;k<8;k++)spawnFx(B.m.position,tmpV.set(rand(-1,1),rand(0.3,1),rand(-1,1)).multiplyScalar(5),0.5,1.2,2,0xffffff,false);}});
+      if(slowT>0){slowT-=dt;speed=Math.min(speed,22);}
+    }});}
+  // penguin waddle
+  planetAnim.push({town:'ice',f:t=>{targets.forEach(T=>{if(T.state==='ground'&&T.mesh.userData.waddle)T.mesh.rotation.x=Math.sin(t*9+T.mesh.id)*0.18;});}});
 })();
-endTown('ice',[180,1100]);Object.assign(towns.ice,{planet:true,fogC:new THREE.Color(0x9fb8d8),skyTint:0x9fc4ff,label:'❄️ FROSTARA'});
+endTown('ice',[180,1100]);Object.assign(towns.ice,{planet:true,fogC:new THREE.Color(0x9fb8d8),skyTint:0x9fc4ff,label:'❄️ FROSTARA',bloom:0.3});
 
 // 🔥 MAGMOR
 beginTown('lava');
@@ -2942,6 +3033,9 @@ const MISSIONS=[
   {id:'chest',t:'Open 5 sunken treasure chests',ev:'chest',g:5,r:600},
   {id:'current',t:'Ride an ocean current',ev:'current',g:1,r:300},
   {id:'whale',t:'Abduct a whale',ev:'abduct',m:d=>d.emoji==='🐋',g:1,r:600},
+  {id:'yeti',t:'Abduct a Yeti (Frostara)',ev:'abduct',m:d=>d.emoji==='🦍',g:1,r:700},
+  {id:'penguin',t:'Abduct 5 penguins',ev:'abduct',m:d=>d.emoji==='🐧',g:5,r:400},
+  {id:'icearch',t:'Fly through the Frost Palace gate',ev:'icearch',g:1,r:300},
   {id:'sharks',t:'Abduct 3 sharks',ev:'abduct',m:d=>d.emoji==='🦈',g:3,r:500},
   {id:'jungle',t:'Visit the jungle planet Verdana',ev:'visit',m:d=>d.town==='jungle',g:1,r:700},
   {id:'warps',t:'Ride 3 wormholes',ev:'warp',g:3,r:300},
@@ -3633,7 +3727,7 @@ function loop(now){
   sky.position.copy(camera.position);
   if(mode==='ground'&&towns[curTown].planet){const T=towns[curTown],k=clamp((pos.y-260)/90,0,1);
     sky.material.opacity=1-k*0.9;scene.fog.near=T.fog[0];scene.fog.far=T.fog[1]+(1500-T.fog[1])*clamp((pos.y-120)/140,0,1);
-    scene.background.copy(T.fogC).lerp(SPACE_C,k);scene.fog.color.copy(scene.background);raysMat.opacity=0;if(bloom)bloom.strength=0.75;
+    scene.background.copy(T.fogC).lerp(SPACE_C,k);scene.fog.color.copy(scene.background);raysMat.opacity=0;if(bloom)bloom.strength=T.bloom!=null?T.bloom+(0.75-T.bloom)*k:0.75;
     planetAnim.forEach(a=>{if(a.town===curTown)a.f(t,dt);});}
   else if(mode==='ground'){skyRealm.visible=cloudLayer.visible=Math.max(pos.y,camera.position.y)>115;const y=pos.y,TF=towns[curTown].fog,below=clamp((y-110)/70,0,1),inF=clamp(1-Math.abs(y-CLOUD_Y)/18,0,1),above=clamp((y-CLOUD_Y-6)/22,0,1),k=clamp((y-300)/55,0,1);
     sky.material.opacity=1-k*0.9;

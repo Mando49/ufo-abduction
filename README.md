@@ -8,6 +8,8 @@ A 3D browser game: fly a triangle UFO over a neon cyberpunk city and farmland, a
 
 🐙 **Ocean upgrade:** the **Kraken** sleeps in a dark pit in the ocean — get close and it wakes, its tentacles reach for you and can grab the ship (hold BOOST to break free). Zap its head with FIRE to defeat it (+500, drops treasure; it comes back after a minute). Also: 7 glowing **sunken treasure chests** (fly low to open them for points + credits), 3 **ocean currents** that carry you fast like a water slide, **manta rays** gliding overhead, and a glowing **plankton trail** behind the ship. New missions: Defeat the Kraken, Open 5 chests, Ride a current.
 
+❄️ **Frostara upgrade:** falling snow, the **Frost Palace** (crystal towers, ice walls, a giant ice gate to fly through), a **frozen lake** with an ancient ice dragon trapped below (its eye glows when you get close), an **igloo village** with waddling **penguins** to abduct, and **Yetis** that throw snowballs at your ship (a hit frosts your screen and slows you) — beam one up for +150. Less glare on the snow. New missions: Abduct a Yeti, Abduct 5 penguins, Fly through the Frost Palace gate.
+
 🏁 **Sky Race:** fly up above the clouds over the city to the checkered 🏁 SKY RACE ring. Touch 20 rings in order — each one makes the ship faster (up to x3 speed). Halfway around, dive into the 🕳️ black hole shortcut to skip ahead at max speed. Follow the floating arrow, beat your best time, and earn bonus score + credits.
 
 🕳️ **The Black Hole:** in Earth Orbit, fly toward the giant black hole (past Mars). Its gravity pulls you in — boost away, or let it take you: the ship spirals and stretches, the screen goes dark, you ride through the inside, and get spat out on a random planet or town (+250).
