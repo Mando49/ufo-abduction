@@ -1083,6 +1083,7 @@ function spaceAnim(dt,t){
 // ---------- UFO (triangular stealth craft) ----------
 const ufo=new THREE.Group(),tilt=new THREE.Group();
 ufo.add(tilt);scene.add(ufo);
+const SHIP_SCALE=0.65;tilt.scale.setScalar(SHIP_SCALE);
 const stealthCraft=createStealthUFO(THREE);
 tilt.add(stealthCraft);
 const neonUp=[],cornerLights=[],lowLights=[];
@@ -1321,7 +1322,7 @@ function updateEnemies(dt,t,canGrab,bR){
   // bullets
   for(let i=bullets.length-1;i>=0;i--){const B=bullets[i];B.p.addScaledVector(B.v,dt);B.life-=dt;
     const s=bulletSprite(i);s.visible=true;s.position.copy(B.p);
-    if(playing&&B.p.distanceTo(pos)<4.5){hurt(3);spawnFx(B.p,tmpV.set(0,0,0),0.3,4,10,0xfff0a0,true);B.life=0;}
+    if(playing&&B.p.distanceTo(pos)<3.5){hurt(3);spawnFx(B.p,tmpV.set(0,0,0),0.3,4,10,0xfff0a0,true);B.life=0;}
     else if(B.p.y<0.3||inCollider(B.p))B.life=0;
     if(B.life<=0)bullets.splice(i,1);}
   for(let i=bullets.length;i<bulletSprites.length;i++)bulletSprites[i].visible=false;
@@ -1459,7 +1460,7 @@ function updateCombat(dt,fireBtn){
   // enemy bolts
   for(let i=eBolts.length-1;i>=0;i--){const b=eBolts[i];b.p.addScaledVector(b.v,dt);b.life-=dt;b.m.position.copy(b.p);
     let dead=b.life<=0||mode!=='space';
-    if(!dead&&state==='play'&&b.p.distanceToSquared(pos)<20){hurt(6);dead=true;spawnFx(b.p,tmpV.set(0,0,0),0.3,4,10,0xff6070,true);}
+    if(!dead&&state==='play'&&b.p.distanceToSquared(pos)<12){hurt(6);dead=true;spawnFx(b.p,tmpV.set(0,0,0),0.3,4,10,0xff6070,true);}
     if(dead){b.m.visible=false;eBolts.splice(i,1);}}
   // asteroids respawn
   if(mode==='space')asteroids.forEach(A=>{if(!A.m.visible){A.rt-=dt;if(A.rt<=0&&A.m.position.distanceTo(pos)>120)A.m.visible=true;}});
@@ -1596,7 +1597,7 @@ function spaceUpdate(dt){
   if(pos.y<-170){landAt(curTown);return;}
   if(pos.y>220){pos.y=220;if(vy>0)vy=0;}
   const dx=pos.x,dz=pos.z+150,hd=Math.hypot(dx,dz);if(hd>700){pos.x=dx*700/hd;pos.z=dz*700/hd-150;}
-  for(const A of asteroids){if(!A.m.visible)continue;const d=pos.distanceTo(A.m.position),lim=A.r+3.5;
+  for(const A of asteroids){if(!A.m.visible)continue;const d=pos.distanceTo(A.m.position),lim=A.r+2.5;
     if(d<lim){const n=pos.clone().sub(A.m.position).normalize();pos.addScaledVector(n,lim-d);speed*=-0.3;hit();}}
   for(const C of crystals){
     if(!C.m.visible){C.rt-=dt;if(C.rt<=0)placeCrystal(C);continue;}
@@ -1613,7 +1614,7 @@ function hit(){
   if(shield<=0){shield=0;endGame('shield');}
 }
 function collide(){
-  const R=5.4*M.r;
+  const R=5.4*M.r*SHIP_SCALE;
   for(const b of colliders){
     if(pos.y-1.2>b.h||pos.y+1.2<b.y0)continue;
     const cx=clamp(pos.x,b.x0,b.x1),cz=clamp(pos.z,b.z0,b.z1);
@@ -1774,7 +1775,7 @@ function loop(now){
   beamRing.rotation.y=t*0.42;
   spot.position.set(pos.x,0.2,pos.z);spot.scale.setScalar(bR*1.15);
   uLight.intensity=beamActive?2.2:1.0;
-  shadow.visible=mode==='ground';shadow.position.set(pos.x,0.05,pos.z);shadow.scale.setScalar(6.5+pos.y*0.02);shadow.material.opacity=0.4*(1-pos.y/170);
+  shadow.visible=mode==='ground';shadow.position.set(pos.x,0.05,pos.z);shadow.scale.setScalar(4.3+pos.y*0.02);shadow.material.opacity=0.4*(1-pos.y/170);
   if(parts.visible){
     const top=pos.y-0.9,bot=top-blen;
     for(let i=0;i<NP;i++){const p=pData[i];p.h+=p.sp*dt*(reach?1:1.6);if(p.h>1){p.h=0;p.a=rand(0,2*PI);p.rf=Math.sqrt(Math.random());}
@@ -1885,7 +1886,7 @@ function loop(now){
     const a=t*0.25;desired.set(pos.x+Math.sin(a)*22,pos.y+6,pos.z+Math.cos(a)*22);
     camera.position.lerp(desired,1-Math.exp(-2*dt));camera.lookAt(pos);
   }else{
-    desired.copy(pos).addScaledVector(fwd,-25*M.r);desired.y=pos.y+8.5*M.r;
+    desired.copy(pos).addScaledVector(fwd,-20*M.r);desired.y=pos.y+6.8*M.r;
     camera.position.lerp(desired,1-Math.exp(-4.5*dt));
     if(mode==='ground'&&camera.position.y<2)camera.position.y=2;
     if(shake>0){camera.position.x+=rand(-1,1)*shake;camera.position.y+=rand(-1,1)*shake;shake=Math.max(0,shake-dt*2);}
