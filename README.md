@@ -4,6 +4,8 @@ A 3D browser game: fly a triangle UFO over a neon cyberpunk city and farmland, a
 
 **Play:** https://mando49.github.io/ufo-abduction/
 
+🌊 **The Ocean:** take the 🌊 portal in Earth Orbit to dive into an underwater world — coral reefs, swaying kelp forests, sunbeams, bubbles, fish schools, stinging jellyfish, and fish (15), sea turtles (25), sharks (40) and whales (150) to beam up. A sunken pirate galleon is hidden somewhere. Fly up through the surface to return to space.
+
 🎯 **Missions:** 3 goals are always on screen (abduct police cars, beat the Mothership, land on Mars, Ring Run Saturn, find a secret, climb a pyramid… 30 in all). Finish one for Hangar credits and a new one takes its place. Progress is saved between games; tap the panel to hide it.
 
 📱 **Install it like an app:** open the link in Safari → Share → *Add to Home Screen* (Android: Chrome menu → *Install app*). It opens full screen with its own icon.

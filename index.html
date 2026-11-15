@@ -1259,6 +1259,85 @@ beginTown('mars');
   addTargets(martianMesh,28);
 })();
 endTown('mars',[200,1200]);Object.assign(towns.mars,{planet:true,fogC:new THREE.Color(0xc87a52),skyTint:0xffb08a,label:'🔴 MARS'});
+// 🌊 THE OCEAN (underwater world)
+const SURF=130;
+function fishMesh(kind){
+  const g=new THREE.Group();
+  const C={fish:pick([0xff7a30,0xffd84a,0x45eaff,0xff4fd8,0x6dff7a]),shark:0x7a8a9a,turtle:0x4a9a5a,whale:0x2a4a7a}[kind];
+  const S={fish:1,shark:2.6,turtle:1.6,whale:9}[kind];
+  const mat=new THREE.MeshLambertMaterial({color:C,emissive:C,emissiveIntensity:0.18});
+  if(kind==='turtle'){const sh=new THREE.Mesh(new THREE.SphereGeometry(1,16,10,0,2*PI,0,PI/2),new THREE.MeshLambertMaterial({color:0x6a5030}));sh.scale.set(1.3,0.6,1);g.add(sh);
+    const hd=new THREE.Mesh(new THREE.SphereGeometry(0.4,10,8),mat);hd.position.set(1.4,0.1,0);g.add(hd);
+    for(const [x,z] of[[0.7,0.9],[0.7,-0.9],[-0.7,0.8],[-0.7,-0.8]]){const f=box(g,0.7,0.12,0.35,C,x,0,z);f.rotation.y=z>0?0.5:-0.5;}}
+  else{const b=new THREE.Mesh(new THREE.SphereGeometry(1,16,10),mat);b.scale.set(1.6,0.7,0.55);g.add(b);
+    const tail=new THREE.Mesh(new THREE.ConeGeometry(0.6,1.1,4),mat);tail.rotation.z=PI/2;tail.position.x=-1.8;tail.scale.set(1,1,0.3);g.add(tail);g.userData.tail=tail;
+    const fin=new THREE.Mesh(new THREE.ConeGeometry(0.35,kind==='shark'?1.2:0.6,4),mat);fin.position.set(0,0.75,0);fin.scale.z=0.3;g.add(fin);
+    for(const z of[-0.4,0.4]){const e=new THREE.Mesh(new THREE.SphereGeometry(0.12,8,6),basic(0x050505));e.position.set(1.25,0.15,z);g.add(e);}
+    if(kind==='whale'){const sp=new THREE.Mesh(new THREE.SphereGeometry(1,16,10),new THREE.MeshLambertMaterial({color:0xd8e0e8}));sp.scale.set(1.4,0.35,0.5);sp.position.y=-0.4;g.add(sp);}}
+  g.scale.setScalar(S);g.userData.emoji={fish:'🐟',shark:'🦈',turtle:'🐢',whale:'🐋'}[kind];g.userData.pts={fish:15,shark:40,turtle:25,whale:150}[kind];
+  root.add(g);return g;
+}
+function spawnSwim(T){spawnCow(T);T.mesh.position.y=T.swimY=rand(4,T.mesh.userData.pts>=150?45:30);}
+beginTown('ocean');
+(function(){
+  const sand=texCanvas(256,256,g=>{g.fillStyle='#c8b080';g.fillRect(0,0,256,256);for(let i=0;i<600;i++){g.fillStyle=pick(['rgba(255,240,200,.25)','rgba(120,100,60,.2)']);g.fillRect(rand(0,256),rand(0,256),rand(2,6),2);}
+    g.strokeStyle='rgba(100,80,50,.25)';g.lineWidth=3;for(let y=0;y<256;y+=22){g.beginPath();for(let x=0;x<=256;x+=8)g.lineTo(x,y+Math.sin(x*0.06)*5);g.stroke();}});
+  sand.wrapS=sand.wrapT=THREE.RepeatWrapping;sand.repeat.set(30,30);
+  const gnd=new THREE.Mesh(new THREE.PlaneGeometry(3000,3000),new THREE.MeshLambertMaterial({map:sand,color:0x9ad0d0}));gnd.rotation.x=-PI/2;root.add(gnd);
+  makeFields(9,470);
+  // water surface seen from below
+  const wm=new THREE.ShaderMaterial({uniforms:{t:{value:0}},side:THREE.DoubleSide,transparent:true,depthWrite:false,
+    vertexShader:'varying vec2 vUv;void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}',
+    fragmentShader:'uniform float t;varying vec2 vUv;void main(){vec2 p=vUv*60.0;float w=sin(p.x+t*1.2)*sin(p.y*1.3-t)+sin((p.x+p.y)*0.7+t*0.8);float c=smoothstep(0.6,1.6,w);gl_FragColor=vec4(mix(vec3(0.15,0.55,0.7),vec3(0.75,1.0,1.0),c),0.85);}'});
+  const surf=new THREE.Mesh(new THREE.PlaneGeometry(3000,3000),wm);surf.rotation.x=PI/2;surf.position.y=SURF;root.add(surf);
+  planetAnim.push({town:'ocean',f:t=>{wm.uniforms.t.value=t;}});
+  // sunbeams
+  const rayT=texCanvas(64,256,g=>{const gr=g.createLinearGradient(0,0,0,256);gr.addColorStop(0,'rgba(220,255,255,.55)');gr.addColorStop(1,'rgba(220,255,255,0)');g.fillStyle=gr;g.fillRect(0,0,64,256);});
+  for(let i=0;i<40;i++){const m=new THREE.Mesh(new THREE.PlaneGeometry(rand(8,22),SURF),new THREE.MeshBasicMaterial({map:rayT,transparent:true,opacity:rand(.15,.35),blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide}));
+    const x=rand(-500,500),z=rand(-500,500);m.position.set(x,SURF/2,z);m.rotation.set(0,rand(0,PI),0.25);root.add(m);planetAnim.push({town:'ocean',f:t=>{m.material.opacity=0.12+0.12*Math.sin(t*0.7+x);}});}
+  // coral reefs
+  const coral=[],brain=[],anem=[];const CC=[0xff4f7a,0xff8a3d,0xffd84a,0xb46bff,0x45eaff,0xff5ad8];
+  fields.forEach(f=>{for(let i=0;i<26;i++){const x=f.x+rand(-55,55),z=f.z+rand(-55,55);if(Math.abs(x-f.x)<38&&Math.abs(z-f.z)<38&&Math.random()<0.7)continue;const c=pick(CC);
+    coral.push({x,z,h:rand(2,7),s:rand(0.6,1.4),c});if(Math.random()<0.5)brain.push({x:x+rand(-4,4),z:z+rand(-4,4),s:rand(1,3),c:pick([0xd86a8a,0xc8a050,0x8a6ad8])});if(Math.random()<0.5)anem.push({x:x+rand(-5,5),z:z+rand(-5,5),c:pick(CC)});}});
+  const cg=new THREE.ConeGeometry(0.6,1,6);cg.translate(0,0.5,0);
+  inst(cg,new THREE.MeshLambertMaterial({color:0xffffff,emissive:0x331122}),coral,c=>compose(c.x,0,c.z,c.s,c.h,c.s,rand(-0.3,0.3),0,rand(-0.3,0.3)));
+  inst(cg,new THREE.MeshLambertMaterial({color:0xffffff,emissive:0x331122}),coral.map(c=>Object.assign({},c)),c=>compose(c.x+1,0,c.z+0.5,c.s*0.7,c.h*0.7,c.s*0.7,0.5,0,0.4));
+  inst(new THREE.SphereGeometry(1,12,8),new THREE.MeshLambertMaterial({color:0xffffff}),brain,b=>compose(b.x,b.s*0.3,b.z,b.s,b.s*0.6,b.s));
+  inst(new THREE.SphereGeometry(0.5,8,6),new THREE.MeshBasicMaterial({color:0xffffff}),anem,a=>compose(a.x,0.4,a.z,1,1,1));
+  // rocks / arches
+  const rocks=[];for(let i=0;i<120;i++){const x=rand(-620,620),z=rand(-620,620);if(freeSpot(x,z,fields))rocks.push({x,z,s:rand(3,12)});}
+  inst(new THREE.IcosahedronGeometry(1,0),new THREE.MeshLambertMaterial({color:0x4a5a6a,flatShading:true}),rocks,r=>compose(r.x,r.s*0.3,r.z,r.s*1.3,r.s,r.s*1.2,0,rand(0,6),0));
+  rocks.filter(r=>r.s>8).forEach(r=>colliders.push({x0:r.x-r.s,x1:r.x+r.s,z0:r.z-r.s,z1:r.z+r.s,h:r.s*1.1,y0:0}));
+  ringMountains(0x1a3a4a,0x3a6a7a,90,180);
+  // kelp forest (sways)
+  const kelp=[];for(let i=0;i<500&&kelp.length<170;i++){const x=rand(-600,600),z=rand(-600,600);if(freeSpot(x,z,fields))kelp.push({x,z,h:rand(25,90),ph:rand(0,6)});}
+  const kg=new THREE.BoxGeometry(1.2,1,0.15);kg.translate(0,0.5,0);
+  const km=inst(kg,new THREE.MeshLambertMaterial({color:0x3a8a3a,emissive:0x0a2a0a}),kelp,k=>compose(k.x,0,k.z,1,k.h,1));
+  planetAnim.push({town:'ocean',f:t=>{kelp.forEach((k,i)=>{compose(k.x,0,k.z,1,k.h,1,Math.sin(t*0.8+k.ph)*0.12,k.ph,Math.cos(t*0.6+k.ph)*0.1);km.setMatrixAt(i,m4);});km.instanceMatrix.needsUpdate=true;}});
+  // bubbles
+  const bp=[];for(let i=0;i<500;i++)bp.push(rand(-500,500),rand(0,SURF),rand(-500,500));const bg=new THREE.BufferGeometry();bg.setAttribute('position',new THREE.Float32BufferAttribute(bp,3));
+  root.add(new THREE.Points(bg,new THREE.PointsMaterial({map:GLOW,color:0xd8ffff,size:1.4,transparent:true,opacity:.6,blending:THREE.AdditiveBlending,depthWrite:false})));
+  planetAnim.push({town:'ocean',f:(t,dt)=>{const a=bg.attributes.position;for(let k=0;k<a.count;k++){let y=a.getY(k)+dt*(3+k%4);if(y>SURF)y=0;a.setY(k,y);}a.needsUpdate=true;}});
+  // decorative fish schools
+  const school=[];for(let s=0;s<6;s++){const cx=rand(-400,400),cz=rand(-400,400),cy=rand(15,70),c=pick([0xffd84a,0x45eaff,0xff8a3d]);for(let i=0;i<30;i++)school.push({cx,cz,cy,r:rand(12,30),a:rand(0,2*PI),w:rand(0.4,0.7)*(s%2?1:-1),dy:rand(-4,4),c});}
+  const sg=new THREE.ConeGeometry(0.35,1.4,4);sg.rotateZ(-PI/2);
+  const sm=inst(sg,new THREE.MeshLambertMaterial({color:0xffffff,emissive:0x222222}),school,()=>compose(0,0,0,1,1,1));
+  planetAnim.push({town:'ocean',f:(t,dt)=>{school.forEach((f,i)=>{f.a+=f.w*dt;compose(f.cx+Math.cos(f.a)*f.r,f.cy+f.dy+Math.sin(t+i)*0.5,f.cz+Math.sin(f.a)*f.r,1,1,1,0,-f.a+(f.w>0?-PI/2:PI/2),0);sm.setMatrixAt(i,m4);});sm.instanceMatrix.needsUpdate=true;}});
+  // glowing jellyfish (they sting!)
+  const jellies=[];for(let i=0;i<18;i++){const g=new THREE.Group();const c=pick([0xff5ad8,0xb46bff,0x45eaff]);
+    const bell=new THREE.Mesh(new THREE.SphereGeometry(2,16,10,0,2*PI,0,PI/2),new THREE.MeshBasicMaterial({color:c,transparent:true,opacity:.55,blending:THREE.AdditiveBlending,depthWrite:false}));g.add(bell);
+    for(let k=0;k<6;k++){const tn=box(g,0.08,4,0.08,basic(c),Math.cos(k)*1.2,-2,Math.sin(k)*1.2);tn.material=new THREE.MeshBasicMaterial({color:c,transparent:true,opacity:.6});}
+    const gl=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:c,transparent:true,depthWrite:false,blending:THREE.AdditiveBlending}));gl.scale.set(9,9,1);g.add(gl);
+    const J={g,x:rand(-450,450),z:rand(-450,450),y:rand(15,90),ph:rand(0,6)};g.position.set(J.x,J.y,J.z);root.add(g);jellies.push(J);}
+  let stingCd=0;
+  planetAnim.push({town:'ocean',f:(t,dt)=>{stingCd-=dt;jellies.forEach(J=>{const s=1+0.15*Math.sin(t*2+J.ph);J.g.scale.set(s,1/s,s);J.g.position.y=J.y+Math.sin(t*0.5+J.ph)*4;
+    if(state==='play'&&stingCd<=0&&J.g.position.distanceTo(pos)<5){stingCd=1;hurt(6);pop('⚡ JELLYFISH STING!','t');}});}});
+  // abductable sea life
+  [['fish',28],['turtle',8],['shark',6],['whale',2]].forEach(([k,n])=>{for(let i=0;i<n;i++){const T={type:'critter',mesh:fishMesh(k),spawn:spawnSwim,fl:fields};T.spawn(T);targets.push(T);}});
+  planetAnim.push({town:'ocean',f:t=>{targets.forEach(T=>{if(T.state==='ground'){T.mesh.position.y=T.swimY+Math.sin(t*1.5+T.mesh.id)*0.8;if(T.mesh.userData.tail)T.mesh.userData.tail.rotation.y=Math.sin(t*8+T.mesh.id)*0.4;}});}});
+})();
+endTown('ocean',[20,280]);Object.assign(towns.ocean,{planet:true,fogC:new THREE.Color(0x0a5a7a),skyTint:0x0a3a5a,label:'🌊 THE OCEAN'});
+
 
 
 
@@ -1724,10 +1803,10 @@ function renderShop(){
     h+=`<div class="row"><div><b>${UPG[k].name}</b><small>${UPG[k].desc} · <span class="pips">${'●'.repeat(l)}${'○'.repeat(5-l)}</span></small></div>`+
       (max?'<button class="sb on" disabled>MAX</button>':`<button class="sb buy" data-upg="${k}" ${save.bank<upgCost(l)?'disabled':''}>💰 ${fmt(upgCost(l))}</button>`)+'</div>';}
   try{const nb=Object.keys(badges).length,ns=Object.keys(secretsFound).length;
-  h+=`<div class="sec">EXPLORER LOG · 🏅 ${nb}/7 BADGES · 🔍 ${ns}/7 SECRETS</div>`;
-  for(const k of['city','desert','moon','mars','ice','lava','jungle']){const S=SECRETS[k];
+  h+=`<div class="sec">EXPLORER LOG · 🏅 ${nb}/8 BADGES · 🔍 ${ns}/8 SECRETS</div>`;
+  for(const k of['city','desert','ocean','moon','mars','ice','lava','jungle']){const S=SECRETS[k];
     h+=`<div class="row"><div><b>${badges[k]?'🏅':'⚪'} ${TOWN_NAMES[k]}</b><small>${badges[k]?'All 5 relics found':'Land and find 5 💠 relics'} · ${secretsFound[k]?'🔍 '+S.emoji+' '+S.name:'🔍 ??? secret not found'}</small></div></div>`;}
-  if(nb===7&&ns===7)h+='<div class="row"><div><b>👑 MASTER EXPLORER</b><small>You found everything. Legend!</small></div></div>';}catch(e){}
+  if(nb===8&&ns===8)h+='<div class="row"><div><b>👑 MASTER EXPLORER</b><small>You found everything. Legend!</small></div></div>';}catch(e){}
   $('shopList').innerHTML=h;try{renderMissions();}catch(e){}
 }
 $('shopList').addEventListener('click',e=>{const b=e.target.closest('button');if(!b||b.disabled)return;
@@ -1945,7 +2024,7 @@ function planetTex(kind){
 }
 const SECTORS={
   earth:{name:'EARTH ORBIT',tex:planet.material.map,atm:[0.35,0.7,1],emis:0x0a1430,rock:[0x6a6058,0x5a5048],bg:0x02030a,home:'city',
-    portals:[{dest:'city',c:0x45eaff,label:'NEON CITY'},{dest:'sector:ice',c:0xd8f4ff,label:'FROST SECTOR ➜'},{dest:'desert',c:0xffa040,label:'AREA 51 DESERT'}]},
+    portals:[{dest:'city',c:0x45eaff,label:'NEON CITY'},{dest:'sector:ice',c:0xd8f4ff,label:'FROST SECTOR ➜'},{dest:'desert',c:0xffa040,label:'AREA 51 DESERT'},{dest:'ocean',c:0x2ad8ff,label:'🌊 THE OCEAN'}]},
   ice:{name:'FROST SECTOR',tex:planetTex('ice'),atm:[0.7,0.9,1],emis:0x1a2a40,rock:[0xbfe6ff,0x9fc8ef],bg:0x020a14,home:'ice',
     portals:[{dest:'ice',c:0x9fe8ff,label:'LAND: FROSTARA'},{dest:'sector:lava',c:0xff7a30,label:'INFERNO SECTOR ➜'},{dest:'sector:earth',c:0x45eaff,label:'⟲ EARTH ORBIT'}]},
   lava:{name:'INFERNO SECTOR',tex:planetTex('lava'),atm:[1,0.4,0.15],emis:0x2a0800,rock:[0x2a1a1a,0x5a2010],bg:0x0a0202,home:'lava',
@@ -1975,7 +2054,7 @@ const sectorDecor={};
 })();
 function buildPortals(sec){
   portals.forEach(P=>spaceGroup.remove(P.g));portals.length=0;
-  const spots=[[-85,0,-330],[0,48,-400],[85,0,-330]];
+  const spots=[[-85,0,-330],[0,48,-400],[85,0,-330],[0,-48,-400]];
   SECTORS[sec].portals.forEach((D,i)=>{const P=Object.assign({},D,{x:spots[i][0],y:spots[i][1],z:spots[i][2],css:'#'+new THREE.Color(D.c).getHexString(),R:26});
     const g=new THREE.Group();g.position.set(P.x,P.y,P.z);
     g.add(new THREE.Mesh(new THREE.TorusGeometry(26,1.4,10,64),new THREE.MeshBasicMaterial({color:D.c})));
@@ -1996,7 +2075,7 @@ function applySector(sec){
   station.g.visible=(sec==='earth');
   buildPortals(sec);
 }
-const WARPC={city:[0x3de1ff,0xb44dff],desert:[0xffa040,0xff3fd2],ice:[0xbfefff,0x5ad8ff],lava:[0xff3a1a,0xffa040],jungle:[0x6dff7a,0xb46bff]};
+const WARPC={ocean:[0x2ad8ff,0x2a6aff],city:[0x3de1ff,0xb44dff],desert:[0xffa040,0xff3fd2],ice:[0xbfefff,0x5ad8ff],lava:[0xff3a1a,0xffa040],jungle:[0x6dff7a,0xb46bff]};
 function homeTown(sec){return sec==='earth'?((curTown==='city'||curTown==='desert')?curTown:'city'):SECTORS[sec].home;}
 
 spaceGroup.children.filter(o=>o.isGroup&&Math.abs(o.position.z+300)<1&&Math.abs(Math.abs(o.position.x)-110)<1&&!portals.some(P=>P.g===o)).forEach(o=>spaceGroup.remove(o));
@@ -2016,7 +2095,7 @@ const BODIES=[];let landCd=0;
   mk(find(150),MOON_TEX,'moon',new V3(-650,180,-950),1.25,'🌕 LAND ON THE MOON','#cfe0ff');
   mk(find(90),MARS_TEX,'mars',new V3(900,140,-1250),1.7,'🔴 LAND ON MARS','#ff7a50');
 })();
-TOWN_SECTOR.moon='earth';TOWN_SECTOR.mars='earth';
+TOWN_SECTOR.moon='earth';TOWN_SECTOR.mars='earth';TOWN_SECTOR.ocean='earth';
 // ---------- SOLAR SYSTEM: Saturn, Jupiter and the Sun (Earth Orbit) ----------
 const SOLAR=[];let sunHeatT=0,saturnSide=0,saturnCd=0;
 (function(){
@@ -2243,7 +2322,7 @@ const wParts={};
 // relics
 const RELICS={};let relicFx=[];
 let badges={};try{badges=JSON.parse(localStorage.getItem('ufoBadges')||'{}');}catch(e){}
-const TOWN_NAMES={city:'Neon City',desert:'Area 51',ice:'Frostara',lava:'Magmor',jungle:'Verdana',moon:'The Moon',mars:'Mars'};
+const TOWN_NAMES={ocean:'The Ocean',city:'Neon City',desert:'Area 51',ice:'Frostara',lava:'Magmor',jungle:'Verdana',moon:'The Moon',mars:'Mars'};
 function makeRelic(){const g=new THREE.Group();const c=new THREE.Mesh(new THREE.OctahedronGeometry(0.9),new THREE.MeshBasicMaterial({color:0xc58bff}));c.scale.y=1.5;g.add(c);
   const gl=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:0xb46bff,transparent:true,depthWrite:false}));gl.scale.set(6,6,1);g.add(gl);
   const pil=new THREE.Mesh(new THREE.CylinderGeometry(0.25,0.25,60,6,1,true),new THREE.MeshBasicMaterial({color:0xc58bff,transparent:true,opacity:.22,blending:THREE.AdditiveBlending,depthWrite:false}));pil.position.y=30;g.add(pil);
@@ -2335,7 +2414,7 @@ function walkUpdate(dt,ix,iy,jumpBtn,run,shipBtn,t){
     if(Math.hypot(pos.x-r.p.x,pos.z-r.p.z)<2.2&&Math.abs(pos.y+1.5-r.p.y)<2.6){r.got=true;r.g.visible=false;doBurst(r.p);score+=50;mEvent('relic');
       const n=relicCount();pop(`💠 RELIC ${n}/5  +50`);blip(700,1900,0.3,'triangle',0.14);setTimeout(()=>blip(1000,2400,0.2,'triangle',0.1),130);
       if(n===5){score+=300;if(!badges[curTown]){badges[curTown]=true;try{localStorage.setItem('ufoBadges',JSON.stringify(badges));}catch(e){}}
-        setTimeout(()=>{pop(`🏅 ${TOWN_NAMES[curTown]} EXPLORED! +300`);pop(`Badges: ${Object.keys(badges).length}/7`,'t');},700);}}}
+        setTimeout(()=>{pop(`🏅 ${TOWN_NAMES[curTown]} EXPLORED! +300`);pop(`Badges: ${Object.keys(badges).length}/8`,'t');},700);}}}
   // say hi to critters
   heartCd-=dt;if(heartCd<=0)for(const T of targets){if(T.state==='ground'&&T.mesh.position.distanceTo(pos)<3.5){heartCd=1.2;spawnFx(T.mesh.position.clone().add(new V3(0,3.5,0)),tmpV.set(0,2,0),1,2.5,1,0xff5ad8,true);pop('💖','t');break;}}
   if(shipBtn&&!prevShip)boardShip();prevShip=shipBtn;
@@ -2357,7 +2436,8 @@ const SECRETS={
   lava:{name:'Lava Temple',x:380,z:-360,emoji:'🛕'},
   jungle:{name:'Blob Village',x:-380,z:-330,emoji:'🛖'},
   moon:{name:'Mystery Monolith',x:330,z:-340,emoji:'⬛'},
-  mars:{name:'Ancient Ruins',x:-340,z:-370,emoji:'🏛️'}
+  mars:{name:'Ancient Ruins',x:-340,z:-370,emoji:'🏛️'},
+  ocean:{name:'Sunken Galleon',x:360,z:-380,emoji:'🏴‍☠️'}
 };
 let secretsFound={};try{secretsFound=JSON.parse(localStorage.getItem('ufoSecrets')||'{}');}catch(e){}
 const secretAnim=[];
@@ -2391,6 +2471,12 @@ inTown('jungle',(X,Z)=>{const fire=glowSprite(0xffa040,X,1.5,Z,10);secretAnim.pu
     const bl=critterMesh('blob');bl.position.set(X+Math.cos(a+0.5)*7,0,Z+Math.sin(a+0.5)*7);bl.rotation.y=-(a+0.5)+PI;secretAnim.push(t=>{bl.position.y=Math.abs(Math.sin(t*3+i))*0.8;});}});
 inTown('moon',(X,Z)=>{const m=new THREE.Mesh(new THREE.BoxGeometry(4,16,1.2),new THREE.MeshStandardMaterial({color:0x050505,metalness:.8,roughness:.15}));m.position.set(X,8,Z);root.add(m);solid(X,Z,4,1.2,16);
   const h=glowSprite(0xb8c8ff,X,8,Z,26,0.35);secretAnim.push(t=>{h.material.opacity=0.2+0.2*Math.sin(t*1.3);});});
+inTown('ocean',(X,Z)=>{const g=new THREE.Group();g.position.set(X,0,Z);g.rotation.set(0.2,0.7,0.35);
+  const hull=new THREE.Mesh(new THREE.CylinderGeometry(7,4,40,10,1,false,0,PI),new THREE.MeshLambertMaterial({color:0x5a3a20,side:THREE.DoubleSide}));hull.rotation.z=PI/2;hull.rotation.y=PI/2;hull.position.y=4;g.add(hull);
+  box(g,13,0.6,38,0x6a4a2a,0,4,0);const mast=box(g,0.8,30,0.8,0x4a2a10,0,18,-4);mast.rotation.z=0.3;const sail=box(g,10,8,0.1,0xd8d0b0,3,24,-4);sail.rotation.z=0.3;sail.material=new THREE.MeshLambertMaterial({color:0xd8d0b0,transparent:true,opacity:.7});
+  const chest=box(g,3,2,2,0x8a5a20,2,5.5,6);box(g,3.1,0.4,2.1,basic(0xffd84a),2,6.6,6);root.add(g);
+  const gold=glowSprite(0xffd84a,X+2,6,Z+6,12,0.8);secretAnim.push(t=>{gold.material.opacity=0.5+0.4*Math.sin(t*3);});
+  colliders.push({x0:X-12,x1:X+12,z0:Z-20,z1:Z+20,h:8,y0:0});});
 inTown('mars',(X,Z)=>{for(let i=0;i<10;i++){const a=i/10*2*PI,h=rand(3,10),x=X+Math.cos(a)*16,z=Z+Math.sin(a)*16;box(root,2,h,2,0xb06a44,x,h/2,z).rotation.y=a;solid(x,z,2,2,h);}
   const ob=new THREE.Mesh(new THREE.ConeGeometry(2.2,14,4),new THREE.MeshLambertMaterial({color:0x6a2a14,emissive:0x5a1a8a,emissiveIntensity:.4}));ob.position.set(X,7,Z);root.add(ob);solid(X,Z,3,3,14);
   const gl=glowSprite(0xc58bff,X,10,Z,16);secretAnim.push(t=>{gl.material.opacity=0.5+0.4*Math.sin(t*2.2);});});
@@ -2461,6 +2547,9 @@ const MISSIONS=[
   {id:'desert',t:'Travel to Area 51',ev:'visit',m:d=>d.town==='desert',g:1,r:200},
   {id:'ice',t:'Visit the ice planet Frostara',ev:'visit',m:d=>d.town==='ice',g:1,r:500},
   {id:'lava',t:'Visit the lava planet Magmor',ev:'visit',m:d=>d.town==='lava',g:1,r:600},
+  {id:'ocean',t:'Dive into the ocean',ev:'visit',m:d=>d.town==='ocean',g:1,r:300},
+  {id:'whale',t:'Abduct a whale',ev:'abduct',m:d=>d.emoji==='🐋',g:1,r:600},
+  {id:'sharks',t:'Abduct 3 sharks',ev:'abduct',m:d=>d.emoji==='🦈',g:3,r:500},
   {id:'jungle',t:'Visit the jungle planet Verdana',ev:'visit',m:d=>d.town==='jungle',g:1,r:700},
   {id:'warps',t:'Ride 3 wormholes',ev:'warp',g:3,r:300},
   {id:'relics',t:'Find 5 relics on foot',ev:'relic',g:5,r:400},
@@ -2588,6 +2677,7 @@ const TRACKS={
   lava:{name:'Magmor',bpm:108,root:48,sc:PHR,prog:[0,1,0,1],bass:'xx.xxx.xxx.xxx.x',bw:'sawtooth',arp:'x...x...x..x.x..',aw:'sawtooth',ao:1,av:.04,kick:'x..x..x.x..x..x.',snare:'....x.......x...',hat:'x.x.x.x.x.x.x.x.',cut:900},
   jungle:{name:'Verdana',bpm:104,root:55,sc:DOR,prog:[0,3,0,3],bass:'x..x.x..x..x.x..',bw:'triangle',arp:'x.xx.x.xx.x.x.xx',aw:'triangle',ao:2,av:.06,kick:'x...x...x...x...',snare:'......x.......x.',hat:'xxxxxxxxxxxxxxxx',cut:2200,short:1},
   moon:{name:'Tranquility',bpm:66,root:50,sc:MIN,prog:[0,5,2,6],bass:'x...............',bw:'sine',arp:'x.......x.......',aw:'sine',ao:3,av:.05,pad:'triangle',cut:1200},
+  ocean:{name:'Deep Blue',bpm:72,root:53,sc:DOR,prog:[0,3,4,3],bass:'x.....x.........',bw:'sine',arp:'x..x..x..x..x...',aw:'sine',ao:3,av:.05,pad:'triangle',hat:'........x.......',cut:900},
   mars:{name:'Red Planet',bpm:96,root:47,sc:MIN,prog:[0,5,6,4],bass:'x.x...x.x.x...x.',bw:'sawtooth',arp:'x.xx.xx.x.xx.xx.',aw:'square',ao:2,av:.03,pad:'sawtooth',kick:'x.......x.......',snare:'....x.......x...',hat:'..x...x...x...x.',cut:1500}
 };
 let musicOn=true;try{musicOn=localStorage.getItem('ufoMusic')!=='off';}catch(e){}
@@ -2691,7 +2781,7 @@ function snapCam(){fwd.set(-Math.sin(yaw),0,-Math.cos(yaw));camera.position.copy
 function setTown(n){
   curTown=n;const T=towns[n];for(const k in towns)towns[k].group.visible=(k===n);
   colliders=T.colliders;fields=T.fields;targets=T.targets;torusCols=T.torusCols;
-  scene.fog.near=T.fog[0];scene.fog.far=T.fog[1];cloudLayer.visible=!T.planet;skyRealm.visible=!T.planet;sky.children.forEach(c=>{if(c.isSprite)c.visible=!T.planet;});sky.material.color.setHex(T.skyTint||0xffffff);
+  scene.fog.near=T.fog[0];scene.fog.far=T.fog[1];cloudLayer.visible=!T.planet;skyRealm.visible=!T.planet;sky.children.forEach(c=>{if(c.isSprite)c.visible=!T.planet;if(c.isPoints)c.visible=n!=='ocean';});sky.material.color.setHex(T.skyTint||0xffffff);
 }
 function enterSpace(sec){
   sec=sec||TOWN_SECTOR[curTown]||'earth';applySector(sec);
@@ -2708,7 +2798,7 @@ function enterSpace(sec){
 function landAt(n){
   mEvent('visit',{town:n});
   clearSpaceFoes();mode='ground';fadeIn();spaceGroup.visible=false;sky.visible=true;setTown(n);
-  pos.set(0,towns[n].planet?170:300,towns[n].planet?330:(n==='city'?420:380));yaw=0;vy=-8;speed=15;snapCam();
+  pos.set(0,n==='ocean'?95:towns[n].planet?170:300,towns[n].planet?330:(n==='city'?420:380));yaw=0;vy=-8;speed=15;snapCam();
   pop(towns[n].label||(n==='city'?'🌃 NEON CITY':'🏜️ AREA 51'));blip(900,200,0.8,'sine',0.15);
 }
 function spaceUpdate(dt){
@@ -2759,9 +2849,9 @@ function collide(){
   }
 }
 function abduct(T){
-  mEvent('abduct',{type:T.type,cop:!!(T.mesh&&T.mesh.userData.police)});
+  mEvent('abduct',{type:T.type,cop:!!(T.mesh&&T.mesh.userData.police),emoji:T.mesh&&T.mesh.userData.emoji});
   T.state='gone';T.mesh.visible=false;T.rt=rand(5,9);doBurst(T.mesh.position);
-  const k=T.type,isCow=k==='cow',cop=!!T.mesh.userData.police,pts={cow:10,car:cop?40:25,truck:40,critter:20}[k],tb={cow:4,car:6,truck:7,critter:5}[k];
+  const k=T.type,isCow=k==='cow',cop=!!T.mesh.userData.police,pts=T.mesh.userData.pts||{cow:10,car:cop?40:25,truck:40,critter:20}[k],tb={cow:4,car:6,truck:7,critter:5}[k];
   score+=pts;timer+=tb;if(k==='cow'||k==='critter')cows++;else cars++;heat=Math.min(5,heat+({cow:0.5,car:0.8,truck:1.5,critter:0}[k]));heatIdle=0;
   pop(`+${pts} ${cop?'🚓':k==='critter'?T.mesh.userData.emoji:{cow:'🐄',car:'🚗',truck:'🚚'}[k]}`);if(cop){heat=Math.min(5,heat+1);}pop(`+${tb}s`,'t');
   // Two-part capture chime: rising energy sweep followed by a bright confirmation ping.
@@ -2865,7 +2955,7 @@ function loop(now){
       if(pos.y<3){pos.y=3;if(vy<0)vy=0;}
       const hd=Math.hypot(pos.x,pos.z);if(hd>620){pos.x*=620/hd;pos.z*=620/hd;}
       collide();
-      if(pos.y>SPACE_Y)enterSpace();
+      if(pos.y>SPACE_Y||(curTown==='ocean'&&pos.y>SURF-3))enterSpace();
     }else if(mode==='space'){spaceUpdate(dt);if(mode==='space')stationUpdate(dt);}else warpUpdate(dt,ix,(up?1:0)-(down?1:0));
     beamActive=beamBtn&&!lock&&mode==='ground';
     if(beamActive)energy-=20*dt*M.pow;if(boosting)energy-=14*dt*M.pow;
