@@ -1469,6 +1469,7 @@ function fishMesh(kind){
   root.add(g);return g;
 }
 function spawnSwim(T){spawnCow(T);T.mesh.position.y=T.swimY=rand(4,T.mesh.userData.pts>=150?45:30);}
+let KRAKEN=null;
 beginTown('ocean');
 (function(){
   const sand=texCanvas(256,256,g=>{g.fillStyle='#c8b080';g.fillRect(0,0,256,256);for(let i=0;i<600;i++){g.fillStyle=pick(['rgba(255,240,200,.25)','rgba(120,100,60,.2)']);g.fillRect(rand(0,256),rand(0,256),rand(2,6),2);}
@@ -1584,6 +1585,138 @@ beginTown('ocean');
       });
     });
   }});
+  // ================= OCEAN UPGRADE: Kraken, treasure chests, currents, mantas, plankton =================
+  const gold=0xffc83a;
+  // ---- 🐙 THE KRAKEN ----
+  {
+    const L0=new V3(-380,0,260);
+    const lair=new THREE.Group();lair.position.copy(L0);root.add(lair);
+    for(let i=0;i<16;i++){const a=i/16*2*PI,r=rand(34,44),s=rand(6,12);const rk=new THREE.Mesh(new THREE.IcosahedronGeometry(s,0),new THREE.MeshLambertMaterial({color:0x2a3440,flatShading:true}));rk.position.set(Math.cos(a)*r,s*0.3,Math.sin(a)*r);rk.rotation.set(rand(0,3),rand(0,3),0);lair.add(rk);}
+    const pit=new THREE.Mesh(new THREE.CircleGeometry(30,32),new THREE.MeshBasicMaterial({color:0x05080c}));pit.rotation.x=-PI/2;pit.position.y=0.15;lair.add(pit);
+    const skinM=new THREE.MeshLambertMaterial({color:0x8a1f4a,emissive:0x2a0614});
+    const head=new THREE.Group();head.position.set(0,10,0);lair.add(head);
+    const dome=new THREE.Mesh(new THREE.SphereGeometry(14,24,18),skinM);dome.scale.set(1,1.35,1);dome.position.y=6;head.add(dome);
+    const eyes=[];for(const s of[-1,1]){const eg=new THREE.Group();eg.position.set(s*6.5,2,11);head.add(eg);
+      const sc=new THREE.Mesh(new THREE.SphereGeometry(3.4,16,12),new THREE.MeshBasicMaterial({color:0xffe14a}));eg.add(sc);
+      const pu2=new THREE.Mesh(new THREE.BoxGeometry(0.9,5,1),new THREE.MeshBasicMaterial({color:0x080808}));pu2.position.z=3.1;eg.add(pu2);
+      const lid=new THREE.Mesh(new THREE.SphereGeometry(3.6,16,12,0,2*PI,0,PI/2),skinM);eg.add(lid);eyes.push({eg,sc,lid});}
+    const glow=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:0xff2a4a,transparent:true,opacity:0,blending:THREE.AdditiveBlending,depthWrite:false}));glow.scale.set(70,70,1);head.add(glow);
+    const NT=8,NS=14,TLEN=105;
+    const segG=new THREE.SphereGeometry(1,10,8);
+    const segM=new THREE.InstancedMesh(segG,new THREE.MeshLambertMaterial({color:0xa02a5a,emissive:0x2a0614}),NT*NS);segM.frustumCulled=false;root.add(segM);
+    const sucM=new THREE.InstancedMesh(new THREE.SphereGeometry(1,6,4),new THREE.MeshBasicMaterial({color:0xffb0c8}),NT*NS);sucM.frustumCulled=false;root.add(sucM);
+    const tents=[];for(let i=0;i<NT;i++){const a=i/NT*2*PI+0.2;tents.push({base:new V3(L0.x+Math.cos(a)*16,2,L0.z+Math.sin(a)*16),a,ph:rand(0,6),reach:0,pts:[]});for(let k=0;k<=NS;k++)tents[i].pts.push(new V3());}
+    const K=KRAKEN={head:new V3(),hp:40,max:40,awake:false,alive:true,rt:0,warned:false,grab:null,grabT:0,esc:0,hurtCd:0,flash:0,lastHp:40,active:0,swap:0,grabCd:0,
+      die(){const p=this.head.clone();explode(p,true);setTimeout(()=>explode(p.clone().add(new V3(8,6,0)),true),150);setTimeout(()=>explode(p.clone().add(new V3(-8,10,4)),true),300);
+        this.alive=false;this.awake=false;this.grab=null;this.rt=60;score+=500;timer+=10;mEvent('kraken');
+        pop('🐙 KRAKEN DEFEATED!');pop('+500 · +10s · treasure dropped!','t');blip(90,40,1.2,'sawtooth',0.18);
+        const C=chests[0];if(C){C.g.position.set(L0.x,0,L0.z+8);C.open=false;C.cd=0;C.lid.rotation.x=0;C.bonus=true;}}};
+    const tmpA=new V3(),tmpB=new V3(),dummy=new THREE.Object3D();
+    planetAnim.push({town:'ocean',f:(t,dt)=>{
+      const play=state==='play'&&mode==='ground'&&!onFoot;
+      const d=pos.distanceTo(L0);
+      if(!K.alive){K.rt-=dt;if(K.rt<=0){K.alive=true;K.hp=K.lastHp=K.max;}}
+      head.visible=K.alive;segM.visible=sucM.visible=K.alive;
+      if(!K.alive)return;
+      const wake=play&&d<170;
+      if(wake&&!K.awake){pop('🐙 THE KRAKEN AWAKENS!');pop('Zap its head with FIRE · BOOST to break free','t');blip(70,40,1.4,'sawtooth',0.18);if(navigator.vibrate)try{navigator.vibrate([200,80,200]);}catch(e){}}
+      K.awake=wake;
+      // head
+      head.position.y=10+Math.sin(t*0.8)*1.5;head.rotation.y=K.awake?Math.atan2(pos.x-L0.x,pos.z-L0.z):Math.sin(t*0.2)*0.5;
+      head.getWorldPosition(K.head);K.head.y+=6;
+      eyes.forEach(E=>{E.lid.rotation.x=K.awake?-PI*0.85:-PI*0.15;E.sc.material.color.setHex(K.awake?0xff3a3a:0xffe14a);});
+      glow.material.opacity=K.awake?0.45+0.2*Math.sin(t*6):0;
+      if(K.hp<K.lastHp){K.flash=0.15;K.lastHp=K.hp;}K.flash-=dt;skinM.emissive.setHex(K.flash>0?0xff6060:0x2a0614);
+      // pick 2 tentacles that reach for the ship
+      K.swap-=dt;if(K.swap<=0){K.swap=3.5;K.active=(K.active+3)%NT;}
+      tents.forEach((T,i)=>{
+        const reaching=K.awake&&(i===K.active||i===(K.active+4)%NT);
+        T.reach+=((reaching?1:0)-T.reach)*Math.min(1,dt*(reaching?1.4:0.8));
+        tmpA.copy(pos).sub(T.base);const dd=tmpA.length();tmpA.multiplyScalar(Math.min(1,TLEN/Math.max(dd,1))).add(T.base); // reach target (clamped)
+        for(let k=0;k<=NS;k++){const u=k/NS,P=T.pts[k];
+          const sw=Math.sin(t*1.2+T.ph+u*3)*12*u;
+          P.set(T.base.x+Math.cos(T.a)*u*40+Math.cos(T.a+PI/2)*sw,2+u*u*60+Math.sin(t+T.ph)*4*u,T.base.z+Math.sin(T.a)*u*40+Math.sin(T.a+PI/2)*sw);
+          tmpB.copy(T.base).lerp(tmpA,u);tmpB.y+=Math.sin(u*PI)*18;
+          P.lerp(tmpB,T.reach*Math.min(1,u*1.6));}
+        if(K.grab===T)T.pts[NS].copy(pos);
+        for(let k=0;k<NS;k++){const P=T.pts[k],Q=T.pts[k+1],r=3.2*(1-k/NS)+0.7;
+          dummy.position.copy(P);dummy.scale.setScalar(r);dummy.updateMatrix();segM.setMatrixAt(i*NS+k,dummy.matrix);
+          dummy.position.set(P.x,P.y-r*0.6,P.z);dummy.scale.setScalar(r*0.35);dummy.updateMatrix();sucM.setMatrixAt(i*NS+k,dummy.matrix);}
+        if(play&&!K.grab&&K.grabCd<=0&&T.reach>0.75&&T.pts[NS].distanceTo(pos)<7){K.grab=T;K.grabT=0;K.esc=0;pop('🐙 KRAKEN GRABBED YOU!');pop('Hold BOOST to break free!','t');shake=1;}
+      });
+      segM.instanceMatrix.needsUpdate=true;sucM.instanceMatrix.needsUpdate=true;K.grabCd-=dt;
+      // grabbed: dragged toward the mouth, hurts, escape with boost
+      if(K.grab){K.grabT+=dt;K.hurtCd-=dt;speed=Math.min(speed,4);
+        tmpB.copy(K.head).sub(pos);if(tmpB.length()>14)pos.addScaledVector(tmpB.normalize(),10*dt);
+        if(K.hurtCd<=0){K.hurtCd=0.7;hurt(5);}
+        if(inp.boost||keys.shift)K.esc+=dt;
+        if(K.esc>1.1||K.grabT>5||!play){const T=K.grab;K.grab=null;T.reach=0;K.swap=2;K.grabCd=3;
+          pos.add(pos.clone().sub(K.head).setY(0).normalize().multiplyScalar(12));pop(K.esc>1.1?'💨 BROKE FREE!':'😵 It let go…');}}
+    }});
+  }
+  // ---- 💰 SUNKEN TREASURE CHESTS ----
+  const chests=[];
+  {
+    const wood=new THREE.MeshLambertMaterial({color:0x6a3e1c}),trim=new THREE.MeshLambertMaterial({color:gold,emissive:0x4a3000});
+    for(let i=0;i<7;i++){let x=0,z=0;for(let n=0;n<40;n++){x=rand(-560,560);z=rand(-560,560);if(freeSpot(x,z,fields)&&Math.hypot(x-(-380),z-260)>70)break;}
+      const g=new THREE.Group();g.position.set(x,0,z);g.rotation.y=rand(0,6);root.add(g);
+      const b=new THREE.Mesh(new THREE.BoxGeometry(6,3.5,4),wood);b.position.y=1.75;g.add(b);
+      for(const sx of[-2.4,2.4]){const s=new THREE.Mesh(new THREE.BoxGeometry(0.5,3.7,4.1),trim);s.position.set(sx,1.75,0);g.add(s);}
+      const lid=new THREE.Group();lid.position.set(0,3.5,-2);g.add(lid);
+      const lm=new THREE.Mesh(new THREE.CylinderGeometry(2,2,6,12,1,false,0,PI),wood);lm.rotation.z=PI/2;lm.position.z=2;lid.add(lm);
+      const lock=new THREE.Mesh(new THREE.BoxGeometry(1,1.2,0.4),trim);lock.position.set(0,2.6,2.1);g.add(lock);
+      const shine=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:gold,transparent:true,opacity:.7,blending:THREE.AdditiveBlending,depthWrite:false}));shine.position.y=3.5;shine.scale.set(16,16,1);g.add(shine);
+      chests.push({g,lid,shine,open:false,cd:0,bonus:false});}
+    planetAnim.push({town:'ocean',f:(t,dt)=>{chests.forEach(C=>{
+      C.shine.material.opacity=C.open?0.15:0.5+0.3*Math.sin(t*3+C.g.position.x);
+      if(C.open){C.cd-=dt;C.lid.rotation.x+=(-1.9-C.lid.rotation.x)*Math.min(1,dt*4);if(C.cd<=0){C.open=false;C.lid.rotation.x=0;}return;}
+      if(state==='play'&&mode==='ground'&&!onFoot&&C.g.position.distanceTo(pos)<11){C.open=true;C.cd=45;
+        const p=C.g.position.clone().add(new V3(0,4,0));for(let k=0;k<26;k++){tmpV.set(rand(-1,1),rand(0.6,1.6),rand(-1,1)).multiplyScalar(rand(4,10));spawnFx(p,tmpV,rand(0.7,1.3),rand(1,2),2,pick([gold,0xfff0a0,0xffe060]),true);}
+        const pts=C.bonus?400:100,cr=C.bonus?300:50;score+=pts;save.bank+=cr;persist();C.bonus=false;mEvent('chest');
+        pop(`💰 TREASURE! +${pts}`);pop(`+${cr} credits`,'t');blip(880,1760,0.2,'triangle',0.12);setTimeout(()=>blip(1175,2350,0.3,'triangle',0.12),120);}
+    });}});
+  }
+  // ---- 🌊 OCEAN CURRENTS (fly in and get carried fast) ----
+  {
+    const loops=[
+      [[-300,40,-100],[-100,30,-350],[200,50,-300],[350,35,-50],[200,60,200],[-100,45,150]],
+      [[400,80,300],[150,95,450],[-200,70,420],[-420,85,100],[-250,100,-250]],
+      [[0,25,0],[150,20,-150],[0,30,-300],[-150,20,-150]]];
+    const curs=loops.map((L,i)=>{const curve=new THREE.CatmullRomCurve3(L.map(p=>new V3(...p)),true);
+      const tube=new THREE.Mesh(new THREE.TubeGeometry(curve,160,5.5,10,true),new THREE.MeshBasicMaterial({color:0x6ff6ff,transparent:true,opacity:.13,blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide}));root.add(tube);
+      const N=220,samp=[],tan=[];for(let k=0;k<N;k++){samp.push(curve.getPointAt(k/N));tan.push(curve.getTangentAt(k/N));}
+      const bub=[];for(let k=0;k<50;k++){const s=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:0xd8ffff,transparent:true,opacity:.7,blending:THREE.AdditiveBlending,depthWrite:false}));s.scale.setScalar(rand(1.5,3.2));root.add(s);bub.push({s,u:k/50,o:new V3(rand(-3,3),rand(-3,3),rand(-3,3))});}
+      return {curve,samp,tan,bub,N};});
+    let riding=null,rideMsg=0;
+    planetAnim.push({town:'ocean',f:(t,dt)=>{
+      rideMsg-=dt;
+      curs.forEach(C=>C.bub.forEach(B=>{B.u=(B.u+dt*0.03)%1;B.s.position.copy(C.curve.getPointAt(B.u)).add(B.o);}));
+      if(!(state==='play'&&mode==='ground'&&!onFoot)||(KRAKEN&&KRAKEN.grab)){riding=null;return;}
+      let best=null,bd=81,bi=0;
+      for(const C of curs)for(let k=0;k<C.N;k+=2){const d=C.samp[k].distanceToSquared(pos);if(d<bd){bd=d;best=C;bi=k;}}
+      if(best){const T=best.tan[bi],P=best.samp[bi];
+        if(riding!==best&&rideMsg<=0){pop('🌊 RIDING THE CURRENT!');mEvent('current');rideMsg=6;}
+        riding=best;pos.addScaledVector(T,95*dt);pos.y+=(P.y-pos.y)*Math.min(1,dt*3);
+        const want=Math.atan2(-T.x,-T.z);let dy=want-yaw;dy=Math.atan2(Math.sin(dy),Math.cos(dy));yaw+=dy*Math.min(1,dt*4);
+        if(Math.random()<0.6)spawnFx(pos.clone().addScaledVector(T,-4),tmpV.set(rand(-1,1),rand(-1,1),rand(-1,1)),0.6,1.6,2,0xbfffff,true);}
+      else riding=null;
+    }});
+  }
+  // ---- manta rays gliding overhead ----
+  {
+    const mantaM=new THREE.MeshLambertMaterial({color:0x2a3a5a,emissive:0x0a1020,side:THREE.DoubleSide});
+    const mantas=[];for(let i=0;i<6;i++){const g=new THREE.Group();
+      const shp=new THREE.Shape();shp.moveTo(0,6);shp.quadraticCurveTo(4,2,12,-1);shp.quadraticCurveTo(4,-2,0,-5);shp.quadraticCurveTo(-4,-2,-12,-1);shp.quadraticCurveTo(-4,2,0,6);
+      const body=new THREE.Mesh(new THREE.ShapeGeometry(shp,12),mantaM);body.rotation.x=-PI/2;g.add(body);
+      const tail=box(g,0.25,0.25,9,0x1a2a40,0,0,6.5);
+      const wl=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:0x6ff6ff,transparent:true,opacity:.25,blending:THREE.AdditiveBlending,depthWrite:false}));wl.scale.set(26,26,1);g.add(wl);
+      root.add(g);mantas.push({g,body,cx:rand(-350,350),cz:rand(-350,350),r:rand(60,160),y:rand(60,115),w:rand(0.12,0.22)*(i%2?1:-1),a:rand(0,6)});}
+    planetAnim.push({town:'ocean',f:(t,dt)=>{mantas.forEach(M=>{M.a+=M.w*dt;M.g.position.set(M.cx+Math.cos(M.a)*M.r,M.y+Math.sin(t*0.5+M.a)*4,M.cz+Math.sin(M.a)*M.r);
+      M.g.rotation.y=-M.a+(M.w>0?PI:0);M.body.scale.set(1,1,1);M.g.rotation.z=Math.sin(t*1.6+M.a)*0.25;});}});
+  }
+  // ---- glowing plankton trail behind the ship ----
+  {let pt=0;planetAnim.push({town:'ocean',f:(t,dt)=>{if(!(state==='play'&&!onFoot))return;pt-=dt;
+    if(Math.abs(speed)>12&&pt<=0){pt=0.04;spawnFx(pos.clone().addScaledVector(fwd,-3).add(tmpV.set(rand(-1.5,1.5),rand(-1,0.5),rand(-1.5,1.5))),tmpV2.set(0,0.6,0),rand(1,1.8),rand(0.6,1.2),1.5,pick([0x5ff6ff,0x6fffb0,0x9f8bff]),true);}}});}
   // abductable sea life
   [['fish',28],['turtle',8],['shark',6],['whale',2]].forEach(([k,n])=>{for(let i=0;i<n;i++){const T={type:'critter',mesh:fishMesh(k),spawn:spawnSwim,fl:fields};T.spawn(T);targets.push(T);}});
   planetAnim.push({town:'ocean',f:t=>{targets.forEach(T=>{if(T.state==='ground'){T.mesh.position.y=T.swimY+Math.sin(t*1.5+T.mesh.id)*0.8;if(T.mesh.userData.tail)T.mesh.userData.tail.rotation.y=Math.sin(t*8+T.mesh.id)*0.4;}});}});
@@ -2086,7 +2219,8 @@ function launchBolt(list,mat,from,dir,spd,life){const b=getBolt(mat);b.p.copy(fr
 function laserTargets(){
   const L=[];
   if(mode==='space'){if(boss)L.push({p:boss.p,r:30,kind:'boss',o:boss});spaceFoes.forEach(f=>L.push({p:f.p,r:6,kind:'foe',o:f}));asteroids.forEach(A=>{if(A.m.visible)L.push({p:A.m.position,r:A.r+1.5,kind:'rock',o:A});});}
-  else{enemies.forEach(e=>{if(e.state==='fly')L.push({p:e.p,r:e.type==='heli'?7:6.5,kind:e.type,o:e});});missiles.forEach(M=>L.push({p:M.p,r:3.5,kind:'missile',o:M}));}
+  else{enemies.forEach(e=>{if(e.state==='fly')L.push({p:e.p,r:e.type==='heli'?7:6.5,kind:e.type,o:e});});missiles.forEach(M=>L.push({p:M.p,r:3.5,kind:'missile',o:M}));
+    if(KRAKEN&&curTown==='ocean'&&KRAKEN.alive&&KRAKEN.awake)L.push({p:KRAKEN.head,r:17,kind:'kraken',o:KRAKEN});}
   return L;
 }
 function fireLaser(){
@@ -2106,6 +2240,7 @@ function killFoe(T){
   if(T.kind==='heli'||T.kind==='jet'){const e=T.o;explode(e.p,true);removeEnemy(e);const pts=T.kind==='heli'?50:80;score+=pts;timer+=3;heat=Math.max(0,heat-0.4);pop(`+${pts} 💥 ${T.kind==='heli'?'🚁':'✈️'}`);}
   else if(T.kind==='missile'){const M=T.o;explode(M.p,false);enemyGroup.remove(M.g);missiles.splice(missiles.indexOf(M),1);score+=5;pop('+5 🚀');}
   else if(T.kind==='boss'){killBoss();}
+  else if(T.kind==='kraken'){KRAKEN.die();}
   else if(T.kind==='foe'){const f=T.o;explode(f.p,true);enemyGroup.remove(f.g);spaceFoes.splice(spaceFoes.indexOf(f),1);spaceKills++;score+=60;timer+=3;pop('+60 💥');pop('+3s','t');}
   else if(T.kind==='rock'){const A=T.o;explode(A.m.position,true);A.m.visible=false;A.rt=12;score+=10;pop('+10 ☄️');
     const C=crystals.find(C=>!C.m.visible);if(C){C.m.position.copy(A.m.position);C.m.visible=true;}}
@@ -2803,6 +2938,9 @@ const MISSIONS=[
   {id:'lava',t:'Visit the lava planet Magmor',ev:'visit',m:d=>d.town==='lava',g:1,r:600},
   {id:'fifth',t:'Reach the 5th Dimension (black hole)',ev:'visit',m:d=>d.town==='fifth',g:1,r:1000},
   {id:'ocean',t:'Dive into the ocean',ev:'visit',m:d=>d.town==='ocean',g:1,r:300},
+  {id:'kraken',t:'Defeat the Kraken (ocean)',ev:'kraken',g:1,r:1200},
+  {id:'chest',t:'Open 5 sunken treasure chests',ev:'chest',g:5,r:600},
+  {id:'current',t:'Ride an ocean current',ev:'current',g:1,r:300},
   {id:'whale',t:'Abduct a whale',ev:'abduct',m:d=>d.emoji==='🐋',g:1,r:600},
   {id:'sharks',t:'Abduct 3 sharks',ev:'abduct',m:d=>d.emoji==='🦈',g:3,r:500},
   {id:'jungle',t:'Visit the jungle planet Verdana',ev:'visit',m:d=>d.town==='jungle',g:1,r:700},
