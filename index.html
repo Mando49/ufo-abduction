@@ -3758,6 +3758,23 @@ const wParts={};
   for(const x of[-.42,.42]){const bolt=sphere(cyan,x,1.86,-.39,[.045,.045,.025]);}
   walker.scale.setScalar(1.15);
 })();;
+// ---------- the pilot as a real animated 3D model (Higgsfield/Meshy): idle, walk, run and jump ----------
+const PILOT={mixer:null,acts:{},cur:null};
+if(THREE.GLTFLoader&&THREE.SkeletonUtils){const ld=new THREE.GLTFLoader();
+  const onLoad=gl=>{try{const inner=gl.scene;inner.rotation.y=PI;const holder=new THREE.Group();holder.add(inner);
+    inner.traverse(o=>{if(o.isMesh){o.frustumCulled=false;if(o.material&&o.material.map){o.material.emissive=new THREE.Color(0xffffff);o.material.emissiveMap=o.material.map;o.material.emissiveIntensity=0.12;}}});
+    const box=()=>{holder.updateMatrixWorld(true);const b=new THREE.Box3(),v=new V3();holder.traverse(m=>{if(m.isSkinnedMesh){m.skeleton.update();const p=m.geometry.attributes.position;for(let i=0;i<p.count;i+=4){m.boneTransform(i,v);v.applyMatrix4(m.matrixWorld);b.expandByPoint(v);}}});return b;};
+    let b=box();holder.scale.setScalar(3.5/Math.max(b.getSize(new V3()).y,0.001));b=box();const c=b.getCenter(new V3());holder.position.set(-c.x,-b.min.y,-c.z);
+    const mixer=new THREE.AnimationMixer(inner);gl.animations.forEach(a=>{PILOT.acts[a.name]=mixer.clipAction(a);});
+    if(!PILOT.acts.walk&&gl.animations[0])PILOT.acts.walk=mixer.clipAction(gl.animations[0]);
+    if(PILOT.acts.jump){PILOT.acts.jump.setLoop(THREE.LoopOnce);PILOT.acts.jump.clampWhenFinished=true;}
+    walker.children.forEach(ch=>{if(ch!==wParts.jet)ch.visible=false;}); // hide the old block-built pilot (keep the jetpack flame)
+    walker.add(holder);PILOT.mixer=mixer;PILOT.holder=holder;pilotPlay('idle');}catch(e){}};
+  const D=window.MODEL_DATA&&window.MODEL_DATA.pilot;
+  if(D){try{const bin=atob(D),u=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)u[i]=bin.charCodeAt(i);ld.parse(u.buffer,'',onLoad,()=>{});}catch(e){}}
+  else ld.load('assets/models/pilot.glb',onLoad,undefined,()=>{});}
+function pilotPlay(k){if(!PILOT.mixer)return;if(!PILOT.acts[k])k=PILOT.acts.walk?'walk':k;if(PILOT.cur===k)return;const a=PILOT.acts[k];if(!a)return;
+  a.reset().fadeIn(0.18).play();if(PILOT.cur&&PILOT.acts[PILOT.cur])PILOT.acts[PILOT.cur].fadeOut(0.18);PILOT.cur=k;}
 // relics
 const RELICS={};let relicFx=[];
 let badges={};try{badges=JSON.parse(localStorage.getItem('ufoBadges')||'{}');}catch(e){}
@@ -3847,7 +3864,8 @@ function walkUpdate(dt,ix,iy,jumpBtn,run,shipBtn,t){
   const sw=mv?Math.sin(walkPh)*0.7:(wGround?0:0.4);
   wParts.lLeg.rotation.x=sw;wParts.rLeg.rotation.x=wGround?-sw:-0.4;wParts.lArm.rotation.x=-sw*0.8;wParts.rArm.rotation.x=sw*0.8;
   wParts.jet.visible=!wGround;wParts.jet.scale.setScalar((jumpBtn&&!wGround?1.8:0.8)+Math.random()*0.6);
-  walker.position.copy(pos);walker.position.y+=mv?Math.abs(Math.sin(walkPh))*0.15:0;walker.rotation.y=yaw;
+  if(PILOT.mixer){pilotPlay(!wGround?'jump':mv?(run?'run':'walk'):'idle');PILOT.mixer.update(dt);}
+  walker.position.copy(pos);walker.position.y+=(mv&&!PILOT.mixer)?Math.abs(Math.sin(walkPh))*0.15:0;walker.rotation.y=yaw;
   // relics
   for(const r of relicFx){if(r.got)continue;r.g.userData.gem.rotation.y+=dt*2;r.g.position.y=r.p.y+Math.sin(t*2)*0.3;
     if(Math.hypot(pos.x-r.p.x,pos.z-r.p.z)<2.2&&Math.abs(pos.y+1.5-r.p.y)<2.6){r.got=true;r.g.visible=false;doBurst(r.p);score+=50;mEvent('relic');
