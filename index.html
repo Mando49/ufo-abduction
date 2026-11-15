@@ -1925,16 +1925,16 @@ const warpMat=new THREE.ShaderMaterial({uniforms:{t:{value:0},c1:{value:new THRE
 })();
 const warpOrbs=[];
 for(let i=0;i<14;i++){const s=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:0xffe080,transparent:true,depthWrite:false}));s.scale.set(5,5,1);warpGroup.add(s);warpOrbs.push(s);}
-let warpT=0,warpTo='city',warpOff=new V3();
-function enterWarp(dest){
+let warpT=0,warpTo='city',warpOff=new V3(),warpBH=false;
+function enterWarp(dest,bhole){
   mEvent('warp');
   clearSpaceFoes();mode='warp';warpTo=dest;warpT=0;warpOff.set(0,0,0);fadeIn();
   spaceGroup.visible=false;warpGroup.visible=true;
   scene.background.set(0x05020c);scene.fog.color.set(0x05020c);scene.fog.near=200;scene.fog.far=900;
-  const wc=dest.startsWith('sector:')?[0xffffff,0x8a4dff]:WARPC[dest];warpMat.uniforms.c1.value.setHex(wc[0]);warpMat.uniforms.c2.value.setHex(wc[1]);
+  const wc=bhole?[0xff7a20,0x1a0040]:dest.startsWith('sector:')?[0xffffff,0x8a4dff]:WARPC[dest];warpBH=!!bhole;warpMat.uniforms.c1.value.setHex(wc[0]);warpMat.uniforms.c2.value.setHex(wc[1]);
   warpOrbs.forEach((s,i)=>{const a=rand(0,2*PI),r=rand(0,13);s.position.set(WARP_O.x+Math.cos(a)*r,WARP_O.y+Math.sin(a)*r,WARP_O.z-120-i*(WARP_LEN-200)/14);s.visible=true;});
   yaw=0;pos.copy(WARP_O);snapCam();
-  pop('🌀 WORMHOLE!');pop('Steer to grab energy orbs','t');blip(150,1200,1.4,'sawtooth',0.12);
+  if(bhole){pop('🕳️ INSIDE THE BLACK HOLE!');pop('+250 · where will you come out?','t');}else{pop('🌀 WORMHOLE!');pop('Steer to grab energy orbs','t');}blip(150,1200,1.4,'sawtooth',0.12);
 }
 function warpUpdate(dt,ix,updn){
   warpT+=dt;timer+=dt;yaw=0;speed=0;vy=0;
@@ -1943,18 +1943,20 @@ function warpUpdate(dt,ix,updn){
   pos.set(WARP_O.x+warpOff.x,WARP_O.y+warpOff.y,WARP_O.z-prog*WARP_LEN);
   for(const s of warpOrbs){if(s.visible&&s.position.distanceTo(pos)<6){s.visible=false;score+=5;energy=Math.min(100,energy+8);pop('+5 ✨');blip(1000,2000,0.1,'triangle',0.1);}}
   shake=Math.max(shake,0.18);
-  if(warpT>=WARP_TIME){warpGroup.visible=false;if(warpTo.startsWith('sector:'))enterSpace(warpTo.slice(7));else landAt(warpTo);}
+  if(warpT>=WARP_TIME){warpGroup.visible=false;if(warpBH){warpBH=false;setTimeout(()=>{pop('🕳️ SPAT OUT AT…');},400);}if(warpTo.startsWith('sector:'))enterSpace(warpTo.slice(7));else landAt(warpTo);}
 }
 
 // ---------- extra space sights: black hole, space station, comets ----------
 const comets=[],station={};
 (function(){
   // black hole with accretion disc
-  const BH=new V3(900,420,-2300),bh=new THREE.Group();bh.position.copy(BH);
+  const BH=new V3(800,320,-1800),bh=new THREE.Group();bh.position.copy(BH);
   bh.add(new THREE.Mesh(new THREE.SphereGeometry(120,32,20),new THREE.MeshBasicMaterial({color:0x000000,fog:false})));
   const disc=new THREE.Mesh(new THREE.RingGeometry(150,420,96,1),vortexMat(0xff8a30,0xffe0a0));disc.material.uniforms.t.value=0;disc.rotation.x=PI/2-0.25;bh.add(disc);vortexMats.push(disc.material);
   const halo=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:0xffb060,transparent:true,opacity:.5,blending:THREE.AdditiveBlending,depthWrite:false,fog:false}));halo.scale.set(900,900,1);bh.add(halo);
-  spaceGroup.add(bh);station.bh=disc;
+  spaceGroup.add(bh);station.bh=disc;station.BH=BH;station.bhHalo=halo;
+  {const lc=document.createElement('canvas');lc.width=512;lc.height=128;const lg=lc.getContext('2d');lg.font='900 60px system-ui,-apple-system,sans-serif';lg.textAlign='center';lg.textBaseline='middle';lg.shadowColor='#ff8a30';lg.shadowBlur=20;lg.fillStyle='#fff';lg.fillText('🕳️ BLACK HOLE · DARE YOU?',256,64);
+  const lab=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(lc),transparent:true,depthWrite:false,fog:false}));lab.position.copy(BH).add(new V3(0,260,0));lab.scale.set(220,55,1);spaceGroup.add(lab);}
   // orbiting space station you can fly through for a power refill
   const S=new THREE.Group();S.position.set(330,40,-260);S.rotation.y=PI/2;
   const metal=new THREE.MeshStandardMaterial({color:0xc8ced8,metalness:0.6,roughness:0.35});
@@ -2566,7 +2568,8 @@ const MISSIONS=[
   {id:'wanted',t:'Reach a 5-star wanted level',ev:'heat5',g:1,r:400},
   {id:'score',t:'Score 2,000 in one game',ev:'score2k',g:1,r:500},
   {id:'race',t:'Finish the Sky Race',ev:'race',g:1,r:500},
-  {id:'race60',t:'Finish the Sky Race in under 60s',ev:'race',m:d=>d.t<60,g:1,r:900}
+  {id:'race60',t:'Finish the Sky Race in under 60s',ev:'race',m:d=>d.t<60,g:1,r:900},
+  {id:'bhole',t:'Fly into the black hole',ev:'bhole',g:1,r:600}
 ];
 const MBYID={};MISSIONS.forEach(m=>MBYID[m.id]=m);
 let MS={active:[],done:[]};try{const v=JSON.parse(localStorage.getItem('ufoMissions')||'null');if(v&&v.active)MS=v;}catch(e){}
@@ -2894,6 +2897,28 @@ function landAt(n){
   pos.set(0,n==='ocean'?95:towns[n].planet?170:300,towns[n].planet?330:(n==='city'?420:380));yaw=0;vy=-8;speed=15;snapCam();
   pop(towns[n].label||(n==='city'?'🌃 NEON CITY':'🏜️ AREA 51'));blip(900,200,0.8,'sine',0.15);
 }
+// ---- black hole: gravity pull, spaghettify, ride inside, pop out somewhere random ----
+const BHS={t:-1,warnCd:0,r0:0,a:0,y0:0};const BH_PULL=520,BH_EDGE=175,BH_SUCK=2.4;
+function bhUpdate(dt){
+  const C=station.BH,f=$('bhflash');BHS.warnCd-=dt;
+  if(BHS.t<0){const d=pos.distanceTo(C);
+    if(d<BH_PULL){const k=1-d/BH_PULL,dir=C.clone().sub(pos).normalize();pos.addScaledVector(dir,(20+160*k*k)*dt);shake=Math.max(shake,k*0.5);
+      if(BHS.warnCd<=0){BHS.warnCd=6;pop('⚠️ BLACK HOLE GRAVITY!');pop('Boost away… or let it take you','t');blip(120,60,0.6,'sawtooth',0.1);}}
+    if(d<BH_EDGE){BHS.t=0;BHS.r0=Math.hypot(pos.x-C.x,pos.z-C.z);BHS.a=Math.atan2(pos.z-C.z,pos.x-C.x);BHS.y0=pos.y;clearSpaceFoes();
+      pop('🕳️ YOU\'RE BEING SUCKED IN!');blip(800,40,2.2,'sawtooth',0.16);if(navigator.vibrate)try{navigator.vibrate([80,60,80,60,200]);}catch(e){}}
+    else return false;}
+  // spiral down the drain
+  BHS.t+=dt;const k=Math.min(1,BHS.t/BH_SUCK),e=k*k;foeSpawnT=Math.max(foeSpawnT,3);station.bhHalo.material.opacity=0.5*(1-Math.min(1,k*3));
+  BHS.a+=dt*(1.2+9*e);const r=BHS.r0*(1-e)+4;
+  pos.set(C.x+Math.cos(BHS.a)*r,BHS.y0+(C.y-BHS.y0)*e,C.z+Math.sin(BHS.a)*r);
+  yaw=Math.atan2(Math.sin(BHS.a),-Math.cos(BHS.a))+0.5;speed=0;vy=0;
+  ufo.scale.set(1-0.75*e,1-0.75*e,1+5*e);ufo.rotation.z=BHS.t*10*e;shake=Math.max(shake,0.4+e*1.2);
+  f.style.transition='none';f.style.opacity=Math.max(0,(k-0.35)/0.65);
+  if(k>=1){BHS.t=-1;station.bhHalo.material.opacity=0.5;ufo.scale.set(1,1,1);ufo.rotation.z=0;mEvent('bhole');score+=250;
+    const dests=['city','desert','ice','lava','jungle','moon','mars','ocean'];enterWarp(dests[(Math.random()*dests.length)|0],true);
+    requestAnimationFrame(()=>{f.style.transition='opacity 1.2s';f.style.opacity=0;});}
+  return true;
+}
 function spaceUpdate(dt){
   if(pos.y<-170){landAt(homeTown(curSector));return;}
   if(pos.y>900){pos.y=900;if(vy>0)vy=0;}
@@ -2906,6 +2931,7 @@ function spaceUpdate(dt){
     if(!C.m.visible){C.rt-=dt;if(C.rt<=0)placeCrystal(C);continue;}
     if(pos.distanceTo(C.m.position)<6.5){C.m.visible=false;C.rt=6;mEvent('crystal');score+=5;timer+=2;energy=Math.min(100,energy+15);pop('+5 💎');pop('+2s','t');blip(900,1800,0.15,'triangle',0.12);}
   }
+  if(bhUpdate(dt))return;
   solarUpdate(dt);
   for(const P of portals){const px=pos.x-P.x,py=pos.y-P.y,pz=pos.z-P.z;if(Math.abs(pz)<5&&Math.hypot(px,py)<P.R+3){enterWarp(P.dest);return;}}
 }
