@@ -1865,6 +1865,255 @@ beginTown('fifth');
 })();
 endTown('fifth',[250,1500]);Object.assign(towns.fifth,{planet:true,fogC:new THREE.Color(0x12002a),skyTint:0x000000,label:'✨ THE 5TH DIMENSION'});
 
+// 🇪🇬 GIZA, EGYPT
+// shared helpers for the new Earth worlds
+function bigPyramid(x,z,base,h,mat,capC){const r=base/Math.SQRT2,m=new THREE.Mesh(new THREE.ConeGeometry(r,h,4,1),mat);m.rotation.y=PI/4;m.position.set(x,h/2,z);root.add(m);
+  [[0.92,0.34],[0.62,0.67],[0.3,1]].forEach(([b,hh])=>{const hb=base*b/2;colliders.push({x0:x-hb,x1:x+hb,z0:z-hb,z1:z+hb,h:h*hh,y0:0});});
+  if(capC){const cap=new THREE.Mesh(new THREE.ConeGeometry(r*0.08,h*0.08,4),new THREE.MeshBasicMaterial({color:capC}));cap.rotation.y=PI/4;cap.position.set(x,h*0.96,z);root.add(cap);glowSprite(capC,x,h,z,base*0.18,0.8);}
+  return m;}
+function stepPyramid(x,z,base,levels,lh,mat,trim){for(let i=0;i<levels;i++){const s=base*(1-i/(levels+2));box(root,s,lh,s,mat,x,lh/2+i*lh,z);if(trim)box(root,s+0.6,0.6,s+0.6,trim,x,lh*(i+1)-0.3,z);}
+  [[0.95,0.4],[0.7,0.75],[0.45,1]].forEach(([b,hh])=>{const hb=base*b/2;colliders.push({x0:x-hb,x1:x+hb,z0:z-hb,z1:z+hb,h:levels*lh*hh,y0:0});});}
+function palmTree(x,z,s){const g=new THREE.Group();g.position.set(x,0,z);g.scale.setScalar(s);const tr=new THREE.Mesh(new THREE.CylinderGeometry(0.45,0.7,12,6),lam(0x7a5a3a));tr.position.y=6;tr.rotation.z=rand(-0.12,0.12);g.add(tr);
+  for(let k=0;k<7;k++){const f=new THREE.Mesh(new THREE.ConeGeometry(1.3,8,4),lam(0x2f8a3a,0x0a2a10));f.scale.z=0.25;const a=k/7*2*PI;f.position.set(Math.cos(a)*3,11.5,Math.sin(a)*3);f.rotation.set(Math.sin(a)*1.1,0,-Math.cos(a)*1.1);f.rotation.order='YXZ';f.rotation.y=-a;f.rotation.z=1.15;g.add(f);}
+  root.add(g);return g;}
+function makeCamel(){const g=new THREE.Group(),m=lam(0xc8a06a),d=lam(0x8a6a40);
+  const body=new THREE.Mesh(new THREE.SphereGeometry(1.4,12,8),m);body.scale.set(1.6,0.9,0.8);body.position.y=3.6;g.add(body);
+  const hump=new THREE.Mesh(new THREE.SphereGeometry(0.9,10,8),m);hump.position.set(0,4.6,0);hump.scale.set(1,0.9,0.8);g.add(hump);
+  const neck=new THREE.Mesh(new THREE.CylinderGeometry(0.35,0.5,2.4,8),m);neck.position.set(2.2,4.6,0);neck.rotation.z=-0.7;g.add(neck);
+  const hd=new THREE.Mesh(new THREE.BoxGeometry(1.4,0.7,0.6),m);hd.position.set(3.1,5.7,0);g.add(hd);
+  for(const [x,z] of[[1.4,0.45],[1.4,-0.45],[-1.4,0.45],[-1.4,-0.45]]){const l=new THREE.Mesh(new THREE.CylinderGeometry(0.22,0.18,3,6),d);l.position.set(x,1.5,z);g.add(l);}
+  const blanket=new THREE.Mesh(new THREE.BoxGeometry(1.6,0.2,1.7),lam(pick([0xc8203a,0x2a6ac8,0xe8b020])));blanket.position.set(-0.3,4.3,0);g.add(blanket);
+  g.userData.emoji='🐪';g.userData.pts=50;root.add(g);return g;}
+function makeMummy(){const g=makeHuman(false),u=g.userData;u.body.children.forEach(c=>{if(c.material)c.material=lam(0xe8dcc0,0x1a1408);});
+  u.body.traverse(c=>{if(c.isMesh)c.material=lam(0xe8dcc0,0x1a1408);});
+  for(let i=0;i<5;i++){const b=new THREE.Mesh(new THREE.BoxGeometry(0.95,0.08,0.6),lam(0xb8a880));b.position.y=1.0+i*0.5;b.rotation.y=rand(-0.3,0.3);u.body.add(b);}
+  for(const z of[-0.12,0.12]){const e=new THREE.Mesh(new THREE.SphereGeometry(0.07,6,4),basic(0xff3a2a));e.position.set(0.38,3.2,z);u.body.add(e);}
+  u.arms.forEach(a=>a.rotation.z=-1.5);u.zombie=true;u.emoji='🧟';u.pts=100;u.heat=0.2;return g;}
+beginTown('egypt');
+(function(){
+  flatPlane(3000,3000,0xd8b47a,0,0,0);
+  for(let i=0;i<30;i++)flatPlane(rand(80,200),rand(60,160),pick([0xcfa868,0xe0bf86,0xc89c5c]),-1,rand(-640,640),rand(-640,640)).rotation.z=rand(0,PI);
+  makeFields(8,480);
+  ringMountains(0xd8b07a,0xe8c890,50,120);
+  const stone=new THREE.MeshLambertMaterial({color:0xd9b878,emissive:0x2a1a08,flatShading:true});
+  // the three great pyramids + queens' pyramids
+  bigPyramid(-60,-300,150,100,stone,0xffd040);
+  const khafre=bigPyramid(110,-400,136,94,stone,0xfff0c0);
+  bigPyramid(-200,-480,72,48,stone,0xffd040);
+  [[-170,-360],[-190,-395],[-210,-430]].forEach(([x,z])=>bigPyramid(x,z,26,17,stone));
+  // a beam of light from the great pyramid (they know we're here...)
+  const beam=new THREE.Mesh(new THREE.CylinderGeometry(3,9,600,16,1,true),new THREE.MeshBasicMaterial({color:0xfff0b0,transparent:true,opacity:.2,blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide}));beam.position.set(-60,400,-300);root.add(beam);
+  // 🦁 the Sphinx, facing the landing zone
+  {const g=new THREE.Group();g.position.set(70,0,-180);root.add(g);const sm=new THREE.MeshLambertMaterial({color:0xcfae74,emissive:0x1a1006,flatShading:true});
+    const body=new THREE.Mesh(new THREE.BoxGeometry(14,10,42),sm);body.position.set(0,5,-6);g.add(body);
+    for(const x of[-4.5,4.5]){const p=new THREE.Mesh(new THREE.BoxGeometry(4,3,16),sm);p.position.set(x,1.5,20);g.add(p);}
+    const chest=new THREE.Mesh(new THREE.BoxGeometry(12,14,8),sm);chest.position.set(0,9,13);g.add(chest);
+    const head=new THREE.Mesh(new THREE.BoxGeometry(7,8,7),sm);head.position.set(0,19,14);g.add(head);
+    const nemes=new THREE.Mesh(new THREE.CylinderGeometry(4,7,10,4,1),new THREE.MeshLambertMaterial({color:0x2a4a8a,emissive:0x0a1020,flatShading:true}));nemes.rotation.y=PI/4;nemes.position.set(0,18,12.5);g.add(nemes);
+    for(let k=0;k<5;k++){const st=new THREE.Mesh(new THREE.BoxGeometry(14.2,0.7,0.2),basic(0xe8c040));st.position.set(0,14+k*2,7.2+(k*0.2));g.add(st);}
+    const face=new THREE.Mesh(new THREE.BoxGeometry(5.6,6.4,1),sm);face.position.set(0,19,17.8);g.add(face);
+    const eyes=[];for(const x of[-1.3,1.3]){const e=new THREE.Mesh(new THREE.BoxGeometry(1.1,0.5,0.3),basic(0x2a1a0a));e.position.set(x,20,18.4);g.add(e);eyes.push(e);}
+    const eg=[glowSprite(0x6dffd8,70-1.3,20,-180+18.6,5,0),glowSprite(0x6dffd8,70+1.3,20,-180+18.6,5,0)];
+    colliders.push({x0:63,x1:77,z0:-210,z1:-158,h:24,y0:0});
+    planetAnim.push({town:'egypt',f:t=>{const near=pos.distanceTo(tmpV.set(70,19,-162))<90;eg.forEach(s=>s.material.opacity=near?0.7+0.3*Math.sin(t*6):0);eyes.forEach(e=>e.material.color.setHex(near?0x6dffd8:0x2a1a0a));}});}
+  // obelisks
+  for(const [x,z] of[[-10,-150],[10,-150]]){const o=new THREE.Mesh(new THREE.CylinderGeometry(1.4,2.4,30,4),lam(0xc8a46a,0x1a1006));o.rotation.y=PI/4;o.position.set(x,15,z);root.add(o);
+    const tip=new THREE.Mesh(new THREE.ConeGeometry(1.7,3,4),basic(0xffd040));tip.rotation.y=PI/4;tip.position.set(x,31.5,z);root.add(tip);colliders.push({x0:x-2.5,x1:x+2.5,z0:z-2.5,z1:z+2.5,h:33,y0:0});}
+  // 🌊 the Nile with green banks, palms and sailing boats
+  const NX=360;
+  const nile=new THREE.Mesh(new THREE.PlaneGeometry(80,3000),new THREE.MeshPhongMaterial({color:0x2a7aa8,emissive:0x0a2030,shininess:120,specular:0xffffff,polygonOffset:true,polygonOffsetFactor:-4,polygonOffsetUnits:-4}));nile.rotation.x=-PI/2;nile.position.set(NX,0.12,0);root.add(nile);
+  for(const sx of[-1,1])flatPlane(36,3000,0x5a8a34,-2,NX+sx*58,0);
+  for(let z=-640;z<=640;z+=34){for(const sx of[-1,1])if(Math.random()<0.8)palmTree(NX+sx*rand(48,72),z+rand(-10,10),rand(0.8,1.3));}
+  const boats=[];for(let i=0;i<5;i++){const g=new THREE.Group();const hull=new THREE.Mesh(new THREE.BoxGeometry(4,1.6,14),lam(0x6a4a2a));hull.position.y=0.8;g.add(hull);
+    const mast=new THREE.Mesh(new THREE.CylinderGeometry(0.15,0.15,14,6),lam(0x4a3a2a));mast.position.y=8;g.add(mast);
+    const sh=new THREE.Shape();sh.moveTo(0,0);sh.lineTo(0,12);sh.lineTo(8,1);sh.lineTo(0,0);const sail=new THREE.Mesh(new THREE.ShapeGeometry(sh),new THREE.MeshLambertMaterial({color:0xf8f4e8,side:THREE.DoubleSide,emissive:0x2a2a20}));sail.position.set(0,2.5,-3);sail.rotation.y=PI/2;g.add(sail);
+    root.add(g);boats.push({g,z:rand(-600,600),sp:rand(6,12)*(i%2?1:-1),x:NX+rand(-22,22)});}
+  // distant Cairo: minarets & domes on the horizon
+  for(let i=0;i<26;i++){const a=rand(-0.5,0.9),r=rand(650,760),x=Math.cos(a)*r,z=Math.sin(a)*r;const h=rand(20,70);box(root,rand(16,34),h,rand(16,34),pick([0xc8b08a,0xb89a70,0xd8c09a]),x,h/2,z);
+    if(i%3===0){const mn=new THREE.Mesh(new THREE.CylinderGeometry(1.2,1.6,h+40,8),lam(0xe8d8b8));mn.position.set(x+10,(h+40)/2,z);root.add(mn);glowSprite(0x7affc0,x+10,h+42,z,8,0.8);}
+    if(i%4===1){const dm=new THREE.Mesh(new THREE.SphereGeometry(10,16,8,0,2*PI,0,PI/2),lam(0xd8c8a0));dm.position.set(x,h,z);root.add(dm);}}
+  planetAnim.push({town:'egypt',f:(t,dt)=>{beam.material.opacity=0.14+0.08*Math.sin(t*1.5);
+    boats.forEach(B=>{B.z+=B.sp*dt;if(B.z>640)B.z=-640;if(B.z<-640)B.z=640;B.g.position.set(B.x,Math.sin(t*1.2+B.x)*0.2,B.z);B.g.rotation.y=B.sp>0?0:PI;B.g.rotation.z=Math.sin(t+B.z)*0.05;});
+    targets.forEach(T=>{const u=T.mesh.userData;if(u.legs&&!u.zombie&&T.state==='ground'){const sw=Math.sin(t*7+T.mesh.id)*0.4;u.legs[0].rotation.z=sw;u.legs[1].rotation.z=-sw;u.arms[0].rotation.z=-sw;u.arms[1].rotation.z=sw;}if(u.zombie&&T.state==='ground'){u.legs[0].rotation.z=Math.sin(t*3+T.mesh.id)*0.35;u.legs[1].rotation.z=-Math.sin(t*3+T.mesh.id)*0.35;u.body.rotation.z=Math.sin(t*1.5+T.mesh.id)*0.08;}});}});
+  // abductable: camels, tourists, and mummies shuffling around the pyramids
+  for(let i=0;i<16;i++){const T={type:'critter',mesh:makeCamel(),spawn:spawnCow,fl:fields};T.spawn(T);targets.push(T);}
+  for(let i=0;i<14;i++){const T={type:'critter',mesh:makeHuman(false),spawn:spawnCow,fl:[{x:0,z:-120},{x:-60,z:-190},{x:110,z:-290},{x:NX-60,z:0}],rad:30};T.spawn(T);targets.push(T);}
+  const tombs=[{x:-60,z:-200},{x:-150,z:-320},{x:30,z:-400},{x:-220,z:-400}];
+  for(let i=0;i<8;i++){const T={type:'critter',mesh:makeMummy(),spawn:spawnCow,fl:tombs,rad:24};T.spawn(T);targets.push(T);}
+})();
+endTown('egypt',[260,1500]);Object.assign(towns.egypt,{planet:true,fogC:new THREE.Color(0xc89070),skyTint:0xffc890,label:'🇪🇬 GIZA, EGYPT',bloom:0.35});
+
+// 🌴 YUCATÁN, MEXICO — Mayan step pyramids in the jungle
+function makeJaguar(){const g=new THREE.Group(),m=lam(0xe0a030,0x2a1400),sp=basic(0x1a1208);
+  const body=new THREE.Mesh(new THREE.SphereGeometry(1,12,8),m);body.scale.set(1.9,0.75,0.75);body.position.y=1.8;g.add(body);
+  const hd=new THREE.Mesh(new THREE.SphereGeometry(0.65,10,8),m);hd.position.set(2,2.2,0);g.add(hd);
+  for(const z of[-0.3,0.3]){const ear=new THREE.Mesh(new THREE.ConeGeometry(0.18,0.35,5),m);ear.position.set(2,2.85,z);g.add(ear);const e=new THREE.Mesh(new THREE.SphereGeometry(0.08,6,4),basic(0x6dff7a));e.position.set(2.55,2.35,z*0.7);g.add(e);}
+  for(let k=0;k<14;k++){const s=new THREE.Mesh(new THREE.SphereGeometry(0.16,6,4),sp);const a=rand(0,2*PI);s.position.set(rand(-1.5,1.5),1.8+Math.sin(a)*0.6,Math.cos(a)*0.62);g.add(s);}
+  const tail=new THREE.Mesh(new THREE.CylinderGeometry(0.12,0.18,2.6,6),m);tail.position.set(-2.4,2.1,0);tail.rotation.z=1.0;g.add(tail);
+  for(const [x,z] of[[1.1,0.35],[1.1,-0.35],[-1.1,0.35],[-1.1,-0.35]]){const l=new THREE.Mesh(new THREE.CylinderGeometry(0.2,0.17,1.4,6),m);l.position.set(x,0.7,z);g.add(l);}
+  g.userData.emoji='🐆';g.userData.pts=90;root.add(g);return g;}
+beginTown('maya');
+(function(){
+  flatPlane(3000,3000,0x3a6a2a,0,0,0);
+  for(let i=0;i<26;i++)flatPlane(rand(70,180),rand(70,180),pick([0x2f5e22,0x467a30,0x5a6a2a]),-1,rand(-640,640),rand(-640,640)).rotation.z=rand(0,PI);
+  makeFields(8,470);
+  ringMountains(0x2a5a2a,0x5a8a4a,60,140);
+  const stoneM=new THREE.MeshLambertMaterial({color:0xbcb4a0,emissive:0x141210,flatShading:true});
+  // 🐍 the great step pyramid (El Castillo style)
+  const PX=0,PZ=-300,LV=9,LH=6,BASE=110;
+  stepPyramid(PX,PZ,BASE,LV,LH,stoneM,lam(0x8a826e));
+  const topY=LV*LH;
+  // stairs on all four sides
+  for(let s=0;s<4;s++){const a=s*PI/2,st=new THREE.Group();st.position.set(PX,0,PZ);st.rotation.y=a;root.add(st);
+    const L=Math.hypot(topY,BASE*0.42);const ramp=new THREE.Mesh(new THREE.BoxGeometry(16,1.5,L),stoneM);ramp.position.set(0,topY/2,BASE*0.29);ramp.rotation.x=Math.atan2(topY,BASE*0.42);st.add(ramp);
+    for(let k=0;k<18;k++){const step=new THREE.Mesh(new THREE.BoxGeometry(16.4,0.4,0.4),lam(0x8a826e));const u=k/18;step.position.set(0,u*topY+0.8,BASE*0.5-u*BASE*0.42);st.add(step);}}
+  // temple on top
+  box(root,30,14,30,stoneM,PX,topY+7,PZ);box(root,32,2,32,lam(0x9a2a2a),PX,topY+15,PZ);box(root,8,9,1,basic(0x1a1208),PX,topY+4.5,PZ+15.1);
+  // serpent heads at the foot of the north stairs + zig-zag light of the feathered serpent
+  for(const x of[-9,9]){const h=new THREE.Mesh(new THREE.BoxGeometry(4,4,6),stoneM);h.position.set(PX+x,2,PZ+BASE*0.5+3);root.add(h);const jaw=new THREE.Mesh(new THREE.BoxGeometry(4.2,0.8,3),basic(0x2a1a10));jaw.position.set(PX+x,1.2,PZ+BASE*0.5+5);root.add(jaw);}
+  const zig=[];for(let k=0;k<7;k++){const u=(k+0.5)/7;const tri=new THREE.Mesh(new THREE.ConeGeometry(2.2,3.4,3),new THREE.MeshBasicMaterial({color:0xffe08a,transparent:true,opacity:0}));tri.rotation.x=-0.8;tri.position.set(PX+9.5,u*topY+2,PZ+BASE*0.5-u*BASE*0.42+1);root.add(tri);zig.push(tri);}
+  // 🐉 the feathered serpent circling the pyramid
+  const NS=34,segM=new THREE.InstancedMesh(new THREE.SphereGeometry(1,10,8),new THREE.MeshLambertMaterial({color:0x2ab88a,emissive:0x0a3a2a}),NS);segM.frustumCulled=false;root.add(segM);
+  const feM=new THREE.InstancedMesh(new THREE.ConeGeometry(0.8,4,4),new THREE.MeshBasicMaterial({color:0xff4a6a}),NS);feM.frustumCulled=false;root.add(feM);
+  const head=new THREE.Group();root.add(head);const hm=new THREE.Mesh(new THREE.BoxGeometry(4,3,6),lam(0x2ab88a,0x0a3a2a));head.add(hm);
+  const crest=new THREE.Group();head.add(crest);for(let k=0;k<9;k++){const f=new THREE.Mesh(new THREE.ConeGeometry(0.6,6,4),basic(pick([0xff4a6a,0xffd040,0x45eaff,0x6dff7a])));const a=-PI/2+k/8*PI;f.position.set(Math.cos(a)*2.6,Math.sin(a)*2.6+1.5,-2.5);f.rotation.z=a-PI/2;crest.add(f);}
+  for(const x of[-1.2,1.2]){const e=new THREE.Mesh(new THREE.SphereGeometry(0.4,8,6),basic(0xffe040));e.position.set(x,0.8,2.6);head.add(e);}
+  const dm=new THREE.Object3D(),P=new V3(),Q=new V3();
+  const serp=(t,u)=>{const a=t*0.22-u*0.9;return P.set(PX+Math.cos(a)*(120+20*Math.sin(a*3)),70+18*Math.sin(a*2+u*2)+Math.sin(t*2-u*8)*4,PZ+Math.sin(a)*(120+20*Math.sin(a*3)));};
+  // 🕳️ the sacred cenote (fly down into the sinkhole)
+  const CX=-260,CZ=-110;
+  {const water=new THREE.Mesh(new THREE.CircleGeometry(34,40),new THREE.MeshPhongMaterial({color:0x1ac8c0,emissive:0x0a4a4a,shininess:140,polygonOffset:true,polygonOffsetFactor:-4,polygonOffsetUnits:-4}));water.rotation.x=-PI/2;water.position.set(CX,0.15,CZ);root.add(water);
+    for(let i=0;i<22;i++){const a=i/22*2*PI;const rk=new THREE.Mesh(new THREE.IcosahedronGeometry(rand(5,8),0),lam(0x8a8270,0x101008));rk.position.set(CX+Math.cos(a)*38,rand(1,4),CZ+Math.sin(a)*38);root.add(rk);
+      if(i%2){const v=new THREE.Mesh(new THREE.CylinderGeometry(0.2,0.2,rand(6,12),4),lam(0x2a7a2a));v.position.set(CX+Math.cos(a)*34,4,CZ+Math.sin(a)*34);root.add(v);}}
+    glowSprite(0x6ffff0,CX,2,CZ,60,0.25);}
+  // ⚽ ball court with stone rings — fly through a ring to score!
+  const BX=230,BZ=-120;const rings=[];
+  for(const sx of[-1,1]){box(root,10,16,90,stoneM,BX+sx*24,8,BZ);colliders.push({x0:BX+sx*24-5,x1:BX+sx*24+5,z0:BZ-45,z1:BZ+45,h:16,y0:0});
+    const r=new THREE.Mesh(new THREE.TorusGeometry(5,1.1,10,24),lam(0xd8d0bc,0x2a2a20));r.position.set(BX+sx*18,13,BZ);r.rotation.y=PI/2;root.add(r);const gl=glowSprite(0x6dff7a,BX+sx*18,13,BZ,10,0.5);rings.push({r,gl,cd:0});}
+  // 🔭 observatory (El Caracol style)
+  box(root,40,8,40,stoneM,260,4,-330);const tower=new THREE.Mesh(new THREE.CylinderGeometry(9,10,16,16),stoneM);tower.position.set(260,16,-330);root.add(tower);
+  const dome=new THREE.Mesh(new THREE.SphereGeometry(9,16,8,0,2*PI,0,PI/2),stoneM);dome.position.set(260,24,-330);root.add(dome);colliders.push({x0:240,x1:280,z0:-350,z1:-310,h:33,y0:0});
+  // smaller temples in the jungle
+  [[-300,-380],[330,180],[-380,220]].forEach(([x,z])=>{stepPyramid(x,z,46,5,5,stoneM);box(root,12,7,12,stoneM,x,28.5,z);box(root,13,1,13,lam(0x9a2a2a),x,32.5,z);});
+  // jungle trees
+  const tr=[];for(let i=0;i<300;i++){const x=rand(-640,640),z=rand(-640,640);if(!freeSpot(x,z,fields))continue;if(Math.hypot(x-PX,z-PZ)<90||Math.hypot(x-CX,z-CZ)<50||Math.abs(x-BX)<40&&Math.abs(z-BZ)<60||Math.hypot(x-260,z+330)<40)continue;if(Math.hypot(x,z-330)<60)continue;tr.push({x,z,s:rand(0.8,1.6)});}
+  const trunkG=new THREE.CylinderGeometry(0.6,0.9,10,6);trunkG.translate(0,5,0);inst(trunkG,lam(0x5a4028),tr,T=>compose(T.x,0,T.z,T.s,T.s,T.s));
+  const canG=new THREE.IcosahedronGeometry(6,0);canG.translate(0,12,0);inst(canG,new THREE.MeshLambertMaterial({color:0x2f7a2a,emissive:0x0a1a08,flatShading:true}),tr,T=>compose(T.x,0,T.z,T.s,T.s*0.8,T.s,0,rand(0,6),0));
+  let goalMsg=0;
+  planetAnim.push({town:'maya',f:(t,dt)=>{
+    // serpent
+    for(let k=0;k<NS;k++){serp(t,k*0.035);dm.position.copy(P);dm.scale.setScalar(3.2-k*0.06);dm.rotation.set(0,0,0);dm.updateMatrix();segM.setMatrixAt(k,dm.matrix);
+      dm.position.y+=2.5;dm.scale.setScalar(0.8);dm.rotation.set(rand(-0.2,0.2),0,rand(-0.2,0.2));dm.updateMatrix();feM.setMatrixAt(k,dm.matrix);}
+    segM.instanceMatrix.needsUpdate=feM.instanceMatrix.needsUpdate=true;
+    head.position.copy(serp(t,-0.03));Q.copy(serp(t,-0.06));head.lookAt(Q);head.position.copy(serp(t,-0.03));
+    // serpent of light slithers down the stairs
+    zig.forEach((z,k)=>{z.material.opacity=Math.max(0,Math.sin(t*1.2-k*0.6))*0.85;});
+    // ball-court rings
+    goalMsg-=dt;rings.forEach(R=>{R.cd-=dt;R.gl.material.opacity=0.35+0.2*Math.sin(t*3);
+      if(state==='play'&&!onFoot&&R.cd<=0&&R.r.position.distanceTo(pos)<6){R.cd=4;score+=150;timer+=5;mEvent('goal');pop('⚽ GOAL! +150 · +5s');blip(600,1800,0.3,'triangle',0.13);
+        for(let k=0;k<18;k++)spawnFx(R.r.position,tmpV.set(rand(-1,1),rand(-1,1),rand(-1,1)).multiplyScalar(10),0.8,2,3,pick([0x6dff7a,0xffd040,0xffffff]),true);}});
+    targets.forEach(T=>{const u=T.mesh.userData;if(u.legs&&T.state==='ground'){const sw=Math.sin(t*7+T.mesh.id)*0.4;u.legs[0].rotation.z=sw;u.legs[1].rotation.z=-sw;u.arms[0].rotation.z=-sw;u.arms[1].rotation.z=sw;}});
+  }});
+  for(let i=0;i<10;i++){const T={type:'critter',mesh:makeJaguar(),spawn:spawnCow,fl:fields};T.spawn(T);targets.push(T);}
+  for(let i=0;i<16;i++){const T={type:'critter',mesh:makeHuman(false),spawn:spawnCow,fl:[{x:0,z:-200},{x:-200,z:-110},{x:230,z:-60},{x:100,z:-250}],rad:30};T.spawn(T);targets.push(T);}
+})();
+endTown('maya',[180,1000]);Object.assign(towns.maya,{planet:true,fogC:new THREE.Color(0x8ab890),skyTint:0xa8e0b0,label:'🌴 YUCATÁN, MEXICO',bloom:0.4});
+
+// 🎰 LAS VEGAS — the neon Strip, a glass pyramid with a sky beam, fountains, a giant slot machine
+beginTown('vegas');
+(function(){
+  flatPlane(3000,3000,0x6a5040,0,0,0);
+  for(let i=0;i<20;i++)flatPlane(rand(80,200),rand(80,200),pick([0x7a5a44,0x5e4636,0x846450]),-1,rand(-640,640),rand(-640,640)).rotation.z=rand(0,PI);
+  ringMountains(0x4a3040,0x8a5a5a,70,170);
+  // the Strip: a long boulevard along z with palm medians
+  const SX=0;flatPlane(46,1400,0x22232a,-2,SX,0);
+  for(let z=-680;z<=680;z+=14)flatPlane(0.6,6,0xf0e8a0,-3,SX-11,z),flatPlane(0.6,6,0xf0e8a0,-3,SX+11,z);
+  flatPlane(4,1400,0x3a5a2a,-3,SX,0);for(let z=-640;z<=640;z+=40)palmTree(SX,z,1.1);
+  for(const sx of[-1,1])flatPlane(8,1400,0x9a948a,-2,SX+sx*27,0);
+  fields.push({x:SX-33,z:-200},{x:SX+33,z:100},{x:SX-33,z:250},{x:SX+33,z:-350});
+  // casinos with neon outlines and signs
+  const neonC=[0xff3fd2,0x45eaff,0xffd040,0x6dff7a,0xff7a30,0xb46bff],names=['LUCKY 7','NEON OASIS','COSMIC CASINO','GOLDEN SAUCER','ALIEN ACES','STARLIGHT','DESERT ROSE','ROYAL FLUSH'];
+  const casinos=[];let ni=0;
+  for(const side of[-1,1])for(let k=0;k<5;k++){const z=-560+k*270+(side>0?120:0);if(side<0&&k===1)continue; // leave space for the pyramid
+    const x=SX+side*rand(85,110),w=rand(50,70),d=rand(40,60),h=rand(70,170),c=neonC[(ni)%neonC.length];
+    const tw=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),lam(pick([0x2a2a3a,0x3a2a3a,0x2a3a4a,0xd8c8b0]),0x0a0a14));tw.position.set(x,h/2,z);root.add(tw);
+    const ed=new THREE.LineSegments(new THREE.EdgesGeometry(tw.geometry),new THREE.LineBasicMaterial({color:c}));ed.position.copy(tw.position);root.add(ed);
+    for(let y=12;y<h-6;y+=14){const strip=new THREE.Mesh(new THREE.BoxGeometry(w+0.4,0.6,d+0.4),basic(c));strip.position.set(x,y,z);root.add(strip);casinos.push(strip);}
+    sign(names[ni%names.length],'#'+new THREE.Color(c).getHexString(),d*0.9,d*0.22,x-side*(w/2+0.6),h*0.55,z,side<0?PI/2:-PI/2);
+    colliders.push({x0:x-w/2,x1:x+w/2,z0:z-d/2,z1:z+d/2,h,y0:0});ni++;}
+  // 🔺 the black glass pyramid casino + Sky Beam (fly into the beam = express elevator to space)
+  const PX=SX-140,PZ=-290;
+  const glass=new THREE.MeshPhongMaterial({color:0x101018,emissive:0x05050a,specular:0x8aa8ff,shininess:140,flatShading:true});
+  bigPyramid(PX,PZ,170,120,glass);
+  const edges=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.ConeGeometry(170/Math.SQRT2,120,4,1)),new THREE.LineBasicMaterial({color:0xffd040}));edges.rotation.y=PI/4;edges.position.set(PX,60,PZ);root.add(edges);
+  const skyBeam=new THREE.Mesh(new THREE.CylinderGeometry(4,4,900,16,1,true),new THREE.MeshBasicMaterial({color:0xfaf6ff,transparent:true,opacity:.55,blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide}));skyBeam.position.set(PX,120+450,PZ);root.add(skyBeam);
+  const beamGlow=glowSprite(0xffffff,PX,122,PZ,40,0.9);
+  sign("PHARAOH'S PYRAMID",'#ffd040',70,14,PX+90,40,PZ,PI/2);
+  // its sphinx out front
+  {const g=new THREE.Group();g.position.set(PX+95,0,PZ+40);g.rotation.y=PI/2;root.add(g);const sm=lam(0xc8a46a,0x1a1006);
+    box(g,10,7,28,sm,0,3.5,-4);box(g,9,10,6,sm,0,6.5,9);box(g,5,6,5,sm,0,13.5,10);box(g,5.4,7,5,lam(0x2a4a8a),0,13,9.4);box(g,4,4.8,1,sm,0,13.4,12.6);
+    for(const x of[-3,3])box(g,3,2,12,sm,x,1,16);colliders.push({x0:PX+80,x1:PX+110,z0:PZ+33,z1:PZ+47,h:17,y0:0});}
+  // ⛲ dancing fountains on a lake
+  const FX=SX+150,FZ=60;
+  const lake=new THREE.Mesh(new THREE.PlaneGeometry(90,160),new THREE.MeshPhongMaterial({color:0x1a4a8a,emissive:0x0a1a3a,shininess:140,specular:0xffffff,polygonOffset:true,polygonOffsetFactor:-4,polygonOffsetUnits:-4}));lake.rotation.x=-PI/2;lake.position.set(FX,0.15,FZ);root.add(lake);
+  const jets=[];for(let i=0;i<16;i++){const j=new THREE.Mesh(new THREE.CylinderGeometry(0.5,1.4,1,8,1,true),new THREE.MeshBasicMaterial({color:0xe8f4ff,transparent:true,opacity:.7,blending:THREE.AdditiveBlending,depthWrite:false}));j.position.set(FX-20,0,FZ-70+i*9.3);root.add(j);jets.push(j);}
+  // 🎡 big wheel
+  const wheel=new THREE.Group();wheel.position.set(SX+140,95,-260);root.add(wheel);
+  wheel.add(new THREE.Mesh(new THREE.TorusGeometry(80,1.4,8,80),basic(0xff3fd2)));wheel.add(new THREE.Mesh(new THREE.TorusGeometry(76,0.6,6,80),basic(0x45eaff)));
+  for(let k=0;k<16;k++){const a=k/16*2*PI;const sp=new THREE.Mesh(new THREE.BoxGeometry(0.5,80,0.5),lam(0xd8d8e8));sp.position.set(Math.cos(a)*40,Math.sin(a)*40,0);sp.rotation.z=a-PI/2;wheel.add(sp);}
+  const cabs=[];for(let k=0;k<16;k++){const c=new THREE.Mesh(new THREE.SphereGeometry(4,12,8),new THREE.MeshBasicMaterial({color:neonC[k%neonC.length],transparent:true,opacity:.8}));wheel.add(c);cabs.push(c);}
+  box(root,4,95,4,0xb8b8c8,SX+140,47.5,-262);colliders.push({x0:SX+136,x1:SX+144,z0:-266,z1:-258,h:95,y0:0});
+  // 🎰 the giant slot machine — fly through the glowing handle zone to spin!
+  const MX=SX-110,MZ=180;
+  box(root,40,46,18,lam(0xc81a3a,0x2a0408),MX,23,MZ);box(root,42,4,20,basic(0xffd040),MX,47,MZ);box(root,42,3,20,basic(0xffd040),MX,1.5,MZ);
+  colliders.push({x0:MX-20,x1:MX+20,z0:MZ-9,z1:MZ+9,h:49,y0:0});
+  const SYM=['🍒','🍋','🔔','⭐','💎','7️⃣','🛸'],reels=[],rc=[];
+  for(let k=0;k<3;k++){const c=document.createElement('canvas');c.width=128;c.height=128;const tex=new THREE.CanvasTexture(c);const m=new THREE.Mesh(new THREE.PlaneGeometry(10,11),new THREE.MeshBasicMaterial({map:tex}));m.position.set(MX-12+k*12,28,MZ+9.1);root.add(m);reels.push({c,tex,sym:6});}
+  const drawReel=R=>{const g=R.c.getContext('2d');g.fillStyle='#fffaf0';g.fillRect(0,0,128,128);g.font='84px system-ui,"Apple Color Emoji","Segoe UI Emoji"';g.textAlign='center';g.textBaseline='middle';g.fillText(SYM[R.sym],64,70);R.tex.needsUpdate=true;};
+  reels.forEach(drawReel);
+  sign('SPIN TO WIN','#ffd040',30,7,MX,40,MZ+9.2,0);
+  const lever=new THREE.Group();lever.position.set(MX+27,30,MZ);root.add(lever);const stick=new THREE.Mesh(new THREE.CylinderGeometry(0.6,0.6,16,8),lam(0xd8d8e8));stick.position.y=8;lever.add(stick);const knob=new THREE.Mesh(new THREE.SphereGeometry(3,12,8),basic(0xff2a4a));knob.position.y=16;lever.add(knob);
+  const knobGlow=glowSprite(0xff2a4a,MX+27,46,MZ,22,0.7);box(root,7,3,3,0xd8d8e8,MX+23,30,MZ);
+  const slot={spin:0,cd:0,res:[0,0,0]};
+  // "Welcome to Las Vegas" diamond sign at the south end of the Strip
+  {const g=new THREE.Group();g.position.set(SX,0,560);root.add(g);box(g,1.2,16,1.2,0xd8d8d8,-6,8,0);box(g,1.2,16,1.2,0xd8d8d8,6,8,0);
+    const c=document.createElement('canvas');c.width=512;c.height=512;const x=c.getContext('2d');x.translate(256,256);x.rotate(PI/4);x.fillStyle='#f8f4e8';x.fillRect(-170,-170,340,340);x.rotate(-PI/4);
+    x.fillStyle='#e8203a';x.font='900 40px system-ui';x.textAlign='center';x.fillText('WELCOME TO',0,-60);x.fillStyle='#1a5ac8';x.font='900 30px system-ui';x.fillText('FABULOUS',0,-10);x.fillStyle='#e8203a';x.font='900 66px system-ui';x.fillText('LAS VEGAS',0,58);x.fillStyle='#1a5ac8';x.font='900 30px system-ui';x.fillText('NEVADA',0,100);
+    const m=new THREE.Mesh(new THREE.PlaneGeometry(36,36),new THREE.MeshBasicMaterial({map:new THREE.CanvasTexture(c),transparent:true,side:THREE.DoubleSide}));m.position.set(0,30,0);m.rotation.y=PI;g.add(m);glowSprite(0xfff0c0,SX,30,559,50,0.25);}
+  // our own billboard
+  makeBillboard(SX+36,420,-0.4,'TINT & PPF · LAS VEGAS');
+  let beamMsg=0;
+  planetAnim.push({town:'vegas',f:(t,dt)=>{
+    casinos.forEach((s,i)=>{const on=Math.sin(t*3+i*0.7)>-0.3;s.visible=on;});
+    skyBeam.material.opacity=0.45+0.1*Math.sin(t*2);beamGlow.material.opacity=0.8+0.2*Math.sin(t*5);
+    wheel.rotation.z=t*0.08;cabs.forEach((c,k)=>{const a=k/16*2*PI;c.position.set(Math.cos(a)*80,Math.sin(a)*80,0);});
+    // fountains: a show every 22 seconds
+    const ph=t%22,show=ph<12;jets.forEach((j,i)=>{const h=show?Math.max(0,(32+26*Math.sin(t*3+i*0.6))*Math.min(1,ph*2)*Math.min(1,(12-ph)*2)):0;j.visible=h>0.5;j.scale.set(1,Math.max(h,0.01),1);j.position.y=h/2;
+      if(show&&Math.random()<0.08)spawnFx(tmpV2.set(j.position.x,h,j.position.z),tmpV.set(rand(-3,3),rand(2,6),rand(-3,3)),0.8,2,3,0xe8f4ff,true);});
+    // Sky Beam elevator: fly into the light and it shoots you up toward space
+    beamMsg-=dt;if(state==='play'&&mode==='ground'&&!onFoot&&Math.hypot(pos.x-PX,pos.z-PZ)<6&&pos.y>118){pos.y+=140*dt;pos.x+=(PX-pos.x)*dt*3;pos.z+=(PZ-pos.z)*dt*3;
+      if(beamMsg<=0){beamMsg=6;pop('🔦 RIDING THE SKY BEAM!');mEvent('skybeam');blip(200,2400,1.2,'sine',0.12);}
+      if(Math.random()<0.5)spawnFx(pos,tmpV.set(rand(-4,4),-20,rand(-4,4)),0.6,2,2,0xffffff,true);}
+    // slot machine
+    knobGlow.material.opacity=slot.cd>0?0.15:0.5+0.3*Math.sin(t*5);slot.cd-=dt;
+    if(slot.spin>0){slot.spin-=dt;lever.rotation.x=-Math.min(1,slot.spin)*0.9;
+      reels.forEach((R,k)=>{if(slot.spin>0.6*(3-k)/3+0.2||slot.spin>2.2-k*0.5){R.sym=(R.sym+1)%SYM.length;drawReel(R);}else if(R.sym!==slot.res[k]){R.sym=slot.res[k];drawReel(R);}});
+      if(slot.spin<=0){reels.forEach((R,k)=>{R.sym=slot.res[k];drawReel(R);});const [a,b,c]=slot.res;
+        if(a===b&&b===c){const big=a===6||a===5;const pts=big?777:300,cr=big?500:150;score+=pts;save.bank+=cr;persist();mEvent('jackpot');pop(big?'🎰 MEGA JACKPOT!!!':'🎰 JACKPOT!');pop(`+${pts} · 💰 +${cr}`,'t');
+          for(let k=0;k<40;k++)spawnFx(tmpV2.set(MX,48,MZ+10),tmpV.set(rand(-1,1),rand(0.4,1.5),rand(-1,1)).multiplyScalar(18),1.4,rand(2,4),5,pick([0xffd040,0xfff0a0,0xff3fd2]),true);blip(523,1046,0.3,'square',0.12);setTimeout(()=>blip(784,1568,0.5,'square',0.12),200);}
+        else if(a===b||b===c||a===c){score+=50;pop('🎰 Two of a kind! +50','t');blip(660,990,0.2,'triangle',0.1);}
+        else{pop('🎰 No luck… try again in a few seconds','t');blip(300,150,0.3,'triangle',0.08);}}}
+    else lever.rotation.x*=0.9;
+    if(state==='play'&&!onFoot&&slot.cd<=0&&slot.spin<=0&&knob.getWorldPosition(tmpV).distanceTo(pos)<16){slot.cd=6;slot.spin=2.4;
+      const r=Math.random();slot.res=r<0.12?[6,6,6]:r<0.25?[5,5,5]:r<0.38?(()=>{const s=(Math.random()*5)|0;return[s,s,s];})():[(Math.random()*7)|0,(Math.random()*7)|0,(Math.random()*7)|0];
+      pop('🎰 SPINNING…');blip(800,1200,0.15,'square',0.08);}
+    targets.forEach(T=>{const u=T.mesh.userData;if(u.legs&&T.state==='ground'){const sw=Math.sin(t*7+T.mesh.id)*0.4;u.legs[0].rotation.z=sw;u.legs[1].rotation.z=-sw;u.arms[0].rotation.z=-sw;u.arms[1].rotation.z=sw;}});
+  }});
+  // tourists everywhere
+  for(let i=0;i<34;i++){const T={type:'critter',mesh:makeHuman(false),spawn:spawnCow,fl:fields,rad:20};T.spawn(T);targets.push(T);}
+})();
+endTown('vegas',[200,1100]);Object.assign(towns.vegas,{planet:true,fogC:new THREE.Color(0x1a1030),skyTint:0x6a3a8a,label:'🎰 LAS VEGAS',bloom:0.7});
+
 // 🔴 MARS
 beginTown('mars');
 (function(){
@@ -2630,10 +2879,10 @@ function renderShop(){
     h+=`<div class="row"><div><b>${UPG[k].name}</b><small>${UPG[k].desc} · <span class="pips">${'●'.repeat(l)}${'○'.repeat(5-l)}</span></small></div>`+
       (max?'<button class="sb on" disabled>MAX</button>':`<button class="sb buy" data-upg="${k}" ${save.bank<upgCost(l)?'disabled':''}>💰 ${fmt(upgCost(l))}</button>`)+'</div>';}
   try{const nb=Object.keys(badges).length,ns=Object.keys(secretsFound).length;
-  h+=`<div class="sec">EXPLORER LOG · 🏅 ${nb}/9 BADGES · 🔍 ${ns}/8 SECRETS</div>`;
-  for(const k of['city','desert','ocean','moon','mars','ice','lava','jungle','fifth']){const S=SECRETS[k]||{emoji:'',name:''};
+  h+=`<div class="sec">EXPLORER LOG · 🏅 ${nb}/12 BADGES · 🔍 ${ns}/8 SECRETS</div>`;
+  for(const k of['city','desert','ocean','moon','mars','ice','lava','jungle','fifth','egypt','maya','vegas']){const S=SECRETS[k]||{emoji:'',name:''};
     h+=`<div class="row"><div><b>${badges[k]?'🏅':'⚪'} ${TOWN_NAMES[k]}</b><small>${badges[k]?'All 5 relics found':'Land and find 5 💠 relics'} · ${secretsFound[k]?'🔍 '+S.emoji+' '+S.name:'🔍 ??? secret not found'}</small></div></div>`;}
-  if(nb>=9&&ns>=8)h+='<div class="row"><div><b>👑 MASTER EXPLORER</b><small>You found everything. Legend!</small></div></div>';}catch(e){}
+  if(nb>=12&&ns>=8)h+='<div class="row"><div><b>👑 MASTER EXPLORER</b><small>You found everything. Legend!</small></div></div>';}catch(e){}
   $('shopList').innerHTML=h;try{renderMissions();}catch(e){}
 }
 $('shopList').addEventListener('click',e=>{const b=e.target.closest('button');if(!b||b.disabled)return;
@@ -2857,7 +3106,7 @@ function planetTex(kind){
 }
 const SECTORS={
   earth:{name:'EARTH ORBIT',tex:planet.material.map,atm:[0.35,0.7,1],emis:0x0a1430,rock:[0x6a6058,0x5a5048],bg:0x02030a,home:'city',
-    portals:[{dest:'city',c:0x45eaff,label:'NEON CITY'},{dest:'sector:ice',c:0xd8f4ff,label:'FROST SECTOR ➜'},{dest:'desert',c:0xffa040,label:'AREA 51 DESERT'},{dest:'ocean',c:0x2ad8ff,label:'🌊 THE OCEAN'}]},
+    portals:[{dest:'city',c:0x45eaff,label:'NEON CITY'},{dest:'sector:ice',c:0xd8f4ff,label:'FROST SECTOR ➜'},{dest:'desert',c:0xffa040,label:'AREA 51 DESERT'},{dest:'ocean',c:0x2ad8ff,label:'🌊 THE OCEAN'},{dest:'egypt',c:0xffc850,label:'🇪🇬 GIZA, EGYPT'},{dest:'maya',c:0x6dffb0,label:'🌴 YUCATÁN, MEXICO'},{dest:'vegas',c:0xff3fd2,label:'🎰 LAS VEGAS'}]},
   ice:{name:'FROST SECTOR',tex:planetTex('ice'),atm:[0.7,0.9,1],emis:0x1a2a40,rock:[0xbfe6ff,0x9fc8ef],bg:0x020a14,home:'ice',
     portals:[{dest:'ice',c:0x9fe8ff,label:'LAND: FROSTARA'},{dest:'sector:lava',c:0xff7a30,label:'INFERNO SECTOR ➜'},{dest:'sector:earth',c:0x45eaff,label:'⟲ EARTH ORBIT'}]},
   lava:{name:'INFERNO SECTOR',tex:planetTex('lava'),atm:[1,0.4,0.15],emis:0x2a0800,rock:[0x2a1a1a,0x5a2010],bg:0x0a0202,home:'lava',
@@ -2887,7 +3136,7 @@ const sectorDecor={};
 })();
 function buildPortals(sec){
   portals.forEach(P=>spaceGroup.remove(P.g));portals.length=0;
-  const spots=[[-85,0,-330],[0,48,-400],[85,0,-330],[0,-48,-400]];
+  const spots=[[-85,0,-330],[0,48,-400],[85,0,-330],[0,-48,-400],[-175,30,-270],[175,30,-270],[0,120,-430]];
   SECTORS[sec].portals.forEach((D,i)=>{const P=Object.assign({},D,{x:spots[i][0],y:spots[i][1],z:spots[i][2],css:'#'+new THREE.Color(D.c).getHexString(),R:26});
     const g=new THREE.Group();g.position.set(P.x,P.y,P.z);
     g.add(new THREE.Mesh(new THREE.TorusGeometry(26,1.4,10,64),new THREE.MeshBasicMaterial({color:D.c})));
@@ -2908,7 +3157,7 @@ function applySector(sec){
   station.g.visible=(sec==='earth');
   buildPortals(sec);
 }
-const WARPC={ocean:[0x2ad8ff,0x2a6aff],city:[0x3de1ff,0xb44dff],desert:[0xffa040,0xff3fd2],ice:[0xbfefff,0x5ad8ff],lava:[0xff3a1a,0xffa040],jungle:[0x6dff7a,0xb46bff]};
+const WARPC={egypt:[0xffc850,0xff7a30],maya:[0x6dffb0,0x2ab88a],vegas:[0xff3fd2,0xffd040],ocean:[0x2ad8ff,0x2a6aff],city:[0x3de1ff,0xb44dff],desert:[0xffa040,0xff3fd2],ice:[0xbfefff,0x5ad8ff],lava:[0xff3a1a,0xffa040],jungle:[0x6dff7a,0xb46bff]};
 function homeTown(sec){return sec==='earth'?((curTown==='city'||curTown==='desert')?curTown:'city'):SECTORS[sec].home;}
 
 spaceGroup.children.filter(o=>o.isGroup&&Math.abs(o.position.z+300)<1&&Math.abs(Math.abs(o.position.x)-110)<1&&!portals.some(P=>P.g===o)).forEach(o=>spaceGroup.remove(o));
@@ -2928,7 +3177,7 @@ const BODIES=[];let landCd=0;
   mk(find(150),MOON_TEX,'moon',new V3(-650,180,-950),1.25,'🌕 LAND ON THE MOON','#cfe0ff');
   mk(find(90),MARS_TEX,'mars',new V3(900,140,-1250),1.7,'🔴 LAND ON MARS','#ff7a50');
 })();
-TOWN_SECTOR.fifth='earth';TOWN_SECTOR.moon='earth';TOWN_SECTOR.mars='earth';TOWN_SECTOR.ocean='earth';
+TOWN_SECTOR.fifth='earth';TOWN_SECTOR.egypt='earth';TOWN_SECTOR.maya='earth';TOWN_SECTOR.vegas='earth';TOWN_SECTOR.moon='earth';TOWN_SECTOR.mars='earth';TOWN_SECTOR.ocean='earth';
 // ---------- SOLAR SYSTEM: Saturn, Jupiter and the Sun (Earth Orbit) ----------
 const SOLAR=[];let sunHeatT=0,saturnSide=0,saturnCd=0;
 (function(){
@@ -3155,7 +3404,7 @@ const wParts={};
 // relics
 const RELICS={};let relicFx=[];
 let badges={};try{badges=JSON.parse(localStorage.getItem('ufoBadges')||'{}');}catch(e){}
-const TOWN_NAMES={fifth:'The 5th Dimension',ocean:'The Ocean',city:'Neon City',desert:'Area 51',ice:'Frostara',lava:'Magmor',jungle:'Verdana',moon:'The Moon',mars:'Mars'};
+const TOWN_NAMES={egypt:'Giza, Egypt',maya:'Yucatán, Mexico',vegas:'Las Vegas',fifth:'The 5th Dimension',ocean:'The Ocean',city:'Neon City',desert:'Area 51',ice:'Frostara',lava:'Magmor',jungle:'Verdana',moon:'The Moon',mars:'Mars'};
 function makeRelic(){const g=new THREE.Group();const c=new THREE.Mesh(new THREE.OctahedronGeometry(0.9),new THREE.MeshBasicMaterial({color:0xc58bff}));c.scale.y=1.5;g.add(c);
   const gl=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:0xb46bff,transparent:true,depthWrite:false}));gl.scale.set(6,6,1);g.add(gl);
   const pil=new THREE.Mesh(new THREE.CylinderGeometry(0.25,0.25,60,6,1,true),new THREE.MeshBasicMaterial({color:0xc58bff,transparent:true,opacity:.22,blending:THREE.AdditiveBlending,depthWrite:false}));pil.position.y=30;g.add(pil);
@@ -3247,7 +3496,7 @@ function walkUpdate(dt,ix,iy,jumpBtn,run,shipBtn,t){
     if(Math.hypot(pos.x-r.p.x,pos.z-r.p.z)<2.2&&Math.abs(pos.y+1.5-r.p.y)<2.6){r.got=true;r.g.visible=false;doBurst(r.p);score+=50;mEvent('relic');
       const n=relicCount();pop(`💠 RELIC ${n}/5  +50`);blip(700,1900,0.3,'triangle',0.14);setTimeout(()=>blip(1000,2400,0.2,'triangle',0.1),130);
       if(n===5){score+=300;if(!badges[curTown]){badges[curTown]=true;try{localStorage.setItem('ufoBadges',JSON.stringify(badges));}catch(e){}}
-        setTimeout(()=>{pop(`🏅 ${TOWN_NAMES[curTown]} EXPLORED! +300`);pop(`Badges: ${Object.keys(badges).length}/9`,'t');},700);}}}
+        setTimeout(()=>{pop(`🏅 ${TOWN_NAMES[curTown]} EXPLORED! +300`);pop(`Badges: ${Object.keys(badges).length}/12`,'t');},700);}}}
   // say hi to critters
   heartCd-=dt;if(heartCd<=0)for(const T of targets){if(T.state==='ground'&&T.mesh.position.distanceTo(pos)<3.5){heartCd=1.2;spawnFx(T.mesh.position.clone().add(new V3(0,3.5,0)),tmpV.set(0,2,0),1,2.5,1,0xff5ad8,true);pop('💖','t');break;}}
   if(shipBtn&&!prevShip)boardShip();prevShip=shipBtn;
@@ -3381,6 +3630,15 @@ const MISSIONS=[
   {id:'ice',t:'Visit the ice planet Frostara',ev:'visit',m:d=>d.town==='ice',g:1,r:500},
   {id:'lava',t:'Visit the lava planet Magmor',ev:'visit',m:d=>d.town==='lava',g:1,r:600},
   {id:'fifth',t:'Reach the 5th Dimension (black hole)',ev:'visit',m:d=>d.town==='fifth',g:1,r:1000},
+  {id:'egypt',t:'Visit the pyramids of Giza',ev:'visit',m:d=>d.town==='egypt',g:1,r:500},
+  {id:'mummy',t:'Abduct 3 mummies (Egypt)',ev:'abduct',m:d=>d.emoji==='🧟',g:3,r:700},
+  {id:'camel',t:'Abduct 4 camels',ev:'abduct',m:d=>d.emoji==='🐪',g:4,r:400},
+  {id:'maya',t:'Visit the Mayan pyramids in Yucatán',ev:'visit',m:d=>d.town==='maya',g:1,r:500},
+  {id:'goal',t:'Fly through a ball-court ring (Yucatán)',ev:'goal',g:1,r:400},
+  {id:'jaguar',t:'Abduct 3 jaguars',ev:'abduct',m:d=>d.emoji==='🐆',g:3,r:500},
+  {id:'vegas',t:'Visit Las Vegas',ev:'visit',m:d=>d.town==='vegas',g:1,r:500},
+  {id:'jackpot',t:'Hit a jackpot on the giant slot machine',ev:'jackpot',g:1,r:800},
+  {id:'skybeam',t:'Ride the Sky Beam in Las Vegas',ev:'skybeam',g:1,r:300},
   {id:'ocean',t:'Dive into the ocean',ev:'visit',m:d=>d.town==='ocean',g:1,r:300},
   {id:'kraken',t:'Defeat the Kraken (ocean)',ev:'kraken',g:1,r:1200},
   {id:'chest',t:'Open 5 sunken treasure chests',ev:'chest',g:5,r:600},
@@ -3693,6 +3951,9 @@ const TRACKS={
   jungle:{name:'Verdana',bpm:104,root:55,sc:DOR,prog:[0,3,0,3],bass:'x..x.x..x..x.x..',bw:'triangle',arp:'x.xx.x.xx.x.x.xx',aw:'triangle',ao:2,av:.06,kick:'x...x...x...x...',snare:'......x.......x.',hat:'xxxxxxxxxxxxxxxx',cut:2200,short:1},
   moon:{name:'Tranquility',bpm:66,root:50,sc:MIN,prog:[0,5,2,6],bass:'x...............',bw:'sine',arp:'x.......x.......',aw:'sine',ao:3,av:.05,pad:'triangle',cut:1200},
   ocean:{name:'Deep Blue',bpm:72,root:53,sc:DOR,prog:[0,3,4,3],bass:'x.....x.........',bw:'sine',arp:'x..x..x..x..x...',aw:'sine',ao:3,av:.05,pad:'triangle',hat:'........x.......',cut:900},
+  egypt:{name:'Giza',bpm:96,root:50,sc:HMIN,prog:[0,1,0,4],bass:'x..x..x.x..x..x.',bw:'triangle',arp:'x.xx.x.xx.x.x.x.',aw:'sawtooth',ao:2,av:.04,kick:'x.......x.......',hat:'..x...x...x...x.',cut:1800},
+  maya:{name:'Yucatán',bpm:104,root:52,sc:DOR,prog:[0,3,4,0],bass:'x...x.x.x...x.x.',bw:'sine',arp:'x.x.xx.x.x.xx.x.',aw:'triangle',ao:2,av:.05,kick:'x..x....x..x....',hat:'x.x.x.x.x.x.x.x.',cut:2200},
+  vegas:{name:'Las Vegas',bpm:122,root:53,sc:MAJ,prog:[0,5,3,4],bass:'x.x.x.x.x.x.x.x.',bw:'sawtooth',arp:'xxxxxxxxxxxxxxxx',aw:'square',ao:2,av:.035,kick:'x...x...x...x...',snare:'....x.......x...',hat:'..x...x...x...x.',cut:3200},
   fifth:{name:'5th Dimension',bpm:80,root:56,sc:MAJ,prog:[0,4,5,3],bass:'x.......x...x...',bw:'sine',arp:'xx.xx.xx.xx.x.x.',aw:'triangle',ao:3,av:.05,pad:'sawtooth',hat:'....x.......x...',cut:2600},
   mars:{name:'Red Planet',bpm:96,root:47,sc:MIN,prog:[0,5,6,4],bass:'x.x...x.x.x...x.',bw:'sawtooth',arp:'x.xx.xx.x.xx.xx.',aw:'square',ao:2,av:.03,pad:'sawtooth',kick:'x.......x.......',snare:'....x.......x...',hat:'..x...x...x...x.',cut:1500}
 };
@@ -3858,7 +4119,7 @@ function bhUpdate(dt){
   ufo.scale.set(1-0.75*e,1-0.75*e,1+5*e);ufo.rotation.z=BHS.t*10*e;shake=Math.max(shake,0.4+e*1.2);
   f.style.transition='none';f.style.opacity=Math.max(0,(k-0.35)/0.65);
   if(k>=1){BHS.t=-1;station.bhHalo.material.opacity=0.5;ufo.scale.set(1,1,1);ufo.rotation.z=0;mEvent('bhole');score+=250;
-    const dests=['city','desert','ice','lava','jungle','moon','mars','ocean'];enterWarp(Math.random()<0.4?'fifth':dests[(Math.random()*dests.length)|0],true);
+    const dests=['city','desert','ice','lava','jungle','moon','mars','ocean','egypt','maya','vegas'];enterWarp(Math.random()<0.4?'fifth':dests[(Math.random()*dests.length)|0],true);
     requestAnimationFrame(()=>{f.style.transition='opacity 1.2s';f.style.opacity=0;});}
   return true;
 }

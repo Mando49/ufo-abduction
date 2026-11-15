@@ -58,3 +58,9 @@ Sponsored by [Mando Window Tinting](https://lasvegaswindowtintnv.com): window ti
 Built with three.js. No install needed: it's a single `index.html` file.
 
 ⏸ **Pause menu:** tap ⏸ (or press P / Esc) to pause — Resume, or Quit to Menu (keeps the credits you earned). On a computer you also get on-screen BEAM and FIRE buttons, and you can hold the left mouse button to beam or right mouse button to fire.
+
+🌍 **New Earth worlds** (portals in Earth Orbit, and the black hole can drop you there too):
+- 🇪🇬 **Giza, Egypt** — the three great pyramids (one shoots a light beam into the sky), the Sphinx (its eyes glow when you get close), obelisks, the Nile with palms and sailing boats, Cairo on the horizon. Abduct camels 🐪, tourists, and mummies 🧟 shuffling around the tombs.
+- 🌴 **Yucatán, Mexico** — a giant Mayan step pyramid with a serpent of light sliding down the stairs and a feathered serpent circling it, a sacred cenote, an observatory, jungle temples, and a ball court — fly through a stone ring for a GOAL (+150, +5s). Abduct jaguars 🐆 and villagers.
+- 🎰 **Las Vegas** — the neon Strip with flashing casinos, a black glass pyramid whose **Sky Beam** shoots you straight up to space, a sphinx, dancing fountains, a giant wheel, the Welcome sign, a Mando Window Tinting billboard, and a **giant slot machine** — fly to the red handle to spin for a jackpot.
+
