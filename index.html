@@ -3922,7 +3922,7 @@ function unlockIOS(){
     const pr=unlockEl.play();if(pr&&pr.catch)pr.catch(()=>{});}catch(e){}
   if(AC){try{if(AC.state!=='running')AC.resume();const b=AC.createBuffer(1,1,22050),src=AC.createBufferSource();src.buffer=b;src.connect(AC.destination);src.start(0);}catch(e){}}
 }
-['pointerdown','touchend','click','keydown'].forEach(ev=>addEventListener(ev,()=>{initAudio();},{capture:true,passive:true}));
+['pointerdown','touchend','click','keydown'].forEach(ev=>addEventListener(ev,()=>{initAudio();try{if(musicOn&&radioOn&&state!=='paused'&&radioEntry().file){if(!RAD.el)radioStartFile();else if(RAD.el.paused)RAD.el.play().catch(()=>{});}}catch(e){}},{capture:true,passive:true}));
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&AC&&AC.state!=='running'){try{AC.resume();}catch(e){}}});
 setInterval(()=>{const bad=AC&&AC.state!=='running'&&state!=='paused'&&!document.hidden&&musicOn&&!muted;const el=$('sndwarn');if(el)el.style.display=bad?'block':'none';},1000);
 function initAudio(){
@@ -3971,7 +3971,13 @@ const TRACKS={
 let musicOn=true;try{musicOn=localStorage.getItem('ufoMusic')!=='off';}catch(e){}
 // 📻 RADIO: plays a playlist instead of each world's theme. Entries are built-in beats {proc:'key'} or song files {file:'assets/music/x.mp3',name:'...'}.
 // To add songs: drop MP3s into assets/music/ and list them here.
-const RADIO=[{proc:'midnight'},{proc:'creep'}];
+const RADIO=[
+  {file:'assets/music/ufo-over-the-block-1.mp3',name:'UFO Over the Block'},
+  {file:'assets/music/ufo-over-the-block-2.mp3',name:'UFO Over the Block (Take 2)'},
+  {proc:'midnight'},
+  {file:'assets/music/ufo-over-the-block-3.mp3',name:'UFO Over the Block (Take 3)'},
+  {file:'assets/music/ufo-over-the-block-4.mp3',name:'UFO Over the Block (Take 4)'},
+  {proc:'creep'}];
 let radioOn=false;try{radioOn=localStorage.getItem('ufoRadio')==='on';}catch(e){}
 const RAD={i:0,t:0,el:null,src:null};try{RAD.i=(+localStorage.getItem('ufoRadioI')||0)%RADIO.length;}catch(e){}
 function radioEntry(){return RADIO[RAD.i%RADIO.length];}
@@ -3980,7 +3986,7 @@ function radioStopFile(){if(RAD.el){try{RAD.el.pause();}catch(e){}}}
 function radioStartFile(){const E=radioEntry();radioStopFile();if(!E.file||!AC)return;
   if(!RAD.el){RAD.el=new Audio();RAD.el.crossOrigin='anonymous';RAD.el.preload='auto';RAD.el.addEventListener('ended',()=>radioNext());RAD.el.addEventListener('error',()=>radioNext());
     try{RAD.src=AC.createMediaElementSource(RAD.el);const g=AC.createGain();g.gain.value=0.9;RAD.src.connect(g);g.connect(master);}catch(e){}}
-  RAD.el.src=E.file;RAD.el.play().catch(()=>{});}
+  RAD.el.src=E.file;RAD.el.play().catch(()=>{});if(state==='play')pop('📻 '+E.name,'t');}
 const MU={bus:null,cur:null,want:null,wantT:0,step:0,nextT:0,switching:0,white:null};
 const mtof=m=>440*Math.pow(2,(m-69)/12);
 function chordNotes(T,d){const s=T.sc,n=i=>T.root+s[i%7]+12*Math.floor(i/7);return[n(d),n(d+2),n(d+4)];}
@@ -4089,8 +4095,8 @@ $('againBtn').addEventListener('click',()=>startGame(freeMode));
 function releaseInputs(){for(const k in inp)if(typeof inp[k]==='boolean')inp[k]=false;joy.x=joy.y=0;for(const k in keys)keys[k]=false;document.querySelectorAll('#dBtns button').forEach(b=>b.classList.remove('on'));}
 function pauseGame(){if(state!=='play')return;state='paused';releaseInputs();
   $('pauseInfo').textContent=`Score ${fmt(score)} · ${freeMode?'Free Explore':'Time left '+Math.floor(timer/60)+':'+String(Math.floor(timer%60)).padStart(2,'0')}`;
-  $('pause').classList.remove('hidden');try{if(AC)AC.suspend();}catch(e){}}
-function resumeGame(){if(state!=='paused')return;state='play';$('pause').classList.add('hidden');try{if(AC)AC.resume();}catch(e){}}
+  $('pause').classList.remove('hidden');try{if(AC)AC.suspend();}catch(e){}try{radioStopFile();}catch(e){}}
+function resumeGame(){if(state!=='paused')return;state='play';$('pause').classList.add('hidden');try{if(AC)AC.resume();}catch(e){}try{if(radioOn&&musicOn&&radioEntry().file&&RAD.el)RAD.el.play().catch(()=>{});}catch(e){}}
 function quitToMenu(){if(state!=='paused')return;state='play';$('pause').classList.add('hidden');try{if(AC)AC.resume();}catch(e){}
   if(race.on)raceEnd(false);if(onFoot)boardShip();
   save.bank+=score;persist();renderShop();
