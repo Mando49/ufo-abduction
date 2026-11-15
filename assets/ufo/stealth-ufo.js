@@ -60,7 +60,7 @@
     const emitter = new THREE.Mesh(
       new THREE.CircleGeometry(1.05, 48),
       new THREE.MeshBasicMaterial({
-        color: 0xdffaff,
+        color: 0xe9fbff,
         transparent: true,
         opacity: 0.9,
         blending: THREE.AdditiveBlending,
@@ -75,7 +75,7 @@
 
     const emitterRing = new THREE.Mesh(
       new THREE.TorusGeometry(1.22, 0.055, 8, 48),
-      new THREE.MeshBasicMaterial({ color: 0x9ceeff, transparent: true, opacity: 0.85 })
+      new THREE.MeshBasicMaterial({ color: 0xb8f2ff, transparent: true, opacity: 0.85 })
     );
     emitterRing.rotation.x = Math.PI / 2;
     emitterRing.position.set(0, 0.08, 0.15);
@@ -84,9 +84,9 @@
     // Three white corner lamps, matching the reference craft.
     const lampMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
     const lampPositions = [
-      [-5.55, 0.9, -3.55],
-      [5.55, 0.9, -3.55],
-      [0, 0.9, 4.75]
+      [-5.55, 0.9, 3.15],
+      [5.55, 0.9, 3.15],
+      [0, 0.9, -4.55]
     ];
     const lamps = lampPositions.map((p) => {
       const lamp = new THREE.Mesh(new THREE.SphereGeometry(0.19, 16, 12), lampMaterial);
