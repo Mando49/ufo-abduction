@@ -265,7 +265,7 @@ renderer.setPixelRatio(PR);
 const scene=new THREE.Scene();
 const FOG=new THREE.Color(0x1f2448);
 scene.fog=new THREE.Fog(FOG,160,820);
-scene.background=FOG.clone();const SPACE_C=new THREE.Color(0x02030a),CLOUD_C=new THREE.Color(0xa77f9e),STORM_C=new THREE.Color(0x8d93a8),ABOVE_C=new THREE.Color(0xc9c4d8);
+scene.background=FOG.clone();const SPACE_C=new THREE.Color(0x02030a),CLOUD_C=new THREE.Color(0xa77f9e),STORM_C=new THREE.Color(0x6a6e86),ABOVE_C=new THREE.Color(0x8e88aa);
 const camera=new THREE.PerspectiveCamera(65,1,0.5,3000);
 
 let composer=null,bloom=null;
@@ -1408,7 +1408,7 @@ const cloudLayer=new THREE.Group();scene.add(cloudLayer);
   const c=document.createElement('canvas');c.width=128;c.height=128;const g=c.getContext('2d');
   for(let i=0;i<14;i++){const x=rand(30,98),y=rand(40,88),r=rand(18,36);const gr=g.createRadialGradient(x,y,0,x,y,r);gr.addColorStop(0,'rgba(255,255,255,.6)');gr.addColorStop(1,'rgba(255,255,255,0)');g.fillStyle=gr;g.fillRect(0,0,128,128);}
   const t=new THREE.CanvasTexture(c);
-  for(let i=0;i<150;i++){const s=new THREE.Sprite(new THREE.SpriteMaterial({map:t,color:new THREE.Color().setHSL(0.62,0.15,rand(0.9,1)),transparent:true,opacity:rand(0.7,0.95),depthWrite:false,fog:false}));
+  for(let i=0;i<150;i++){const s=new THREE.Sprite(new THREE.SpriteMaterial({map:t,color:new THREE.Color().setHSL(0.68,0.18,rand(0.62,0.72)),transparent:true,opacity:rand(0.7,0.9),depthWrite:false,fog:false}));
     s.position.set(rand(-600,600),rand(184,206),rand(-600,600));const sc=rand(120,260);s.scale.set(sc,sc*0.45,1);cloudLayer.add(s);}
 })();
 
@@ -1436,12 +1436,12 @@ const stormTowers=[],bolts=[],volcanoFx=[];let boltT=2,flashLvl=0;
     const lit=Math.random();gr.addColorStop(0,lit>0.5?'rgba(255,255,255,.75)':'rgba(240,242,250,.6)');gr.addColorStop(1,'rgba(180,186,205,0)');g.fillStyle=gr;
     for(const ox of[-512,0,512])for(const oy of[-512,0,512]){g.beginPath();g.arc(x+ox,y+oy,r,0,2*PI);g.fill();}}
   const t=new THREE.CanvasTexture(c);t.wrapS=t.wrapT=THREE.RepeatWrapping;t.repeat.set(10,10);t.anisotropy=renderer.capabilities.getMaxAnisotropy();
-  const floor=new THREE.Mesh(new THREE.PlaneGeometry(4200,4200),new THREE.MeshBasicMaterial({map:t,side:THREE.DoubleSide}));
+  const floor=new THREE.Mesh(new THREE.PlaneGeometry(4200,4200),new THREE.MeshBasicMaterial({map:t,color:0x9894b6,side:THREE.DoubleSide}));
   floor.rotation.x=-PI/2;floor.position.y=CLOUD_Y;skyRealm.add(floor);
-  const under=new THREE.Mesh(new THREE.PlaneGeometry(4200,4200),new THREE.MeshBasicMaterial({color:0xaeb3c4,side:THREE.BackSide}));
+  const under=new THREE.Mesh(new THREE.PlaneGeometry(4200,4200),new THREE.MeshBasicMaterial({color:0x6e7088,side:THREE.BackSide}));
   under.rotation.x=-PI/2;under.position.y=CLOUD_Y-1.5;skyRealm.add(under);
   // fluffy white cloud heaps on top of the cloud sea
-  for(let i=0;i<60;i++){const a=rand(0,2*PI),R=rand(0,900),sc=rand(90,220);const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:PUFF.sun,transparent:true,depthWrite:false}));sp.position.set(Math.cos(a)*R,CLOUD_Y+sc*0.18,Math.sin(a)*R);sp.scale.set(sc,sc*0.6,1);skyRealm.add(sp);}
+  for(let i=0;i<60;i++){const a=rand(0,2*PI),R=rand(0,900),sc=rand(90,220);const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:PUFF.sun,color:0xaaa6c8,transparent:true,depthWrite:false}));sp.position.set(Math.cos(a)*R,CLOUD_Y+sc*0.18,Math.sin(a)*R);sp.scale.set(sc,sc*0.6,1);skyRealm.add(sp);}
 })();
 // sun rays above the clouds (live in the sky dome, which follows the camera)
 const raysMat=(function(){const c=document.createElement('canvas');c.width=c.height=512;const g=c.getContext('2d');g.translate(256,256);
@@ -3311,10 +3311,10 @@ function loop(now){
     let far=TF[1]+(330-TF[1])*below;far+=(1900-far)*above;far+=(30-far)*inF;
     scene.fog.far=far;scene.fog.near=Math.min(TF[0],far*0.15);
     scene.background.copy(FOG).lerp(STORM_C,below).lerp(ABOVE_C,above).lerp(SPACE_C,k);scene.fog.color.copy(scene.background);
-    raysMat.opacity=above*(1-k)*0.85;
+    raysMat.opacity=above*(1-k)*0.4;
     skyAnim(dt,t);
     cloudLayer.position.set(Math.round(pos.x/300)*300,0,Math.round(pos.z/300)*300);
-    if(bloom)bloom.strength=0.75*(1-0.5*inF);}
+    if(bloom)bloom.strength=0.75*(1-0.5*inF)*(1-0.35*above);}
 
   musicTick(dt);
   if(AC&&hum){hum.frequency.setTargetAtTime(50+Math.abs(speed)*0.9,AC.currentTime,0.1);beamGain.gain.setTargetAtTime(beamActive?0.05:0,AC.currentTime,0.05);}
