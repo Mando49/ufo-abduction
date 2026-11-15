@@ -1008,7 +1008,8 @@ const MODELS={cow:{file:'cow',len:3.0,rotY:PI/2,list:[]},car:{file:'car',len:4.4
   camel:{file:'camel',height:4.6,rotY:PI/2,list:[]},penguin:{file:'penguin',height:2.8,rotY:0,list:[]},dino:{file:'dino',height:4.6,rotY:PI/2,list:[]},
   jaguar:{file:'jaguar',height:2.4,rotY:0,list:[]},shark:{file:'shark',len:3.8,rotY:PI/2,list:[]},tractor:{file:'tractor',height:3.6,rotY:0,list:[]},
   barn:{file:'barn',height:14,rotY:-PI/2,list:[]},chest:{file:'chest',height:2.6,rotY:0,list:[]},
-  sr71:{file:'sr71',len:34,rotY:0,list:[]},bop:{file:'bop',len:15,rotY:PI/2,list:[]},dropship:{file:'dropship',len:22,rotY:0,list:[]},wing:{file:'wing',len:22,rotY:-PI/2,list:[]}};
+  sr71:{file:'sr71',len:34,rotY:0,list:[]},bop:{file:'bop',len:15,rotY:PI/2,list:[]},dropship:{file:'dropship',len:22,rotY:0,list:[]},wing:{file:'wing',len:22,rotY:-PI/2,list:[]},
+  mustang:{file:'mustang',height:4.2,rotY:PI/4,list:[]},burro:{file:'burro',height:3,rotY:0,list:[]}};
 function useModel(type,g){const M=MODELS[type];if(M.proto)attachModel(M,g);else M.list.push(g);return g;}
 barnGroups.forEach(b=>useModel('barn',b));
 function attachModel(M,g){g.children.forEach(c=>{if(!c.isSprite&&!c.userData.keep)c.visible=false;});const m=M.proto.clone();if(M.yOff)m.position.y=M.yOff;g.add(m);if(g.userData.onAttach)g.userData.onAttach(M);}
@@ -1028,6 +1029,7 @@ if(THREE.GLTFLoader){const ld=new THREE.GLTFLoader();
     else ld.load('assets/models/'+M.file+'.glb',onLoad,undefined,()=>{});}}
 // ---------- animated models (free assets, see CREDITS.md): they really walk, run and wave ----------
 const ANIM={alien:{file:'alien',height:2.3,rotY:PI/2,clips:{walk:0},list:[]},
+  soldier:{file:'soldier',height:3.5,rotY:PI/2,clips:{walk:0},list:[]},
   person:{file:'person',height:3.4,rotY:PI/2,clips:{walk:0},tint:true,list:[]},mummy:{file:'mummy',height:3.7,rotY:PI/2,clips:{walk:0},list:[]},yeti:{file:'yeti',height:7.2,rotY:PI/2,clips:{walk:0},list:[]},
   fox:{file:'fox',len:3.4,axis:'z',rotY:PI/2,clips:{idle:'Survey',walk:'Walk',run:'Run'},list:[]},
   robot:{file:'robot',height:4.2,rotY:PI/2,clips:{idle:'Idle',walk:'Walking',run:'Running',wave:'Wave'},list:[]}};
@@ -1528,6 +1530,15 @@ for(let i=0;i<6;i++){const T={type:'truck',mesh:makeTruck(),spawn:spawnTruck};T.
 // 👽 lost crew: escaped aliens wander outside the Sublevel 9 lab, beam them home
 for(let i=0;i<4;i++){const g=new THREE.Group();box(g,0.8,1.2,0.6,0x6dff7a,0,1,0);box(g,1,0.9,0.9,0x8aff9a,0,2.1,0);g.userData.emoji='👽';g.userData.pts=150;g.userData.heat=0.6;root.add(g);
   const T={type:'critter',mesh:useAnim('alien',g,'desert'),spawn:spawnCow,fl:[{x:-200,z:370},{x:-330,z:375}],rad:22};T.mesh.userData.T=T;T.spawn(T);targets.push(T);}
+// 🪖 soldiers on patrol, 🐎 wild mustangs and 🫏 burros roaming the open desert
+for(let i=0;i<9;i++){const g=makeHuman(false);g.userData.emoji='🪖';g.userData.pts=70;g.userData.heat=1.2;
+  const T={type:'critter',mesh:useAnim('soldier',g,'desert'),spawn:spawnCow,fl:[{x:-240,z:-215},{x:420,z:-290},{x:-300,z:200},{x:60,z:-150}],rad:40};T.mesh.userData.T=T;T.spawn(T);targets.push(T);}
+function makeHorse(c,sz){const g=new THREE.Group(),m=lam(c);box(g,3.2*sz,1.5*sz,1.1*sz,m,0,2.4*sz,0);box(g,0.9*sz,1.6*sz,0.8*sz,m,1.8*sz,3.3*sz,0);
+  for(const x of[-1.1,1.1])for(const z of[-0.4,0.4])box(g,0.3*sz,1.8*sz,0.3*sz,m,x*sz,0.9*sz,z*sz);root.add(g);return g;}
+for(let i=0;i<10;i++){const g=makeHorse(0x8a5a30,1.2);g.userData.emoji='🐎';g.userData.pts=70;
+  const T={type:'critter',mesh:useModel('mustang',g),spawn:spawnCow,fl:[{x:220,z:260},{x:-40,z:470},{x:500,z:120},{x:-480,z:-40}],rad:70};T.spawn(T);targets.push(T);}
+for(let i=0;i<8;i++){const g=makeHorse(0x8a8078,0.85);g.userData.emoji='🫏';g.userData.pts=50;
+  const T={type:'critter',mesh:useModel('burro',g),spawn:spawnCow,fl:[{x:120,z:400},{x:-160,z:-480},{x:380,z:330}],rad:45};T.spawn(T);targets.push(T);}
 endTown('desert',[220,1700]);
 // ---------- ALIEN PLANETS ----------
 function critterMesh(kind){
@@ -4154,6 +4165,9 @@ const MISSIONS=[
   {id:'debris',t:'Recover 5 pieces of UFO wreckage (Area 51)',ev:'abduct',m:d=>d.emoji==='🔩',g:5,r:600},
   {id:'mib',t:'Abduct 3 Men in Black',ev:'abduct',m:d=>d.emoji==='🕴️',g:3,r:700},
   {id:'orbs',t:'Catch 3 mystery spheres (Area 51)',ev:'abduct',m:d=>d.emoji==='🔘',g:3,r:700},
+  {id:'soldiers',t:'Abduct 4 soldiers (Area 51)',ev:'abduct',m:d=>d.emoji==='🪖',g:4,r:600},
+  {id:'mustangs',t:'Abduct 3 wild mustangs',ev:'abduct',m:d=>d.emoji==='🐎',g:3,r:500},
+  {id:'burros',t:'Abduct 3 burros',ev:'abduct',m:d=>d.emoji==='🫏',g:3,r:400},
   {id:'wanted',t:'Reach a 5-star wanted level',ev:'heat5',g:1,r:400},
   {id:'score',t:'Score 2,000 in one game',ev:'score2k',g:1,r:500},
   {id:'race',t:'Finish the Sky Race',ev:'race',g:1,r:500},
