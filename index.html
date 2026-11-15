@@ -560,17 +560,17 @@ uLight.position.y=-3;ufo.add(uLight);
 
 // ---------- beam ----------
 const beamMat=new THREE.ShaderMaterial({
-  uniforms:{t:{value:0},op:{value:0},col:{value:new THREE.Color(0x5dffb0)}},
+  uniforms:{t:{value:0},op:{value:0},col:{value:new THREE.Color(0x69dfff)}},
   vertexShader:'varying vec2 vUv;void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}',
-  fragmentShader:'uniform float t;uniform float op;uniform vec3 col;varying vec2 vUv;void main(){float v=vUv.y;float s=0.5+0.5*sin(v*30.0-t*8.0);float sw=0.5+0.5*sin(vUv.x*6.2832*5.0+t*1.5);float a=(0.10+0.12*s+0.06*sw)*(0.4+0.4*(1.0-v)+0.4*smoothstep(0.85,1.0,v))*op;gl_FragColor=vec4(col*(0.8+0.5*s),a);}',
+  fragmentShader:'uniform float t;uniform float op;uniform vec3 col;varying vec2 vUv;void main(){float v=vUv.y;float pulse=0.5+0.5*sin(v*34.0-t*9.0);float spiral=0.5+0.5*sin(vUv.x*31.4+v*13.0-t*3.8);float streak=smoothstep(0.58,0.96,spiral);float edge=0.72+0.28*sin(vUv.x*31.4+t*1.8);float fade=0.32+0.68*smoothstep(0.02,0.22,v);float a=(0.12+0.12*pulse+0.10*streak)*edge*fade*op;vec3 glow=col*(0.72+0.38*pulse)+vec3(0.20,0.28,0.34)*streak;gl_FragColor=vec4(glow,a);}',
   transparent:true,blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide});
 const beamGeo=new THREE.ConeGeometry(1,1,36,1,true);beamGeo.translate(0,-0.5,0);
 const beam=new THREE.Mesh(beamGeo,beamMat);beam.frustumCulled=false;scene.add(beam);
-const coreMat=beamMat.clone();coreMat.uniforms.col.value=new THREE.Color(0xc8fff0);
+const coreMat=beamMat.clone();coreMat.uniforms.col.value=new THREE.Color(0xe8fbff);
 const core=new THREE.Mesh(beamGeo,coreMat);core.frustumCulled=false;scene.add(core);
-const spotMat=new THREE.MeshBasicMaterial({map:GLOW,color:0x5dffb0,transparent:true,opacity:0,blending:THREE.AdditiveBlending,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-6,polygonOffsetUnits:-6});
+const spotMat=new THREE.MeshBasicMaterial({map:GLOW,color:0x74e5ff,transparent:true,opacity:0,blending:THREE.AdditiveBlending,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-6,polygonOffsetUnits:-6});
 const spot=new THREE.Mesh(new THREE.PlaneGeometry(2,2),spotMat);spot.rotation.x=-PI/2;scene.add(spot);
-const ringMat=new THREE.MeshBasicMaterial({color:0x8dffc8,transparent:true,opacity:0,blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide});
+const ringMat=new THREE.MeshBasicMaterial({color:0xa8edff,transparent:true,opacity:0,blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide});
 const beamRing=new THREE.Mesh(new THREE.RingGeometry(0.9,1,56),ringMat);beamRing.rotation.x=-PI/2;scene.add(beamRing);
 const shadow=new THREE.Mesh(new THREE.CircleGeometry(1,28),new THREE.MeshBasicMaterial({color:0,transparent:true,opacity:.35,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-4,polygonOffsetUnits:-4}));
 shadow.rotation.x=-PI/2;scene.add(shadow);
@@ -578,12 +578,12 @@ shadow.rotation.x=-PI/2;scene.add(shadow);
 const NP=80,pData=[],pPos=new Float32Array(NP*3);
 for(let i=0;i<NP;i++)pData.push({a:rand(0,2*PI),rf:Math.sqrt(Math.random()),h:Math.random(),sp:rand(0.25,0.6)});
 const pGeo=new THREE.BufferGeometry();pGeo.setAttribute('position',new THREE.BufferAttribute(pPos,3));
-const pMat=new THREE.PointsMaterial({map:GLOW,color:0xbfffe6,size:0.7,transparent:true,opacity:0,blending:THREE.AdditiveBlending,depthWrite:false});
+const pMat=new THREE.PointsMaterial({map:GLOW,color:0xd8f8ff,size:0.8,transparent:true,opacity:0,blending:THREE.AdditiveBlending,depthWrite:false});
 const parts=new THREE.Points(pGeo,pMat);parts.frustumCulled=false;scene.add(parts);
 // abduction burst
 const NB=48,bPos=new Float32Array(NB*3),bVel=[];for(let i=0;i<NB;i++)bVel.push(new V3());
 const bGeo2=new THREE.BufferGeometry();bGeo2.setAttribute('position',new THREE.BufferAttribute(bPos,3));
-const bMat2=new THREE.PointsMaterial({map:GLOW,color:0xa0fff0,size:1.4,transparent:true,opacity:0,blending:THREE.AdditiveBlending,depthWrite:false});
+const bMat2=new THREE.PointsMaterial({map:GLOW,color:0xbdefff,size:1.5,transparent:true,opacity:0,blending:THREE.AdditiveBlending,depthWrite:false});
 const burst=new THREE.Points(bGeo2,bMat2);burst.frustumCulled=false;scene.add(burst);let burstLife=0;
 function doBurst(p){for(let i=0;i<NB;i++){bPos[i*3]=p.x;bPos[i*3+1]=p.y;bPos[i*3+2]=p.z;bVel[i].set(rand(-1,1),rand(-0.6,1),rand(-1,1)).normalize().multiplyScalar(rand(6,16));}burstLife=1;}
 
@@ -813,6 +813,7 @@ function loop(now){
   ringMat.opacity+=((onGround?0.45:0)-ringMat.opacity)*0.25;spotMat.opacity+=((onGround?0.28:0)-spotMat.opacity)*0.25;
   beamRing.visible=spot.visible=ringMat.opacity>0.01;
   beamRing.position.set(pos.x,0.3,pos.z);beamRing.scale.setScalar(bR*(1+0.05*Math.sin(t*8)));
+  beamRing.rotation.y=t*0.42;
   spot.position.set(pos.x,0.2,pos.z);spot.scale.setScalar(bR*1.15);
   uLight.intensity=beamActive?2.2:1.0;
   shadow.position.set(pos.x,0.05,pos.z);shadow.scale.setScalar(6.5+pos.y*0.02);shadow.material.opacity=0.4*(1-pos.y/170);
