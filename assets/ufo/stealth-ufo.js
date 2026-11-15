@@ -69,7 +69,7 @@
       })
     );
     emitter.rotation.x = -Math.PI / 2;
-    emitter.position.set(0, 0.05, 0.15);
+    emitter.position.set(0, -0.82, 0.15);
     emitter.name = 'Tractor beam emitter';
     craft.add(emitter);
 
@@ -78,7 +78,7 @@
       new THREE.MeshBasicMaterial({ color: 0xb8f2ff, transparent: true, opacity: 0.85 })
     );
     emitterRing.rotation.x = Math.PI / 2;
-    emitterRing.position.set(0, 0.08, 0.15);
+    emitterRing.position.set(0, -0.78, 0.15);
     craft.add(emitterRing);
 
     // Three white corner lamps, matching the reference craft.
@@ -121,7 +121,7 @@
       emitter.scale.setScalar(beamActive ? 1.12 + 0.04 * Math.sin(time * 10) : 1);
     };
 
-    craft.userData.beamOrigin = new THREE.Vector3(0, -0.15, 0.15);
+    craft.userData.beamOrigin = new THREE.Vector3(0, -0.9, 0.15);
     craft.userData.lampPositions = lampPositions;
     return craft;
   }
