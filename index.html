@@ -1392,6 +1392,7 @@ beginTown('fifth');
     g.userData.emoji='🧊';root.add(g);return g;
   };
   addTargets(mkCube,24);
+  const tgtOf=new Map();targets.forEach(T=>tgtOf.set(T.mesh,T));
   planetAnim.push({town:'fifth',f:(t,dt)=>{
     dimensionLife.forEach(D=>{
       const near=state==='play'&&mode==='ground'&&!onFoot&&D.g.position.distanceTo(pos)<95;
@@ -1416,7 +1417,7 @@ beginTown('fifth');
       D.halo.rotation.z=t*(near?1.5:.45);D.halo.scale.setScalar(near?1.25:1);
       D.aura.material.opacity=(near?.72:.36)+Math.sin(t*3+D.phase)*.12;
       D.aura.scale.setScalar(near?12:8);
-      D.g.position.y+=(Math.sin(t*1.5+D.phase)*.5+2.2-D.g.position.y)*Math.min(1,dt*3);
+      const T=tgtOf.get(D.g);if(!T||T.state==='ground')D.g.position.y+=(Math.sin(t*1.5+D.phase)*.5+2.2-D.g.position.y)*Math.min(1,dt*3); // don't fight the tractor beam
     });
   }});
 })();
