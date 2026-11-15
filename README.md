@@ -16,4 +16,6 @@ A 3D browser game: fly a triangle UFO over a neon cyberpunk city and farmland, a
 
 Sponsored by [Mando Window Tinting](https://lasvegaswindowtintnv.com): window tint & PPF in Las Vegas.
 
+3D models for the cows, cars, helicopters and jets were made with AI (Higgsfield / Tripo) and are in `assets/models/`.
+
 Built with three.js. No install needed: it's a single `index.html` file.
