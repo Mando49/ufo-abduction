@@ -3325,6 +3325,7 @@ const MISSIONS=[
   {id:'wanted',t:'Reach a 5-star wanted level',ev:'heat5',g:1,r:400},
   {id:'score',t:'Score 2,000 in one game',ev:'score2k',g:1,r:500},
   {id:'race',t:'Finish the Sky Race',ev:'race',g:1,r:500},
+  {id:'aircurrent',t:'Ride the air current above the clouds',ev:'aircurrent',g:1,r:300},
   {id:'race60',t:'Finish the Sky Race in under 60s',ev:'race',m:d=>d.t<60,g:1,r:900},
   {id:'bhole',t:'Fly into the black hole',ev:'bhole',g:1,r:600}
 ];
@@ -3389,6 +3390,33 @@ const raceGroup=new THREE.Group();skyRealm.add(raceGroup);
     raceGroup.add(g);race.rings.push({g,tor,disc,gl,beam,p,dir,side:0,k});}
 })();
 // black hole shortcut on the race course (between ring 9 and 10)
+// 🌬️ AIR CURRENT: a wind stream that flows through every ring in order — ride it like the ocean currents
+const airCur=(function(){
+  const pts=[];race.rings.forEach(R=>{if(!pts.some(q=>q.distanceTo(R.p)<5))pts.push(R.p.clone());});
+  const curve=new THREE.CatmullRomCurve3(pts,true,'centripetal');
+  const mat=new THREE.ShaderMaterial({uniforms:{t:{value:0},boost:{value:0}},transparent:true,depthWrite:false,side:THREE.DoubleSide,
+    vertexShader:'varying vec2 vUv;void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}',
+    fragmentShader:'uniform float t,boost;varying vec2 vUv;void main(){float s=fract(vUv.x*220.0-t*(2.0+boost*3.0)+sin(vUv.y*12.566)*0.15);float streak=smoothstep(0.55,1.0,s)*(0.5+0.5*sin(vUv.y*37.7));float rim=0.35+0.65*abs(sin(vUv.y*3.1416));vec3 c=mix(vec3(0.55,0.85,1.0),vec3(1.0),streak);gl_FragColor=vec4(c,(0.06+streak*0.32)*rim);}'});
+  const tube=new THREE.Mesh(new THREE.TubeGeometry(curve,600,7,12,true),mat);raceGroup.add(tube);
+  const N=600,samp=[],tan=[];for(let k=0;k<N;k++){samp.push(curve.getPointAt(k/N));tan.push(curve.getTangentAt(k/N));}
+  const puffs=[];for(let k=0;k<90;k++){const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:0xeaf8ff,transparent:true,opacity:.55,blending:THREE.AdditiveBlending,depthWrite:false}));sp.scale.setScalar(rand(1.4,3));sp.material.opacity=0.35;raceGroup.add(sp);puffs.push({sp,u:k/90,o:new V3(rand(-4,4),rand(-4,4),rand(-4,4))});}
+  return {curve,samp,tan,N,mat,puffs,riding:false,msg:0,idx:0};})();
+function airCurrentUpdate(dt,t,can){
+  const A=airCur;A.mat.uniforms.t.value=t;A.mat.uniforms.boost.value=A.riding?1:0;A.msg-=dt;
+  A.puffs.forEach(P=>{P.u=(P.u+(dt||0)*0.012*(A.riding?2:1))%1;if(!(P.u>=0))P.u=0;const f=P.u*A.N,k=Math.floor(f)%A.N;P.sp.position.copy(A.samp[k]).lerp(A.samp[(k+1)%A.N],f-Math.floor(f)).add(P.o);});
+  if(!can||pos.y<CLOUD_Y-10){A.riding=false;return;}
+  // nearest sample: search near the last one first, full scan if we lost it
+  let bi=-1,bd=100;const s0=A.riding?A.idx:0,span=A.riding?40:A.N;
+  for(let j=-(A.riding?span:0);j<(A.riding?span:A.N);j+=(A.riding?1:3)){const k=((s0+j)%A.N+A.N)%A.N,d=A.samp[k].distanceToSquared(pos);if(d<bd){bd=d;bi=k;}}
+  if(bi<0){A.riding=false;return;}
+  if(!A.riding&&A.msg<=0){pop('🌬️ RIDING THE AIR CURRENT!');pop('It carries you through the rings','t');mEvent('aircurrent');A.msg=8;blip(300,1200,0.4,'sine',0.1);}
+  A.riding=true;A.idx=bi;
+  const T=A.tan[bi],P=A.samp[bi],sp=75*(race.on?(1+(race.mult-1)*0.35):1);
+  pos.addScaledVector(T,sp*dt);pos.lerp(tmpV2.copy(P).addScaledVector(T,6),Math.min(1,dt*2.5));
+  const want=Math.atan2(-T.x,-T.z);let dy=want-yaw;dy=Math.atan2(Math.sin(dy),Math.cos(dy));yaw+=dy*Math.min(1,dt*5);
+  speed=Math.max(speed,40);
+  if(Math.random()<0.7)spawnFx(tmpV.copy(pos).add(tmpV2.set(rand(-6,6),rand(-4,4),rand(-6,6))),tmpV2.copy(T).multiplyScalar(-30),0.4,rand(0.6,1.4),1,0xffffff,true);
+}
 const raceBH=(function(){const a=race.rings[9].p,b=race.rings[10].p,c=a.clone().add(b).multiplyScalar(0.5).add(new V3(0,32,0));
   const g=new THREE.Group();g.position.copy(c);raceGroup.add(g);
   const halo=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:0x5a1aa0,transparent:true,opacity:.35,blending:THREE.AdditiveBlending,depthWrite:false}));halo.scale.set(80,80,1);g.add(halo);
@@ -3417,6 +3445,7 @@ function raceEnd(fin){
 function raceCross(R){return pos.distanceTo(R.p)<22;}
 function raceUpdate(dt,t){
   const can=state==='play'&&mode==='ground'&&!onFoot&&!towns[curTown].planet;
+  airCurrentUpdate(dt,t,can);
   raceBH.g.quaternion.copy(camera.quaternion);raceBH.disc.rotation.z-=dt*2;raceBH.disc.material.uniforms.t.value=t;raceBH.g.visible=!race.on||(race.next>=6&&race.next<=10);
   {const NR=race.rings[race.on?race.next%RACE_N:0];NR.g.scale.setScalar(1+0.1*Math.sin(t*6));}
   if(!race.on){const near=can&&pos.y>CLOUD_Y-40;raceArrow.visible=near;if(near){raceArrow.position.copy(pos).addScaledVector(fwd,9).add(new V3(0,3.5,0));raceArrow.lookAt(race.rings[0].p);raceArrow.scale.setScalar(1+0.12*Math.sin(t*8));}}
