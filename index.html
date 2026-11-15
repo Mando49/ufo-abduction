@@ -1149,6 +1149,68 @@ beginTown('desert');
   const pg2=new THREE.BoxGeometry(0.35,1.9,0.35);pg2.translate(0,0.95,0);inst(pg2,lam(0x6e4f33),fposts,p=>compose(p.x,0,p.z,1,1,1));
   inst(new THREE.BoxGeometry(96,0.18,0.14),lam(0x7a5a3a),frails,r=>compose(r.x,r.y,r.z,1,1,1,0,r.ry,0));
 
+  // ---- BLACK SITE EXPANSION: hangar, crash recovery, and patrol craft ----
+  // Massive underground hangar entrance with illuminated blast doors
+  const HX=420,HZ=-360;
+  flatPlane(210,150,0x77736b,-1,HX,HZ);
+  const hangarFrame=box(root,104,42,9,0x343b46,HX,21,HZ-65);
+  box(root,96,34,2,0x101923,HX,20,HZ-70);
+  const hangarDoorL=box(root,46,31,1.8,0x46515e,HX-24,17,HZ-71);
+  const hangarDoorR=box(root,46,31,1.8,0x46515e,HX+24,17,HZ-71);
+  const doorLines=[];
+  for(let i=0;i<8;i++){
+    const x=HX-43+i*12;
+    const ln=box(root,.45,27,.35,basic(i%2?0x36dfff:0xff4c9b),x,17,HZ-72.2);
+    doorLines.push(ln);
+  }
+  box(root,112,3,14,0x242b35,HX,42,HZ-65);
+  sign('USAF • RESEARCH DIVISION','#53dcff',54,8,HX,49,HZ-72,0);
+  const hangarGlow=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:0x3bdfff,transparent:true,opacity:.35,blending:THREE.AdditiveBlending,depthWrite:false}));
+  hangarGlow.position.set(HX,18,HZ-76);hangarGlow.scale.set(150,72,1);root.add(hangarGlow);
+  // Caution pylons and runway edge lamps
+  for(let x=HX-95;x<=HX+95;x+=19){
+    for(const z of[HZ-92,HZ-18]){
+      const p=new THREE.Mesh(new THREE.CylinderGeometry(.6,1.1,5,6),lam(0xd5b34e));p.position.set(x,2.5,z);root.add(p);
+      const l=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:0xffb84d,transparent:true,opacity:.65,blending:THREE.AdditiveBlending,depthWrite:false}));
+      l.position.set(x,5.4,z);l.scale.set(5,5,1);root.add(l);
+    }
+  }
+  // Recovered saucer on a raised examination platform
+  const CX=-610,CZ=330;
+  flatPlane(150,130,0x555a60,-1,CX,CZ);
+  const pad=new THREE.Mesh(new THREE.CylinderGeometry(42,48,3,40),new THREE.MeshLambertMaterial({color:0x343b45,emissive:0x101820}));pad.position.set(CX,1,CZ);root.add(pad);
+  const saucer=new THREE.Group();saucer.position.set(CX,20,CZ);root.add(saucer);
+  const saucerTop=new THREE.Mesh(new THREE.SphereGeometry(1,32,16,0,2*PI,0,PI/2),new THREE.MeshPhongMaterial({color:0x9caeb8,metalness:.55,shininess:90,emissive:0x142b3b}));
+  saucerTop.scale.set(34,13,34);saucer.add(saucerTop);
+  const saucerBase=new THREE.Mesh(new THREE.CylinderGeometry(34,25,5,40),new THREE.MeshPhongMaterial({color:0x4d5b68,shininess:100,emissive:0x0c1c2a}));saucerBase.position.y=-2;saucer.add(saucerBase);
+  const saucerRing=new THREE.Mesh(new THREE.TorusGeometry(29,1.4,8,64),new THREE.MeshBasicMaterial({color:0x4deaff,blending:THREE.AdditiveBlending}));
+  saucerRing.rotation.x=PI/2;saucerRing.position.y=-1;saucer.add(saucerRing);
+  for(let i=0;i<12;i++){const a=i/12*2*PI;const lamp=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:i%2?0x4deaff:0xff4d9a,transparent:true,opacity:.85,blending:THREE.AdditiveBlending,depthWrite:false}));lamp.position.set(Math.cos(a)*29,-1.2,Math.sin(a)*29);lamp.scale.set(6,6,1);saucer.add(lamp);}
+  const containmentPosts=[];
+  for(let i=0;i<8;i++){const a=i/8*2*PI,x=CX+Math.cos(a)*58,z=CZ+Math.sin(a)*58;const post=new THREE.Mesh(new THREE.CylinderGeometry(1.1,1.4,18,8),lam(0x59636f));post.position.set(x,9,z);root.add(post);const beacon=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:0xff3c54,transparent:true,opacity:.7,blending:THREE.AdditiveBlending,depthWrite:false}));beacon.position.set(x,18.5,z);beacon.scale.set(5,5,1);root.add(beacon);containmentPosts.push(beacon);}
+  // Three small autonomous security drones circling the recovered craft
+  const patrolDrones=[];
+  for(let i=0;i<3;i++){
+    const drone=new THREE.Group();
+    const body=new THREE.Mesh(new THREE.SphereGeometry(2.6,14,10),new THREE.MeshPhongMaterial({color:0x303c4a,shininess:100,emissive:0x101c28}));body.scale.set(1.5,.55,1);drone.add(body);
+    const eye=new THREE.Mesh(new THREE.SphereGeometry(.8,10,8),new THREE.MeshBasicMaterial({color:0xff3d4f}));eye.position.set(2.5,0,0);drone.add(eye);
+    for(let k=0;k<4;k++){const a=k/4*2*PI;const arm=new THREE.Mesh(new THREE.CylinderGeometry(.18,.28,5,6),lam(0x687b8b));arm.rotation.z=PI/2;arm.position.set(Math.cos(a)*3,0,Math.sin(a)*3);drone.add(arm);const rotor=new THREE.Mesh(new THREE.TorusGeometry(1.5,.12,5,12),new THREE.MeshBasicMaterial({color:0x55dfff}));rotor.position.set(Math.cos(a)*5.2,.3,Math.sin(a)*5.2);drone.add(rotor);}
+    root.add(drone);patrolDrones.push({drone,phase:i*2.1,radius:76+i*13,height:24+i*8});
+  }
+  // Animated warning lights, sliding doors, hovering saucer and drone patrol
+  desertAnim.push((dt,t)=>{
+    const open=.5+.5*Math.sin(t*.22);
+    hangarDoorL.position.x=HX-24-open*18;hangarDoorR.position.x=HX+24+open*18;
+    hangarGlow.material.opacity=.2+.22*(.5+.5*Math.sin(t*1.4));
+    saucer.rotation.y+=dt*.12;saucer.position.y=20+Math.sin(t*.8)*1.2;
+    saucerRing.rotation.z+=dt*.7;
+    containmentPosts.forEach((p,i)=>{p.material.opacity=.35+.45*(.5+.5*Math.sin(t*2.5+i*.8));});
+    patrolDrones.forEach(D=>{
+      const a=t*.28+D.phase;
+      D.drone.position.set(CX+Math.cos(a)*D.radius,D.height+Math.sin(t*1.1+D.phase)*4,CZ+Math.sin(a)*D.radius);
+      D.drone.rotation.y=-a+PI/2;D.drone.rotation.z=Math.sin(a)*.12;
+    });
+  });
   // ---- cacti + rocks ----
   const cac=[],rocks=[];
   const bad=(x,z)=>Math.abs(z-80)<16||(x>40&&x<350&&z>86&&z<155)||(x>-515&&x<-5&&z>-385&&z<-125)||fields.some(f=>Math.abs(f.x-x)<62&&Math.abs(f.z-z)<62)||Math.hypot(x,z)>660;
