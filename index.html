@@ -883,7 +883,7 @@ function makeHuman(sleeper){
 }
 (function(){
   // pick 3 gaps between the farms for neighborhoods
-  const fa=fields.map(f=>Math.atan2(f.z,f.x)).sort((a,b)=>a-b),gaps=[];
+  const fa=fields.concat([STAD],LOT?[LOT]:[]).map(f=>Math.atan2(f.z,f.x)).sort((a,b)=>a-b),gaps=[]; // keep neighborhoods away from the stadium + its parking lot
   for(let i=0;i<fa.length;i++){const a=fa[i],b=i+1<fa.length?fa[i+1]:fa[0]+2*PI;gaps.push({a:(a+b)/2,w:b-a});}
   gaps.sort((p,q)=>q.w-p.w);
   const wallC=[0xf4e6c8,0xc8dcef,0xf0c8c8,0xd8efd0,0xefe0a8,0xe0d0f0,0xffffff],roofC=[0x6a3a2a,0x3a4a6a,0x4a4a4a,0x7a2a2a,0x2a5a3a];
