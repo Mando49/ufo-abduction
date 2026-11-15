@@ -1069,9 +1069,7 @@ beginTown('desert');
   const tw=[];for(let i=0;i<36;i++){const al=rand(-280,280),sd=rand(-60,60);tw.push({x:SX+px*al+dx*sd,z:SZ+pz*al+dz*sd,w:rand(14,30),d:rand(14,30),h:rand(50,230),ry:rand(0,PI),c:pick([0x8a8fa0,0x6a7088,0xb0a080,0x9a8a70,0x7a6a90])});}
   inst(sg,smat,tw,b=>compose(b.x,0,b.z,b.w,b.h,b.d,0,b.ry,0));
   inst(sg,new THREE.MeshBasicMaterial({color:0xffffff,fog:false}),tw.map(b=>Object.assign({},b,{c:pick(NEON)})),b=>compose(b.x,b.h,b.z,b.w+0.8,3,b.d+0.8,0,b.ry,0));
-  const pyr=new THREE.Mesh(new THREE.ConeGeometry(70,80,4),lam(0x1a1a26));pyr.position.set(SX-px*170,40,SZ-pz*170);pyr.rotation.y=PI/4;root.add(pyr);
-  const lb=new THREE.Mesh(new THREE.CylinderGeometry(3,5,2200,8,1,true),new THREE.MeshBasicMaterial({color:0xdff0ff,transparent:true,opacity:.4,blending:THREE.AdditiveBlending,depthWrite:false,fog:false}));
-  lb.position.set(pyr.position.x,80+1100,pyr.position.z);root.add(lb);
+  // Removed the Luxor-style pyramid landmark and its sky beam for a grounded desert skyline.
   const nx=SX+px*240,nz=SZ+pz*240;
   const sh=new THREE.Mesh(new THREE.CylinderGeometry(4,7,250,10),lam(0x8d93a3));sh.position.set(nx,125,nz);root.add(sh);
   const pod=new THREE.Mesh(new THREE.CylinderGeometry(16,11,12,20),lam(0x3a3f50));pod.position.set(nx,245,nz);root.add(pod);
@@ -1210,6 +1208,58 @@ beginTown('desert');
       D.drone.position.set(CX+Math.cos(a)*D.radius,D.height+Math.sin(t*1.1+D.phase)*4,CZ+Math.sin(a)*D.radius);
       D.drone.rotation.y=-a+PI/2;D.drone.rotation.z=Math.sin(a)*.12;
     });
+  });
+  // ---- perimeter security checkpoint and elevated sentry posts ----
+  const checkX=-120,checkZ=-255;
+  flatPlane(110,46,0x343940,-1,checkX,checkZ);
+  // reinforced gatehouse
+  const gateHouse=box(root,34,12,12,0x343b45,checkX,6,checkZ-12);
+  box(root,36,1.2,14,0x202832,checkX,12.6,checkZ-12);
+  sign('SECURITY CHECKPOINT','#ff4b4b',30,6,checkX,17,checkZ-19,0);
+  for(let x of[checkX-13,checkX+13]){
+    box(root,1.2,8,1.2,0x69727d,x,4,checkZ-3);
+    const lamp=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:0xff3434,transparent:true,opacity:.75,blending:THREE.AdditiveBlending,depthWrite:false}));
+    lamp.position.set(x,8.8,checkZ-3);lamp.scale.set(5,5,1);root.add(lamp);
+  }
+  // Two striped rising barrier arms
+  const barriers=[];
+  for(let side of[-1,1]){
+    const pivot=new THREE.Group();pivot.position.set(checkX+side*17,3,checkZ+5);
+    const arm=box(pivot,1,1,27,0xe5e7e9,0,.2,13.5);
+    for(let k=0;k<7;k++)box(pivot,1.04,1.04,1.8,0xc83232,0,.22,2+k*3.7);
+    root.add(pivot);barriers.push({pivot,side});
+  }
+  // Guard towers at the base perimeter with rotating search beams
+  const sentry=[];
+  [[-480,-350],[-40,-350],[-480,-160],[-40,-160]].forEach(([x,z],i)=>{
+    const tower=new THREE.Group();tower.position.set(x,0,z);
+    const legmat=lam(0x626b76);
+    for(const dx of[-3.2,3.2])for(const dz of[-3.2,3.2]){
+      const leg=new THREE.Mesh(new THREE.BoxGeometry(.8,15,.8),legmat);leg.position.set(dx,7.5,dz);tower.add(leg);
+    }
+    const deck=new THREE.Mesh(new THREE.BoxGeometry(10,1,10),lam(0x38424d));deck.position.y=15;tower.add(deck);
+    const cabin=new THREE.Mesh(new THREE.BoxGeometry(8,6,8),new THREE.MeshLambertMaterial({color:0x293744,emissive:0x10202d}));cabin.position.y=19;tower.add(cabin);
+    const windowBand=new THREE.Mesh(new THREE.BoxGeometry(8.2,1.2,8.2),new THREE.MeshBasicMaterial({color:0x55cfff,transparent:true,opacity:.7}));windowBand.position.y=19.2;tower.add(windowBand);
+    const head=new THREE.Group();head.position.y=23;tower.add(head);
+    const beam=new THREE.Mesh(new THREE.ConeGeometry(15,100,16,1,true),new THREE.MeshBasicMaterial({color:0xfff0c2,transparent:true,opacity:.09,side:THREE.DoubleSide,blending:THREE.AdditiveBlending,depthWrite:false}));
+    beam.position.set(0,-48,-45);beam.rotation.x=-.3;head.add(beam);
+    const lamp=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:0xffe5a6,transparent:true,opacity:.8,blending:THREE.AdditiveBlending,depthWrite:false}));
+    lamp.position.set(0,0,-3);lamp.scale.set(8,8,1);head.add(lamp);
+    root.add(tower);sentry.push({head,phase:i*1.4,beam,lamp});
+    colliders.push({x0:x-5,x1:x+5,z0:z-5,z1:z+5,h:24,y0:0});
+  });
+  // Parked military transport beside the checkpoint
+  const patrolTruck=new THREE.Group();patrolTruck.position.set(checkX+48,0,checkZ+18);
+  box(patrolTruck,12,3.2,5,0x414d3b,0,2.2,0);
+  box(patrolTruck,5,2.8,4.7,0x56634b,-2.8,5,0);
+  box(patrolTruck,4.5,2.2,4.8,0x17242a,-2.8,5.1,0);
+  for(let x of[-4.5,4.5])for(let z of[-2.7,2.7]){
+    const wheel=new THREE.Mesh(new THREE.CylinderGeometry(1.15,1.15,.65,12),lam(0x15191d));wheel.rotation.x=PI/2;wheel.position.set(x,1.2,z);patrolTruck.add(wheel);
+  }
+  root.add(patrolTruck);
+  desertAnim.push((dt,t)=>{
+    barriers.forEach(B=>{B.pivot.rotation.z=(.5+.5*Math.sin(t*.35+B.side))*.95;});
+    sentry.forEach(S=>{S.head.rotation.y=Math.sin(t*.22+S.phase)*.95;S.beam.material.opacity=.055+.045*(.5+.5*Math.sin(t*1.3+S.phase));S.lamp.material.opacity=.55+.35*(.5+.5*Math.sin(t*2+S.phase));});
   });
   // ---- cacti + rocks ----
   const cac=[],rocks=[];
