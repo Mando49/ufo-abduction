@@ -125,6 +125,7 @@ body.touch #keys{display:none}
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
+<script src="assets/ufo/stealth-ufo.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/CopyShader.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/LuminosityHighPassShader.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/EffectComposer.js"></script>
@@ -546,56 +547,16 @@ function spawnCar(T){
 for(let i=0;i<38;i++){const T={type:'cow',mesh:makeCow()};spawnCow(T);targets.push(T);}
 for(let i=0;i<30;i++){const T={type:'car',mesh:makeCar()};spawnCar(T);targets.push(T);}
 
-// ---------- UFO (triangle craft) ----------
-const ufo=new THREE.Group(),tilt=new THREE.Group();ufo.add(tilt);scene.add(ufo);
-const TRI=[[0,7.4],[6.8,-4.7],[-6.8,-4.7]];
-function triShape(sc,r,cls){
-  const P=TRI.map(p=>[p[0]*sc,(p[1]+0.67)*sc]);const sh=cls?new cls():new THREE.Shape();
-  for(let i=0;i<3;i++){const c=P[i],pv=P[(i+2)%3],nx=P[(i+1)%3];
-    const da=Math.hypot(pv[0]-c[0],pv[1]-c[1]),db=Math.hypot(nx[0]-c[0],nx[1]-c[1]);
-    const ax=c[0]+(pv[0]-c[0])/da*r,ay=c[1]+(pv[1]-c[1])/da*r,bx=c[0]+(nx[0]-c[0])/db*r,by=c[1]+(nx[1]-c[1])/db*r;
-    if(i===0)sh.moveTo(ax,ay);else sh.lineTo(ax,ay);sh.quadraticCurveTo(c[0],c[1],bx,by);}
-  sh.closePath();return sh;}
-function flatGeo(shape,opt,y){const g=new THREE.ExtrudeGeometry(shape,Object.assign({curveSegments:12},opt));g.rotateX(-PI/2);g.translate(0,y,0);return g;}
-function ringShape(so,ro,si,ri){const s=triShape(so,ro);s.holes.push(triShape(si,ri,THREE.Path));return s;}
-const hullMat=new THREE.MeshStandardMaterial({color:0x2c313d,metalness:0.6,roughness:0.3,emissive:0x07090f});
-tilt.add(new THREE.Mesh(flatGeo(triShape(1,2.3),{depth:0.22,bevelEnabled:true,bevelThickness:0.3,bevelSize:0.7,bevelSegments:5},-0.11),hullMat));
-tilt.add(new THREE.Mesh(flatGeo(triShape(0.6,1.3),{depth:0.1,bevelEnabled:true,bevelThickness:0.1,bevelSize:0.3,bevelSegments:3},0.48),new THREE.MeshStandardMaterial({color:0x3a4150,metalness:0.6,roughness:0.28})));
-// panel seams
-const seamM=basic(0x0b0d14);
-tilt.add(new THREE.Mesh(flatGeo(ringShape(0.79,1.8,0.775,1.75),{depth:0.02,bevelEnabled:false},0.415),seamM));
-// vents on the rear edge
-for(const x of[-3,-1,1,3]){const v=box(tilt,1.3,0.06,0.5,seamM,x,0.42,3.9);}
-// neon outlines (keep our cyan/purple style)
-const neonUp=[];
-[[0.93,2.1,0.905,2.0,0x3de1ff],[0.69,1.55,0.665,1.5,0xb44dff]].forEach((r,i)=>{
-  const m=new THREE.Mesh(flatGeo(ringShape(r[0],r[1],r[2],r[3]),{depth:0.04,bevelEnabled:false},0.415),new THREE.MeshBasicMaterial({color:r[4]}));
-  m.userData.base=r[4];tilt.add(m);neonUp.push(m);});
-// corner lights
-const cornerLights=[];
-TRI.forEach(p=>{const x=p[0]*1.0,z=-(p[1]+0.67)*1.0;const k=0.86;
-  const s=new THREE.Mesh(new THREE.SphereGeometry(0.38,12,8),basic(0xe8fbff));s.position.set(x*k,0.1,z*k);tilt.add(s);
-  const g=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:0xbff4ff,transparent:true,depthWrite:false}));g.position.copy(s.position);g.scale.set(3.4,3.4,1);tilt.add(g);cornerLights.push(g);});
-// running lights along the side edges
-const lowLights=[];
-for(let e=0;e<3;e++){const A=TRI[e],B=TRI[(e+1)%3];for(let k=1;k<=4;k++){const f=0.2+k*0.12;
-  const x=(A[0]+(B[0]-A[0])*f)*1.07,z=-((A[1]+(B[1]-A[1])*f)+0.67)*1.07;
-  const m=new THREE.Mesh(new THREE.SphereGeometry(0.16,8,6),basic(k%2?0xff5a2a:0xb44dff));m.position.set(x,0,z);tilt.add(m);lowLights.push(m);}}
-// low glass canopy with the pilot
-const dome=new THREE.Mesh(new THREE.SphereGeometry(1.5,28,14,0,2*PI,0,PI/2),new THREE.MeshStandardMaterial({color:0x7fefff,roughness:0.05,transparent:true,opacity:0.55,emissive:0x1f8fb0,emissiveIntensity:0.9}));
-dome.scale.set(1,0.5,1.35);dome.position.set(0,0.62,-1.2);tilt.add(dome);
-const alienM=new THREE.MeshLambertMaterial({color:0x6dff7a,emissive:0x1d5a20});
-const head=new THREE.Mesh(new THREE.SphereGeometry(0.42,14,10),alienM);head.position.set(0,0.88,-1.2);head.scale.set(1,1.1,1);tilt.add(head);
-const eyeG=new THREE.SphereGeometry(0.14,10,8),eyeM=basic(0x050505);
-for(const ex of[-0.17,0.17]){const e=new THREE.Mesh(eyeG,eyeM);e.position.set(ex,0.96,-1.55);e.scale.set(1,1.5,0.6);e.rotation.z=ex>0?-0.4:0.4;tilt.add(e);}
-const topBeacon=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:0x9ff6ff,transparent:true,depthWrite:false}));topBeacon.position.set(0,1.0,1.6);topBeacon.scale.set(1.3,1.3,1);tilt.add(topBeacon);
-// belly: glowing round port
-const botMat=new THREE.MeshBasicMaterial({color:0x6dfff0});
-const bottom=new THREE.Mesh(new THREE.CylinderGeometry(1.5,1.5,0.12,32),botMat);bottom.position.y=-0.45;tilt.add(bottom);
-const botRing=new THREE.Mesh(new THREE.TorusGeometry(2.0,0.16,6,40),basic(0x3de1ff));botRing.rotation.x=PI/2;botRing.position.y=-0.42;tilt.add(botRing);
-const botRing2=new THREE.Mesh(new THREE.TorusGeometry(2.5,0.08,6,40),basic(0x1a1e28));botRing2.rotation.x=PI/2;botRing2.position.y=-0.44;tilt.add(botRing2);
-const portGlow=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:0x9ffff0,transparent:true,depthWrite:false}));portGlow.position.y=-0.8;portGlow.scale.set(6,3,1);tilt.add(portGlow);
-const uLight=new THREE.PointLight(0x66ffcc,1.2,70,1);uLight.position.y=-3;ufo.add(uLight);
+// ---------- UFO (triangular stealth craft) ----------
+const ufo=new THREE.Group(),tilt=new THREE.Group();
+ufo.add(tilt);scene.add(ufo);
+const stealthCraft=createStealthUFO(THREE);
+tilt.add(stealthCraft);
+const neonUp=[],cornerLights=[],lowLights=[];
+const botMat=new THREE.MeshBasicMaterial({color:0xdffaff});
+const topBeacon={material:{opacity:1}};
+const uLight=new THREE.PointLight(0xdffaff,1.2,70,1);
+uLight.position.y=-3;ufo.add(uLight);
 
 // ---------- beam ----------
 const beamMat=new THREE.ShaderMaterial({
@@ -837,11 +798,7 @@ function loop(now){
   bank+=((state==='play'?-ix*0.38:0)-bank)*(1-Math.exp(-5*dt));
   pitch+=(-(speed/80)*0.3-pitch)*(1-Math.exp(-4*dt));
   tilt.rotation.set(pitch,0,bank);
-  neonUp.forEach((s,i)=>{const k=0.8+0.3*Math.sin(t*(boosting?12:3)+i*1.7);s.material.color.setHex(s.userData.base).multiplyScalar(k);});
-  cornerLights.forEach((c,i)=>{const k=0.75+0.25*Math.sin(t*5+i*2.1);c.scale.set(3.4*k,3.4*k,1);});
-  lowLights.forEach((m,i)=>{const on=((Math.floor(t*6)+i)%4)!==0;m.visible=on;});
-  botMat.color.setHSL(0.47,1,0.6+0.12*Math.sin(t*6)+(beamActive?0.15:0));
-  topBeacon.material.opacity=0.6+0.4*Math.sin(t*3);
+  stealthCraft.userData.update(t,beamActive);
 
   // beam
   const reach=pos.y<BEAM_MAX,bR=6+pos.y*0.14,blen=Math.min(pos.y,BEAM_MAX)-0.9;
