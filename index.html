@@ -118,6 +118,15 @@ body.inplay:not(.touch) #dBtns{display:flex}
 #dFire{border:2px solid rgba(90,225,255,.8);box-shadow:0 0 14px rgba(90,225,255,.4)}
 #dBeam{border:2px solid rgba(110,255,140,.85);box-shadow:0 0 16px rgba(110,255,140,.45)}
 #dBtns button.on{filter:brightness(1.6)}
+/* phone held sideways: move the round side buttons into a row at the top so they don't cover BOOST / BEAM */
+@media (orientation:landscape) and (max-height:540px){
+  #mute,#pauseBtn,#promoBtn,#musicBtn,#exitBtn{top:12px!important;width:38px!important;height:38px!important;font-size:15px!important}
+  #mute{right:130px!important}#pauseBtn{right:174px!important}#promoBtn{right:218px!important}#musicBtn{right:262px!important}#exitBtn{right:306px!important}
+}
+@media (orientation:landscape) and (max-height:540px) and (max-width:760px){
+  #mute,#pauseBtn,#promoBtn,#musicBtn,#exitBtn{width:34px!important;height:34px!important;font-size:13px!important;top:14px!important}
+  #mute{right:118px!important}#pauseBtn{right:155px!important}#promoBtn{right:192px!important}#musicBtn{right:229px!important}#exitBtn{right:auto!important;left:170px!important}
+}
 #exitBtn{display:none;position:fixed;top:268px;right:16px;width:42px;height:42px;border-radius:50%;border:1.5px solid rgba(127,252,255,.6);background:rgba(8,14,38,.7);color:#fff;font-size:16px;z-index:5}
 body.promo #exitBtn{display:none!important}
 #musicBtn{position:fixed;top:220px;right:16px;width:42px;height:42px;border-radius:50%;border:1.5px solid rgba(255,190,70,.6);background:rgba(8,14,38,.7);color:#fff;font-size:18px;z-index:5;box-shadow:0 0 10px rgba(255,190,70,.35)}
