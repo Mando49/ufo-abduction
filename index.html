@@ -500,6 +500,27 @@ const boats=[];
     const l=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:0xffe0a0,transparent:true,depthWrite:false}));l.position.set(2.6,1,0);l.scale.set(2.5,2.5,1);g.add(l);
     scene.add(g);boats.push({g,x:rand(-280,280),dir:Math.random()<0.5?1:-1,sp:rand(4,8),lane:rand(-2.5,2.5)});}
 })();
+// Autonomous aerial traffic adds motion above the skyline without affecting collisions.
+const airTraffic=[];
+(function(){
+  const shell=lam(0x38465b),glass=basic(0x172a40),wingMat=lam(0x53647b);
+  const navRed=basic(0xff405c),navBlue=basic(0x42eaff),navWhite=basic(0xeaf8ff);
+  for(let i=0;i<6;i++){
+    const g=new THREE.Group();
+    box(g,4.8,0.8,1.65,shell,0,0,0);
+    box(g,1.7,0.55,1.3,glass,0.3,0.52,0);
+    box(g,2.8,0.18,5.6,wingMat,-0.35,-0.12,0);
+    box(g,0.65,0.12,1.2,navWhite,2.35,0.08,0);
+    const left=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:0xff405c,transparent:true,depthWrite:false}));
+    left.position.set(0,0.25,2.7);left.scale.set(2.2,2.2,1);g.add(left);
+    const right=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:0x42eaff,transparent:true,depthWrite:false}));
+    right.position.set(0,0.25,-2.7);right.scale.set(2.2,2.2,1);g.add(right);
+    const beacon=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:0xeaf8ff,transparent:true,depthWrite:false}));
+    beacon.position.set(-1.9,0.7,0);beacon.scale.set(1.6,1.6,1);g.add(beacon);
+    scene.add(g);
+    airTraffic.push({g,left,right,beacon,phase:i/6*2*PI,radius:rand(150,250),height:rand(48,82),speed:rand(0.045,0.085),tilt:rand(-0.05,0.05)});
+  }
+})();
 // palms + street lamps along main avenues
 (function(){
   const palms=[],lamps=[];
@@ -1072,6 +1093,13 @@ function loop(now){
   trains.forEach(T=>{T.s+=T.r.dir*30*dt;if(T.s>300)T.s=-300;if(T.s<-300)T.s=300;const y=T.r.h+2.2;
     if(T.isZ)T.g.position.set(T.r.c,y,T.s);else T.g.position.set(T.s,y,T.r.c);});
   boats.forEach(B=>{B.x+=B.dir*B.sp*dt;if(B.x>285)B.x=-285;if(B.x<-285)B.x=285;B.g.position.set(B.x,Math.sin(t*2+B.lane)*0.08,-150+B.lane);B.g.rotation.y=B.dir>0?0:PI;});
+  airTraffic.forEach(D=>{
+    const a=t*D.speed+D.phase;
+    D.g.position.set(Math.cos(a)*D.radius,D.height+Math.sin(a*2)*2.2,Math.sin(a)*D.radius);
+    D.g.rotation.y=-a+PI/2;D.g.rotation.z=Math.sin(a*2)*0.045+D.tilt;
+    const pulse=(t+D.phase*2)%1.4<0.22;
+    D.beacon.visible=pulse;
+  });
   const blink=(t%1.6)<0.25;roofLights.forEach(m=>m.visible=blink);
   trafficSignals.forEach(S=>{
     const phase=((t+S.offset)%8.4+8.4)%8.4;
