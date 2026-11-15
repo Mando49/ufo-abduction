@@ -1157,6 +1157,90 @@ function makeBillboard(x,z,ry,sub){
   colliders.push({x0:x-hx,x1:x+hx,z0:z-hz,z1:z+hz,h:P+H+1,y0:P-1.5});
 }
 makeBillboard(-40,308,0.3,'LAS VEGAS, NV');
+// ================= NEON CITY EXTRAS: stadium, street racers, helipad, live billboard, night market =================
+const COMBO={n:0,t:0},INV={on:false,cd:70,left:0,g:null,y:700,siren:0};
+const LIVE=[];function liveScreen(w,h,draw){const c=document.createElement('canvas');c.width=512;c.height=Math.round(512*h/w);const tx=new THREE.CanvasTexture(c);
+  const m=new THREE.Mesh(new THREE.PlaneGeometry(w,h),new THREE.MeshBasicMaterial({map:tx}));LIVE.push({c,tx,draw});return m;}
+function drawScore(g,W,H,title,sub){g.fillStyle='#05060c';g.fillRect(0,0,W,H);g.strokeStyle='#3de1ff';g.lineWidth=8;g.strokeRect(4,4,W-8,H-8);
+  g.textAlign='center';g.fillStyle='#ff4fd8';g.font='bold 34px sans-serif';g.fillText(title,W/2,48);
+  g.fillStyle='#7dffb0';g.font='bold 92px sans-serif';g.fillText(String(score),W/2,H*0.62);g.fillStyle='#ffd84a';g.font='bold 26px sans-serif';g.fillText(sub,W/2,H-24);}
+// 🏈 STADIUM — game night under the lights
+(function(){const X=-30,Z=-395,EX=1.3;
+  const crowdT=texCanvas(1024,128,g=>{g.fillStyle='#14161e';g.fillRect(0,0,1024,128);for(let i=0;i<2600;i++){g.fillStyle=pick(['#ff3b3b','#ffd84a','#ffffff','#3d8bff','#c03030','#e0e0e0','#2a2a2a']);g.fillRect(rand(0,1024),rand(0,128),3,4);}});
+  crowdT.wrapS=THREE.RepeatWrapping;crowdT.repeat.set(5,3);
+  const stands=new THREE.Mesh(new THREE.CylinderGeometry(70,48,24,56,1,true),new THREE.MeshLambertMaterial({map:crowdT,emissiveMap:crowdT,emissive:0x888888,side:THREE.DoubleSide}));stands.scale.x=EX;stands.position.set(X,12,Z);root.add(stands);
+  const wall=new THREE.Mesh(new THREE.CylinderGeometry(72,72,28,56,1,true),new THREE.MeshLambertMaterial({color:0x2a2e3a,side:THREE.DoubleSide}));wall.scale.x=EX;wall.position.set(X,14,Z);root.add(wall);
+  const rim=new THREE.Mesh(new THREE.TorusGeometry(72,1,8,80),new THREE.MeshBasicMaterial({color:0x3de1ff}));rim.scale.set(EX,1,1);rim.rotation.x=PI/2;rim.position.set(X,28,Z);root.add(rim);
+  const fieldT=texCanvas(512,256,g=>{for(let i=0;i<12;i++){g.fillStyle=i%2?'#2f8a3a':'#37984a';g.fillRect(i*512/12,0,512/12,256);}
+    g.fillStyle='#c02a2a';g.fillRect(0,0,42,256);g.fillStyle='#2a4ac0';g.fillRect(470,0,42,256);g.fillStyle='#fff';for(let i=1;i<11;i++)g.fillRect(42+i*39-1,0,3,256);
+    g.font='bold 30px sans-serif';g.save();g.translate(28,128);g.rotate(-PI/2);g.textAlign='center';g.fillText('UFO',0,10);g.restore();g.save();g.translate(486,128);g.rotate(PI/2);g.textAlign='center';g.fillText('ALIENS',0,10);g.restore();
+    g.beginPath();g.arc(256,128,30,0,2*PI);g.strokeStyle='#fff';g.lineWidth=4;g.stroke();});
+  const field=new THREE.Mesh(new THREE.PlaneGeometry(104,56),new THREE.MeshLambertMaterial({map:fieldT,emissiveMap:fieldT,emissive:0x444444}));field.rotation.x=-PI/2;field.position.set(X,0.08,Z);root.add(field);
+  for(const [dx,dz] of[[-80,-46],[80,-46],[-80,46],[80,46]]){box(root,1.4,48,1.4,0x4a505c,X+dx,24,Z+dz);box(root,10,4,2,0x30343c,X+dx,48,Z+dz);glowSprite(0xfff4d8,X+dx,48,Z+dz,34,0.75);}
+  colliders.push({x0:X-96,x1:X-58,z0:Z-72,z1:Z+72,h:28,y0:0},{x0:X+58,x1:X+96,z0:Z-72,z1:Z+72,h:28,y0:0},{x0:X-58,x1:X+58,z0:Z-74,z1:Z-48,h:28,y0:0},{x0:X-58,x1:X+58,z0:Z+48,z1:Z+74,h:28,y0:0});
+  const sb=liveScreen(40,20,(g,W,H)=>drawScore(g,W,H,'HOME 17 · AWAY 16','UFO SCORE · WATCH THE SKY'));sb.position.set(X,40,Z-74);root.add(sb);box(root,2,32,2,0x30343c,X,16,Z-75);
+  sign('NEON CITY STADIUM','#ffd84a',36,5,X,33,Z+76,0);
+  // players on the field
+  for(let i=0;i<10;i++){const g=makeHuman(false);g.userData.emoji='🏈';g.userData.pts=80;g.userData.heat=0.6;g.userData.tintHex=i%2?0xd83a3a:0xe8ecf4;
+    const T={type:'critter',mesh:useAnim('person',g,'city'),spawn:spawnCow,fl:[{x:X,z:Z}],rad:34};T.mesh.userData.T=T;T.spawn(T);targets.push(T);}
+  // 🎈 blimp circling over the stadium (catch it!)
+  const bl=new THREE.Group();const env=new THREE.Mesh(new THREE.SphereGeometry(1,24,14),new THREE.MeshLambertMaterial({color:0xd8dce4,emissive:0x202428}));env.scale.set(16,5.2,5.2);bl.add(env);
+  for(const [y,z] of[[4,0],[-4,0],[0,4],[0,-4]]){const f=box(bl,4,y?3:0.4,z?3:0.4,0x3de1ff,-14,y*0.8,z*0.8);}
+  box(bl,4,1.6,2,0x30343c,0,-5.6,0);
+  const ban=texCanvas(512,96,g=>{g.fillStyle='#0a0c18';g.fillRect(0,0,512,96);g.fillStyle='#7dffb0';g.font='bold 60px sans-serif';g.textAlign='center';g.fillText('🛸 UFO ABDUCTION',256,70);});
+  for(const sd of[-1,1]){const b=new THREE.Mesh(new THREE.PlaneGeometry(18,3.4),new THREE.MeshBasicMaterial({map:ban}));b.position.set(0,0,sd*5.25);if(sd<0)b.rotation.y=PI;bl.add(b);}
+  bl.userData.emoji='🎈';bl.userData.pts=300;bl.userData.heat=1;root.add(bl);
+  const BT={type:'critter',mesh:bl,still:true,spawn:T=>{T.mesh.visible=true;T.state='ground';resetRot(T.mesh);}};BT.spawn(BT);targets.push(BT);
+  cityAnim.push((t,dt)=>{crowdT.offset.x=(Math.sin(t*1.3)*0.004);if(BT.state==='ground'){const a=t*0.18;bl.position.set(X+Math.cos(a)*110,46+Math.sin(t*0.6)*3,Z+Math.sin(a)*80);bl.rotation.set(0,-a-PI/2,0);}});
+})();
+// 🏎️ street racers tearing around the outer ring road, police in pursuit
+(function(){const L=540,P=4*L;
+  const at=(s,o)=>{s=((s%P)+P)%P;const side=(s/L)|0,u=s%L-270,r=270-o;
+    return side===0?[u,-r,0]:side===1?[r,u,-PI/2]:side===2?[-u,r,PI]:[-r,-u,PI/2];};
+  for(let i=0;i<3;i++){const g=new THREE.Group();box(g,4.2,1,2,pick([0xff3fd2,0x3de1ff,0xffd84a]),0,0.9,0);
+    const glow=glowSprite(pick([0xff3fd2,0x3de1ff,0x7dffb0]),0,0,0,9,0.9);g.add(glow);glow.position.y=0.3;g.userData.emoji='🏎️';g.userData.pts=150;g.userData.heat=1.2;root.add(g);useModel('car',g);
+    const cop=new THREE.Group();box(cop,4.4,1.1,2,0x1a1a20,0,1,0);root.add(cop);useModel('police',cop);const rL=glowSprite(0xff2a2a,0,0,0,3,0.9),bL=glowSprite(0x2a5aff,0,0,0,3,0.9);cop.add(rL,bL);rL.position.set(0,2.4,0.6);bL.position.set(0,2.4,-0.6);
+    const T={type:'critter',mesh:g,still:true,s:i*P/3,spawn:T=>{T.s=rand(0,P);T.mesh.visible=true;T.state='ground';}};T.spawn(T);targets.push(T);
+    cityAnim.push((t,dt)=>{if(T.state==='ground'){T.s+=58*dt;const [x,z,r]=at(T.s,3.3);g.position.set(x,0,z);g.rotation.set(0,r,0);}
+      cop.visible=T.state==='ground';if(cop.visible){const [x,z,r]=at(T.s-26,3.3);cop.position.set(x,0,z);cop.rotation.set(0,r,0);const f=(t*6|0)%2;rL.visible=!!f;bL.visible=!f;}});}
+})();
+// 🚁 rooftop helipad, MANDO WINDOW TINTING sign, live score billboard and a low-flying news chopper
+(function(){const H=heroes.slice().sort((a,b)=>b.h-a.h),A=H[0],B=H[1],C=H[2];
+  const pad=new THREE.Mesh(new THREE.CylinderGeometry(9,9,0.6,28),lam(0x30343c));pad.position.set(A.x,A.h+0.6,A.z);root.add(pad);
+  const hT=texCanvas(128,128,g=>{g.fillStyle='#30343c';g.fillRect(0,0,128,128);g.strokeStyle='#ffd84a';g.lineWidth=8;g.beginPath();g.arc(64,64,54,0,2*PI);g.stroke();g.fillStyle='#fff';g.font='bold 80px sans-serif';g.textAlign='center';g.fillText('H',64,92);});
+  const hp=new THREE.Mesh(new THREE.CircleGeometry(8.6,28),new THREE.MeshBasicMaterial({map:hT}));hp.rotation.x=-PI/2;hp.position.set(A.x,A.h+0.95,A.z);root.add(hp);
+  const beacons=[];for(let i=0;i<8;i++){const a=i/8*2*PI;beacons.push(glowSprite(0x7dffb0,A.x+Math.cos(a)*9.5,A.h+1.4,A.z+Math.sin(a)*9.5,3,0.9));}
+  const ph=new THREE.Group();ph.position.set(A.x+1,A.h+1,A.z);ph.rotation.y=0.6;root.add(ph);useModel('heli',ph);
+  colliders.push({x0:A.x-9,x1:A.x+9,z0:A.z-9,z1:A.z+9,h:A.h+5,y0:A.h});
+  for(const [ry,dz] of[[0,1],[PI,-1]]){const m=neonText('MANDO WINDOW TINTING','#ff4fd8',40,6);m.position.set(B.x,B.h+6,B.z+dz*(B.w*0.6));m.rotation.y=ry;root.add(m);}
+  box(root,1,8,1,0x30343c,B.x-14,B.h+3,B.z);box(root,1,8,1,0x30343c,B.x+14,B.h+3,B.z);
+  const bb=liveScreen(44,24,(g,W,H)=>drawScore(g,W,H,'🛸 UFO SPOTTED OVER NEON CITY','LIVE SCORE · BEST '+best));bb.position.set(C.x,70,C.z+C.w*0.62+0.6);root.add(bb);
+  const bb2=liveScreen(44,24,(g,W,H)=>drawScore(g,W,H,'📺 BREAKING NEWS','CITIZENS REPORT STRANGE LIGHTS'));bb2.position.set(C.x,70,C.z-C.w*0.62-0.6);bb2.rotation.y=PI;root.add(bb2);
+  // news chopper flies low over the streets (catch it!)
+  const nc=new THREE.Group();box(nc,5,2,2,0x2a5ad8,0,1,0);root.add(nc);useModel('heli',nc);const sl=glowSprite(0xffffff,0,0,0,5,0.9);nc.add(sl);sl.position.set(3,-1,0);
+  nc.userData.emoji='📺';nc.userData.pts=150;nc.userData.heat=1;
+  const NT={type:'critter',mesh:nc,still:true,spawn:T=>{T.mesh.visible=true;T.state='ground';resetRot(T.mesh);}};NT.spawn(NT);targets.push(NT);
+  cityAnim.push((t,dt)=>{beacons.forEach((b,i)=>{b.visible=((t*6)|0)%8===i;});
+    if(NT.state==='ground'){const a=t*0.13;const x=Math.cos(a)*200,z=Math.sin(a*1.7)*150;nc.position.set(x,44+Math.sin(t)*3,z);const a2=a+0.01,x2=Math.cos(a2)*200,z2=Math.sin(a2*1.7)*150;nc.rotation.set(0.12,Math.atan2(-(z2-z),x2-x),0);}});
+})();
+// 🌮 night market in the park: food trucks, string lights, hungry crowd
+(function(){const X=180,Z=180;
+  const kinds=[['TACOS','#ffd84a',0xe8e2d4],['BOBA','#ff4fd8',0x3a2a4a],['ELOTES','#7dffb0',0xd84a3a],['BURGERS','#3de1ff',0x2a4a8a]];
+  kinds.forEach(([name,col,body],i)=>{const a=i/4*2*PI+PI/4,x=X+Math.cos(a)*17,z=Z+Math.sin(a)*17,g=new THREE.Group();g.position.set(x,0,z);g.rotation.y=-a+PI/2;
+    box(g,8,4.2,3.4,body,0,2.6,0);box(g,2.4,2.4,3.3,body,-4.6,1.8,0);box(g,4.5,1.6,0.1,basic(0xffd88a),0.6,3,1.75);
+    const aw=box(g,5,0.2,1.6,pick([0xff4a4a,0x4aa8ff,0xffd84a]),0.6,4.4,2.4);aw.rotation.x=0.35;
+    for(const wx of[-2.6,2.6])for(const wz of[-1.7,1.7]){const w=new THREE.Mesh(new THREE.CylinderGeometry(0.7,0.7,0.4,10),lam(0x111111));w.rotation.x=PI/2;w.position.set(wx,0.7,wz);g.add(w);}
+    const sg=neonText(name,col,7,1.8);sg.position.set(0.6,5.8,0);g.add(sg);const sg2=neonText(name,col,7,1.8);sg2.position.set(0.6,5.8,0);sg2.rotation.y=PI;g.add(sg2);
+    g.userData.emoji='🌮';g.userData.pts=120;g.userData.heat=0.8;root.add(g);
+    const T={type:'critter',mesh:g,still:true,spawn:T=>{T.mesh.position.set(x,0,z);resetRot(T.mesh);T.mesh.rotation.y=-a+PI/2;T.mesh.visible=true;T.state='ground';}};T.spawn(T);targets.push(T);});
+  const bulbs=[];for(let i=0;i<4;i++){const a=i/4*2*PI,b=(i+1)/4*2*PI;box(root,0.3,7,0.3,0x3a3a40,X+Math.cos(a)*23,3.5,Z+Math.sin(a)*23);
+    for(let k=0;k<8;k++){const u=k/8,x=X+Math.cos(a)*23*(1-u)+Math.cos(b)*23*u,z=Z+Math.sin(a)*23*(1-u)+Math.sin(b)*23*u;bulbs.push(glowSprite(pick([0xffd88a,0xff4fd8,0x3de1ff]),x,6.6-Math.sin(u*PI)*1.2,z,2.2,0.9));}}
+  for(let i=0;i<5;i++){const tb=box(root,3,0.2,1.6,0x8a6a40,X+rand(-8,8),1.4,Z+rand(-8,8));tb.rotation.y=rand(0,3);}
+  for(let i=0;i<10;i++){const g=makeHuman(false);g.userData.emoji='🍔';g.userData.pts=40;g.userData.heat=0.4;const T={type:'critter',mesh:useAnim('person',g,'city'),spawn:spawnCow,fl:[{x:X,z:Z}],rad:14};T.mesh.userData.T=T;T.spawn(T);targets.push(T);}
+  sign('NIGHT MARKET','#ffd84a',20,3.6,X,10,Z-25,PI);
+  cityAnim.push((t,dt)=>{bulbs.forEach((b,i)=>{b.material.opacity=0.6+0.35*Math.sin(t*3+i*0.7);});});
+})();
+cityAnim.push((()=>{let k=0;return(t,dt)=>{k-=dt;if(k>0)return;k=0.5;LIVE.forEach(L=>{L.draw(L.c.getContext('2d'),L.c.width,L.c.height);L.tx.needsUpdate=true;});};})());
 endTown('city',[160,820]);
 
 // ---------- AREA 51 DESERT ----------
@@ -1530,6 +1614,26 @@ for(let i=0;i<6;i++){const T={type:'truck',mesh:makeTruck(),spawn:spawnTruck};T.
 // 👽 lost crew: escaped aliens wander outside the Sublevel 9 lab, beam them home
 for(let i=0;i<4;i++){const g=new THREE.Group();box(g,0.8,1.2,0.6,0x6dff7a,0,1,0);box(g,1,0.9,0.9,0x8aff9a,0,2.1,0);g.userData.emoji='👽';g.userData.pts=150;g.userData.heat=0.6;root.add(g);
   const T={type:'critter',mesh:useAnim('alien',g,'desert'),spawn:spawnCow,fl:[{x:-200,z:370},{x:-330,z:375}],rad:22};T.mesh.userData.T=T;T.spawn(T);targets.push(T);}
+// 🏃 STORM AREA 51: a crowd rushing the front gate (beam them up fast for a combo bonus)
+for(let i=0;i<22;i++){const g=makeHuman(false);g.userData.emoji='🏃';g.userData.pts=30;g.userData.heat=0.35;g.userData.combo=true;
+  const T={type:'critter',mesh:useAnim('person',g,'desert'),spawn:spawnCow,fl:[{x:-82,z:-246}],rad:20};T.mesh.userData.T=T;T.spawn(T);targets.push(T);}
+(function(){const cx=-70,cz=-246;
+  for(let i=0;i<6;i++){const x=cx+rand(-18,18),z=cz+rand(-18,18),pl=box(root,0.25,3.4,0.25,0x8a6a40,x,1.7,z);
+    const b=box(root,3.6,2.2,0.15,pick([0xffffff,0xffe08a,0xa8f0ff]),x,4.2,z);b.rotation.y=rand(-0.6,0.6);}
+  sign('STORM AREA 51','#7dff8a',22,3.6,cx+10,7,cz+26,0);sign('THEY CAN\'T STOP ALL OF US','#ffd84a',26,2.6,cx+10,3.6,cz+26,0);
+  glowSprite(0xff4a4a,-120,14,-255,18,0.5);})();
+// 👽 ALIEN INN: roadside diner on the Extraterrestrial Highway with tourists snapping photos
+(function(){const X=40,Z=118;
+  box(root,30,8,16,0xd8cfbe,X,4,Z);box(root,31,1,17,0x8a8f98,X,8.5,Z);box(root,22,3,0.2,basic(0xffd88a),X,3.6,Z-8.1);box(root,4,6,0.2,basic(0x3a2a20),X+11,3,Z-8.1);
+  colliders.push({x0:X-15,x1:X+15,z0:Z-8,z1:Z+8,h:9,y0:0});
+  sign('ALIEN INN','#7dff8a',20,4,X,12,Z-8.4,PI);sign('EARTHLINGS WELCOME','#ff4fd8',22,2.4,X,9.6,Z-8.4,PI);
+  // giant alien head sign on a pole
+  box(root,0.8,18,0.8,0x555a66,X-22,9,Z-4);const head=new THREE.Mesh(new THREE.SphereGeometry(4,20,14),new THREE.MeshLambertMaterial({color:0x6dff7a,emissive:0x1a6a2a}));head.scale.set(1,1.25,0.8);head.position.set(X-22,22,Z-4);root.add(head);
+  for(const e of[-1.6,1.6]){const ey=new THREE.Mesh(new THREE.SphereGeometry(1.4,12,10),basic(0x050608));ey.scale.set(0.8,1.3,0.5);ey.position.set(X-22+e,22.5,Z-7);ey.rotation.z=e>0?-0.5:0.5;root.add(ey);}
+  glowSprite(0x6dff7a,X-22,22,Z-4,22,0.45);colliders.push({x0:X-25,x1:X-19,z0:Z-8,z1:Z,h:28,y0:0});
+  flatPlane(40,18,0x3a3a40,-1,X,Z-17);for(let i=0;i<3;i++){const c=box(root,4.4,1.6,2.2,pick([0xd04a4a,0x4a7ad0,0xe0c040]),X-10+i*9,1.2,Z-18);box(root,2.6,1.1,2,0x1a2230,X-10+i*9,2.4,Z-18);}
+  for(let i=0;i<8;i++){const g=makeHuman(false);g.userData.emoji='🤳';g.userData.pts=45;g.userData.heat=0.4;const T={type:'critter',mesh:useAnim('person',g,'desert'),spawn:spawnCow,fl:[{x:X-14,z:Z-20}],rad:14};T.mesh.userData.T=T;T.spawn(T);targets.push(T);}
+})();
 // 🪖 soldiers on patrol, 🐎 wild mustangs and 🫏 burros roaming the open desert
 for(let i=0;i<9;i++){const g=makeHuman(false);g.userData.emoji='🪖';g.userData.pts=70;g.userData.heat=1.2;
   const T={type:'critter',mesh:useAnim('soldier',g,'desert'),spawn:spawnCow,fl:[{x:-240,z:-215},{x:420,z:-290},{x:-300,z:200},{x:60,z:-150}],rad:40};T.mesh.userData.T=T;T.spawn(T);targets.push(T);}
@@ -2776,6 +2880,39 @@ beginTown('ocean');
   planetAnim.push({town:'ocean',f:t=>{targets.forEach(T=>{if(T.state==='ground'){T.mesh.position.y=T.swimY+Math.sin(t*1.5+T.mesh.id)*0.8;if(T.mesh.userData.tail)T.mesh.userData.tail.rotation.y=Math.sin(t*8+T.mesh.id)*0.4;}});}});
 })();
 endTown('ocean',[20,280]);Object.assign(towns.ocean,{planet:true,fogC:new THREE.Color(0x0a5a7a),skyTint:0x0a3a5a,label:'🌊 THE OCEAN'});
+// 🛸 HANGAR 18 — the underground base under Area 51 (fly in through the black-site hangar doors)
+beginTown('sub51');
+(function(){
+  const metal=lam(0x4a5260),dark=lam(0x262c36);root.add(new THREE.HemisphereLight(0xbfe8ff,0x203040,0.7));
+  flatPlane(190,620,0x22272e,-1,0,0);
+  for(let z=-290;z<=290;z+=20){box(root,186,0.1,0.6,basic(z%40?0x1a4a5a:0x2a8aa0),0,0.05,z);}
+  box(root,4,70,620,metal,-96,35,0);box(root,4,70,620,metal,96,35,0);box(root,196,4,620,dark,0,72,0);box(root,196,70,4,metal,0,35,-306);box(root,196,70,4,metal,0,35,306);
+  for(let z=-280;z<=280;z+=40){box(root,6,70,3,dark,-92,35,z);box(root,6,70,3,dark,92,35,z);box(root,190,3,3,dark,0,69,z);
+    const L1=glowSprite(0xbfe8ff,-60,66,z,22,0.35),L2=glowSprite(0xbfe8ff,60,66,z,22,0.35);}
+  sign('HANGAR 18','#53dcff',40,7,0,55,300,PI);sign('LEVEL 5 CLEARANCE','#ff4c9b',30,3,0,47,300,PI);
+  // rows of specimen tubes along both walls, an alien floating in each (beam them out!)
+  const tubes=[];
+  for(let k=0;k<8;k++)for(const side of[-1,1]){const x=side*72,z=230-k*58;
+    const glass=new THREE.Mesh(new THREE.CylinderGeometry(6,6,22,20,1,true),new THREE.MeshPhongMaterial({color:0x6af0ff,transparent:true,opacity:0.18,shininess:120,side:THREE.DoubleSide,depthWrite:false}));glass.position.set(x,13,z);root.add(glass);
+    box(root,15,2,15,metal,x,1,z);box(root,15,2,15,metal,x,25,z);const liq=glowSprite(pick([0x6dff7a,0x7ad8ff,0xc58bff]),x,13,z,20,0.35);tubes.push(liq);
+    colliders.push({x0:x-7,x1:x+7,z0:z-7,z1:z+7,h:26,y0:0});
+    const g=new THREE.Group();box(g,1,1.6,0.8,0x6dff7a,0,1.4,0);box(g,1.3,1.2,1.2,0x8aff9a,0,2.8,0);g.userData.emoji='👾';g.userData.pts=150;g.userData.heat=0;root.add(g);
+    const T={type:'critter',mesh:useAnim('alien',g,'sub51'),still:true,spawn:T=>{T.mesh.position.set(x,8,z);resetRot(T.mesh);T.mesh.rotation.y=side>0?PI/2:-PI/2;T.mesh.visible=true;T.state='ground';}};T.spawn(T);targets.push(T);}
+  // recovered flying saucers on stands down the middle
+  const saucers=[];for(let k=0;k<3;k++){const z=150-k*150,g=new THREE.Group();g.position.set(0,14,z);root.add(g);
+    const h=new THREE.Mesh(new THREE.SphereGeometry(22,32,14),new THREE.MeshPhongMaterial({color:0x9aa6b8,shininess:100,specular:0x99aabb}));h.scale.y=0.22;g.add(h);
+    const d=new THREE.Mesh(new THREE.SphereGeometry(8,20,10,0,2*PI,0,PI/2),new THREE.MeshPhongMaterial({color:0x6af0ff,transparent:true,opacity:0.5,emissive:0x0a4a5a}));d.position.y=3;g.add(d);
+    for(let i=0;i<10;i++){const a=i/10*2*PI,L=glowSprite(k%2?0xff4fd8:0x45eaff,0,0,0,4,0.9);g.add(L);L.position.set(Math.cos(a)*21.5,0,Math.sin(a)*21.5);}
+    box(root,3,12,3,metal,0,6,z);box(root,30,1,30,dark,0,0.5,z);colliders.push({x0:-23,x1:23,z0:z-23,z1:z+23,h:20,y0:0});saucers.push(g);}
+  // 🥼 scientists hurrying between the exhibits
+  for(let i=0;i<10;i++){const g=makeHuman(false);g.userData.emoji='🥼';g.userData.pts=60;g.userData.heat=0;g.userData.tintHex=0xf2f4f6;
+    const T={type:'critter',mesh:useAnim('person',g,'sub51'),spawn:spawnCow,fl:[{x:-35,z:rand(-220,220)},{x:35,z:rand(-220,220)}],rad:22};T.mesh.userData.T=T;T.spawn(T);targets.push(T);}
+  // exit elevator ring at the far end
+  const ex=new THREE.Mesh(new THREE.TorusGeometry(26,2.5,10,48),new THREE.MeshBasicMaterial({color:0x7dffb0}));ex.position.set(0,26,-296);root.add(ex);
+  const exG=glowSprite(0x7dffb0,0,26,-294,60,0.5);sign('EXIT ▲ SURFACE','#7dffb0',24,3.4,0,56,-302,0);
+  planetAnim.push({town:'sub51',f:(t,dt)=>{tubes.forEach((L,i)=>{L.material.opacity=0.28+0.12*Math.sin(t*2+i);});saucers.forEach((g,i)=>{g.rotation.y=t*0.25*(i%2?1:-1);g.position.y=14+Math.sin(t+i)*1.2;});exG.material.opacity=0.35+0.25*Math.sin(t*3);ex.rotation.z=t;}});
+})();
+endTown('sub51',[140,620]);Object.assign(towns.sub51,{planet:true,fogC:new THREE.Color(0x0a0e14),skyTint:0x000000,label:'🛸 HANGAR 18',bloom:0.6});
 
 
 
@@ -3977,6 +4114,29 @@ function pyramid(x,z,side,h,col,cap){
   const n=Math.ceil(h/2.8);for(let k=0;k<n;k++){const half=side/2*(1-k/n)*0.98,top=h*(k+0.6)/n;colliders.push({x0:x-half,x1:x+half,z0:z-half,z1:z+half,h:top,y0:0});}
 }
 function obelisk(x,z,h,glow){box(root,2.2,h,2.2,0xc8a868,x,h/2,z);const tip=new THREE.Mesh(new THREE.ConeGeometry(1.6,3,4),new THREE.MeshBasicMaterial({color:glow}));tip.rotation.y=PI/4;tip.position.set(x,h+1.5,z);root.add(tip);glowSprite(glow,x,h+1.5,z,7);colliders.push({x0:x-1.1,x1:x+1.1,z0:z-1.1,z1:z+1.1,h:h+3,y0:0});}
+// ---------- AREA 51: MOTHERSHIP INVASION event (double points, then the jets come) ----------
+inTown('desert',()=>{
+  const g=new THREE.Group();g.visible=false;root.add(g);INV.g=g;
+  const hull=new THREE.Mesh(new THREE.SphereGeometry(120,48,18),new THREE.MeshPhongMaterial({color:0x2a2f3a,shininess:60,specular:0x445566,emissive:0x05070a}));hull.scale.y=0.16;g.add(hull);
+  const under=new THREE.Mesh(new THREE.CylinderGeometry(70,96,10,48),new THREE.MeshPhongMaterial({color:0x1a1e26,emissive:0x0a0f18}));under.position.y=-12;g.add(under);
+  const core=new THREE.Mesh(new THREE.CylinderGeometry(26,30,6,32),new THREE.MeshBasicMaterial({color:0x7dffb0}));core.position.y=-18;g.add(core);
+  const ring=new THREE.Mesh(new THREE.TorusGeometry(108,2.2,8,90),new THREE.MeshBasicMaterial({color:0xff3a5a}));ring.rotation.x=PI/2;ring.position.y=-4;g.add(ring);
+  const lights=[];for(let i=0;i<36;i++){const a=i/36*2*PI;const L=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:i%2?0xff3a5a:0x7dffb0,transparent:true,blending:THREE.AdditiveBlending,depthWrite:false}));L.position.set(Math.cos(a)*112,-6,Math.sin(a)*112);L.scale.set(14,14,1);g.add(L);lights.push(L);}
+  const beam=new THREE.Mesh(new THREE.CylinderGeometry(24,60,260,32,1,true),new THREE.MeshBasicMaterial({color:0x7dffb0,transparent:true,opacity:0.12,blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide}));beam.position.y=-150;g.add(beam);
+  const alarms=[];for(const [x,z] of[[-260,-200],[-120,-255],[420,-300],[-300,170],[230,-320],[40,118]]){const a=glowSprite(0xff2a2a,x,16,z,26,0);alarms.push(a);}
+  desertAnim.push((dt,t)=>{
+    if(state==='play'&&mode==='ground'&&curTown==='desert'){
+      if(!INV.on){INV.cd-=dt;if(INV.cd<=0){INV.on=true;INV.left=45;INV.y=700;g.visible=true;pop('👾 MOTHERSHIP INVASION!');pop('DOUBLE POINTS for 45s — grab everything!','t');mEvent('invasion');}}
+      else{INV.left-=dt;INV.siren-=dt;if(INV.siren<=0){INV.siren=0.9;blip(520,880,0.35,'sawtooth',0.05);setTimeout(()=>blip(880,520,0.35,'sawtooth',0.05),420);}
+        if(INV.left<=0){INV.on=false;INV.cd=rand(150,220);heat=Math.max(heat,4);pop('✈️ JETS SCRAMBLED!');pop('The mothership is leaving — run!','t');}}
+    }
+    const target=INV.on?240:900;INV.y+=(target-INV.y)*(1-Math.exp(-dt*(INV.on?0.8:0.4)));g.position.set(-60,INV.y,-160);g.rotation.y=t*0.05;
+    if(!INV.on&&INV.y>850)g.visible=false;
+    lights.forEach((L,i)=>{L.visible=((t*4+i)|0)%2===0;});beam.material.opacity=INV.on?0.10+0.06*Math.sin(t*5):0.03;
+    alarms.forEach((a,i)=>{a.material.opacity=INV.on?(Math.sin(t*8+i)>0?0.85:0.1):0;});
+    if(INV.on)towns.desert.targets.forEach(T=>{if(T.mesh.userData.emoji==='🪖'||T.mesh.userData.emoji==='🏃')T.sp=Math.max(T.sp||0,4.2);});
+  });
+});
 // ---------- AREA 51: secret test aircraft + mystery spheres ----------
 // etched chrome orb texture (like the "Buga sphere": silver, carved bands, glyphs and a circuit core)
 const ORB_TEX=texCanvas(512,256,g=>{const gr=g.createLinearGradient(0,0,0,256);gr.addColorStop(0,'#e8eef4');gr.addColorStop(0.5,'#a9b4c0');gr.addColorStop(1,'#d4dce4');g.fillStyle=gr;g.fillRect(0,0,512,256);
@@ -4165,6 +4325,15 @@ const MISSIONS=[
   {id:'debris',t:'Recover 5 pieces of UFO wreckage (Area 51)',ev:'abduct',m:d=>d.emoji==='🔩',g:5,r:600},
   {id:'mib',t:'Abduct 3 Men in Black',ev:'abduct',m:d=>d.emoji==='🕴️',g:3,r:700},
   {id:'orbs',t:'Catch 3 mystery spheres (Area 51)',ev:'abduct',m:d=>d.emoji==='🔘',g:3,r:700},
+  {id:'stadium',t:'Abduct 3 football players (stadium)',ev:'abduct',m:d=>d.emoji==='🏈',g:3,r:500},
+  {id:'blimp',t:'Catch the stadium blimp',ev:'abduct',m:d=>d.emoji==='🎈',g:1,r:700},
+  {id:'racer',t:'Catch a street racer (police chase!)',ev:'abduct',m:d=>d.emoji==='🏎️',g:1,r:600},
+  {id:'news',t:'Abduct the news chopper',ev:'abduct',m:d=>d.emoji==='📺',g:1,r:600},
+  {id:'foodtruck',t:'Beam up 2 food trucks (night market)',ev:'abduct',m:d=>d.emoji==='🌮',g:2,r:500},
+  {id:'invasion',t:'Survive a Mothership Invasion at Area 51',ev:'invasion',g:1,r:500},
+  {id:'h18',t:'Fly into secret Hangar 18 (Area 51 hangar doors)',ev:'h18',g:1,r:500},
+  {id:'raiders',t:'Beam up 8 Area 51 raiders (combo!)',ev:'abduct',m:d=>d.emoji==='🏃',g:8,r:500},
+  {id:'specimens',t:'Free 4 alien specimens in Hangar 18',ev:'abduct',m:d=>d.emoji==='👾',g:4,r:700},
   {id:'soldiers',t:'Abduct 4 soldiers (Area 51)',ev:'abduct',m:d=>d.emoji==='🪖',g:4,r:600},
   {id:'mustangs',t:'Abduct 3 wild mustangs',ev:'abduct',m:d=>d.emoji==='🐎',g:3,r:500},
   {id:'burros',t:'Abduct 3 burros',ev:'abduct',m:d=>d.emoji==='🫏',g:3,r:400},
@@ -4512,6 +4681,7 @@ function wantTrack(){
   if(boss&&mode==='space')return 'boss';
   if(mode==='space')return 'space';
   if(heat>=3&&state==='play'&&!towns[curTown].planet)return 'boss';
+  if(curTown==='sub51')return 'desert';
   if(towns[curTown].planet)return curTown;
   if(pos.y>CLOUD_Y-10)return 'sky';
   return curTown;
@@ -4636,6 +4806,9 @@ function enterSpace(sec){
   snapCam();
   pop('🚀 '+SECTORS[sec].name);pop(sec==='earth'?'Fly to the Moon 🌕 or Mars 🔴 · or find a portal':'Shoot alien hunters · find a portal','t');blip(200,900,0.8,'sine',0.15);
 }
+function enterHangar18(){clearEnemies();heat=0;fadeIn();setTown('sub51');pos.set(0,22,270);yaw=0;speed=Math.min(speed,22);vy=0;snapCam();
+  pop('🛸 HANGAR 18');pop('Top-secret underground base · fly into the far elevator to leave','t');blip(300,90,0.8,'sawtooth',0.08);mEvent('h18');}
+function exitHangar18(){fadeIn();setTown('desert');pos.set(420,26,-385);yaw=PI;speed=Math.min(speed,22);vy=0;snapCam();pop('🏜️ BACK TO AREA 51');blip(90,300,0.6,'sine',0.1);}
 function landAt(n){
   mEvent('visit',{town:n});
   clearSpaceFoes();mode='ground';fadeIn();spaceGroup.visible=false;sky.visible=true;setTown(n);
@@ -4715,7 +4888,9 @@ function collide(){
 function abduct(T){
   mEvent('abduct',{type:T.type,cop:!!(T.mesh&&T.mesh.userData.police),emoji:T.mesh&&T.mesh.userData.emoji});
   T.state='gone';T.mesh.visible=false;T.rt=rand(5,9);doBurst(T.mesh.position);
-  const k=T.type,isCow=k==='cow',cop=!!T.mesh.userData.police,pts=T.mesh.userData.pts||{cow:10,car:cop?40:25,truck:40,critter:20}[k],tb={cow:4,car:6,truck:7,critter:5}[k];
+  const k=T.type,isCow=k==='cow',cop=!!T.mesh.userData.police,tb={cow:4,car:6,truck:7,critter:5}[k];let pts=T.mesh.userData.pts||{cow:10,car:cop?40:25,truck:40,critter:20}[k];
+  if(T.mesh.userData.combo){const now=performance.now();COMBO.n=(now-COMBO.t<3500)?COMBO.n+1:1;COMBO.t=now;if(COMBO.n>1){pts*=Math.min(COMBO.n,6);pop(`🔥 COMBO x${Math.min(COMBO.n,6)}!`);}}
+  if(INV.on&&curTown==='desert')pts*=2;
   score+=pts;timer+=tb;if(k==='cow'||k==='critter')cows++;else cars++;heat=Math.min(5,heat+(T.mesh.userData.heat!=null?T.mesh.userData.heat:{cow:0.5,car:0.8,truck:1.5,critter:0}[k]));heatIdle=0;
   pop(`+${pts} ${cop?'🚓':k==='critter'?T.mesh.userData.emoji:{cow:'🐄',car:'🚗',truck:'🚚'}[k]}`);if(cop){heat=Math.min(5,heat+1);}pop(`+${tb}s`,'t');
   // Two-part capture chime: rising energy sweep followed by a bright confirmation ping.
@@ -4823,7 +4998,9 @@ function loop(now){
     if(mode==='ground'){
       if(pos.y<3){pos.y=3;if(vy<0)vy=0;}
       const hd=Math.hypot(pos.x,pos.z);if(hd>620){pos.x*=620/hd;pos.z*=620/hd;}
+      if(curTown==='desert'&&state==='play'&&pos.z<-406&&pos.z>-440&&Math.abs(pos.x-420)<44&&pos.y<34)enterHangar18();
       collide();
+      if(curTown==='sub51'){pos.y=Math.min(pos.y,60);pos.x=clamp(pos.x,-88,88);pos.z=clamp(pos.z,-300,292);if(pos.z<-282&&Math.abs(pos.x)<34&&pos.y<46)exitHangar18();}
       if(pos.y>SPACE_Y||(curTown==='ocean'&&pos.y>SURF-3))enterSpace();
       if(curTown==='city'&&state==='play'){const pdx=pos.x-VEGAS_PORTAL.x,pdy=pos.y-VEGAS_PORTAL.y,pdz=pos.z-VEGAS_PORTAL.z;if(Math.abs(pdz)<5&&Math.hypot(pdx,pdy)<VEGAS_PORTAL.R+3)enterWarp('vegas');}
     }else if(mode==='space'){spaceUpdate(dt);if(mode==='space')stationUpdate(dt);}else warpUpdate(dt,ix,(up?1:0)-(down?1:0));
