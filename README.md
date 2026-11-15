@@ -56,3 +56,5 @@ Sponsored by [Mando Window Tinting](https://lasvegaswindowtintnv.com): window ti
 🎬 **Promo Camera:** tap 🎬 (or PROMO CAMERA on the menu) to hide the controls and let the ship fly itself while the camera cuts between cinematic shots — perfect for screen-recording TikTok / Reels clips. Tap anywhere to exit.
 
 Built with three.js. No install needed: it's a single `index.html` file.
+
+⏸ **Pause menu:** tap ⏸ (or press P / Esc) to pause — Resume, or Quit to Menu (keeps the credits you earned). On a computer you also get on-screen BEAM and FIRE buttons, and you can hold the left mouse button to beam or right mouse button to fire.
