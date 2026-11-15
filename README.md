@@ -38,7 +38,7 @@ A 3D browser game: fly a triangle UFO over a neon cyberpunk city and farmland, a
 
 🏈 **Neon City extras:** a stadium on game night (two football teams — red & white vs white & silver — a live scoreboard, a blimp to catch and a stadium parking lot with tailgaters), street racers chased by cops around the ring road, a rooftop helipad, the MANDO WINDOW TINTING tower sign, live score billboards, a low-flying news chopper and a night market with food trucks.
 
-🧊 **Antarctica & the Ice Wall:** the ice world is now Antarctica, ringed by a giant Ice Wall. Fly up and over it (the internet legend says it's all green on the other side) to find green hills, lakes, dinosaurs and a lost golden city.
+🧊 **Antarctica & the Ice Wall:** the ice world is now Antarctica: a green land with lakes, forests, dinosaurs and a lost golden city, ringed by a giant Ice Wall. Fly up and over it and everything beyond is frozen — snow, ice spikes, igloos, penguins, yetis and the Frost Palace.
 
 🧸 **Real 3D models:** your pilot alien is now a fully animated 3D character when you land (idle, walk, run and jump); camels, penguins, T-rexes, jaguars, sharks, tractors, barns and sunken treasure, plus *animated* walking people, mummies, yetis, robots, foxes and lost little aliens at Area 51 (rescue them by beaming them up!).
 
