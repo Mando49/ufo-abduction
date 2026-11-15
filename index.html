@@ -1007,7 +1007,8 @@ const W=0xf2f2f2,B=0x1a1a1a,PK=0xf0a0a0;
 const MODELS={cow:{file:'cow',len:3.0,rotY:PI/2,list:[]},car:{file:'car',len:4.4,rotY:0,list:[]},heli:{file:'heli',len:12,rotY:0,list:[]},jet:{file:'jet',len:12,rotY:0,list:[]},truck:{file:'truck',len:7,rotY:0,list:[]},police:{file:'police',len:4.6,rotY:0,list:[]},shadow:{file:'shadow',len:12.5,rotY:PI,list:[],yOff:-0.35,recolor:true},
   camel:{file:'camel',height:4.6,rotY:PI/2,list:[]},penguin:{file:'penguin',height:2.8,rotY:0,list:[]},dino:{file:'dino',height:4.6,rotY:PI/2,list:[]},
   jaguar:{file:'jaguar',height:2.4,rotY:0,list:[]},shark:{file:'shark',len:3.8,rotY:PI/2,list:[]},tractor:{file:'tractor',height:3.6,rotY:0,list:[]},
-  barn:{file:'barn',height:14,rotY:-PI/2,list:[]},chest:{file:'chest',height:2.6,rotY:0,list:[]}};
+  barn:{file:'barn',height:14,rotY:-PI/2,list:[]},chest:{file:'chest',height:2.6,rotY:0,list:[]},
+  sr71:{file:'sr71',len:34,rotY:0,list:[]},bop:{file:'bop',len:15,rotY:PI/2,list:[]},dropship:{file:'dropship',len:22,rotY:0,list:[]},wing:{file:'wing',len:22,rotY:-PI/2,list:[]}};
 function useModel(type,g){const M=MODELS[type];if(M.proto)attachModel(M,g);else M.list.push(g);return g;}
 barnGroups.forEach(b=>useModel('barn',b));
 function attachModel(M,g){g.children.forEach(c=>{if(!c.isSprite&&!c.userData.keep)c.visible=false;});const m=M.proto.clone();if(M.yOff)m.position.y=M.yOff;g.add(m);if(g.userData.onAttach)g.userData.onAttach(M);}
@@ -3965,6 +3966,56 @@ function pyramid(x,z,side,h,col,cap){
   const n=Math.ceil(h/2.8);for(let k=0;k<n;k++){const half=side/2*(1-k/n)*0.98,top=h*(k+0.6)/n;colliders.push({x0:x-half,x1:x+half,z0:z-half,z1:z+half,h:top,y0:0});}
 }
 function obelisk(x,z,h,glow){box(root,2.2,h,2.2,0xc8a868,x,h/2,z);const tip=new THREE.Mesh(new THREE.ConeGeometry(1.6,3,4),new THREE.MeshBasicMaterial({color:glow}));tip.rotation.y=PI/4;tip.position.set(x,h+1.5,z);root.add(tip);glowSprite(glow,x,h+1.5,z,7);colliders.push({x0:x-1.1,x1:x+1.1,z0:z-1.1,z1:z+1.1,h:h+3,y0:0});}
+// ---------- AREA 51: secret test aircraft + mystery spheres ----------
+// etched chrome orb texture (like the "Buga sphere": silver, carved bands, glyphs and a circuit core)
+const ORB_TEX=texCanvas(512,256,g=>{const gr=g.createLinearGradient(0,0,0,256);gr.addColorStop(0,'#e8eef4');gr.addColorStop(0.5,'#a9b4c0');gr.addColorStop(1,'#d4dce4');g.fillStyle=gr;g.fillRect(0,0,512,256);
+  for(let i=0;i<900;i++){g.fillStyle=`rgba(${Math.random()<0.5?'255,255,255':'60,70,80'},.08)`;g.fillRect(rand(0,512),rand(0,256),rand(1,4),1);}
+  g.strokeStyle='rgba(40,46,56,.85)';g.lineWidth=7;
+  for(let k=0;k<4;k++){const cx=64+k*128;g.beginPath();g.arc(cx,128,92,-1.2,1.2);g.stroke();g.beginPath();g.arc(cx+128,128,92,PI-1.2,PI+1.2);g.stroke();}
+  g.lineWidth=2.5;for(let k=0;k<4;k++){const cx=64+k*128;g.beginPath();g.arc(cx,128,34,0,2*PI);g.stroke();g.beginPath();g.arc(cx,128,46,0,2*PI);g.stroke();
+    for(let r=0;r<12;r++){const a=r/12*2*PI;g.beginPath();g.moveTo(cx+Math.cos(a)*10,128+Math.sin(a)*10);g.lineTo(cx+Math.cos(a)*30,128+Math.sin(a)*30);g.stroke();g.beginPath();g.arc(cx+Math.cos(a)*30,128+Math.sin(a)*30,2.5,0,2*PI);g.stroke();}
+    g.font='bold 13px monospace';g.fillStyle='rgba(40,46,56,.8)';for(let r=0;r<16;r++){const a=r/16*2*PI;g.fillText(String.fromCharCode(0x16A0+((r*7+k*3)%60)),cx+Math.cos(a)*58-5,128+Math.sin(a)*58+5);}
+    g.beginPath();g.moveTo(cx,40);g.lineTo(cx+14,64);g.lineTo(cx-14,64);g.closePath();g.stroke();g.beginPath();g.moveTo(cx,216);g.lineTo(cx+14,192);g.lineTo(cx-14,192);g.closePath();g.stroke();}});
+const ORB_MAT=new THREE.MeshPhongMaterial({map:ORB_TEX,bumpMap:ORB_TEX,bumpScale:0.6,color:0xffffff,specular:0xeef6ff,shininess:140,emissive:0x101418});
+function makeOrb(r){const g=new THREE.Group();const m=new THREE.Mesh(new THREE.SphereGeometry(r,32,20),ORB_MAT);m.position.y=r;g.add(m);g.userData.ball=m;return g;}
+inTown('desert',()=>{
+  const T51=towns.desert.targets,HX=420,HZ=-360;
+  // 🛩️ secret aircraft parked in front of the black-site hangar
+  const parked=[[HX-62,HZ+40,'sr71',0.15],[HX+2,HZ+52,'wing',0],[HX+60,HZ+40,'bop',-0.2]];
+  parked.forEach(([x,z,k,ry])=>{const g=new THREE.Group();g.position.set(x,0,z);g.rotation.y=-PI/2+ry;root.add(g);useModel(k,g);
+    colliders.push({x0:x-12,x1:x+12,z0:z-12,z1:z+12,h:5,y0:0});
+    for(const [dx,dz] of[[-14,-14],[14,-14],[-14,14],[14,14]]){box(root,0.4,2,0.4,0xff8a2a,x+dx,1,z+dz);}});
+  sign('PROJECT: BLACK STAR','#ff4c9b',30,4,HX,8,HZ+82,0);
+  // ✈️ test flights over the base
+  const flyers=[];
+  const fly=(k,r,y,sp,cx,cz,bank)=>{const g=new THREE.Group();root.add(g);useModel(k,g);const tr=glowSprite(0xff9a4a,0,0,0,6,0.8);g.add(tr);tr.position.set(-({sr71:17,wing:9,bop:7.5}[k]||8),0,0);flyers.push({g,r,y,sp,cx,cz,bank,ph:rand(0,6),tr});};
+  fly('sr71',520,190,0.32,0,0,0.35);fly('wing',380,140,-0.12,-100,-80,0.2);fly('bop',160,55,0.55,230,-320,0.6);fly('bop',220,75,-0.42,-260,-260,0.55);
+  // 🚁 dropship hovering up and down by the crash site
+  const ds=new THREE.Group();ds.position.set(140,0,-250);root.add(ds);useModel('dropship',ds);
+  const dsJets=[-1,1].map(sd=>{const j=glowSprite(0x6ad8ff,0,0,0,7,0.8);ds.add(j);j.position.set(-1,1,sd*7);return j;});
+  // 🔘 mystery spheres: one on display, one half-buried in the crater, and UAP orbs zipping around the sky
+  const disp=makeOrb(5);disp.position.set(HX,3.2,HZ+92);root.add(disp);
+  const ped=new THREE.Mesh(new THREE.CylinderGeometry(4,5,3.2,24),lam(0x2a303a));ped.position.set(HX,1.6,HZ+92);root.add(ped);glowSprite(0x7ad8ff,HX,1,HZ+92,16,0.4);
+  colliders.push({x0:HX-5,x1:HX+5,z0:HZ+87,z1:HZ+97,h:13,y0:0});
+  const bur=makeOrb(4);bur.position.set(262,-3,-345);bur.rotation.set(0.5,0,0.3);root.add(bur);
+  const orbs=[];
+  const spawnOrb=T=>{T.mesh.position.set(rand(-350,450),rand(10,28),rand(-450,250));resetRot(T.mesh);T.mesh.visible=true;T.state='ground';T.to=T.mesh.position.clone();T.wait=rand(1,4);};
+  for(let i=0;i<6;i++){const g=makeOrb(1.6);g.userData.ball.position.y=0;const gl=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:0xbfe8ff,transparent:true,blending:THREE.AdditiveBlending,depthWrite:false,opacity:0.55}));gl.scale.set(7,7,1);g.add(gl);
+    g.userData.emoji='🔘';g.userData.pts=120;g.userData.heat=0.8;root.add(g);
+    const T={type:'critter',mesh:g,still:true,spawn:spawnOrb};T.spawn(T);T51.push(T);orbs.push(T);}
+  desertAnim.push((dt,t)=>{
+    flyers.forEach(F=>{const a=t*F.sp+F.ph,x=F.cx+Math.cos(a)*F.r,z=F.cz+Math.sin(a)*F.r;F.g.position.set(x,F.y+Math.sin(t*0.5+F.ph)*6,z);
+      const dir=Math.sign(F.sp);F.g.rotation.set(0,-a-dir*PI/2,0);F.g.rotateX(-dir*F.bank);});
+    const k=(t*0.08)%1,h=k<0.25?k/0.25:k<0.6?1:k<0.85?1-(k-0.6)/0.25:0;ds.position.y=0.1+h*h*(3-2*h)*34;ds.rotation.y=0.6+Math.sin(t*0.2)*0.25*h;
+    dsJets.forEach(j=>{j.visible=h>0.01;j.scale.setScalar(5+Math.random()*3);});
+    disp.rotation.y=t*0.3;
+    orbs.forEach(T=>{if(T.state!=='ground')return;const m=T.mesh;T.wait-=dt;
+      if(T.wait<=0){T.wait=rand(1.5,5);T.to.set(m.position.x+rand(-120,120),rand(8,30),m.position.z+rand(-120,120));T.to.x=clamp(T.to.x,-500,560);T.to.z=clamp(T.to.z,-560,500);}
+      m.position.lerp(T.to,1-Math.exp(-dt*2.5)); // sudden zip then hover, like UAP footage
+      m.position.y+=Math.sin(t*2+m.id)*0.02;m.rotation.y+=dt*0.6;});
+  });
+  colliders.push({x0:126,x1:154,z0:-264,z1:-236,h:6,y0:0});
+});
 // ---------- AREA 51: the Roswell-style CRASH SITE (replaces the old pyramid valley) ----------
 inTown('desert',()=>{
   const X=230,Z=-320,T51=towns.desert.targets;
@@ -4102,6 +4153,7 @@ const MISSIONS=[
   {id:'pyramid',t:'Stand on top of a pyramid (Egypt or Mars)',ev:'pyramid',g:1,r:500},
   {id:'debris',t:'Recover 5 pieces of UFO wreckage (Area 51)',ev:'abduct',m:d=>d.emoji==='🔩',g:5,r:600},
   {id:'mib',t:'Abduct 3 Men in Black',ev:'abduct',m:d=>d.emoji==='🕴️',g:3,r:700},
+  {id:'orbs',t:'Catch 3 mystery spheres (Area 51)',ev:'abduct',m:d=>d.emoji==='🔘',g:3,r:700},
   {id:'wanted',t:'Reach a 5-star wanted level',ev:'heat5',g:1,r:400},
   {id:'score',t:'Score 2,000 in one game',ev:'score2k',g:1,r:500},
   {id:'race',t:'Finish the Sky Race',ev:'race',g:1,r:500},
