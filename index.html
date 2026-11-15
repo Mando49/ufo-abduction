@@ -603,7 +603,7 @@ const roofLights=[];
 })();
 // glowing 🎰 VEGAS portal ring — fly through it to reach the Las Vegas Strip
 // giant neon ring arch (fly through it for bonus time)
-const VEGAS_PORTAL={x:180,y:45,z:180,R:26};
+const VEGAS_PORTAL={x:95,y:58,z:305,R:26}; // out in the open between the city and the farms (was on top of the city's Crashed Saucer secret)
 (function(){
   const cx=VEGAS_PORTAL.x,cy=VEGAS_PORTAL.y,cz=VEGAS_PORTAL.z,R=VEGAS_PORTAL.R;
   const g=new THREE.Group();g.position.set(cx,cy,cz);
@@ -615,7 +615,7 @@ const VEGAS_PORTAL={x:180,y:45,z:180,R:26};
   for(let i=0;i<12;i++){const a=i/12*2*PI;const s=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:0xff3fd2,transparent:true,depthWrite:false}));s.position.set(Math.cos(a)*(R+2.5),Math.sin(a)*(R+2.5),0);s.scale.set(4,4,1);g.add(s);}
   root.add(g);
   box(root,12,7,16,0x2a2f3c,cx,3.5,cz);box(root,12.4,0.5,16.4,basic(0xffd84a),cx,7,cz);
-  const lbl=neonText('🎰 VEGAS',0xffd84a,40,10);lbl.position.set(cx,cy+R+12,cz);root.add(lbl);
+  const lbl=neonText('🎰 VEGAS','#ffd84a',40,10);lbl.position.set(cx,cy+R+12,cz);root.add(lbl);
 })();
 
 (function(){
@@ -2057,7 +2057,7 @@ beginTown('vegas');function makeElvis(){
   for(const z of[-0.15,0.15]){const pv=new THREE.Group();pv.position.set(0,0.7,z);body.add(pv);const l=new THREE.Mesh(new THREE.BoxGeometry(0.26,0.7,0.3),suit);l.position.y=-0.35;pv.add(l);legs.push(pv);
     const pa=new THREE.Group();pa.position.set(0,1.5,z*2.6);body.add(pa);const a=new THREE.Mesh(new THREE.BoxGeometry(0.2,0.7,0.24),suit);a.position.y=-0.35;pa.add(a);arms.push(pa);}
   g.userData.legs=legs;g.userData.arms=arms;g.userData.body=body;
-  g.userData.pts=100;g.userData.emoji='🕺';g.userData.heat=0.8;
+  body.scale.setScalar(1.6);g.userData.pts=100;g.userData.emoji='🕺';g.userData.heat=0.8;
   root.add(g);return g;
 }
 function makeShowgirl(){
@@ -2071,7 +2071,7 @@ function makeShowgirl(){
   for(const z of[-0.14,0.14]){const pv=new THREE.Group();pv.position.set(0,0.7,z);body.add(pv);const l=new THREE.Mesh(new THREE.BoxGeometry(0.24,0.7,0.28),skin);l.position.y=-0.35;pv.add(l);legs.push(pv);
     const pa=new THREE.Group();pa.position.set(0,1.45,z*2.6);body.add(pa);const a=new THREE.Mesh(new THREE.BoxGeometry(0.18,0.65,0.22),skin);a.position.y=-0.32;pa.add(a);arms.push(pa);}
   g.userData.legs=legs;g.userData.arms=arms;g.userData.body=body;
-  g.userData.pts=80;g.userData.emoji='💃';g.userData.heat=0.7;
+  body.scale.setScalar(1.6);g.userData.pts=80;g.userData.emoji='💃';g.userData.heat=0.7;
   root.add(g);return g;
 }
 
@@ -2131,7 +2131,12 @@ function makeShowgirl(){
   const slot={spin:0,cd:0,res:[0,0,0]};
   // 🌐 the Sphere — giant glowing orb at the north-west end of the Strip
   // "Welcome to Las Vegas" diamond sign at the south end of the Strip
-  const sphereMat=new THREE.MeshStandardMaterial({color:0xffd84a,emissive:0xff9a00,emissiveIntensity:0.9,roughness:0.3,metalness:0.1});
+  // the Sphere is a giant LED screen: it cycles through big pictures
+  const sphC=document.createElement('canvas');sphC.width=1024;sphC.height=512;const sphG=sphC.getContext('2d');const sphTex=new THREE.CanvasTexture(sphC);
+  const SPH=[['👽','#2a0a5a','#18c8ff'],['🌍','#02142a','#0a5aa8'],['👁️','#1a0a0a','#ff6a20'],['🛸','#0a0a2a','#ff3fd2'],['🎰','#2a1a00','#ffd040']];let sphI=-1;
+  const drawSph=i=>{const [e,a,b]=SPH[i];const gr=sphG.createLinearGradient(0,0,0,512);gr.addColorStop(0,a);gr.addColorStop(0.5,b);gr.addColorStop(1,a);sphG.fillStyle=gr;sphG.fillRect(0,0,1024,512);
+    sphG.font='300px system-ui,"Apple Color Emoji","Segoe UI Emoji"';sphG.textAlign='center';sphG.textBaseline='middle';sphG.fillText(e,256,270);sphG.fillText(e,768,270);sphTex.needsUpdate=true;};
+  const sphereMat=new THREE.MeshBasicMaterial({map:sphTex,color:0xb8b8b8});
   const sphere=new THREE.Mesh(new THREE.SphereGeometry(42,48,32),sphereMat);sphere.position.set(-260,44,-520);root.add(sphere);
   (function(){const rb=new THREE.Mesh(new THREE.TorusGeometry(43,1.5,8,64),basic(0xffd84a));rb.rotation.x=PI/2;rb.position.set(-260,2,-520);root.add(rb);})();
   colliders.push({x0:-260-42,x1:-260+42,z0:-520-42,z1:-520+42,h:88,y0:0});
@@ -2175,7 +2180,7 @@ function makeShowgirl(){
       const r=Math.random();slot.res=r<0.12?[6,6,6]:r<0.25?[5,5,5]:r<0.38?(()=>{const s=(Math.random()*5)|0;return[s,s,s];})():[(Math.random()*7)|0,(Math.random()*7)|0,(Math.random()*7)|0];
       pop('🎰 SPINNING…');blip(800,1200,0.15,'square',0.08);}
     targets.forEach(T=>{const u=T.mesh.userData;if(u.legs&&T.state==='ground'){const sw=Math.sin(t*7+T.mesh.id)*0.4;u.legs[0].rotation.z=sw;u.legs[1].rotation.z=-sw;u.arms[0].rotation.z=-sw;u.arms[1].rotation.z=sw;}});
-    sphereMat.emissive.setHSL((t*0.04)%1,0.85,0.55);sphere.rotation.y+=dt*0.1;
+    {const k=Math.floor(t/6)%SPH.length;if(k!==sphI){sphI=k;drawSph(k);}}sphere.rotation.y+=dt*0.1;
     mono.position.z=((t*14)%1160)-580;
   }});
   // tourists everywhere
@@ -3646,7 +3651,7 @@ inTown('vegas',(X,Z)=>{
   const chipC=[0xffd84a,0xff3fd2,0x45eaff,0x2dff9a,0xff8a3d];
   for(let i=0;i<5;i++){const chip=new THREE.Mesh(new THREE.CylinderGeometry(0.5,0.5,0.3,10),basic(chipC[i]));chip.position.set(X-1+i*0.5,1.5,Z+1);root.add(chip);}
   glowSprite(0xffd84a,X,4,Z,14,0.7);glowSprite(0xff3fd2,X,8,Z,10,0.6);
-  sign('HIGH ROLLER',0xffd84a,16,4,X,9,Z+4.3,0);
+  sign('HIGH ROLLER','#ffd84a',16,4,X,9,Z+4.3,0);
 });
 
 
