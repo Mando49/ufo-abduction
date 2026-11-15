@@ -124,7 +124,7 @@ body.touch #keys{display:none}
       <b>SPACE</b> – tractor beam · <b>SHIFT</b> – boost<br>
       Tip: the beam only reaches when you're <b>below 70m</b>.
     </div>
-    <p style="font-size:13px">🐄 Cow 10 · 🚗 Car 25 · 🚚 Army truck 40 · 🚁 Helicopter 60 · 💎 Space crystal 5</p>
+    <p style="font-size:13px">🐄 Cow 10 · 🚗 Car 25 · 🚓 Police car 40 · 🚚 Army truck 40 · 🚁 Helicopter 60 · 💎 Space crystal 5</p>
     <p style="font-size:13px">⭐ Every abduction raises your <b>wanted level</b>. Helicopters, then fighter jets with homing missiles come after you. Boost to outrun missiles. Beam up helicopters flying below you!</p>
     <p style="font-size:13px">🚀 Fly up through the clouds (250m+) to reach space, then fly through a portal to travel to the <b>Area 51 desert</b>.</p>
     <button class="play" id="playBtn">PLAY</button>
@@ -760,19 +760,19 @@ const farmBirds=[],fireflies=[];
 // ---------- targets ----------
 const W=0xf2f2f2,B=0x1a1a1a,PK=0xf0a0a0;
 // ---------- real 3D models (made with Higgsfield / Tripo) ----------
-const MODELS={cow:{file:'cow',len:3.0,rotY:PI/2,list:[]},car:{file:'car',len:4.4,rotY:0,list:[]},heli:{file:'heli',len:12,rotY:0,list:[]},jet:{file:'jet',len:12,rotY:0,list:[]}};
+const MODELS={cow:{file:'cow',len:3.0,rotY:PI/2,list:[]},car:{file:'car',len:4.4,rotY:0,list:[]},heli:{file:'heli',len:12,rotY:0,list:[]},jet:{file:'jet',len:12,rotY:0,list:[]},truck:{file:'truck',len:7,rotY:0,list:[]},police:{file:'police',len:4.6,rotY:0,list:[]},shadow:{file:'shadow',len:12.5,rotY:PI,list:[],yOff:-0.35,recolor:true}};
 function useModel(type,g){const M=MODELS[type];if(M.proto)attachModel(M,g);else M.list.push(g);return g;}
-function attachModel(M,g){g.children.forEach(c=>{if(!c.isSprite&&!c.userData.keep)c.visible=false;});const m=M.proto.clone();g.add(m);}
+function attachModel(M,g){g.children.forEach(c=>{if(!c.isSprite&&!c.userData.keep)c.visible=false;});const m=M.proto.clone();if(M.yOff)m.position.y=M.yOff;g.add(m);if(g.userData.onAttach)g.userData.onAttach(M);}
 if(THREE.GLTFLoader){const ld=new THREE.GLTFLoader();
   for(const k in MODELS){const M=MODELS[k];
     const onLoad=gl=>{
       const holder=new THREE.Group(),inner=gl.scene;inner.rotation.y=M.rotY;holder.add(inner);
-      inner.traverse(o=>{if(o.isMesh){const mt=o.material;if(mt&&mt.map){mt.emissive=new THREE.Color(0xffffff);mt.emissiveMap=mt.map;mt.emissiveIntensity=0.22;mt.needsUpdate=true;}}});
+      inner.traverse(o=>{if(o.isMesh&&M.recolor){o.material=new THREE.MeshStandardMaterial({color:0x3a4252,metalness:0.6,roughness:0.28,emissive:0x0c1018,normalMap:o.material.normalMap||null});return;}if(o.isMesh){const mt=o.material;if(mt&&mt.map){mt.emissive=new THREE.Color(0xffffff);mt.emissiveMap=mt.map;mt.emissiveIntensity=0.22;mt.needsUpdate=true;}}});
       holder.updateMatrixWorld(true);let b=new THREE.Box3().setFromObject(holder),sz=b.getSize(new V3());
       const sc=M.len/Math.max(sz.x,0.001);holder.scale.setScalar(sc);holder.updateMatrixWorld(true);
       b=new THREE.Box3().setFromObject(holder);const c=b.getCenter(new V3());
       const wrap=new THREE.Group();holder.position.set(-c.x,-b.min.y,-c.z);wrap.add(holder);
-      M.proto=wrap;M.list.forEach(g=>attachModel(M,g));M.list.length=0;
+      M.size=new THREE.Box3().setFromObject(holder).getSize(new V3());M.proto=wrap;M.list.forEach(g=>attachModel(M,g));M.list.length=0;
     };
     const D=window.MODEL_DATA&&window.MODEL_DATA[M.file];
     if(D){try{const bin=atob(D),u=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)u[i]=bin.charCodeAt(i);ld.parse(u.buffer,'',onLoad,()=>{});}catch(e){}}
@@ -789,6 +789,7 @@ function makeCow(){
 }
 const carCols=[0xd63031,0x0984e3,0xfdcb6e,0x00b894,0xe17055,0xdfe6e9,0x6c5ce7,0x2d3436,0xffffff];
 const headM=basic(0xffffff),tailM=basic(0xff2020);
+const policeLights=[];
 function makeCar(){
   const g=new THREE.Group();
   box(g,4.2,1.1,2,carCols[(Math.random()*carCols.length)|0],0,0.9,0);
@@ -796,7 +797,12 @@ function makeCar(){
   box(g,0.12,0.32,0.45,headM,2.12,0.95,0.6);box(g,0.12,0.32,0.45,headM,2.12,0.95,-0.6);
   box(g,0.12,0.28,0.5,tailM,-2.12,0.95,0.6);box(g,0.12,0.28,0.5,tailM,-2.12,0.95,-0.6);
   const hb=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:0xfff2c0,transparent:true,depthWrite:false,opacity:.8}));hb.position.set(3.2,0.9,0);hb.scale.set(4,2.4,1);g.add(hb);
-  root.add(g);return useModel('car',g);
+  root.add(g);
+  if(Math.random()<0.3){g.userData.police=true;
+    const r=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:0xff2030,transparent:true,depthWrite:false}));r.position.set(-0.2,1.95,0.45);r.scale.set(2.4,2.4,1);g.add(r);
+    const bl=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:0x2060ff,transparent:true,depthWrite:false}));bl.position.set(-0.2,1.95,-0.45);bl.scale.set(2.4,2.4,1);g.add(bl);
+    policeLights.push([r,bl]);return useModel('police',g);}
+  return useModel('car',g);
 }
 function resetRot(m){m.rotation.set(0,0,0);}
 function spawnCow(T){
@@ -865,7 +871,7 @@ function makeTruck(){
   for(const z of[-0.8,0.8])box(g,0.12,0.3,0.4,headM,3.45,1.0,z);
   for(const x of[-2.5,0,2.2])for(const z of[-1.2,1.2])box(g,1,1,0.4,0x111111,x,0.5,z);
   const hb=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:0xfff2c0,transparent:true,depthWrite:false,opacity:.7}));hb.position.set(4.3,1,0);hb.scale.set(3.5,2,1);g.add(hb);
-  root.add(g);return g;
+  root.add(g);return useModel('truck',g);
 }
 function spawnTruck(T){T.axis='x';T.dir=Math.random()<0.5?1:-1;T.lane=-190+3*T.dir;T.c0=-260;T.wrap=190;T.sp=rand(5,9);T.along=rand(-450,-70);placeCar(T);T.mesh.visible=true;T.state='ground';}
 function spawnHwy(T){T.axis='x';T.dir=Math.random()<0.5?1:-1;T.lane=80+3*T.dir;T.c0=0;T.wrap=640;T.sp=rand(18,28);T.along=rand(-600,600);placeCar(T);T.mesh.visible=true;T.state='ground';}
@@ -1325,9 +1331,30 @@ function makeSaucer(sc,ca,cb){
   const pr=new THREE.Mesh(new THREE.TorusGeometry(2.2,0.12,6,40),basic(ca));pr.rotation.x=PI/2;pr.position.y=-0.85;g.add(pr);
   g.scale.setScalar(sc);g.visible=false;tilt.add(g);return g;
 }
+function makeShadowShip(){
+  const g=new THREE.Group();
+  // neon trim around the triangle (our colors), corner lights and glowing belly
+  const myC=[];const pts=[new V3(0,0,-6.2),new V3(6.4,0,4.6),new V3(-6.4,0,4.6)];
+  const curve=new THREE.CatmullRomCurve3(pts,true,'catmullrom',0.08);
+  const tm=new THREE.MeshBasicMaterial({color:0x3de1ff});tm.userData={};
+  const tube=new THREE.Mesh(new THREE.TubeGeometry(curve,90,0.12,6,true),tm);tube.position.y=0.05;tube.userData.keep=true;tube.userData.base=0x3de1ff;g.add(tube);neonUp.push(tube);
+  const in2=pts.map(p=>p.clone().multiplyScalar(0.55));
+  const tube2=new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(in2,true,'catmullrom',0.1),70,0.08,5,true),new THREE.MeshBasicMaterial({color:0xb44dff}));
+  tube2.position.y=0.32;tube2.userData.keep=true;tube2.userData.base=0xb44dff;g.add(tube2);neonUp.push(tube2);
+  pts.forEach(p=>{const s=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:0xe8fbff,transparent:true,depthWrite:false}));s.position.set(p.x*0.86,-0.1,p.z*0.86);s.scale.set(3.4,3.4,1);g.add(s);cornerLights.push(s);myC.push(s);});
+  const belly=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:0x9ffff0,transparent:true,depthWrite:false}));belly.position.y=-0.8;belly.scale.set(6,3,1);g.add(belly);
+  const port=new THREE.Mesh(new THREE.CircleGeometry(1.2,32),botMat);port.rotation.x=PI/2;port.position.y=-0.55;port.userData.keep=true;g.add(port);
+  g.userData.onAttach=M=>{const h=M.size.y,y0=M.yOff||0,hx=M.size.x/2,hz=M.size.z/2;
+    const tri=k=>[new V3(0,0,-hz*k),new V3(hx*k,0,hz*k),new V3(-hx*k,0,hz*k)];
+    tube.geometry.dispose();tube.geometry=new THREE.TubeGeometry(new THREE.CatmullRomCurve3(tri(0.985),true,'catmullrom',0.06),120,0.14,6,true);tube.position.y=y0+h*0.42;
+    tube2.geometry.dispose();tube2.geometry=new THREE.TubeGeometry(new THREE.CatmullRomCurve3(tri(0.5),true,'catmullrom',0.1),90,0.1,5,true);tube2.position.y=y0+h*0.97;
+    const c=tri(0.86);myC.forEach((s,i)=>s.position.set(c[i].x,y0+h*0.45,c[i].z));};
+  g.visible=false;tilt.add(g);return useModel('shadow',g);
+}
 const SHIPS={
   stealth:{name:'Stealth Triangle',cost:0,g:stealthCraft,spd:1,beam:1,armor:1,r:1,desc:'Balanced all-rounder'},
   saucer:{name:'Classic Saucer',cost:1500,g:makeSaucer(1,0x3de1ff,0xb44dff),spd:1.08,beam:1.25,armor:1,r:1,desc:'Faster, bigger beam'},
+  shadow:{name:'Shadow Triangle',cost:2500,g:makeShadowShip(),spd:1.15,beam:1.1,armor:0.9,r:1.05,desc:'Fastest ship, made from your picture'},
   mother:{name:'Mothership',cost:4000,g:makeSaucer(1.6,0xff8a3d,0xff3fd2),spd:0.92,beam:1.45,armor:0.65,r:1.45,desc:'Huge beam, heavy armor, slower'}
 };
 const UPG={engine:{name:'⚡ Engine',desc:'+8% speed'},beam:{name:'🛸 Tractor Beam',desc:'+12% beam size'},armor:{name:'🛡️ Shield Armor',desc:'-10% damage'},power:{name:'🔋 Power Cell',desc:'-12% power use'}};
@@ -1518,9 +1545,9 @@ function collide(){
 }
 function abduct(T){
   T.state='gone';T.mesh.visible=false;T.rt=rand(5,9);doBurst(T.mesh.position);
-  const k=T.type,isCow=k==='cow',pts={cow:10,car:25,truck:40}[k],tb={cow:4,car:6,truck:7}[k];
+  const k=T.type,isCow=k==='cow',cop=!!T.mesh.userData.police,pts={cow:10,car:cop?40:25,truck:40}[k],tb={cow:4,car:6,truck:7}[k];
   score+=pts;timer+=tb;isCow?cows++:cars++;heat=Math.min(5,heat+{cow:0.5,car:0.8,truck:1.5}[k]);heatIdle=0;
-  pop(`+${pts} ${{cow:'🐄',car:'🚗',truck:'🚚'}[k]}`);pop(`+${tb}s`,'t');
+  pop(`+${pts} ${cop?'🚓':{cow:'🐄',car:'🚗',truck:'🚚'}[k]}`);if(cop){heat=Math.min(5,heat+1);}pop(`+${tb}s`,'t');
   // Two-part capture chime: rising energy sweep followed by a bright confirmation ping.
   blip(isCow?210:260,isCow?720:920,0.28,'sine',0.14);
   setTimeout(()=>blip(760,1850,0.18,'triangle',0.11),120);
@@ -1739,6 +1766,7 @@ function loop(now){
     if(C.axis==='x')C.g.position.set(C.along,0,C.lane);else C.g.position.set(C.lane,0,C.along);
   });
   updateEnemies(dt,t,canGrab,bR);
+  {const ph=Math.floor(t*6)%2;policeLights.forEach(([r,b])=>{r.visible=!!ph;b.visible=!ph;});}
   trains.forEach(T=>{T.s+=T.r.dir*30*dt;if(T.s>300)T.s=-300;if(T.s<-300)T.s=300;const y=T.r.h+2.2;
     if(T.isZ)T.g.position.set(T.r.c,y,T.s);else T.g.position.set(T.s,y,T.r.c);});
   boats.forEach(B=>{B.x+=B.dir*B.sp*dt;if(B.x>285)B.x=-285;if(B.x<-285)B.x=285;B.g.position.set(B.x,Math.sin(t*2+B.lane)*0.08,-150+B.lane);B.g.rotation.y=B.dir>0?0:PI;});
