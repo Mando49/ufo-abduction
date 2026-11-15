@@ -198,7 +198,7 @@ renderer.setPixelRatio(PR);
 const scene=new THREE.Scene();
 const FOG=new THREE.Color(0x1f2448);
 scene.fog=new THREE.Fog(FOG,160,820);
-scene.background=FOG.clone();const SPACE_C=new THREE.Color(0x02030a),CLOUD_C=new THREE.Color(0xa77f9e),STORM_C=new THREE.Color(0x3a3048),ABOVE_C=new THREE.Color(0x4a3a58);
+scene.background=FOG.clone();const SPACE_C=new THREE.Color(0x02030a),CLOUD_C=new THREE.Color(0xa77f9e),STORM_C=new THREE.Color(0x8d93a8),ABOVE_C=new THREE.Color(0xc9c4d8);
 const camera=new THREE.PerspectiveCamera(65,1,0.5,3000);
 
 let composer=null,bloom=null;
@@ -1015,7 +1015,7 @@ const cloudLayer=new THREE.Group();scene.add(cloudLayer);
   const c=document.createElement('canvas');c.width=128;c.height=128;const g=c.getContext('2d');
   for(let i=0;i<14;i++){const x=rand(30,98),y=rand(40,88),r=rand(18,36);const gr=g.createRadialGradient(x,y,0,x,y,r);gr.addColorStop(0,'rgba(255,255,255,.6)');gr.addColorStop(1,'rgba(255,255,255,0)');g.fillStyle=gr;g.fillRect(0,0,128,128);}
   const t=new THREE.CanvasTexture(c);
-  for(let i=0;i<150;i++){const s=new THREE.Sprite(new THREE.SpriteMaterial({map:t,color:new THREE.Color().setHSL(rand(0.86,0.98),0.4,rand(0.7,0.85)),transparent:true,opacity:rand(0.7,0.95),depthWrite:false,fog:false}));
+  for(let i=0;i<150;i++){const s=new THREE.Sprite(new THREE.SpriteMaterial({map:t,color:new THREE.Color().setHSL(0.62,0.15,rand(0.9,1)),transparent:true,opacity:rand(0.7,0.95),depthWrite:false,fog:false}));
     s.position.set(rand(-600,600),rand(184,206),rand(-600,600));const sc=rand(120,260);s.scale.set(sc,sc*0.45,1);cloudLayer.add(s);}
 })();
 
@@ -1023,7 +1023,7 @@ const cloudLayer=new THREE.Group();scene.add(cloudLayer);
 const CLOUD_Y=188,SPACE_Y=360;
 function puffTex(kind){
   const c=document.createElement('canvas');c.width=c.height=256;const g=c.getContext('2d');
-  const pal={sun:['#fff2dc','#f0b98a','#8a5a78'],storm:['#8d93ad','#4a4e66','#1c1d2c'],fire:['#fff0b0','#ff9a3a','#5a2a26']}[kind];
+  const pal={sun:['#ffffff','#f3f4f8','#c8ccd8'],storm:['#8d93ad','#4a4e66','#1c1d2c'],fire:['#fff0b0','#ff9a3a','#5a2a26']}[kind];
   for(let i=0;i<46;i++){const x=rand(40,216),y=rand(70,200)-((i/46)*40),r=rand(22,58);
     const gr=g.createRadialGradient(x-r*0.25,y-r*0.35,r*0.1,x,y,r);
     gr.addColorStop(0,pal[0]);gr.addColorStop(0.55,pal[1]);gr.addColorStop(1,'rgba(0,0,0,0)');
@@ -1038,46 +1038,17 @@ const stormTowers=[],bolts=[],volcanoFx=[];let boltT=2,flashLvl=0;
 (function(){
   // solid cloud floor (hides the towns from above)
   const c=document.createElement('canvas');c.width=c.height=512;const g=c.getContext('2d');
-  g.fillStyle='#6d5a78';g.fillRect(0,0,512,512);
+  g.fillStyle='#dfe2ec';g.fillRect(0,0,512,512);
   for(let i=0;i<420;i++){const x=rand(0,512),y=rand(0,512),r=rand(10,48);const gr=g.createRadialGradient(x-r*0.3,y-r*0.3,1,x,y,r);
-    const lit=Math.random();gr.addColorStop(0,lit>0.6?'rgba(255,214,170,.55)':'rgba(200,180,215,.45)');gr.addColorStop(1,'rgba(60,45,75,0)');g.fillStyle=gr;
+    const lit=Math.random();gr.addColorStop(0,lit>0.5?'rgba(255,255,255,.75)':'rgba(240,242,250,.6)');gr.addColorStop(1,'rgba(180,186,205,0)');g.fillStyle=gr;
     for(const ox of[-512,0,512])for(const oy of[-512,0,512]){g.beginPath();g.arc(x+ox,y+oy,r,0,2*PI);g.fill();}}
   const t=new THREE.CanvasTexture(c);t.wrapS=t.wrapT=THREE.RepeatWrapping;t.repeat.set(10,10);t.anisotropy=renderer.capabilities.getMaxAnisotropy();
   const floor=new THREE.Mesh(new THREE.PlaneGeometry(4200,4200),new THREE.MeshBasicMaterial({map:t,side:THREE.DoubleSide}));
   floor.rotation.x=-PI/2;floor.position.y=CLOUD_Y;skyRealm.add(floor);
-  const under=new THREE.Mesh(new THREE.PlaneGeometry(4200,4200),new THREE.MeshBasicMaterial({color:0x2c2638,side:THREE.BackSide}));
+  const under=new THREE.Mesh(new THREE.PlaneGeometry(4200,4200),new THREE.MeshBasicMaterial({color:0xaeb3c4,side:THREE.BackSide}));
   under.rotation.x=-PI/2;under.position.y=CLOUD_Y-1.5;skyRealm.add(under);
-  // storm cloud towers with glowing fiery hearts
-  for(let i=0;i<7;i++){const a=i/7*2*PI+rand(-0.3,0.3),R=rand(220,520),x=Math.cos(a)*R,z=Math.sin(a)*R;
-    const T={x,z,glow:[],h:rand(70,120)};
-    for(let k=0;k<11;k++){const y=CLOUD_Y+k*T.h/11,sc=rand(70,120)*(1.15-k/14);
-      const kind=k<3?'storm':(k<8&&Math.random()<0.55?'fire':(Math.random()<0.5?'storm':'sun'));
-      const s=new THREE.Sprite(new THREE.SpriteMaterial({map:PUFF[kind],transparent:true,depthWrite:false}));
-      s.position.set(x+rand(-25,25),y,z+rand(-25,25));s.scale.set(sc,sc*0.8,1);skyRealm.add(s);
-      if(kind==='fire')T.glow.push(s);}
-    const core=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:0xff9a40,transparent:true,opacity:.5,blending:THREE.AdditiveBlending,depthWrite:false}));
-    core.position.set(x,CLOUD_Y+T.h*0.45,z);core.scale.set(140,110,1);skyRealm.add(core);T.core=core;
-    stormTowers.push(T);}
-  // snowy peaks rising out of the clouds
-  const pg=new THREE.ConeGeometry(1,1,16,14);pg.translate(0,0.5,0);
-  const p=pg.attributes.position,cols=[];const rock=new THREE.Color(0x2a2730),dark=new THREE.Color(0x15141a),snow=new THREE.Color(0xffffff);
-  for(let i=0;i<p.count;i++){const x=p.getX(i),y=p.getY(i),z=p.getZ(i);
-    if(y<0.99){const an=Math.atan2(z,x),n=1+0.3*Math.sin(an*5+y*9)*Math.sin(y*13)+0.18*Math.sin(an*11)+rand(-0.16,0.16);p.setX(i,x*n);p.setZ(i,z*n);if(y>0.05)p.setY(i,y+rand(-0.04,0.04));}
-    const yy=p.getY(i);const c=yy>0.62+rand(-0.12,0.08)&&Math.random()<0.85?snow:(Math.random()<0.5?rock:dark);cols.push(c.r,c.g,c.b);}
-  pg.setAttribute('color',new THREE.Float32BufferAttribute(cols,3));pg.computeVertexNormals();
-  const pm=new THREE.MeshLambertMaterial({vertexColors:true,flatShading:true});
-  for(let i=0;i<16;i++){const a=i/16*2*PI+rand(-0.1,0.1),R=rand(720,980),h=rand(300,470),w=rand(120,210);
-    const m=new THREE.Mesh(pg,pm);m.position.set(Math.cos(a)*R,0,Math.sin(a)*R);m.scale.set(w,h,w*rand(0.8,1.2));m.rotation.y=rand(0,6);skyRealm.add(m);}
-  // volcano with lava glow and smoke
-  const VX=-780,VZ=-560;
-  const vg=new THREE.CylinderGeometry(40,260,380,14,6,true);vg.translate(0,190,0);
-  const vp=vg.attributes.position,vc=[];const lava=new THREE.Color(0xff5a1a),vr=new THREE.Color(0x2a2226);
-  for(let i=0;i<vp.count;i++){const y=vp.getY(i),x=vp.getX(i),z=vp.getZ(i);const n=1+rand(-0.08,0.08);vp.setX(i,x*n);vp.setZ(i,z*n);
-    const streak=y>200&&Math.sin(Math.atan2(z,x)*5)>0.82;const c=streak?lava:vr;vc.push(c.r,c.g,c.b);}
-  vg.setAttribute('color',new THREE.Float32BufferAttribute(vc,3));vg.computeVertexNormals();
-  const vol=new THREE.Mesh(vg,new THREE.MeshLambertMaterial({vertexColors:true,emissive:0x220a04}));vol.position.set(VX,0,VZ);skyRealm.add(vol);
-  const crater=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:0xff6a20,transparent:true,blending:THREE.AdditiveBlending,depthWrite:false}));crater.position.set(VX,385,VZ);crater.scale.set(180,120,1);skyRealm.add(crater);volcanoFx.push({crater});
-  for(let i=0;i<14;i++){const s=new THREE.Sprite(new THREE.SpriteMaterial({map:PUFF.storm,transparent:true,opacity:.8,depthWrite:false}));s.position.set(VX,390,VZ);skyRealm.add(s);volcanoFx.push({s,ph:i/14,dx:rand(-1,1),dz:rand(-0.4,0.4)});}
+  // fluffy white cloud heaps on top of the cloud sea
+  for(let i=0;i<60;i++){const a=rand(0,2*PI),R=rand(0,900),sc=rand(90,220);const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:PUFF.sun,transparent:true,depthWrite:false}));sp.position.set(Math.cos(a)*R,CLOUD_Y+sc*0.18,Math.sin(a)*R);sp.scale.set(sc,sc*0.6,1);skyRealm.add(sp);}
 })();
 // sun rays above the clouds (live in the sky dome, which follows the camera)
 const raysMat=(function(){const c=document.createElement('canvas');c.width=c.height=512;const g=c.getContext('2d');g.translate(256,256);
@@ -1104,7 +1075,7 @@ function skyAnim(dt,t){
   if(!skyRealm.visible)return;
   // lightning: more often near storm towers, warning glow first
   boltT-=dt;
-  if(boltT<=0&&pos.y>130){boltT=rand(1.2,3.2);
+  if(stormTowers.length&&boltT<=0&&pos.y>130){boltT=rand(1.2,3.2);
     let T=stormTowers[0],bd=1e9;for(const S of stormTowers){const d=Math.hypot(S.x-pos.x,S.z-pos.z)+rand(0,250);if(d<bd){bd=d;T=S;}}
     const nearMe=Math.random()<0.25&&pos.y>CLOUD_Y-20;
     const x=nearMe?pos.x+rand(-60,60):T.x+rand(-40,40),z=nearMe?pos.z+rand(-60,60):T.z+rand(-40,40);
