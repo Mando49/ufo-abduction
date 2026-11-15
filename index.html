@@ -3326,7 +3326,7 @@ const MISSIONS=[
   {id:'score',t:'Score 2,000 in one game',ev:'score2k',g:1,r:500},
   {id:'race',t:'Finish the Sky Race',ev:'race',g:1,r:500},
   {id:'aircurrent',t:'Ride the air current above the clouds',ev:'aircurrent',g:1,r:300},
-  {id:'race60',t:'Finish the Sky Race in under 60s',ev:'race',m:d=>d.t<60,g:1,r:900},
+  {id:'race60',t:'Finish the Sky Race in under 60s (no air current)',ev:'race',m:d=>d.t<60&&!d.cur,g:1,r:900},
   {id:'bhole',t:'Fly into the black hole',ev:'bhole',g:1,r:600}
 ];
 const MBYID={};MISSIONS.forEach(m=>MBYID[m.id]=m);
@@ -3410,7 +3410,7 @@ function airCurrentUpdate(dt,t,can){
   for(let j=-(A.riding?span:0);j<(A.riding?span:A.N);j+=(A.riding?1:3)){const k=((s0+j)%A.N+A.N)%A.N,d=A.samp[k].distanceToSquared(pos);if(d<bd){bd=d;bi=k;}}
   if(bi<0){A.riding=false;return;}
   if(!A.riding&&A.msg<=0){pop('🌬️ RIDING THE AIR CURRENT!');pop('It carries you through the rings','t');mEvent('aircurrent');A.msg=8;blip(300,1200,0.4,'sine',0.1);}
-  A.riding=true;A.idx=bi;
+  A.riding=true;A.idx=bi;if(race.on)race.usedCur=true;
   const T=A.tan[bi],P=A.samp[bi],sp=75*(race.on?(1+(race.mult-1)*0.35):1);
   pos.addScaledVector(T,sp*dt);pos.lerp(tmpV2.copy(P).addScaledVector(T,6),Math.min(1,dt*2.5));
   const want=Math.atan2(-T.x,-T.z);let dy=want-yaw;dy=Math.atan2(Math.sin(dy),Math.cos(dy));yaw+=dy*Math.min(1,dt*5);
@@ -3438,7 +3438,7 @@ function raceEnd(fin){
   race.on=false;race.cd=3;$('race').style.display='none';raceArrow.visible=false;
   if(fin){const tt=race.t,bonus=Math.max(0,Math.round(600-tt*5));score+=200+bonus;save.bank+=100+bonus;persist();
     const nb=!race.best||tt<race.best;if(nb){race.best=tt;try{localStorage.setItem('ufoRaceBest',tt);}catch(e){}}
-    pop(`🏁 FINISH! ${tt.toFixed(1)}s${nb?' · 🏆 NEW RECORD':''}`);pop(`+${200+bonus} · 💰 +${100+bonus}`,'t');mEvent('race',{t:tt});blip(523,1046,0.3,'triangle',0.15);setTimeout(()=>blip(784,1568,0.4,'triangle',0.15),200);}
+    pop(`🏁 FINISH! ${tt.toFixed(1)}s${nb?' · 🏆 NEW RECORD':''}`);pop(`+${200+bonus} · 💰 +${100+bonus}`,'t');mEvent('race',{t:tt,cur:race.usedCur});if(race.usedCur)setTimeout(()=>pop('🌬️ Air current used — no-current runs count for the 60s mission','t'),900);blip(523,1046,0.3,'triangle',0.15);setTimeout(()=>blip(784,1568,0.4,'triangle',0.15),200);}
   else pop('🏁 RACE ABANDONED','t');
   styleRings();
 }
@@ -3450,7 +3450,7 @@ function raceUpdate(dt,t){
   {const NR=race.rings[race.on?race.next%RACE_N:0];NR.g.scale.setScalar(1+0.1*Math.sin(t*6));}
   if(!race.on){const near=can&&pos.y>CLOUD_Y-40;raceArrow.visible=near;if(near){raceArrow.position.copy(pos).addScaledVector(fwd,9).add(new V3(0,3.5,0));raceArrow.lookAt(race.rings[0].p);raceArrow.scale.setScalar(1+0.12*Math.sin(t*8));}}
   race.cd=(race.cd||0)-dt;
-  if(!race.on){if(can&&pos.y>CLOUD_Y&&race.cd<=0&&raceCross(race.rings[0])){race.on=true;race.next=1;race.t=0;race.mult=1.25;race.hits=1;heat=0;clearEnemies();pop('🏁 GO! GO! GO!');blip(400,1600,0.3,'square',0.12);race.rings.forEach(R=>R.side=0);$('race').style.display='block';styleRings();}}
+  if(!race.on){if(can&&pos.y>CLOUD_Y&&race.cd<=0&&raceCross(race.rings[0])){race.on=true;race.usedCur=false;race.next=1;race.t=0;race.mult=1.25;race.hits=1;heat=0;clearEnemies();pop('🏁 GO! GO! GO!');blip(400,1600,0.3,'square',0.12);race.rings.forEach(R=>R.side=0);$('race').style.display='block';styleRings();}}
   else{
     race.t+=dt;race.mult=Math.max(1,race.mult-dt*0.05);
     if(!can||pos.y<CLOUD_Y-5||race.t>240){raceEnd(false);return;}
