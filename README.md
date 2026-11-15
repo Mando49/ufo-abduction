@@ -14,7 +14,7 @@ A 3D browser game: fly a triangle UFO over a neon cyberpunk city and farmland, a
 - 🛠️ Every point you score goes into your bank. Spend it in the **Hangar** on upgrades (engine, beam, armor, power) and new ships (Classic Saucer, Shadow Triangle, Mothership).
 - 🔫 **FIRE** shoots auto-aiming lasers: blast helicopters (50), jets (80) and even incoming missiles.
 - ☁️ Climb above the clouds into the **Sky Realm**: a sea of clouds with glowing storm towers, lightning strikes (they hurt!), snowy peaks, a smoking volcano and sunset rays.
-- 🚀 Climb past 360m to reach space, then fly through a portal to travel between **Neon City** and the **Area 51 desert**. Space is a shooter: alien hunter ships attack in waves, asteroids can be blasted for crystals.
+- 🚀 Climb past 360m to reach space, then fly through a portal to travel between **Neon City** and the **Area 51 desert**. Portals are swirling wormholes you ride through (grab energy orbs on the way). Space is a shooter: alien hunter ships attack in waves, asteroids can be blasted for crystals, an **Alien Mothership boss** shows up after 8 kills (+500), fly through the space station ring for a power refill, and there's a black hole and comets in the distance.
 
 Sponsored by [Mando Window Tinting](https://lasvegaswindowtintnv.com): window tint & PPF in Las Vegas.
 

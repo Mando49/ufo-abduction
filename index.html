@@ -27,6 +27,8 @@ html,body{margin:0;height:100%;overflow:hidden;background:#0a0c2a;font-family:-a
 #heat{font-size:13px;letter-spacing:1px;color:#ff4a5a;text-shadow:0 0 8px rgba(255,60,80,.8);margin-top:2px}
 #warn{display:none;position:absolute;top:22%;left:0;right:0;text-align:center;font-size:22px;font-weight:900;color:#ff3b4a;text-shadow:0 0 14px rgba(255,40,60,.9);animation:blinkw .5s steps(2) infinite}
 @keyframes blinkw{50%{opacity:.2}}
+#bossbar{display:none;position:absolute;top:205px;left:50%;transform:translateX(-50%);width:180px;text-align:center}
+#bossfill{background:linear-gradient(90deg,#ff2a4a,#ff9a4a);box-shadow:0 0 10px #ff3a4a}
 #pops{position:absolute;top:30%;left:0;right:0;display:flex;flex-direction:column;align-items:center;gap:4px}
 .pop{font-size:30px;font-weight:900;color:#7dffa8;text-shadow:0 0 14px rgba(80,255,150,.9),0 2px 6px rgba(0,0,0,.7);animation:pop 1.2s ease-out forwards}
 .pop.t{font-size:18px;color:#ffe08a;text-shadow:0 0 10px rgba(255,210,100,.8)}
@@ -91,6 +93,7 @@ body.touch #keys{display:none}
     <div class="panel center"><div class="lbl">TIME</div><div id="time" class="big">1:30</div><div id="heat" class="stars">☆☆☆☆☆</div></div>
     <canvas id="radar" width="240" height="240"></canvas>
   </div>
+  <div id="bossbar"><div class="lbl" style="color:#ff6a7a">ALIEN MOTHERSHIP</div><div class="bar"><i id="bossfill"></i></div></div>
   <div id="pops"></div>
   <div id="warn">⚠ MISSILE LOCK</div>
   <div id="flash"></div>
@@ -1174,7 +1177,7 @@ function spaceAnim(dt,t){
   planet.rotation.y+=dt*0.01;
   asteroids.forEach(A=>{A.m.rotation.x+=A.sx*dt;A.m.rotation.y+=A.sy*dt;});
   crystals.forEach(C=>{C.m.rotation.y+=dt*2;C.m.rotation.x+=dt;});
-  portals.forEach(P=>{P.swirl.rotation.z+=dt*1.6;P.disc.material.opacity=0.18+0.08*Math.sin(t*3);});
+  portals.forEach(P=>{P.swirl.rotation.z+=dt*1.6;});space2Anim(dt,t);
 }
 
 
@@ -1520,7 +1523,7 @@ function getBolt(mat){let b=boltPool.find(b=>!b.m.visible&&b.m.material===mat);
 function launchBolt(list,mat,from,dir,spd,life){const b=getBolt(mat);b.p.copy(from);b.v.copy(dir).multiplyScalar(spd);b.life=life;b.m.position.copy(from);b.m.quaternion.setFromUnitVectors(Y_AXIS,dir);list.push(b);return b;}
 function laserTargets(){
   const L=[];
-  if(mode==='space'){spaceFoes.forEach(f=>L.push({p:f.p,r:6,kind:'foe',o:f}));asteroids.forEach(A=>{if(A.m.visible)L.push({p:A.m.position,r:A.r+1.5,kind:'rock',o:A});});}
+  if(mode==='space'){if(boss)L.push({p:boss.p,r:30,kind:'boss',o:boss});spaceFoes.forEach(f=>L.push({p:f.p,r:6,kind:'foe',o:f}));asteroids.forEach(A=>{if(A.m.visible)L.push({p:A.m.position,r:A.r+1.5,kind:'rock',o:A});});}
   else{enemies.forEach(e=>{if(e.state==='fly')L.push({p:e.p,r:e.type==='heli'?7:6.5,kind:e.type,o:e});});missiles.forEach(M=>L.push({p:M.p,r:3.5,kind:'missile',o:M}));}
   return L;
 }
@@ -1539,6 +1542,7 @@ function fireLaser(){
 function killFoe(T){
   if(T.kind==='heli'||T.kind==='jet'){const e=T.o;explode(e.p,true);removeEnemy(e);const pts=T.kind==='heli'?50:80;score+=pts;timer+=3;heat=Math.max(0,heat-0.4);pop(`+${pts} 💥 ${T.kind==='heli'?'🚁':'✈️'}`);}
   else if(T.kind==='missile'){const M=T.o;explode(M.p,false);enemyGroup.remove(M.g);missiles.splice(missiles.indexOf(M),1);score+=5;pop('+5 🚀');}
+  else if(T.kind==='boss'){killBoss();}
   else if(T.kind==='foe'){const f=T.o;explode(f.p,true);enemyGroup.remove(f.g);spaceFoes.splice(spaceFoes.indexOf(f),1);spaceKills++;score+=60;timer+=3;pop('+60 💥');pop('+3s','t');}
   else if(T.kind==='rock'){const A=T.o;explode(A.m.position,true);A.m.visible=false;A.rt=12;score+=10;pop('+10 ☄️');
     const C=crystals.find(C=>!C.m.visible);if(C){C.m.position.copy(A.m.position);C.m.visible=true;}}
@@ -1580,6 +1584,120 @@ function updateCombat(dt,fireBtn){
   }
 }
 function clearSpaceFoes(){spaceFoes.forEach(f=>enemyGroup.remove(f.g));spaceFoes=[];eBolts.forEach(b=>b.m.visible=false);eBolts.length=0;pBolts.forEach(b=>b.m.visible=false);pBolts.length=0;}
+
+// ---------- wormhole vortex material (portals) ----------
+function vortexMat(c1,c2){return new THREE.ShaderMaterial({uniforms:{t:{value:0},c1:{value:new THREE.Color(c1)},c2:{value:new THREE.Color(c2)}},
+  vertexShader:'varying vec2 vUv;void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}',
+  fragmentShader:'uniform float t;uniform vec3 c1;uniform vec3 c2;varying vec2 vUv;void main(){vec2 p=vUv-0.5;float r=length(p)*2.0;float a=atan(p.y,p.x);float sw=sin(a*5.0+r*14.0-t*4.0)*0.5+0.5;float core=smoothstep(0.55,0.0,r);float edge=smoothstep(1.0,0.75,r);vec3 col=mix(c1,c2,sw)*(0.6+sw*0.8)+vec3(1.0)*core*0.9;float al=edge*(0.35+0.5*sw+core);gl_FragColor=vec4(col,al);}',
+  transparent:true,blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide});}
+const vortexMats=[];
+
+// ---------- wormhole ride ----------
+const warpGroup=new THREE.Group();warpGroup.visible=false;scene.add(warpGroup);
+const WARP_O=new V3(0,-6000,0),WARP_LEN=900,WARP_TIME=4.2;
+const warpMat=new THREE.ShaderMaterial({uniforms:{t:{value:0},c1:{value:new THREE.Color(0x3de1ff)},c2:{value:new THREE.Color(0xb44dff)}},
+  vertexShader:'varying vec2 vUv;void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}',
+  fragmentShader:'uniform float t;uniform vec3 c1;uniform vec3 c2;varying vec2 vUv;void main(){float sp=fract(vUv.x*3.0+vUv.y*6.0-t*0.6);float streak=pow(fract(vUv.y*60.0+t*9.0+sin(vUv.x*31.4)*0.6),6.0);float band=0.5+0.5*sin(vUv.x*31.4*2.0+vUv.y*80.0-t*12.0);vec3 col=mix(c1,c2,sp)*(0.35+0.6*band)+vec3(1.0,0.9,1.0)*streak*1.2;gl_FragColor=vec4(col,1.0);}',
+  side:THREE.BackSide});
+(function(){
+  const g=new THREE.CylinderGeometry(24,24,WARP_LEN+200,48,1,true);g.rotateX(PI/2);
+  const tube=new THREE.Mesh(g,warpMat);tube.position.set(WARP_O.x,WARP_O.y,WARP_O.z-WARP_LEN/2);warpGroup.add(tube);
+  for(let i=0;i<26;i++){const r=new THREE.Mesh(new THREE.TorusGeometry(21,0.35,6,48),new THREE.MeshBasicMaterial({color:i%2?0x7ffcff:0xff7ae0,transparent:true,opacity:.8,blending:THREE.AdditiveBlending,depthWrite:false}));
+    r.position.set(WARP_O.x,WARP_O.y,WARP_O.z-i*WARP_LEN/26);warpGroup.add(r);}
+  const end=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:0xffffff,transparent:true,depthWrite:false,fog:false}));end.position.set(WARP_O.x,WARP_O.y,WARP_O.z-WARP_LEN-60);end.scale.set(160,160,1);warpGroup.add(end);
+})();
+const warpOrbs=[];
+for(let i=0;i<14;i++){const s=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:0xffe080,transparent:true,depthWrite:false}));s.scale.set(5,5,1);warpGroup.add(s);warpOrbs.push(s);}
+let warpT=0,warpTo='city',warpOff=new V3();
+function enterWarp(dest){
+  clearSpaceFoes();mode='warp';warpTo=dest;warpT=0;warpOff.set(0,0,0);fadeIn();
+  spaceGroup.visible=false;warpGroup.visible=true;
+  scene.background.set(0x05020c);scene.fog.color.set(0x05020c);scene.fog.near=200;scene.fog.far=900;
+  warpMat.uniforms.c1.value.setHex(dest==='city'?0x3de1ff:0xffa040);warpMat.uniforms.c2.value.setHex(dest==='city'?0xb44dff:0xff3fd2);
+  warpOrbs.forEach((s,i)=>{const a=rand(0,2*PI),r=rand(0,13);s.position.set(WARP_O.x+Math.cos(a)*r,WARP_O.y+Math.sin(a)*r,WARP_O.z-120-i*(WARP_LEN-200)/14);s.visible=true;});
+  yaw=0;pos.copy(WARP_O);snapCam();
+  pop('🌀 WORMHOLE!');pop('Steer to grab energy orbs','t');blip(150,1200,1.4,'sawtooth',0.12);
+}
+function warpUpdate(dt,ix,updn){
+  warpT+=dt;timer+=dt;yaw=0;speed=0;vy=0;
+  warpOff.x+=ix*34*dt;warpOff.y+=updn*34*dt;const r=warpOff.length();if(r>15)warpOff.multiplyScalar(15/r);
+  const prog=warpT/WARP_TIME;
+  pos.set(WARP_O.x+warpOff.x,WARP_O.y+warpOff.y,WARP_O.z-prog*WARP_LEN);
+  for(const s of warpOrbs){if(s.visible&&s.position.distanceTo(pos)<6){s.visible=false;score+=5;energy=Math.min(100,energy+8);pop('+5 ✨');blip(1000,2000,0.1,'triangle',0.1);}}
+  shake=Math.max(shake,0.18);
+  if(warpT>=WARP_TIME){warpGroup.visible=false;landAt(warpTo);}
+}
+
+// ---------- extra space sights: black hole, space station, comets ----------
+const comets=[],station={};
+(function(){
+  // black hole with accretion disc
+  const BH=new V3(900,420,-2300),bh=new THREE.Group();bh.position.copy(BH);
+  bh.add(new THREE.Mesh(new THREE.SphereGeometry(120,32,20),new THREE.MeshBasicMaterial({color:0x000000,fog:false})));
+  const disc=new THREE.Mesh(new THREE.RingGeometry(150,420,96,1),vortexMat(0xff8a30,0xffe0a0));disc.material.uniforms.t.value=0;disc.rotation.x=PI/2-0.25;bh.add(disc);vortexMats.push(disc.material);
+  const halo=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:0xffb060,transparent:true,opacity:.5,blending:THREE.AdditiveBlending,depthWrite:false,fog:false}));halo.scale.set(900,900,1);bh.add(halo);
+  spaceGroup.add(bh);station.bh=disc;
+  // orbiting space station you can fly through for a power refill
+  const S=new THREE.Group();S.position.set(330,40,-260);S.rotation.y=PI/2;
+  const metal=new THREE.MeshStandardMaterial({color:0xc8ced8,metalness:0.6,roughness:0.35});
+  const ring=new THREE.Mesh(new THREE.TorusGeometry(46,4.5,12,64),metal);S.add(ring);
+  const hub=new THREE.Mesh(new THREE.CylinderGeometry(7,7,22,16),metal);hub.rotation.x=PI/2;S.add(hub);
+  for(let i=0;i<4;i++){const sp=new THREE.Mesh(new THREE.CylinderGeometry(1,1,40,6),metal);sp.rotation.z=i*PI/2;sp.position.set(Math.cos(i*PI/2)*24,Math.sin(i*PI/2)*24,0);sp.rotation.z=i*PI/2+PI/2;S.add(sp);}
+  const pm=new THREE.MeshStandardMaterial({color:0x1b3a7a,metalness:0.4,roughness:0.3,emissive:0x0a1a40});
+  for(const s of[-1,1]){const pnl=new THREE.Mesh(new THREE.BoxGeometry(60,1,18),pm);pnl.position.set(0,0,s*28);pnl.rotation.x=PI/2;S.add(pnl);}
+  const lights=[];for(let i=0;i<16;i++){const a=i/16*2*PI,l=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:i%2?0x7ffcff:0xff5a5a,transparent:true,depthWrite:false}));l.position.set(Math.cos(a)*50.5,Math.sin(a)*50.5,0);l.scale.set(4,4,1);S.add(l);lights.push(l);}
+  const glowDisk=new THREE.Mesh(new THREE.CircleGeometry(40,48),new THREE.MeshBasicMaterial({color:0x7ffcff,transparent:true,opacity:.08,blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide}));S.add(glowDisk);
+  spaceGroup.add(S);Object.assign(station,{g:S,ring,lights,R:46,r:4.5,cd:0,side:0});
+  // comets
+  for(let i=0;i<4;i++){const g=new THREE.Group();const head=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:0xcff4ff,transparent:true,depthWrite:false,fog:false}));head.scale.set(24,24,1);g.add(head);
+    for(let k=1;k<14;k++){const tl=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:0x7fd8ff,transparent:true,opacity:0.6*(1-k/14),blending:THREE.AdditiveBlending,depthWrite:false,fog:false}));tl.position.x=-k*9;const sc=22*(1-k/16);tl.scale.set(sc,sc,1);g.add(tl);}
+    spaceGroup.add(g);comets.push({g,ph:rand(0,1),y:rand(250,700),z:rand(-2600,-1400),sp:rand(0.03,0.06),dir:Math.random()<0.5?1:-1});}
+})();
+function space2Anim(dt,t){
+  vortexMats.forEach(m=>m.uniforms.t.value=t);
+  station.ring.parent.rotation.z+=dt*0.12;
+  station.lights.forEach((l,i)=>l.visible=((t*3+i)|0)%4!==0);
+  comets.forEach(C=>{C.ph=(C.ph+dt*C.sp)%1;C.g.position.set(C.dir*(-2600+C.ph*5200),C.y-C.ph*200,C.z);C.g.rotation.z=C.dir>0?-0.04:PI+0.04;});
+}
+function stationUpdate(dt){
+  const S=station;S.cd-=dt;const lp=S.g.worldToLocal(pos.clone()),rho=Math.hypot(lp.x,lp.y),q=rho-S.R,d=Math.hypot(q,lp.z),lim=S.r+2.2;
+  if(d<lim){const n=S.g.localToWorld(new V3(lp.x*(1+(lim-d)/rho*Math.sign(q||1)),lp.y*(1+(lim-d)/rho*Math.sign(q||1)),lp.z+Math.sign(lp.z||1)*(lim-d)));pos.copy(n);speed*=-0.3;hit();}
+  const side=Math.sign(lp.z);
+  if(rho<S.R-3&&S.side&&side!==S.side&&S.cd<=0){S.cd=4;energy=100;shield=Math.min(100,shield+25);score+=20;timer+=5;pop('🛰️ DOCKING BOOST +20');pop('+5s · power full','t');blip(400,1600,0.4,'triangle',0.14);}
+  S.side=side;
+}
+
+// ---------- boss: alien mothership ----------
+let boss=null,bossNext=8;
+function makeBoss(){
+  const g=new THREE.Group();
+  const hullM=new THREE.MeshStandardMaterial({color:0x2a2f3c,metalness:0.6,roughness:0.35,emissive:0x0a0c14});
+  const top=new THREE.Mesh(new THREE.SphereGeometry(30,40,16,0,2*PI,0,PI/2),hullM);top.scale.y=0.3;g.add(top);
+  const bot=new THREE.Mesh(new THREE.SphereGeometry(30,40,16,0,2*PI,PI/2,PI/2),hullM);bot.scale.y=0.22;g.add(bot);
+  const rim=new THREE.Mesh(new THREE.TorusGeometry(30,1.2,8,80),new THREE.MeshBasicMaterial({color:0xff3a4a}));rim.rotation.x=PI/2;g.add(rim);
+  const dome=new THREE.Mesh(new THREE.SphereGeometry(10,24,12,0,2*PI,0,PI/2),new THREE.MeshStandardMaterial({color:0xff5a7a,transparent:true,opacity:.6,emissive:0x801030}));dome.position.y=8;g.add(dome);
+  const eye=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:0xff2040,transparent:true,depthWrite:false}));eye.position.y=-7;eye.scale.set(30,16,1);g.add(eye);
+  const lights=[];for(let i=0;i<20;i++){const a=i/20*2*PI,l=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:0xffa040,transparent:true,depthWrite:false}));l.position.set(Math.cos(a)*27,-3,Math.sin(a)*27);l.scale.set(5,5,1);g.add(l);lights.push(l);}
+  enemyGroup.add(g);return{g,lights,eye};
+}
+function spawnBoss(){const b=makeBoss(),a=rand(0,2*PI);boss=Object.assign(b,{p:new V3(pos.x+Math.cos(a)*300,pos.y+60,pos.z+Math.sin(a)*300),hp:120,max:120,cd:3,ang:a,minT:6});b.g.position.copy(boss.p);
+  $('bossbar').style.display='block';pop('⚠️ ALIEN MOTHERSHIP!');blip(80,40,1.5,'sawtooth',0.2);}
+function bossUpdate(dt,t){
+  if(!boss){if(mode==='space'&&state==='play'&&spaceKills>=bossNext)spawnBoss();return;}
+  if(mode!=='space'){enemyGroup.remove(boss.g);boss=null;$('bossbar').style.display='none';return;}
+  boss.ang+=dt*0.18;const tgt=new V3(pos.x+Math.cos(boss.ang)*130,pos.y+35+Math.sin(t*0.7)*10,pos.z+Math.sin(boss.ang)*130);
+  boss.p.lerp(tgt,1-Math.exp(-0.6*dt));boss.g.position.copy(boss.p);boss.g.rotation.y+=dt*0.4;
+  boss.lights.forEach((l,i)=>l.visible=((t*8+i)|0)%3!==0);boss.eye.material.opacity=0.6+0.4*Math.sin(t*6);
+  boss.cd-=dt;
+  if(state==='play'&&boss.cd<=0){boss.cd=rand(2,2.8);const base=pos.clone().sub(boss.p).normalize(),side=new V3(-base.z,0,base.x).normalize();
+    for(let k=-2;k<=2;k++){const d=base.clone().addScaledVector(side,k*0.09).addScaledVector(Y_AXIS,rand(-0.03,0.03)).normalize();launchBolt(eBolts,boltMatE,boss.p.clone().add(new V3(0,-6,0)),d,110,3.5).m.scale.set(2,1.5,2);}
+    blip(200,80,0.4,'sawtooth',0.1);}
+  $('bossfill').style.width=(boss.hp/boss.max*100)+'%';
+}
+function killBoss(){const p=boss.p.clone();for(let i=0;i<6;i++)setTimeout(()=>explode(p.clone().add(new V3(rand(-25,25),rand(-6,6),rand(-25,25))),true),i*180);
+  enemyGroup.remove(boss.g);boss=null;bossNext=spaceKills+12;$('bossbar').style.display='none';score+=500;timer+=20;shield=100;pop('🏆 MOTHERSHIP DESTROYED! +500');pop('+20s · shield full','t');}
+
+portals.forEach(P=>{P.disc.material=vortexMat(P.c,0xffffff);vortexMats.push(P.disc.material);});
 
 // ---------- input ----------
 const keys={},inp={up:false,down:false,beam:false,boost:false,fire:false},joy={x:0,y:0};
@@ -1651,7 +1769,7 @@ function startGame(){
   mode='ground';spaceGroup.visible=false;sky.visible=true;setTown('city');
   for(const k in towns)towns[k].targets.forEach(T=>T.spawn(T));
   crystals.forEach(placeCrystal);
-  clearEnemies();clearSpaceFoes();spaceKills=0;heat=0;heatIdle=0;lastHurt=99;spawnT=3;
+  clearEnemies();clearSpaceFoes();spaceKills=0;heat=0;if(boss){enemyGroup.remove(boss.g);boss=null;}bossNext=8;$('bossbar').style.display='none';warpGroup.visible=false;heatIdle=0;lastHurt=99;spawnT=3;
   $('menu').classList.add('hidden');$('over').classList.add('hidden');
   state='play';perfT=0;perfN=0;perfSum=0;
 }
@@ -1701,7 +1819,7 @@ function spaceUpdate(dt){
     if(!C.m.visible){C.rt-=dt;if(C.rt<=0)placeCrystal(C);continue;}
     if(pos.distanceTo(C.m.position)<6.5){C.m.visible=false;C.rt=6;score+=5;timer+=2;energy=Math.min(100,energy+15);pop('+5 💎');pop('+2s','t');blip(900,1800,0.15,'triangle',0.12);}
   }
-  for(const P of portals){const px=pos.x-P.x,py=pos.y-P.y,pz=pos.z-P.z;if(Math.abs(pz)<5&&Math.hypot(px,py)<P.R+3){landAt(P.town);return;}}
+  for(const P of portals){const px=pos.x-P.x,py=pos.y-P.y,pz=pos.z-P.z;if(Math.abs(pz)<5&&Math.hypot(px,py)<P.R+3){enterWarp(P.town);return;}}
 }
 
 function hit(){
@@ -1766,7 +1884,7 @@ function drawRadar(t){
   if(sg){sg.addColorStop(0,'rgba(93,255,154,0)');sg.addColorStop(0.14,'rgba(93,255,154,.28)');sg.addColorStop(0.15,'rgba(93,255,154,0)');rx.fillStyle=sg;rx.beginPath();rx.arc(60,60,57,0,2*PI);rx.fill();}
   const S=54/320;
   rx.save();rx.beginPath();rx.arc(60,60,57,0,2*PI);rx.clip();
-  const outline=mode==='space'?null:(curTown==='city'?[[-290,-290],[290,-290],[290,290],[-290,290]]:[[-500,-370],[-20,-370],[-20,-140],[-500,-140]]);
+  const outline=mode!=='ground'?null:(curTown==='city'?[[-290,-290],[290,-290],[290,290],[-290,290]]:[[-500,-370],[-20,-370],[-20,-140],[-500,-140]]);
   if(outline){rx.strokeStyle='rgba(150,200,255,.4)';rx.beginPath();
   outline.forEach((c,i)=>{const p=proj(c[0],c[1]);const X=60+p[0]*S,Y=60-p[1]*S;i?rx.lineTo(X,Y):rx.moveTo(X,Y);});rx.closePath();rx.stroke();}rx.restore();
   if(mode==='space'){
@@ -1781,6 +1899,7 @@ function drawRadar(t){
   }
   rx.globalAlpha=1;
   for(const e of enemies){let [r,f]=proj(e.p.x,e.p.z);const d=Math.hypot(f,r);if(d>320){f*=320/d;r*=320/d;}rx.fillStyle='#ff3b4a';rx.beginPath();if(e.type==='jet'){rx.moveTo(60+r*S,60-f*S-4);rx.lineTo(60+r*S-3.5,60-f*S+3);rx.lineTo(60+r*S+3.5,60-f*S+3);}else rx.arc(60+r*S,60-f*S,3.2,0,2*PI);rx.fill();}
+  if(boss&&mode==='space'){let [r,f]=proj(boss.p.x,boss.p.z);const d=Math.hypot(f,r);if(d>320){f*=320/d;r*=320/d;}rx.fillStyle='#ff2a4a';rx.beginPath();rx.arc(60+r*S,60-f*S,6,0,2*PI);rx.fill();}
   for(const M of missiles){const [r,f]=proj(M.p.x,M.p.z);if(Math.hypot(f,r)<320){rx.fillStyle='#ffa040';rx.fillRect(60+r*S-1.5,60-f*S-1.5,3,3);}}
   rx.fillStyle='#5dff9a';rx.shadowColor='#5dff9a';rx.shadowBlur=6;rx.beginPath();rx.moveTo(60,52);rx.lineTo(54.5,65);rx.lineTo(65.5,65);rx.closePath();rx.fill();rx.shadowBlur=0;
 }
@@ -1789,12 +1908,12 @@ function drawRadar(t){
 let lastHud='';
 function hud(){
   const tm=Math.ceil(timer),ts=Math.floor(tm/60)+':'+String(tm%60).padStart(2,'0');
-  const reach=pos.y<BEAM_MAX,altTxt=mode==='space'?'🚀 SPACE':`ALT ${Math.round(pos.y)}m`;
+  const reach=pos.y<BEAM_MAX,altTxt=mode==='warp'?'🌀 WORMHOLE':mode==='space'?'🚀 SPACE':`ALT ${Math.round(pos.y)}m`;
   const key=score+'|'+ts+'|'+cows+'|'+cars+'|'+altTxt+reach+mode;
   if(key!==lastHud){lastHud=key;
     $('bBeam').textContent=mode==='space'?'FIRE':'BEAM';$('score').textContent=score;$('time').textContent=ts;$('time').classList.toggle('low',timer<10);
     $('tally').innerHTML=`🐄 ${cows} &nbsp;|&nbsp; 🚗 ${cars}`;
-    $('alt').innerHTML=altTxt+' · '+(mode==='space'?'<b>FIND A PORTAL</b>':pos.y>CLOUD_Y+10?'<b class="no">☁️ SKY REALM</b>':pos.y>120?'<b class="no">⬆ CLOUDS ABOVE</b>':reach?'<b>BEAM OK</b>':'<b class="no">TOO HIGH</b>');
+    $('alt').innerHTML=altTxt+' · '+(mode!=='ground'?(mode==='warp'?'<b>HOLD ON!</b>':'<b>FIND A PORTAL</b>'):pos.y>CLOUD_Y+10?'<b class="no">☁️ SKY REALM</b>':pos.y>120?'<b class="no">⬆ CLOUDS ABOVE</b>':reach?'<b>BEAM OK</b>':'<b class="no">TOO HIGH</b>');
   }
   $('shieldBar').style.width=shield+'%';
   const pb=$('powerBar');pb.style.width=energy+'%';pb.classList.toggle('lock',lock);
@@ -1833,7 +1952,7 @@ function loop(now){
       const hd=Math.hypot(pos.x,pos.z);if(hd>620){pos.x*=620/hd;pos.z*=620/hd;}
       collide();
       if(pos.y>SPACE_Y)enterSpace();
-    }else spaceUpdate(dt);
+    }else if(mode==='space'){spaceUpdate(dt);if(mode==='space')stationUpdate(dt);}else warpUpdate(dt,ix,(up?1:0)-(down?1:0));
     beamActive=beamBtn&&!lock&&mode==='ground';
     if(beamActive)energy-=20*dt*M.pow;if(boosting)energy-=14*dt*M.pow;
     if(!beamActive&&!boosting)energy+=11*dt;energy=clamp(energy,0,100);
@@ -1959,6 +2078,7 @@ function loop(now){
   });
   updateEnemies(dt,t,canGrab,bR);
   updateCombat(dt,fireBtn);
+  bossUpdate(dt,t);
   {const ph=Math.floor(t*6)%2;policeLights.forEach(([r,b])=>{r.visible=!!ph;b.visible=!ph;});}
   trains.forEach(T=>{T.s+=T.r.dir*30*dt;if(T.s>300)T.s=-300;if(T.s<-300)T.s=300;const y=T.r.h+2.2;
     if(T.isZ)T.g.position.set(T.r.c,y,T.s);else T.g.position.set(T.s,y,T.r.c);});
