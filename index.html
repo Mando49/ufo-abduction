@@ -497,6 +497,51 @@ const fields=[];
   const baleMat=lam(0xb99a57);
   inst(baleGeo,baleMat,hayBales,b=>compose(b.x,1.25,b.z,1,1,1,0,b.ry,0));
 })();
+// Farm silhouettes: windmills and elevated water towers add readable landmarks.
+const windmillRotors=[];
+(function(){
+  fields.forEach((field,index)=>{
+    const angle=(index/7)*2*PI+PI/2;
+    const c=Math.cos(angle),sn=Math.sin(angle);
+    // Keep the windmill just beyond the field fence, opposite the barn.
+    const wx=field.x-c*62,wz=field.z-sn*62;
+    const tower=new THREE.Group();tower.position.set(wx,0,wz);tower.rotation.y=-angle;
+    const mast=new THREE.Mesh(new THREE.CylinderGeometry(0.72,1.15,19,8),lam(0x777d82));
+    mast.position.set(0,9.5,0);tower.add(mast);
+    const collar=new THREE.Mesh(new THREE.CylinderGeometry(1.25,1.25,0.8,10),lam(0x414b55));
+    collar.position.set(0,18.4,0);tower.add(collar);
+    const rotor=new THREE.Group();rotor.position.set(0,19,0);
+    const hub=new THREE.Mesh(new THREE.SphereGeometry(1.15,12,10),lam(0xd9dce0));rotor.add(hub);
+    for(let blade=0;blade<4;blade++){
+      const arm=new THREE.Group();arm.rotation.z=blade*PI/2;
+      const spar=new THREE.Mesh(new THREE.BoxGeometry(0.62,8.2,0.34),lam(0xe5e3d9));
+      spar.position.y=4.5;arm.add(spar);
+      const tip=new THREE.Mesh(new THREE.BoxGeometry(1.05,2.1,0.42),lam(0xb8c4cc));
+      tip.position.set(0,8.3,0);arm.add(tip);rotor.add(arm);
+    }
+    tower.add(rotor);scene.add(tower);windmillRotors.push(rotor);
+  });
+  // A few shared water towers break up the farm skyline without cluttering every field.
+  fields.forEach((field,index)=>{
+    if(index%2!==0)return;
+    const angle=(index/7)*2*PI+PI/2;
+    const x=field.x+Math.sin(angle)*65,z=field.z-Math.cos(angle)*65;
+    const tower=new THREE.Group();tower.position.set(x,0,z);tower.rotation.y=-angle;
+    const legMat=lam(0x59616a);
+    for(const lx of[-3.4,3.4])for(const lz of[-3.4,3.4]){
+      const leg=new THREE.Mesh(new THREE.BoxGeometry(0.42,12,0.42),legMat);
+      leg.position.set(lx,6,lz);tower.add(leg);
+      const brace=new THREE.Mesh(new THREE.BoxGeometry(0.22,8,0.22),legMat);
+      brace.position.set(lx*0.5,6,lz*0.5);brace.rotation.z=Math.atan2(lx,8);tower.add(brace);
+    }
+    const tank=new THREE.Mesh(new THREE.CylinderGeometry(4.2,4.2,6.5,12),lam(0x8797a4));
+    tank.position.y=15.1;tower.add(tank);
+    const roof=new THREE.Mesh(new THREE.ConeGeometry(4.4,2.3,12),lam(0x465563));
+    roof.position.y=19.5;tower.add(roof);
+    const band=new THREE.Mesh(new THREE.CylinderGeometry(4.28,4.28,0.65,12),lam(0xc1cbd1));
+    band.position.y=16.7;tower.add(band);scene.add(tower);
+  });
+})();
 // trees: round trees near farms, pines further out
 (function(){
   const round=[],pines=[];
@@ -892,6 +937,8 @@ function loop(now){
     captureFlash.material.opacity=captureLife;
     if(captureLife<=0){captureRing.visible=false;captureFlash.visible=false;}
   }
+
+  windmillRotors.forEach((rotor,i)=>{rotor.rotation.z=t*(0.55+(i%3)*0.12);});
 
   // targets
   const canGrab=beamActive&&reach&&state==='play';
