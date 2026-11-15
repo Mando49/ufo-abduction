@@ -68,6 +68,7 @@ body.touch #keys{display:none}
 .sponsor{display:block;margin-top:14px;padding:10px;border-radius:12px;border:1px solid rgba(255,79,216,.5);color:#ffb3ef;text-decoration:none;font-size:13px;line-height:1.4;box-shadow:0 0 14px rgba(255,79,216,.25)}
 .sponsor b{color:#fff}
 .hbtn{margin-top:12px;font-size:16px;font-weight:900;padding:11px 28px;border-radius:999px;border:2px solid #ffbe46;background:rgba(40,25,5,.6);color:#ffd27a;box-shadow:0 0 16px rgba(255,180,60,.35)}
+.card{max-height:88vh;overflow-y:auto;-webkit-overflow-scrolling:touch;touch-action:pan-y}
 .shopcard{max-height:88vh;overflow-y:auto;-webkit-overflow-scrolling:touch;touch-action:pan-y}
 .bankline{font-size:18px;font-weight:900;color:#ffe08a;margin:4px 0 8px}
 .sec{text-align:left;font-size:11px;letter-spacing:2px;color:#7fe3ff;margin:12px 0 4px;font-weight:800}
@@ -213,7 +214,7 @@ const isTouch=('ontouchstart' in window)||matchMedia('(pointer:coarse)').matches
 if(isTouch) document.body.classList.add('touch');
 $(isTouch?'howKeys':'howTouch').style.display='none';
 ['contextmenu','gesturestart','dblclick'].forEach(ev=>document.addEventListener(ev,e=>e.preventDefault(),{passive:false}));
-document.addEventListener('touchmove',e=>{if(e.target.closest&&e.target.closest('.shopcard'))return;e.preventDefault();},{passive:false});
+document.addEventListener('touchmove',e=>{if(e.target.closest&&e.target.closest('.card'))return;e.preventDefault();},{passive:false});
 
 let best=0; try{best=+localStorage.getItem('ufoBest')||0;}catch(e){}
 function showBest(){const s=best?('Best: '+best):'';$('bestMenu').textContent=s;$('bestOver').textContent=s;}
@@ -1688,6 +1689,11 @@ function renderShop(){
   for(const k in UPG){const l=save.upg[k],max=l>=5;
     h+=`<div class="row"><div><b>${UPG[k].name}</b><small>${UPG[k].desc} · <span class="pips">${'●'.repeat(l)}${'○'.repeat(5-l)}</span></small></div>`+
       (max?'<button class="sb on" disabled>MAX</button>':`<button class="sb buy" data-upg="${k}" ${save.bank<upgCost(l)?'disabled':''}>💰 ${fmt(upgCost(l))}</button>`)+'</div>';}
+  try{const nb=Object.keys(badges).length,ns=Object.keys(secretsFound).length;
+  h+=`<div class="sec">EXPLORER LOG · 🏅 ${nb}/7 BADGES · 🔍 ${ns}/7 SECRETS</div>`;
+  for(const k of['city','desert','moon','mars','ice','lava','jungle']){const S=SECRETS[k];
+    h+=`<div class="row"><div><b>${badges[k]?'🏅':'⚪'} ${TOWN_NAMES[k]}</b><small>${badges[k]?'All 5 relics found':'Land and find 5 💠 relics'} · ${secretsFound[k]?'🔍 '+S.emoji+' '+S.name:'🔍 ??? secret not found'}</small></div></div>`;}
+  if(nb===7&&ns===7)h+='<div class="row"><div><b>👑 MASTER EXPLORER</b><small>You found everything. Legend!</small></div></div>';}catch(e){}
   $('shopList').innerHTML=h;
 }
 $('shopList').addEventListener('click',e=>{const b=e.target.closest('button');if(!b||b.disabled)return;
@@ -2164,7 +2170,7 @@ function landShip(){
   shipPark.set(pos.x,4,pos.z);shipYaw=yaw;
   pos.copy(shipPark).addScaledVector(right,7);pos.y=0;wv=0;wJumps=0;
   walker.visible=true;document.body.classList.add('walking');setupRelics();
-  pop('🚶 EXPLORE ON FOOT');pop(`Find the 5 💠 relics · ${relicCount()}/5`,'t');blip(300,600,0.25,'sine',0.12);lastHud='';
+  pop('🚶 EXPLORE ON FOOT');pop(`Find 5 💠 relics${SECRETS[curTown]&&!SECRETS[curTown].foundThisRun?' · a 🔍 secret is hidden here':''}`,'t');blip(300,600,0.25,'sine',0.12);lastHud='';
 }
 function boardShip(){
   onFoot=false;walker.visible=false;document.body.classList.remove('walking');relicFx.forEach(r=>r.g.visible=false);
@@ -2211,6 +2217,59 @@ function walkCam(dt){
 }
 $('bLand').addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();landShip();});
 addEventListener('keydown',e=>{if(e.key.toLowerCase()==='l'){if(onFoot)boardShip();else landShip();}});
+
+// ---------- HIDDEN SECRETS (found on foot) ----------
+const SECRETS={
+  city:{name:'Crashed Saucer',x:185,z:178,emoji:'🛸'},
+  desert:{name:'Secret Bunker',x:430,z:-390,emoji:'🧪'},
+  ice:{name:'Crystal Cave',x:-400,z:330,emoji:'💎'},
+  lava:{name:'Lava Temple',x:380,z:-360,emoji:'🛕'},
+  jungle:{name:'Blob Village',x:-380,z:-330,emoji:'🛖'},
+  moon:{name:'Mystery Monolith',x:330,z:-340,emoji:'⬛'},
+  mars:{name:'Ancient Ruins',x:-340,z:-370,emoji:'🏛️'}
+};
+let secretsFound={};try{secretsFound=JSON.parse(localStorage.getItem('ufoSecrets')||'{}');}catch(e){}
+const secretAnim=[];
+function inTown(n,fn){const r0=root,c0=colliders;root=towns[n].group;colliders=towns[n].colliders;fn(SECRETS[n].x,SECRETS[n].z);root=r0;colliders=c0;}
+const solid=(x,z,w,d,h,y0)=>colliders.push({x0:x-w/2,x1:x+w/2,z0:z-d/2,z1:z+d/2,h,y0:y0||0});
+inTown('city',(X,Z)=>{const g=new THREE.Group();g.position.set(X,0,Z);g.rotation.set(0.35,0.6,0.2);
+  const top=new THREE.Mesh(new THREE.SphereGeometry(9,32,14,0,2*PI,0,PI/2),new THREE.MeshStandardMaterial({color:0x6a7080,metalness:.6,roughness:.4}));top.scale.y=0.3;g.add(top);
+  const rim=new THREE.Mesh(new THREE.TorusGeometry(9,0.4,8,48),basic(0x3de1ff));rim.rotation.x=PI/2;g.add(rim);
+  const dm=new THREE.Mesh(new THREE.SphereGeometry(3,18,10,0,2*PI,0,PI/2),new THREE.MeshStandardMaterial({color:0x7fefff,transparent:true,opacity:.4,emissive:0x1f8fb0}));dm.position.y=2;g.add(dm);root.add(g);
+  const sm=glowSprite(0x3de1ff,X,3,Z,30,0.5);secretAnim.push(t=>{rim.material.color.setHSL(0.52,1,0.4+0.2*Math.sin(t*6));});
+  for(let i=0;i<5;i++){const s=new THREE.Sprite(new THREE.SpriteMaterial({map:PUFF.storm,transparent:true,opacity:.5,depthWrite:false}));s.position.set(X+rand(-4,4),4,Z+rand(-4,4));root.add(s);secretAnim.push(t=>{const ph=((t*0.3+i/5)%1);s.position.y=3+ph*18;s.scale.setScalar(4+ph*12);s.material.opacity=.5*(1-ph);});}
+  solid(X,Z,12,12,3);});
+inTown('desert',(X,Z)=>{box(root,16,1,16,0x8a7a62,X,0.5,Z);box(root,6,0.3,6,0x3a3f4c,X,1.1,Z);
+  box(root,10,6,0.6,0x5a6070,X,3,Z-8);box(root,4,4.6,0.2,basic(0x6dff7a),X,2.6,Z-7.6);
+  const tube=new THREE.Mesh(new THREE.CylinderGeometry(1.4,1.4,4.5,16),new THREE.MeshStandardMaterial({color:0x7fffa0,transparent:true,opacity:.35,emissive:0x2a8a4a}));tube.position.set(X+4,3.2,Z);root.add(tube);
+  const al=new THREE.Mesh(new THREE.SphereGeometry(0.7,12,10),new THREE.MeshLambertMaterial({color:0x6dff7a,emissive:0x1d5a20}));al.position.set(X+4,3.6,Z);root.add(al);
+  glowSprite(0x6dff7a,X+4,3,Z,10,0.6);sign('TOP SECRET','#6dff7a',8,2,X,7,Z-7.7,0);secretAnim.push(t=>{al.position.y=3.5+Math.sin(t*1.5)*0.3;});
+  solid(X,Z-8,10,1,6);});
+inTown('ice',(X,Z)=>{const m=new THREE.MeshLambertMaterial({color:0xbfeaff,emissive:0x2a5a7a,flatShading:true});
+  for(let i=0;i<=14;i++){const a=i/14*PI,b=new THREE.Mesh(new THREE.BoxGeometry(5,4,10),m);b.position.set(X+Math.cos(a)*12,Math.sin(a)*12,Z);b.rotation.z=a;root.add(b);if(i<3||i>11)solid(X+Math.cos(a)*12,Z,5,10,Math.sin(a)*12+2);}
+  for(let k=0;k<6;k++){const c=new THREE.Mesh(new THREE.OctahedronGeometry(1),basic(pick([0x7ffcff,0xb46bff])));c.position.set(X+rand(-6,6),rand(1,3),Z+rand(-4,4));c.scale.set(1,rand(2,4),1);root.add(c);}
+  const th=glowSprite(0x9fe8ff,X,4,Z,22,0.7);secretAnim.push(t=>{th.material.opacity=0.5+0.3*Math.sin(t*2);});});
+inTown('lava',(X,Z)=>{for(let i=0;i<5;i++){const s=26-i*5;box(root,s,3,s,i%2?0x3a2420:0x2a1a18,X,1.5+i*3,Z);}solid(X,Z,26,26,15);
+  const f=glowSprite(0xff7a20,X,17,Z,18);box(root,3,3,3,basic(0xffa040),X,16.5,Z);secretAnim.push(t=>{f.material.opacity=0.6+0.4*Math.sin(t*3);});
+  for(const [dx,dz] of[[-14,-14],[14,-14],[-14,14],[14,14]]){box(root,1.5,8,1.5,0x2a1a18,X+dx,4,Z+dz);glowSprite(0xff5a1a,X+dx,8.6,Z+dz,5);}});
+inTown('jungle',(X,Z)=>{const fire=glowSprite(0xffa040,X,1.5,Z,10);secretAnim.push(t=>{fire.scale.setScalar(9+Math.random()*3);});
+  for(let i=0;i<6;i++){const a=i/6*2*PI,x=X+Math.cos(a)*14,z=Z+Math.sin(a)*14,c=pick([0xff4fd8,0x45eaff,0xffa040,0xb46bff]);
+    const hut=new THREE.Mesh(new THREE.CylinderGeometry(3,3.4,4,12),lam(0xe8e0d0));hut.position.set(x,2,z);root.add(hut);
+    const cap=new THREE.Mesh(new THREE.SphereGeometry(4.6,16,8,0,2*PI,0,PI/2),new THREE.MeshLambertMaterial({color:c,emissive:c,emissiveIntensity:.3}));cap.position.set(x,3.6,z);cap.scale.y=.6;root.add(cap);
+    box(root,1.4,2,0.2,basic(0xffe0a0),x-Math.cos(a)*3.3,1,z-Math.sin(a)*3.3).rotation.y=-a+PI/2;solid(x,z,6,6,5.6);
+    const bl=critterMesh('blob');bl.position.set(X+Math.cos(a+0.5)*7,0,Z+Math.sin(a+0.5)*7);bl.rotation.y=-(a+0.5)+PI;secretAnim.push(t=>{bl.position.y=Math.abs(Math.sin(t*3+i))*0.8;});}});
+inTown('moon',(X,Z)=>{const m=new THREE.Mesh(new THREE.BoxGeometry(4,16,1.2),new THREE.MeshStandardMaterial({color:0x050505,metalness:.8,roughness:.15}));m.position.set(X,8,Z);root.add(m);solid(X,Z,4,1.2,16);
+  const h=glowSprite(0xb8c8ff,X,8,Z,26,0.35);secretAnim.push(t=>{h.material.opacity=0.2+0.2*Math.sin(t*1.3);});});
+inTown('mars',(X,Z)=>{for(let i=0;i<10;i++){const a=i/10*2*PI,h=rand(3,10),x=X+Math.cos(a)*16,z=Z+Math.sin(a)*16;box(root,2,h,2,0xb06a44,x,h/2,z).rotation.y=a;solid(x,z,2,2,h);}
+  const ob=new THREE.Mesh(new THREE.ConeGeometry(2.2,14,4),new THREE.MeshLambertMaterial({color:0x6a2a14,emissive:0x5a1a8a,emissiveIntensity:.4}));ob.position.set(X,7,Z);root.add(ob);solid(X,Z,3,3,14);
+  const gl=glowSprite(0xc58bff,X,10,Z,16);secretAnim.push(t=>{gl.material.opacity=0.5+0.4*Math.sin(t*2.2);});});
+function secretUpdate(t){
+  secretAnim.forEach(f=>f(t));
+  if(!onFoot||state!=='play')return;const S=SECRETS[curTown];if(!S||S.foundThisRun)return;
+  if(Math.hypot(pos.x-S.x,pos.z-S.z)<20){S.foundThisRun=true;const first=!secretsFound[curTown];secretsFound[curTown]=true;try{localStorage.setItem('ufoSecrets',JSON.stringify(secretsFound));}catch(e){}
+    score+=200;if(first){save.bank+=500;persist();}
+    pop(`🔍 SECRET FOUND: ${S.emoji} ${S.name}!`);pop(first?'+200 · +500 bonus credits':'+200','t');blip(300,1200,0.6,'triangle',0.15);setTimeout(()=>blip(600,2400,0.4,'triangle',0.12),250);}
+}
 
 // ---------- input ----------
 const keys={},inp={up:false,down:false,beam:false,boost:false,fire:false},joy={x:0,y:0};
@@ -2352,6 +2411,7 @@ function startGame(){
   for(const k in towns)towns[k].targets.forEach(T=>T.spawn(T));
   crystals.forEach(placeCrystal);
   if(onFoot){onFoot=false;walker.visible=false;document.body.classList.remove('walking');}for(const k in RELICS){RELICS[k].forEach(r=>scene.remove(r.g));delete RELICS[k];}relicFx=[];
+  for(const k in SECRETS)SECRETS[k].foundThisRun=false;
   clearEnemies();clearSpaceFoes();spaceKills=0;heat=0;resetPU();puScoreSeen=0;if(boss){enemyGroup.remove(boss.g);boss=null;}bossNext=8;$('bossbar').style.display='none';warpGroup.visible=false;heatIdle=0;lastHurt=99;spawnT=3;
   $('menu').classList.add('hidden');$('over').classList.add('hidden');
   state='play';perfT=0;perfN=0;perfSum=0;
@@ -2678,6 +2738,7 @@ function loop(now){
   updateEnemies(dt*ES,t,canGrab,bR);
   updatePowerups(dt,t);
   updateCombat(dt,fireBtn);
+  secretUpdate(t);
   bossUpdate(dt*ES,t);
   {const ph=Math.floor(t*6)%2;policeLights.forEach(([r,b])=>{r.visible=!!ph;b.visible=!ph;});}
   trains.forEach(T=>{T.s+=T.r.dir*30*dt;if(T.s>300)T.s=-300;if(T.s<-300)T.s=300;const y=T.r.h+2.2;
