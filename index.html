@@ -585,7 +585,29 @@ const NB=48,bPos=new Float32Array(NB*3),bVel=[];for(let i=0;i<NB;i++)bVel.push(n
 const bGeo2=new THREE.BufferGeometry();bGeo2.setAttribute('position',new THREE.BufferAttribute(bPos,3));
 const bMat2=new THREE.PointsMaterial({map:GLOW,color:0xbdefff,size:1.5,transparent:true,opacity:0,blending:THREE.AdditiveBlending,depthWrite:false});
 const burst=new THREE.Points(bGeo2,bMat2);burst.frustumCulled=false;scene.add(burst);let burstLife=0;
-function doBurst(p){for(let i=0;i<NB;i++){bPos[i*3]=p.x;bPos[i*3+1]=p.y;bPos[i*3+2]=p.z;bVel[i].set(rand(-1,1),rand(-0.6,1),rand(-1,1)).normalize().multiplyScalar(rand(6,16));}burstLife=1;}
+// Expanding capture ring and short-lived flash, reused for every successful abduction.
+const captureRing=new THREE.Mesh(
+  new THREE.TorusGeometry(1,0.12,8,48),
+  new THREE.MeshBasicMaterial({color:0xb8f4ff,transparent:true,opacity:0,blending:THREE.AdditiveBlending,depthWrite:false})
+);
+captureRing.rotation.x=Math.PI/2;captureRing.visible=false;scene.add(captureRing);
+const captureFlash=new THREE.Sprite(new THREE.SpriteMaterial({
+  map:GLOW,color:0xe8fbff,transparent:true,opacity:0,blending:THREE.AdditiveBlending,depthWrite:false
+}));
+captureFlash.visible=false;scene.add(captureFlash);
+let captureLife=0;
+function doBurst(p){
+  for(let i=0;i<NB;i++){
+    bPos[i*3]=p.x;bPos[i*3+1]=p.y;bPos[i*3+2]=p.z;
+    const angle=rand(0,2*PI),elev=rand(-0.2,1.0);
+    bVel[i].set(Math.cos(angle),elev,Math.sin(angle)).normalize().multiplyScalar(rand(8,21));
+  }
+  burstLife=1;
+  captureRing.position.set(p.x,p.y,p.z);captureRing.scale.setScalar(0.8);
+  captureRing.material.opacity=0.95;captureRing.visible=true;
+  captureFlash.position.copy(p);captureFlash.scale.set(2,2,1);
+  captureFlash.material.opacity=1;captureFlash.visible=true;captureLife=1;
+}
 
 // ---------- input ----------
 const keys={},inp={up:false,down:false,beam:false,boost:false},joy={x:0,y:0};
@@ -703,8 +725,9 @@ function abduct(T){
   const isCow=T.type==='cow',pts=isCow?10:25,tb=isCow?4:6;
   score+=pts;timer+=tb;isCow?cows++:cars++;
   pop(`+${pts} ${isCow?'🐄':'🚗'}`);pop(`+${tb}s`,'t');
-  if(isCow)blip(170,95,0.55,'sawtooth',0.1);
-  setTimeout(()=>blip(600,1500,0.22,'triangle',0.12),isCow?200:0);
+  // Two-part capture chime: rising energy sweep followed by a bright confirmation ping.
+  blip(isCow?210:260,isCow?720:920,0.28,'sine',0.14);
+  setTimeout(()=>blip(760,1850,0.18,'triangle',0.11),120);
 }
 function cowWalk(T,dt){
   const m=T.mesh,f=T.field,dx=m.position.x-pos.x,dz=m.position.z-pos.z;let sp=T.sp;
@@ -823,8 +846,23 @@ function loop(now){
       const r=br*(1-p.h)*p.rf*0.95,a=p.a+t*1.5;pPos[i*3]=pos.x+Math.cos(a)*r;pPos[i*3+1]=bot+p.h*blen;pPos[i*3+2]=pos.z+Math.sin(a)*r;}
     pGeo.attributes.position.needsUpdate=true;pMat.opacity=op*0.7;
   }
-  if(burstLife>0){burstLife-=dt*1.1;for(let i=0;i<NB;i++){bPos[i*3]+=bVel[i].x*dt;bPos[i*3+1]+=bVel[i].y*dt;bPos[i*3+2]+=bVel[i].z*dt;bVel[i].multiplyScalar(0.96);}
-    bGeo2.attributes.position.needsUpdate=true;bMat2.opacity=Math.max(0,burstLife);burst.visible=true;}else burst.visible=false;
+  if(burstLife>0){
+    burstLife-=dt*1.1;
+    for(let i=0;i<NB;i++){
+      bPos[i*3]+=bVel[i].x*dt;bPos[i*3+1]+=bVel[i].y*dt;bPos[i*3+2]+=bVel[i].z*dt;
+      bVel[i].multiplyScalar(0.96);
+    }
+    bGeo2.attributes.position.needsUpdate=true;bMat2.opacity=Math.max(0,burstLife);burst.visible=true;
+  }else burst.visible=false;
+  if(captureLife>0){
+    captureLife=Math.max(0,captureLife-dt*2.4);
+    const p=1-captureLife;
+    captureRing.scale.setScalar(0.8+p*8.5);
+    captureRing.material.opacity=captureLife*0.9;
+    captureFlash.scale.set(2+p*13,2+p*13,1);
+    captureFlash.material.opacity=captureLife;
+    if(captureLife<=0){captureRing.visible=false;captureFlash.visible=false;}
+  }
 
   // targets
   const canGrab=beamActive&&reach&&state==='play';
@@ -832,13 +870,26 @@ function loop(now){
     const m=T.mesh;
     if(T.state==='gone'){T.rt-=dt;if(T.rt<=0)(T.type==='cow'?spawnCow:spawnCar)(T);continue;}
     const dx=pos.x-m.position.x,dz=pos.z-m.position.z,d2=dx*dx+dz*dz;
-    if((T.state==='ground'||T.state==='fall')&&canGrab&&d2<bR*bR){T.state='lift';T.vy=0;}
+    if((T.state==='ground'||T.state==='fall')&&canGrab&&d2<bR*bR){
+      T.state='lift';T.vy=0;T.liftTime=0;
+      T.liftAngle=Math.atan2(m.position.z-pos.z,m.position.x-pos.x);
+      T.liftRadius=Math.max(0.6,Math.sqrt(d2));
+    }
     if(T.state==='ground'){T.type==='cow'?cowWalk(T,dt):carDrive(T,dt);}
     else if(T.state==='lift'){
-      if(!canGrab||d2>bR*bR*2.6){T.state='fall';T.vy=0;}
+      if(!canGrab||d2>bR*bR*3.2){T.state='fall';T.vy=0;}
       else{
-        m.position.y+=(10+pos.y*0.25)*dt;const k=1-Math.exp(-3*dt);m.position.x+=dx*k;m.position.z+=dz*k;
-        m.rotation.y+=dt*2.5;m.rotation.z=Math.sin(t*4+m.id)*0.45;m.rotation.x=Math.cos(t*3+m.id)*0.3;
+        T.liftTime+=dt;
+        const liftProgress=clamp(T.liftTime/1.05,0,1);
+        const spin=T.liftTime*7.5;
+        const radius=T.liftRadius*(1-liftProgress)*0.72;
+        const angle=T.liftAngle+spin;
+        m.position.x=pos.x+Math.cos(angle)*radius;
+        m.position.z=pos.z+Math.sin(angle)*radius;
+        m.position.y+=(12+pos.y*0.32)*dt;
+        m.rotation.y+=dt*5.5;
+        m.rotation.z=Math.sin(t*8+m.id)*0.62;
+        m.rotation.x=Math.cos(t*7+m.id)*0.48;
         if(m.position.y>=pos.y-1.8)abduct(T);
       }
     }else if(T.state==='fall'){
