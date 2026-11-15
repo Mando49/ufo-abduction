@@ -3942,6 +3942,8 @@ const MIN=[0,2,3,5,7,8,10],MAJ=[0,2,4,5,7,9,11],PHR=[0,1,3,5,7,8,10],DOR=[0,2,3,
 const TRACKS={
   city:{name:'Neon Drive',bpm:100,root:57,sc:MIN,prog:[0,5,2,6],bass:'x.x.x.x.x.x.xoxo',bw:'sawtooth',arp:'xxxxxxxxxxxxxxxx',aw:'square',ao:2,av:.03,pad:'sawtooth',kick:'x...x...x...x...',snare:'....x.......x...',hat:'..x...x...x...x.',cut:1800},
   desert:{name:'Area 51',bpm:92,root:50,sc:PHR,prog:[0,1,0,6],bass:'x..x..x.x..x..x.',bw:'triangle',arp:'x.x.x.x.x.x.x.x.',aw:'triangle',ao:2,av:.05,pad:'triangle',kick:'x.....x...x.....',snare:'....x.......x...',hat:'x.x.x.x.x.x.x.x.',cut:1400},
+  midnight:{name:'Midnight Abduction',bpm:84,root:45,sc:MIN,prog:[0,0,5,4],bass:'x......x..x.....',bw:'sine',arp:'x..x..x...x..x..',aw:'triangle',ao:3,av:.055,pad:'sawtooth',kick:'x......x..x.....',snare:'....x.......x...',hat:'x.x.x.x.x.x.x.xx',cut:1300},
+  creep:{name:'Creeping Lights',bpm:78,root:43,sc:HMIN,prog:[0,5,1,4],bass:'x.....x.x.......',bw:'sine',arp:'x...x.x...x...x.',aw:'triangle',ao:3,av:.05,pad:'triangle',kick:'x.....x...x.....',snare:'....x.......x..x',hat:'..x...x...x...x.',cut:1100},
   sky:{name:'Above the Clouds',bpm:76,root:60,sc:MAJ,prog:[0,5,3,4],bass:'x...............',bw:'sine',arp:'x..x..x..x..x...',aw:'triangle',ao:2,av:.04,pad:'triangle',cut:2500},
   space:{name:'Deep Space',bpm:84,root:52,sc:MIN,prog:[0,5,3,6],bass:'x.......x.......',bw:'sine',arp:'x...x...x...x...',aw:'sine',ao:3,av:.05,pad:'sawtooth',hat:'....x.......x...',cut:900},
   warp:{name:'Wormhole',bpm:140,root:52,sc:MIN,prog:[0,0,5,6],bass:'xoxoxoxoxoxoxoxo',bw:'sawtooth',arp:'xxxxxxxxxxxxxxxx',aw:'square',ao:2,av:.03,kick:'x...x...x...x...',hat:'xxxxxxxxxxxxxxxx',cut:2600},
@@ -3958,6 +3960,18 @@ const TRACKS={
   mars:{name:'Red Planet',bpm:96,root:47,sc:MIN,prog:[0,5,6,4],bass:'x.x...x.x.x...x.',bw:'sawtooth',arp:'x.xx.xx.x.xx.xx.',aw:'square',ao:2,av:.03,pad:'sawtooth',kick:'x.......x.......',snare:'....x.......x...',hat:'..x...x...x...x.',cut:1500}
 };
 let musicOn=true;try{musicOn=localStorage.getItem('ufoMusic')!=='off';}catch(e){}
+// 📻 RADIO: plays a playlist instead of each world's theme. Entries are built-in beats {proc:'key'} or song files {file:'assets/music/x.mp3',name:'...'}.
+// To add songs: drop MP3s into assets/music/ and list them here.
+const RADIO=[{proc:'midnight'},{proc:'creep'}];
+let radioOn=false;try{radioOn=localStorage.getItem('ufoRadio')==='on';}catch(e){}
+const RAD={i:0,t:0,el:null,src:null};try{RAD.i=(+localStorage.getItem('ufoRadioI')||0)%RADIO.length;}catch(e){}
+function radioEntry(){return RADIO[RAD.i%RADIO.length];}
+function radioNext(){RAD.i=(RAD.i+1)%RADIO.length;RAD.t=0;try{localStorage.setItem('ufoRadioI',RAD.i);}catch(e){}radioStartFile();}
+function radioStopFile(){if(RAD.el){try{RAD.el.pause();}catch(e){}}}
+function radioStartFile(){const E=radioEntry();radioStopFile();if(!E.file||!AC)return;
+  if(!RAD.el){RAD.el=new Audio();RAD.el.crossOrigin='anonymous';RAD.el.preload='auto';RAD.el.addEventListener('ended',()=>radioNext());RAD.el.addEventListener('error',()=>radioNext());
+    try{RAD.src=AC.createMediaElementSource(RAD.el);const g=AC.createGain();g.gain.value=0.9;RAD.src.connect(g);g.connect(master);}catch(e){}}
+  RAD.el.src=E.file;RAD.el.play().catch(()=>{});}
 const MU={bus:null,cur:null,want:null,wantT:0,step:0,nextT:0,switching:0,white:null};
 const mtof=m=>440*Math.pow(2,(m-69)/12);
 function chordNotes(T,d){const s=T.sc,n=i=>T.root+s[i%7]+12*Math.floor(i/7);return[n(d),n(d+2),n(d+4)];}
@@ -3981,6 +3995,7 @@ function mStep(T,i,t){
   if(T.hat&&T.hat[st]==='x')mNoise(t,0.035,0.05,7000);
 }
 function wantTrack(){
+  if(radioOn){const E=radioEntry();return E.proc||'_file';}
   if(state==='menu'||state==='over')return 'city';
   if(mode==='warp')return 'warp';
   if(boss&&mode==='space')return 'boss';
@@ -3996,19 +4011,29 @@ function musicTick(dt){
     MU.white=AC.createBuffer(1,AC.sampleRate*0.3|0,AC.sampleRate);const d=MU.white.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;}
   const now=AC.currentTime;
   if(!musicOn){MU.bus.gain.setTargetAtTime(0,now,0.1);return;}
+  if(radioOn){const E=radioEntry();RAD.t+=dt;
+    if(E.file){MU.bus.gain.setTargetAtTime(0,now,0.1);if(state==='paused')radioStopFile();else if(RAD.el&&RAD.el.paused&&RAD.el.src)RAD.el.play().catch(()=>{});else if(!RAD.el||!RAD.el.src)radioStartFile();return;}
+    if(RAD.t>150){radioNext();}}
+  else radioStopFile();
   const w=wantTrack();
   if(w!==MU.want){MU.want=w;MU.wantT=0;}else MU.wantT+=dt;
   if(!MU.cur){MU.cur=w;MU.step=0;MU.nextT=now+0.1;MU.bus.gain.setTargetAtTime(0.5,now,0.3);}
   else if(MU.want!==MU.cur&&!MU.switching&&(MU.wantT>0.8||MU.want==='warp'||MU.want==='boss')){MU.switching=now+0.45;MU.bus.gain.setTargetAtTime(0,now,0.12);}
   if(MU.switching&&now>=MU.switching){MU.switching=0;MU.cur=MU.want;MU.step=0;MU.nextT=now+0.05;MU.bus.gain.setTargetAtTime(0.5,now,0.25);
-    if(state==='play')pop('🎵 '+TRACKS[MU.cur].name,'t');}
+    if(state==='play')pop((radioOn?'📻 ':'🎵 ')+TRACKS[MU.cur].name,'t');}
   if(MU.switching)return;
   const T=TRACKS[MU.cur],s16=60/T.bpm/4;
   if(MU.nextT<now-0.3)MU.nextT=now+0.05;
   while(MU.nextT<now+0.15){mStep(T,MU.step,MU.nextT);MU.step++;MU.nextT+=s16;}
 }
-function setMusicBtn(){$('musicBtn').textContent=musicOn?'🎵':'🎵̸';$('musicBtn').style.opacity=musicOn?1:0.45;}
-$('musicBtn').addEventListener('click',e=>{e.stopPropagation();musicOn=!musicOn;try{localStorage.setItem('ufoMusic',musicOn?'on':'off');}catch(_){}initAudio();setMusicBtn();});
+function setMusicBtn(){$('musicBtn').textContent=!musicOn?'🎵̸':radioOn?'📻':'🎵';$('musicBtn').style.opacity=musicOn?1:0.45;}
+$('musicBtn').addEventListener('click',e=>{e.stopPropagation();initAudio();
+  if(musicOn&&!radioOn){radioOn=true;RAD.t=0;const E=radioEntry();pop('📻 RADIO ON · '+(E.name||TRACKS[E.proc].name),'t');if(E.file)radioStartFile();}
+  else if(musicOn&&radioOn){musicOn=false;radioOn=false;radioStopFile();pop('🔇 Music off','t');}
+  else{musicOn=true;radioOn=false;pop('🎵 Game music','t');}
+  try{localStorage.setItem('ufoMusic',musicOn?'on':'off');localStorage.setItem('ufoRadio',radioOn?'on':'off');}catch(_){}setMusicBtn();});
+// long-press / right-click the music button to skip to the next radio song
+$('musicBtn').addEventListener('contextmenu',e=>{e.preventDefault();if(radioOn){radioNext();const E=radioEntry();pop('⏭ '+(E.name||TRACKS[E.proc].name),'t');}});
 setMusicBtn();
 
 
