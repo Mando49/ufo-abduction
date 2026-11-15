@@ -748,7 +748,7 @@ const airTraffic=[];
 })();
 
 // ---------- farms ----------
-const barnLights=[],farmVanes=[];
+const barnLights=[],farmVanes=[],barnGroups=[];
 (function(){
   const posts=[],rails=[];
   const barnRed=lam(0xa32a22),trim=lam(0xf2efe6),roofM=lam(0x3d3f4c),winM=basic(0xffcf70);
@@ -775,7 +775,7 @@ const barnLights=[],farmVanes=[];
     const silo=new THREE.Mesh(new THREE.CylinderGeometry(3,3,18,14),lam(0xa9b1bb));silo.position.set(1,9,-12);barn.add(silo);
     const cap=new THREE.Mesh(new THREE.SphereGeometry(3,14,7,0,2*PI,0,PI/2),lam(0x8a929c));cap.position.set(1,18,-12);barn.add(cap);
     const bl=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:0xffc070,transparent:true,depthWrite:false}));bl.position.set(-6.6,8.8,0);bl.scale.set(5,5,1);barn.add(bl);barnLights.push(bl);
-    root.add(barn);
+    silo.userData.keep=cap.userData.keep=true;root.add(barn);barnGroups.push(barn);
     colliders.push({x0:bx-11,x1:bx+11,z0:bz-11,z1:bz+11,h:15,y0:0});
   }
   const pg=new THREE.BoxGeometry(0.35,1.9,0.35);pg.translate(0,0.95,0);
@@ -1004,8 +1004,12 @@ const farmBirds=[],fireflies=[];
 // ---------- targets ----------
 const W=0xf2f2f2,B=0x1a1a1a,PK=0xf0a0a0;
 // ---------- real 3D models (made with Higgsfield / Tripo) ----------
-const MODELS={cow:{file:'cow',len:3.0,rotY:PI/2,list:[]},car:{file:'car',len:4.4,rotY:0,list:[]},heli:{file:'heli',len:12,rotY:0,list:[]},jet:{file:'jet',len:12,rotY:0,list:[]},truck:{file:'truck',len:7,rotY:0,list:[]},police:{file:'police',len:4.6,rotY:0,list:[]},shadow:{file:'shadow',len:12.5,rotY:PI,list:[],yOff:-0.35,recolor:true}};
+const MODELS={cow:{file:'cow',len:3.0,rotY:PI/2,list:[]},car:{file:'car',len:4.4,rotY:0,list:[]},heli:{file:'heli',len:12,rotY:0,list:[]},jet:{file:'jet',len:12,rotY:0,list:[]},truck:{file:'truck',len:7,rotY:0,list:[]},police:{file:'police',len:4.6,rotY:0,list:[]},shadow:{file:'shadow',len:12.5,rotY:PI,list:[],yOff:-0.35,recolor:true},
+  camel:{file:'camel',height:4.6,rotY:PI/2,list:[]},penguin:{file:'penguin',height:2.8,rotY:0,list:[]},dino:{file:'dino',height:4.6,rotY:PI/2,list:[]},
+  jaguar:{file:'jaguar',height:2.4,rotY:0,list:[]},shark:{file:'shark',len:3.8,rotY:PI/2,list:[]},tractor:{file:'tractor',height:3.6,rotY:0,list:[]},
+  barn:{file:'barn',height:14,rotY:-PI/2,list:[]},chest:{file:'chest',height:2.6,rotY:0,list:[]}};
 function useModel(type,g){const M=MODELS[type];if(M.proto)attachModel(M,g);else M.list.push(g);return g;}
+barnGroups.forEach(b=>useModel('barn',b));
 function attachModel(M,g){g.children.forEach(c=>{if(!c.isSprite&&!c.userData.keep)c.visible=false;});const m=M.proto.clone();if(M.yOff)m.position.y=M.yOff;g.add(m);if(g.userData.onAttach)g.userData.onAttach(M);}
 if(THREE.GLTFLoader){const ld=new THREE.GLTFLoader();
   for(const k in MODELS){const M=MODELS[k];
@@ -1013,32 +1017,38 @@ if(THREE.GLTFLoader){const ld=new THREE.GLTFLoader();
       const holder=new THREE.Group(),inner=gl.scene;inner.rotation.y=M.rotY;holder.add(inner);
       inner.traverse(o=>{if(o.isMesh&&M.recolor){o.material=new THREE.MeshStandardMaterial({color:0x3a4252,metalness:0.6,roughness:0.28,emissive:0x0c1018,normalMap:o.material.normalMap||null});return;}if(o.isMesh){const mt=o.material;if(mt&&mt.map){mt.emissive=new THREE.Color(0xffffff);mt.emissiveMap=mt.map;mt.emissiveIntensity=0.22;mt.needsUpdate=true;}}});
       holder.updateMatrixWorld(true);let b=new THREE.Box3().setFromObject(holder),sz=b.getSize(new V3());
-      const sc=M.len/Math.max(sz.x,0.001);holder.scale.setScalar(sc);holder.updateMatrixWorld(true);
+      const sc=M.height?M.height/Math.max(sz.y,0.001):M.len/Math.max(sz.x,0.001);holder.scale.setScalar(sc);holder.updateMatrixWorld(true);
       b=new THREE.Box3().setFromObject(holder);const c=b.getCenter(new V3());
       const wrap=new THREE.Group();holder.position.set(-c.x,-b.min.y,-c.z);wrap.add(holder);
-      M.size=new THREE.Box3().setFromObject(holder).getSize(new V3());try{freezeStatic([wrap],wrap);}catch(e){}M.proto=wrap;M.list.forEach(g=>attachModel(M,g));M.list.length=0;
+      M.size=new THREE.Box3().setFromObject(holder).getSize(new V3());{let n=0;wrap.traverse(o=>{if(o.isMesh)n++;});if(n>1)try{freezeStatic([wrap],wrap);}catch(e){}}M.proto=wrap;M.list.forEach(g=>attachModel(M,g));M.list.length=0;
     };
     const D=window.MODEL_DATA&&window.MODEL_DATA[M.file];
     if(D){try{const bin=atob(D),u=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)u[i]=bin.charCodeAt(i);ld.parse(u.buffer,'',onLoad,()=>{});}catch(e){}}
     else ld.load('assets/models/'+M.file+'.glb',onLoad,undefined,()=>{});}}
 // ---------- animated models (free assets, see CREDITS.md): they really walk, run and wave ----------
-const ANIM={fox:{file:'fox',len:3.4,axis:'z',rotY:PI/2,clips:{idle:'Survey',walk:'Walk',run:'Run'},list:[]},
+const ANIM={alien:{file:'alien',height:2.3,rotY:PI/2,clips:{walk:0},list:[]},
+  person:{file:'person',height:3.4,rotY:PI/2,clips:{walk:0},tint:true,list:[]},mummy:{file:'mummy',height:3.7,rotY:PI/2,clips:{walk:0},list:[]},yeti:{file:'yeti',height:7.2,rotY:PI/2,clips:{walk:0},list:[]},
+  fox:{file:'fox',len:3.4,axis:'z',rotY:PI/2,clips:{idle:'Survey',walk:'Walk',run:'Run'},list:[]},
   robot:{file:'robot',height:4.2,rotY:PI/2,clips:{idle:'Idle',walk:'Walking',run:'Running',wave:'Wave'},list:[]}};
 const animInst=[];
 function useAnim(type,g,town){const A=ANIM[type];g.userData.animType=type;g.userData.animTown=town;if(A.proto)attachAnim(A,g);else A.list.push(g);return g;}
 function attachAnim(A,g){if(!THREE.SkeletonUtils)return;g.children.forEach(c=>{if(!c.isSprite)c.visible=false;});
   const m=THREE.SkeletonUtils.clone(A.proto);g.add(m);const mixer=new THREE.AnimationMixer(m),acts={};
-  for(const k in A.clips){const c=A.anims.find(a=>a.name===A.clips[k]);if(c)acts[k]=mixer.clipAction(c);}
-  const I={g,mixer,acts,cur:null,town:g.userData.animTown,last:new V3().copy(g.position)};
-  const play=k=>{if(I.cur===k||!acts[k])return;const a=acts[k];a.reset().fadeIn(0.25).play();if(I.cur&&acts[I.cur])acts[I.cur].fadeOut(0.25);I.cur=k;};I.play=play;play('walk');
+  for(const k in A.clips){const n=A.clips[k],c=typeof n==='number'?A.anims[n]:A.anims.find(a=>a.name===n);if(c)acts[k]=mixer.clipAction(c);}
+  if(A.tint){m.traverse(o=>{if(o.isMesh){o.material=o.material.clone();o.material.color.setHSL(Math.random(),0.35,0.85);}});}
+  const I={g,m,mixer,acts,cur:null,town:g.userData.animTown,last:new V3().copy(g.position)};
+  const play=k=>{if(!acts[k]){const w=acts.walk;if(w&&I.cur==='walk'){w.timeScale=k==='run'||k==='wave'?1.8:k==='idle'?0.15:1;}return;}if(acts.walk&&k==='walk')acts.walk.timeScale=1;if(I.cur===k)return;const a=acts[k];a.reset().fadeIn(0.25).play();if(I.cur&&acts[I.cur])acts[I.cur].fadeOut(0.25);I.cur=k;};I.play=play;play('walk');
   mixer.update(Math.random()*2);animInst.push(I);}
 if(THREE.GLTFLoader){const ld=new THREE.GLTFLoader();
   for(const k in ANIM){const A=ANIM[k];
     const onLoad=gl=>{const inner=gl.scene;inner.rotation.y=A.rotY;const holder=new THREE.Group();holder.add(inner);
       inner.traverse(o=>{if(o.isMesh){o.frustumCulled=false;if(o.material&&o.material.map)o.material.emissive=new THREE.Color(0x222222);}});
-      holder.updateMatrixWorld(true);let b=new THREE.Box3().setFromObject(holder),sz=b.getSize(new V3());
+      const skinBox=()=>{holder.updateMatrixWorld(true);const b=new THREE.Box3(),v=new V3();let sk=false;
+        holder.traverse(m=>{if(m.isSkinnedMesh){sk=true;m.skeleton.update();const p=m.geometry.attributes.position;for(let i=0;i<p.count;i+=5){m.boneTransform(i,v);v.applyMatrix4(m.matrixWorld);b.expandByPoint(v);}}});
+        return sk?b:new THREE.Box3().setFromObject(holder);};
+      let b=skinBox(),sz=b.getSize(new V3());
       const sc=A.height?A.height/Math.max(sz.y,0.001):A.len/Math.max(Math.max(sz.x,sz.z),0.001);holder.scale.setScalar(sc);holder.updateMatrixWorld(true);
-      b=new THREE.Box3().setFromObject(holder);const c=b.getCenter(new V3());holder.position.set(-c.x,-b.min.y,-c.z);
+      b=skinBox();const c=b.getCenter(new V3());holder.position.set(-c.x,-b.min.y,-c.z);
       const wrap=new THREE.Group();wrap.add(holder);A.proto=wrap;A.anims=gl.animations;A.list.forEach(g=>attachAnim(A,g));A.list.length=0;};
     const D=window.MODEL_DATA&&window.MODEL_DATA[A.file];
     if(D){try{const bin=atob(D),u=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)u[i]=bin.charCodeAt(i);ld.parse(u.buffer,'',onLoad,()=>{});}catch(e){}}
@@ -1053,6 +1063,7 @@ function shadowTick(dt){if(curTown==='ocean'||mode!=='ground')return;const Tn=to
     const sh=T.shadow,vis=m.visible&&T.state!=='gone';sh.visible=vis;if(!vis)continue;
     const h=Math.max(0,m.position.y);sh.position.set(m.position.x,0.07,m.position.z);const k=clamp(1-h/30,0,1);sh.scale.setScalar(T.shR*(0.6+0.4*k));sh.material.opacity=k;}}
 function animTick(dt){for(const I of animInst){if(I.town!==curTown||!I.g.visible)continue;
+  {const far=I.g.position.distanceToSquared(camera.position)>230*230;I.m.visible=!far;if(far){I.last.copy(I.g.position);continue;}} // skip far-away walkers (saves phone GPU)
   const p=I.g.position,v=Math.hypot(p.x-I.last.x,p.z-I.last.z)/Math.max(dt,1e-3);I.last.copy(p);
   const st=I.g.userData.T&&I.g.userData.T.state;
   if(st&&st!=='ground')I.play(I.acts.wave?'wave':'run');else I.play(v>5?'run':v>0.4?'walk':'idle');
@@ -1106,6 +1117,11 @@ function spawnCar(T){
   placeCar(T);T.mesh.visible=true;T.state='ground';
 }
 for(let i=0;i<38;i++){const T={type:'cow',mesh:makeCow(),spawn:spawnCow,fl:fields};T.spawn(T);targets.push(T);}
+function makeTractor(){const g=new THREE.Group();box(g,3.4,1.6,2,0xd8282a,0,1.6,0);box(g,1.3,1.4,1.6,0x9adfff,-0.5,3,0);
+  g.userData.emoji='🚜';g.userData.pts=55;g.userData.heat=0.5;root.add(g);return useModel('tractor',g);}
+for(let i=0;i<5;i++){const T={type:'critter',mesh:makeTractor(),spawn:spawnCow,fl:fields};T.spawn(T);targets.push(T);}
+// walking people get the animated pedestrian model
+targets.forEach(T=>{if(T.mesh.userData.emoji==='🚶'){useAnim('person',T.mesh,'city');T.mesh.userData.T=T;}});
 for(let i=0;i<10;i++){const T={type:'critter',mesh:useAnim('fox',makeFox(),'city'),spawn:spawnCow,fl:fields};T.mesh.userData.T=T;T.spawn(T);targets.push(T);}
 for(let i=0;i<8;i++){const P=parks[i%parks.length],T={type:'critter',mesh:useAnim('robot',makeRobot(),'city'),spawn:spawnCow,fl:[{x:P[0],z:P[1]}],rad:20};T.mesh.userData.T=T;T.spawn(T);targets.push(T);}
 for(let i=0;i<30;i++){const T={type:'car',mesh:makeCar(),spawn:spawnCar};T.spawn(T);targets.push(T);}
@@ -1508,6 +1524,9 @@ beginTown('desert');
 for(let i=0;i<24;i++){const T={type:'cow',mesh:makeCow(),spawn:spawnCow,fl:fields};T.spawn(T);targets.push(T);}
 for(let i=0;i<10;i++){const T={type:'car',mesh:makeCar(),spawn:spawnHwy};T.spawn(T);targets.push(T);}
 for(let i=0;i<6;i++){const T={type:'truck',mesh:makeTruck(),spawn:spawnTruck};T.spawn(T);targets.push(T);}
+// 👽 lost crew: escaped aliens wander outside the Sublevel 9 lab, beam them home
+for(let i=0;i<4;i++){const g=new THREE.Group();box(g,0.8,1.2,0.6,0x6dff7a,0,1,0);box(g,1,0.9,0.9,0x8aff9a,0,2.1,0);g.userData.emoji='👽';g.userData.pts=150;g.userData.heat=0.6;root.add(g);
+  const T={type:'critter',mesh:useAnim('alien',g,'desert'),spawn:spawnCow,fl:[{x:-200,z:370},{x:-330,z:375}],rad:22};T.mesh.userData.T=T;T.spawn(T);targets.push(T);}
 endTown('desert',[220,1700]);
 // ---------- ALIEN PLANETS ----------
 function critterMesh(kind){
@@ -1637,7 +1656,7 @@ beginTown('ice');
       const belly=new THREE.Mesh(new THREE.SphereGeometry(0.8,12,8),lam(0xf4f8ff,0x30343a));belly.scale.set(0.5,1.2,0.75);belly.position.set(0.5,1.3,0);g.add(belly);
       const beak=new THREE.Mesh(new THREE.ConeGeometry(0.22,0.6,6),lam(0xffa020,0x5a2a00));beak.rotation.z=-PI/2;beak.position.set(1.05,2.2,0);g.add(beak);
       for(const z of[-0.3,0.3]){const e=new THREE.Mesh(new THREE.SphereGeometry(0.12,8,6),basic(0xffffff));e.position.set(0.8,2.45,z);g.add(e);box(g,0.6,0.15,0.35,0xffa020,0.25,0.07,z*1.2);}
-      g.userData.emoji='🐧';g.userData.waddle=true;root.add(g);return compactCritter(g);};
+      g.userData.emoji='🐧';g.userData.waddle=true;root.add(g);return useModel('penguin',compactCritter(g));};
     for(let i=0;i<16;i++){const T={type:'critter',mesh:mkPeng(),spawn:spawnCow,fl:[vil]};T.spawn(T);targets.push(T);}}
   // ---- 🦍 YETIS that throw snowballs ----
   {const furM=lam(0xe8eef6,0x2a3444),faceM=lam(0x5a6a88,0x101828);
@@ -1650,7 +1669,7 @@ beginTown('ice');
       const arms=[];for(const z of[-1,1]){const pv=new THREE.Group();pv.position.set(0.2,5.6,z*2.2);body.add(pv);const arm=new THREE.Mesh(new THREE.CylinderGeometry(0.6,0.75,4,8),furM);arm.position.y=-2;pv.add(arm);arms.push(pv);}
       for(const z of[-0.9,0.9]){const leg=new THREE.Mesh(new THREE.CylinderGeometry(0.75,0.85,2.4,8),furM);leg.position.set(0,1.2,z);body.add(leg);}
       g.userData.emoji='🦍';g.userData.pts=150;g.userData.arms=arms;root.add(g);return compactCritter(g);};
-    const yetis=[];for(let i=0;i<3;i++){const T={type:'critter',mesh:mkYeti(),spawn:spawnCow,fl:fields.slice(1)};T.spawn(T);T.throwCd=rand(1,3);targets.push(T);yetis.push(T);}
+    const yetis=[];for(let i=0;i<3;i++){const T={type:'critter',mesh:useAnim('yeti',mkYeti(),'ice'),spawn:spawnCow,fl:fields.slice(1)};T.spawn(T);T.throwCd=rand(1,3);targets.push(T);yetis.push(T);}
     const balls=[];const ballG=new THREE.SphereGeometry(1.1,10,8),ballM=lam(0xffffff,0x5a7a9a);
     for(let i=0;i<8;i++){const m=new THREE.Mesh(ballG,ballM);m.visible=false;root.add(m);balls.push({m,v:new V3(),on:false});}
     let slowT=0;
@@ -1894,7 +1913,7 @@ beginTown('jungle');
       const tail=new THREE.Mesh(new THREE.ConeGeometry(0.6,3,8),m);tail.rotation.z=PI/2+0.2;tail.position.set(-2.6,2.4,0);g.add(tail);
       for(const z of[-0.45,0.45]){const lg=new THREE.Mesh(new THREE.CylinderGeometry(0.3,0.25,1.8,6),m);lg.position.set(0,0.9,z);g.add(lg);}
       for(let k=0;k<4;k++){const sp=new THREE.Mesh(new THREE.ConeGeometry(0.25,0.7,4),lam(0xffe040));sp.position.set(-0.8+k*0.6,3.1,0);g.add(sp);}
-      g.userData.emoji='🦖';g.userData.pts=120;root.add(g);return compactCritter(g);};
+      g.userData.emoji='🦖';g.userData.pts=120;root.add(g);return useModel('dino',compactCritter(g));};
     for(let i=0;i<12;i++){const T={type:'critter',mesh:mkDino(),spawn:spawnCow,fl:fields};T.spawn(T);targets.push(T);}}
 })();
 endTown('jungle',[140,850]);Object.assign(towns.jungle,{planet:true,fogC:new THREE.Color(0x2a2048),skyTint:0xc09cff,label:'🍄 VERDANA'});
@@ -2158,7 +2177,7 @@ function makeCamel(){const g=new THREE.Group(),m=lam(0xc8a06a),d=lam(0x8a6a40);
   const hd=new THREE.Mesh(new THREE.BoxGeometry(1.4,0.7,0.6),m);hd.position.set(3.1,5.7,0);g.add(hd);
   for(const [x,z] of[[1.4,0.45],[1.4,-0.45],[-1.4,0.45],[-1.4,-0.45]]){const l=new THREE.Mesh(new THREE.CylinderGeometry(0.22,0.18,3,6),d);l.position.set(x,1.5,z);g.add(l);}
   const blanket=new THREE.Mesh(new THREE.BoxGeometry(1.6,0.2,1.7),lam(pick([0xc8203a,0x2a6ac8,0xe8b020])));blanket.position.set(-0.3,4.3,0);g.add(blanket);
-  g.userData.emoji='🐪';g.userData.pts=50;root.add(g);return compactCritter(g);}
+  g.userData.emoji='🐪';g.userData.pts=50;root.add(g);return useModel('camel',compactCritter(g));}
 function makeMummy(){const g=makeHuman(false),u=g.userData;u.body.children.forEach(c=>{if(c.material)c.material=lam(0xe8dcc0,0x1a1408);});
   u.body.traverse(c=>{if(c.isMesh)c.material=lam(0xe8dcc0,0x1a1408);});
   for(let i=0;i<5;i++){const b=new THREE.Mesh(new THREE.BoxGeometry(0.95,0.08,0.6),lam(0xb8a880));b.position.y=1.0+i*0.5;b.rotation.y=rand(-0.3,0.3);u.body.add(b);}
@@ -2212,9 +2231,9 @@ beginTown('egypt');
     targets.forEach(T=>{const u=T.mesh.userData;if(u.legs&&!u.zombie&&T.state==='ground'){const sw=Math.sin(t*7+T.mesh.id)*0.4;u.legs[0].rotation.z=sw;u.legs[1].rotation.z=-sw;u.arms[0].rotation.z=-sw;u.arms[1].rotation.z=sw;}if(u.zombie&&T.state==='ground'){u.legs[0].rotation.z=Math.sin(t*3+T.mesh.id)*0.35;u.legs[1].rotation.z=-Math.sin(t*3+T.mesh.id)*0.35;u.body.rotation.z=Math.sin(t*1.5+T.mesh.id)*0.08;}});}});
   // abductable: camels, tourists, and mummies shuffling around the pyramids
   for(let i=0;i<16;i++){const T={type:'critter',mesh:makeCamel(),spawn:spawnCow,fl:fields};T.spawn(T);targets.push(T);}
-  for(let i=0;i<14;i++){const T={type:'critter',mesh:makeHuman(false),spawn:spawnCow,fl:[{x:0,z:-120},{x:-60,z:-190},{x:110,z:-290},{x:NX-60,z:0}],rad:30};T.spawn(T);targets.push(T);}
+  for(let i=0;i<14;i++){const T={type:'critter',mesh:useAnim('person',makeHuman(false),'egypt'),spawn:spawnCow,fl:[{x:0,z:-120},{x:-60,z:-190},{x:110,z:-290},{x:NX-60,z:0}],rad:30};T.spawn(T);targets.push(T);}
   const tombs=[{x:-60,z:-200},{x:-150,z:-320},{x:30,z:-400},{x:-220,z:-400}];
-  for(let i=0;i<8;i++){const T={type:'critter',mesh:makeMummy(),spawn:spawnCow,fl:tombs,rad:24};T.spawn(T);targets.push(T);}
+  for(let i=0;i<8;i++){const T={type:'critter',mesh:useAnim('mummy',makeMummy(),'egypt'),spawn:spawnCow,fl:tombs,rad:24};T.spawn(T);targets.push(T);}
 })();
 endTown('egypt',[260,1500]);Object.assign(towns.egypt,{planet:true,fogC:new THREE.Color(0xc89070),skyTint:0xffc890,label:'🇪🇬 GIZA, EGYPT',bloom:0.35});
 
@@ -2226,7 +2245,7 @@ function makeJaguar(){const g=new THREE.Group(),m=lam(0xe0a030,0x2a1400),sp=basi
   for(let k=0;k<14;k++){const s=new THREE.Mesh(new THREE.SphereGeometry(0.16,6,4),sp);const a=rand(0,2*PI);s.position.set(rand(-1.5,1.5),1.8+Math.sin(a)*0.6,Math.cos(a)*0.62);g.add(s);}
   const tail=new THREE.Mesh(new THREE.CylinderGeometry(0.12,0.18,2.6,6),m);tail.position.set(-2.4,2.1,0);tail.rotation.z=1.0;g.add(tail);
   for(const [x,z] of[[1.1,0.35],[1.1,-0.35],[-1.1,0.35],[-1.1,-0.35]]){const l=new THREE.Mesh(new THREE.CylinderGeometry(0.2,0.17,1.4,6),m);l.position.set(x,0.7,z);g.add(l);}
-  g.userData.emoji='🐆';g.userData.pts=90;root.add(g);return compactCritter(g);}
+  g.userData.emoji='🐆';g.userData.pts=90;root.add(g);return useModel('jaguar',compactCritter(g));}
 beginTown('maya');
 (function(){
   flatPlane(3000,3000,0x3a6a2a,0,0,0);
@@ -2290,7 +2309,7 @@ beginTown('maya');
     targets.forEach(T=>{const u=T.mesh.userData;if(u.legs&&T.state==='ground'){const sw=Math.sin(t*7+T.mesh.id)*0.4;u.legs[0].rotation.z=sw;u.legs[1].rotation.z=-sw;u.arms[0].rotation.z=-sw;u.arms[1].rotation.z=sw;}});
   }});
   for(let i=0;i<10;i++){const T={type:'critter',mesh:makeJaguar(),spawn:spawnCow,fl:fields};T.spawn(T);targets.push(T);}
-  for(let i=0;i<16;i++){const T={type:'critter',mesh:makeHuman(false),spawn:spawnCow,fl:[{x:0,z:-200},{x:-200,z:-110},{x:230,z:-60},{x:100,z:-250}],rad:30};T.spawn(T);targets.push(T);}
+  for(let i=0;i<16;i++){const T={type:'critter',mesh:useAnim('person',makeHuman(false),'maya'),spawn:spawnCow,fl:[{x:0,z:-200},{x:-200,z:-110},{x:230,z:-60},{x:100,z:-250}],rad:30};T.spawn(T);targets.push(T);}
 })();
 endTown('maya',[180,1000]);Object.assign(towns.maya,{planet:true,fogC:new THREE.Color(0x8ab890),skyTint:0xa8e0b0,label:'🌴 YUCATÁN, MEXICO',bloom:0.4});
 
@@ -2434,7 +2453,7 @@ function makeShowgirl(){
     mono.position.z=((t*14)%1160)-580;
   }});
   // tourists everywhere
-  for(let i=0;i<34;i++){const T={type:'critter',mesh:makeHuman(false),spawn:spawnCow,fl:fields,rad:20};T.spawn(T);targets.push(T);}
+  for(let i=0;i<34;i++){const T={type:'critter',mesh:useAnim('person',makeHuman(false),'vegas'),spawn:spawnCow,fl:fields,rad:20};T.spawn(T);targets.push(T);}
   // 🕺 Elvis impersonators (100 pts) strolling the west sidewalk
   for(let i=0;i<4;i++){const T={type:'critter',mesh:makeElvis(),spawn:spawnCow,fl:[{x:-45,z:40,rad:10}],rad:10};T.spawn(T);targets.push(T);}
   // 💃 showgirls (80 pts) by the fountains on the east side
@@ -2484,6 +2503,7 @@ function fishMesh(kind){
     const fin=new THREE.Mesh(new THREE.ConeGeometry(0.35,kind==='shark'?1.2:0.6,4),mat);fin.position.set(0,0.75,0);fin.scale.z=0.3;g.add(fin);
     for(const z of[-0.4,0.4]){const e=new THREE.Mesh(new THREE.SphereGeometry(0.12,8,6),basic(0x050505));e.position.set(1.25,0.15,z);g.add(e);}
     if(kind==='whale'){const sp=new THREE.Mesh(new THREE.SphereGeometry(1,16,10),new THREE.MeshLambertMaterial({color:0xd8e0e8}));sp.scale.set(1.4,0.35,0.5);sp.position.y=-0.4;g.add(sp);}}
+  if(kind==='shark'){g.userData.tail=null;useModel('shark',g);}
   g.scale.setScalar(S);g.userData.emoji={fish:'🐟',shark:'🦈',turtle:'🐢',whale:'🐋'}[kind];g.userData.pts={fish:15,shark:40,turtle:25,whale:150}[kind];
   root.add(g);return g;
 }
@@ -2737,6 +2757,9 @@ beginTown('ocean');
   {let pt=0;planetAnim.push({town:'ocean',f:(t,dt)=>{if(!(state==='play'&&!onFoot))return;pt-=dt;
     if(Math.abs(speed)>12&&pt<=0){pt=0.04;spawnFx(pos.clone().addScaledVector(fwd,-3).add(tmpV.set(rand(-1.5,1.5),rand(-1,0.5),rand(-1.5,1.5))),tmpV2.set(0,0.6,0),rand(1,1.8),rand(0.6,1.2),1.5,pick([0x5ff6ff,0x6fffb0,0x9f8bff]),true);}}});}
   // abductable sea life
+  // sunken gold: scenery treasure piles on the sea floor
+  for(let i=0;i<9;i++){const g=new THREE.Group(),an=rand(0,2*PI),r=rand(120,520);g.position.set(Math.cos(an)*r,0,Math.sin(an)*r);g.rotation.y=rand(0,6);g.scale.setScalar(rand(1.4,2.4));root.add(g);useModel('chest',g);
+    glowSprite(0xffd060,g.position.x,2.5,g.position.z,9,0.55);}
   [['fish',28],['turtle',8],['shark',6],['whale',2]].forEach(([k,n])=>{for(let i=0;i<n;i++){const T={type:'critter',mesh:fishMesh(k),spawn:spawnSwim,fl:fields};T.spawn(T);targets.push(T);}});
   planetAnim.push({town:'ocean',f:t=>{targets.forEach(T=>{if(T.state==='ground'){T.mesh.position.y=T.swimY+Math.sin(t*1.5+T.mesh.id)*0.8;if(T.mesh.userData.tail)T.mesh.userData.tail.rotation.y=Math.sin(t*8+T.mesh.id)*0.4;}});}});
 })();
@@ -4005,6 +4028,8 @@ const MISSIONS=[
   {id:'penguin',t:'Abduct 5 penguins',ev:'abduct',m:d=>d.emoji==='🐧',g:5,r:400},
   {id:'icearch',t:'Fly through the Frost Palace gate',ev:'icearch',g:1,r:300},
   {id:'sharks',t:'Abduct 3 sharks',ev:'abduct',m:d=>d.emoji==='🦈',g:3,r:500},
+  {id:'aliens',t:'Rescue 3 lost aliens at Area 51',ev:'abduct',m:d=>d.emoji==='👽',g:3,r:700},
+  {id:'tractor',t:'Abduct 2 farm tractors',ev:'abduct',m:d=>d.emoji==='🚜',g:2,r:400},
   {id:'jungle',t:'Visit the jungle planet Verdana',ev:'visit',m:d=>d.town==='jungle',g:1,r:700},
   {id:'warps',t:'Ride 3 wormholes',ev:'warp',g:3,r:300},
   {id:'relics',t:'Find 5 relics on foot',ev:'relic',g:5,r:400},
