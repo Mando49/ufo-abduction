@@ -379,7 +379,7 @@ const nearRoad=v=>roads.some(r=>Math.abs(v-r)<9);
 const bList=[],walk=[],parks=[];
 const parkSet=new Set(['1,-1','-2,2','3,3','-3,-2']);
 const heroBlocks=new Set(['0,0','-1,0','0,1','2,0','-1,-2','1,2','-2,-1','2,-3','-3,1','1,-3','3,-1','-3,3']);const heroes=[];
-function addB(x,z,w,d,h){bList.push({x,z,w,d,h});colliders.push({x0:x-w/2,x1:x+w/2,z0:z-d/2,z1:z+d/2,h,y0:0});}
+function addB(x,z,w,d,h,y0){y0=y0||0;const b={x,z,w,d,h,y0,top:y0+h};bList.push(b);colliders.push({x0:x-w/2,x1:x+w/2,z0:z-d/2,z1:z+d/2,h:y0+h,y0:0});return b;}
 for(let gx=-4;gx<=4;gx++)for(let gz=-4;gz<=4;gz++){
   const cx=gx*60,cz=gz*60,dist=Math.hypot(gx,gz);
   if(parkSet.has(gx+','+gz)){parks.push([cx,cz]);continue;}
@@ -394,6 +394,10 @@ for(let gx=-4;gx<=4;gx++)for(let gz=-4;gz<=4;gz++){
     addB(cx+ox+rand(-1.2,1.2),cz+oz+rand(-1.2,1.2),rand(13,18),rand(13,18),Math.max(8,hBase*rand(0.35,1.1)));
   }
 }
+// stepped tops: many taller buildings get one or two narrower tiers on the roof (a more varied skyline)
+bList.slice().forEach(b=>{if(b.h<45||Math.random()>0.5)return;b.hasCrown=true;
+  const c1=addB(b.x+rand(-1,1),b.z+rand(-1,1),b.w*rand(0.6,0.75),b.d*rand(0.6,0.75),b.h*rand(0.18,0.32),b.top);c1.crown=true;
+  if(b.h>80&&Math.random()<0.6){c1.hasCrown=true;const c2=addB(c1.x,c1.z,c1.w*0.6,c1.d*0.6,c1.h*rand(0.6,1),c1.top);c2.crown=true;}});
 (function(){
   const g=new THREE.PlaneGeometry(48,48);g.rotateX(-PI/2);
   inst(g,flatMat(0x3a3c48,-2),walk,b=>compose(b[0],0,b[1],1,1,1));
@@ -482,12 +486,12 @@ const trafficSignals=[];
 (function(){
   const hvac=[],antennas=[];
   bList.forEach((b,i)=>{
-    if(b.h<18||Math.random()>0.28)return;
+    if(b.hasCrown||b.top<18||Math.random()>0.28)return;
     const count=b.w>16?2:1;
     for(let k=0;k<count;k++){
-      hvac.push({x:b.x+(k?2.2:-2.2),y:b.h+0.75,z:b.z+(k?-1.8:1.8),w:2.8,h:1.5,d:2.4});
+      hvac.push({x:b.x+(k?2.2:-2.2),y:b.top+0.75,z:b.z+(k?-1.8:1.8),w:2.8,h:1.5,d:2.4});
     }
-    if(i%3===0)antennas.push({x:b.x+b.w*0.25,y:b.h+2.2,z:b.z-b.d*0.2});
+    if(i%3===0)antennas.push({x:b.x+b.w*0.25,y:b.top+2.2,z:b.z-b.d*0.2});
   });
   const unitGeo=new THREE.BoxGeometry(1,1,1);
   inst(unitGeo,lam(0x596575),hvac,h=>compose(h.x,h.y,h.z,h.w,h.h,h.d));
@@ -517,7 +521,7 @@ const NEON=[0x3de1ff,0xff3fd2,0xb44dff,0x2dff9a,0xff8a3d];
   const P=[],N=[],U=[],C=[],I=[];let vo=0;
   const pal=[0x2a3446,0x323c52,0x253042,0x3a4258,0x2d3a4e,0x40465a,0x4a4e60];
   bList.forEach(b=>{
-    const g=new THREE.BoxGeometry(b.w,b.h,b.d);g.translate(b.x,b.h/2,b.z);
+    const g=new THREE.BoxGeometry(b.w,b.h,b.d);g.translate(b.x,b.y0+b.h/2,b.z);
     const p=g.attributes.position,n=g.attributes.normal,uv=g.attributes.uv,idx=g.index;
     const ou=Math.floor(rand(0,16))/16,ov=Math.floor(rand(0,8))/32;col.setHex(pick(pal));
     for(let i=0;i<p.count;i++){
@@ -536,9 +540,9 @@ const NEON=[0x3de1ff,0xff3fd2,0xb44dff,0x2dff9a,0xff8a3d];
   // neon roof bands + corner strips
   const bands=[],strips=[],signs=[];
   bList.forEach(b=>{
-    if(b.h>30&&Math.random()<0.55){const c=pick(NEON);bands.push({x:b.x,z:b.z,y:b.h-0.5,w:b.w+0.35,d:b.d+0.35,c});
-      if(Math.random()<0.45)for(const sx of[-1,1])for(const sz of[-1,1])strips.push({x:b.x+sx*b.w/2,z:b.z+sz*b.d/2,h:b.h,c});}
-    if(Math.random()<0.75){const f=(Math.random()*4)|0,c=pick(NEON),sh=rand(6,15),sw=rand(3,7),y=rand(6,Math.max(8,b.h*0.6));
+    if(b.top>30&&Math.random()<(b.crown?0.8:0.55)){const c=pick(NEON);bands.push({x:b.x,z:b.z,y:b.top-0.5,w:b.w+0.35,d:b.d+0.35,c});
+      if(!b.y0&&Math.random()<0.45)for(const sx of[-1,1])for(const sz of[-1,1])strips.push({x:b.x+sx*b.w/2,z:b.z+sz*b.d/2,h:b.h,c});}
+    if(!b.y0&&Math.random()<0.75){const f=(Math.random()*4)|0,c=pick(NEON),sh=rand(6,15),sw=rand(3,7),y=rand(6,Math.max(8,b.h*0.6));
       let x=b.x,z=b.z,ry=0;if(f===0){x+=b.w/2+0.12;ry=PI/2;}else if(f===1){x-=b.w/2+0.12;ry=-PI/2;}else if(f===2){z+=b.d/2+0.12;}else{z-=b.d/2+0.12;ry=PI;}
       signs.push({x,y,z,ry,sw,sh,c});}
   });
@@ -555,13 +559,13 @@ const NEON=[0x3de1ff,0xff3fd2,0xb44dff,0x2dff9a,0xff8a3d];
   for(let v=0;v<3;v++){const sm=new THREE.MeshBasicMaterial({map:signTex(v),color:0xffffff,side:THREE.DoubleSide});
     inst(pg,sm,signs.filter((_,i)=>i%3===v),s=>compose(s.x,s.y,s.z,s.sw,s.sh,1,0,s.ry,0));}
   const shopCols=[0xffb060,0xff5ab4,0x5ae0ff,0xffe08a,0xc070ff,0xff7040];
-  const shops=bList.map(b=>({x:b.x,z:b.z,w:b.w,d:b.d,c:pick(shopCols)})).concat(heroes.map(h=>({x:h.x,z:h.z,w:h.w,d:h.w,c:pick(shopCols)})));
+  const shops=bList.filter(b=>!b.y0).map(b=>({x:b.x,z:b.z,w:b.w,d:b.d,c:pick(shopCols)})).concat(heroes.map(h=>({x:h.x,z:h.z,w:h.w,d:h.w,c:pick(shopCols)})));
   inst(nb,new THREE.MeshBasicMaterial({color:0xa8a8a8}),shops,s=>compose(s.x,2.6,s.z,s.w+0.5,2.4,s.d+0.5));
 })();
 // blinking roof beacons
 const roofLights=[];
 (function(){const mat=new THREE.SpriteMaterial({map:GLOW,color:0xff3030,transparent:true,depthWrite:false});
-  bList.filter(b=>b.h>70).forEach(b=>{const s=new THREE.Sprite(mat);s.position.set(b.x,b.h+1.5,b.z);s.scale.set(5,5,1);root.add(s);roofLights.push(s);});})();
+  bList.filter(b=>b.top>70&&!b.hasCrown).forEach(b=>{const s=new THREE.Sprite(mat);s.position.set(b.x,b.top+1.5,b.z);s.scale.set(5,5,1);root.add(s);roofLights.push(s);});})();
 // landmark tower
 (function(){
   const g=new THREE.Group();g.position.set(60,0,-60);
@@ -930,22 +934,9 @@ function makeHuman(sleeper){
   const pgc=new THREE.ConeGeometry(2.6,9,7);pgc.translate(0,4.5,0);
   inst(pgc,new THREE.MeshLambertMaterial({color:0xffffff}),pines,t=>compose(t.x,0,t.z,t.s,t.s*rand(1,1.4),t.s));
 })();
-// snow-capped mountains
-(function(){
-  function mGeo(seed){
-    const g=new THREE.ConeGeometry(1,1,11,6);g.translate(0,0.5,0);
-    const p=g.attributes.position,cols=[];const rock=new THREE.Color(0x4b4560),grass=new THREE.Color(0x26422c),snow=new THREE.Color(0xf1f3ff);
-    for(let i=0;i<p.count;i++){const x=p.getX(i),y=p.getY(i),z=p.getZ(i);
-      if(y<0.99){const n=1+0.22*Math.sin(Math.atan2(z,x)*3+seed)*Math.sin(y*9+seed)+rand(-0.08,0.08);p.setX(i,x*n);p.setZ(i,z*n);p.setY(i,y+(y>0.01?rand(-0.04,0.04):0));}
-      const yy=p.getY(i);let c;
-      if(yy>0.62+rand(-0.06,0.06))c=snow;else if(yy<0.22)c=grass.clone().lerp(rock,yy/0.22);else c=rock;
-      cols.push(c.r,c.g,c.b);}
-    g.setAttribute('color',new THREE.Float32BufferAttribute(cols,3));g.computeVertexNormals();return g;}
-  const mat=new THREE.MeshLambertMaterial({vertexColors:true});
-  const list=[];for(let i=0;i<54;i++){const a=i/54*2*PI+rand(-0.04,0.04);list.push({a,r:rand(820,1020),s:rand(150,230),h:rand(110,210),ry:rand(0,6)});}
-  inst(mGeo(1),mat,list.filter((_,i)=>i%2===0),m=>compose(Math.cos(m.a)*m.r,0,Math.sin(m.a)*m.r,m.s,m.h,m.s,0,m.ry,0));
-  inst(mGeo(4),mat,list.filter((_,i)=>i%2===1),m=>compose(Math.cos(m.a)*m.r,0,Math.sin(m.a)*m.r,m.s,m.h,m.s,0,m.ry,0));
-})();
+// snow-capped mountains (ridged peaks with snow on top)
+ringMountains(0x26422c,0x4b4560,110,210,0.6);
+
 
 // Wildlife ambience: small flocks circle the fields and fireflies drift above the crops.
 const farmBirds=[],fireflies=[];
@@ -1503,12 +1494,30 @@ function critterMesh(kind){
 }
 function addCritters(kind,n){for(let i=0;i<n;i++){const T={type:'critter',mesh:critterMesh(kind),spawn:spawnCow,fl:fields};T.spawn(T);targets.push(T);}}
 function makeFields(n,R){for(let i=0;i<n;i++){const a=i/n*2*PI+rand(-0.2,0.2),r=rand(R*0.25,R);fields.push({x:Math.cos(a)*r,z:Math.sin(a)*r});}}
-function ringMountains(c1,c2,hMin,hMax){
-  const g=new THREE.ConeGeometry(1,1,9,4);g.translate(0,0.5,0);const p=g.attributes.position,cols=[];const A=new THREE.Color(c1),B=new THREE.Color(c2);
-  for(let i=0;i<p.count;i++){const y=p.getY(i);if(y<0.99){const n=1+rand(-0.15,0.15);p.setX(i,p.getX(i)*n);p.setZ(i,p.getZ(i)*n);}const c=A.clone().lerp(B,clamp(y*1.4,0,1));cols.push(c.r,c.g,c.b);}
-  g.setAttribute('color',new THREE.Float32BufferAttribute(cols,3));g.computeVertexNormals();
-  const L=[];for(let i=0;i<46;i++){const a=i/46*2*PI;L.push({a,r:rand(780,980),s:rand(130,220),h:rand(hMin,hMax)});}
-  inst(g,new THREE.MeshLambertMaterial({vertexColors:true,flatShading:true}),L,m=>compose(Math.cos(m.a)*m.r,0,Math.sin(m.a)*m.r,m.s,m.h,m.s,0,rand(0,6),0));
+// ---------- mountains: real ridged peaks (noise-shaped heightfields) instead of plain cones ----------
+function mtnNoise(seed){const H=(x,z)=>{const n=Math.sin(x*127.1+z*311.7+seed*74.7)*43758.5453;return n-Math.floor(n);};
+  const V=(x,z)=>{const xi=Math.floor(x),zi=Math.floor(z),xf=x-xi,zf=z-zi,u=xf*xf*(3-2*xf),v=zf*zf*(3-2*zf);
+    return H(xi,zi)*(1-u)*(1-v)+H(xi+1,zi)*u*(1-v)+H(xi,zi+1)*(1-u)*v+H(xi+1,zi+1)*u*v;};
+  return (x,z)=>{let s=0,a=0.5,f=1.6,w=1;for(let o=0;o<5;o++){let n=1-Math.abs(V(x*f,z*f)*2-1);n*=n;s+=n*a*w;w=Math.min(1,n*1.6);a*=0.5;f*=2.05;}return s;};}
+function mountainGeo(seed,c1,c2,snowAt){const N=30,g=new THREE.PlaneGeometry(2,2,N,N);g.rotateX(-PI/2);
+  const p=g.attributes.position,rn=mtnNoise(seed),ox=Math.sin(seed*3.1)*0.25,oz=Math.cos(seed*2.3)*0.25;let mx=0;
+  for(let i=0;i<p.count;i++){const x=p.getX(i),z=p.getZ(i),r=Math.hypot(x-ox*0.5,z-oz*0.5);
+    const fall=Math.max(0,1-r);let h=Math.pow(fall,1.25)*(0.35+rn(x+seed,z-seed)*1.1)+Math.max(0,1-Math.hypot(x-ox,z-oz)*1.6)*0.45;
+    if(r>=0.98)h=-0.05;p.setY(i,h);mx=Math.max(mx,h);}
+  const A=new THREE.Color(c1),B=new THREE.Color(c2),S=new THREE.Color(0xf4f6ff),cols=[],tmp=new THREE.Color();
+  for(let i=0;i<p.count;i++)p.setY(i,p.getY(i)/mx);
+  g.computeVertexNormals();const nm=g.attributes.normal;
+  for(let i=0;i<p.count;i++){const y=p.getY(i),steep=1-nm.getY(i);tmp.copy(A).lerp(B,clamp(y*1.25,0,1));tmp.multiplyScalar(1-0.45*clamp(steep*1.6,0,1));
+    if(snowAt!=null&&y>snowAt+Math.sin(i*1.7)*0.04&&steep<0.55)tmp.lerp(S,0.85);cols.push(tmp.r,tmp.g,tmp.b);}
+  g.setAttribute('color',new THREE.Float32BufferAttribute(cols,3));return g;}
+function ringMountains(c1,c2,hMin,hMax,snowAt){
+  const mat=new THREE.MeshLambertMaterial({vertexColors:true,flatShading:true});
+  const geos=[0,1,2].map(k=>mountainGeo(k*7.3+hMin*0.01,c1,c2,snowAt));
+  const near=[],far=[];
+  for(let i=0;i<40;i++){const a=i/40*2*PI+rand(-0.05,0.05);near.push({a,r:rand(760,900),s:rand(110,170),h:rand(hMin,hMax),ry:rand(0,6),k:i%3});}
+  for(let i=0;i<30;i++){const a=i/30*2*PI+rand(-0.08,0.08);far.push({a,r:rand(980,1120),s:rand(170,240),h:rand(hMin,hMax)*rand(1.2,1.6),ry:rand(0,6),k:i%3});}
+  for(let k=0;k<3;k++){const L=near.concat(far).filter(m=>m.k===k);
+    inst(geos[k],mat,L,m=>compose(Math.cos(m.a)*m.r,0,Math.sin(m.a)*m.r,m.s,m.h,m.s,0,m.ry,0));}
 }
 const planetAnim=[];
 function glowSprite(c,x,y,z,s,op){const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:c,transparent:true,opacity:op||1,blending:THREE.AdditiveBlending,depthWrite:false}));sp.position.set(x,y,z);sp.scale.set(s,s,1);root.add(sp);return sp;}
@@ -1527,7 +1536,7 @@ beginTown('ice');
   for(let i=0;i<40;i++){const x=rand(-600,600),z=rand(-600,600);if(!freeSpot(x,z,fields))continue;const c=pick([0x7ffcff,0xb46bff,0x5ad8ff]);
     for(let k=0;k<4;k++){const m=new THREE.Mesh(cg,basic(c));m.position.set(x+rand(-3,3),rand(1,3),z+rand(-3,3));m.scale.set(1,rand(2,4),1);m.rotation.set(rand(-0.4,0.4),0,rand(-0.4,0.4));root.add(m);}
     glowSprite(c,x,3,z,14,0.6);}
-  ringMountains(0x8aa8c8,0xffffff,160,320);
+  ringMountains(0x6a88b0,0xdfeaff,160,320,0.55);
   // aurora curtains
   const c=document.createElement('canvas');c.width=64;c.height=256;const g=c.getContext('2d');const gr=g.createLinearGradient(0,0,0,256);gr.addColorStop(0,'rgba(120,80,255,0)');gr.addColorStop(0.4,'rgba(90,255,180,.55)');gr.addColorStop(1,'rgba(40,255,160,0)');g.fillStyle=gr;g.fillRect(0,0,64,256);
   const at=new THREE.CanvasTexture(c);
