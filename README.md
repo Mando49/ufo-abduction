@@ -28,6 +28,8 @@ A 3D browser game: fly a triangle UFO over a neon cyberpunk city and farmland, a
 
 📱 **Install it like an app:** open the link in Safari → Share → *Add to Home Screen* (Android: Chrome menu → *Install app*). It opens full screen with its own icon.
 
+⚙️ **Runs on older phones:** a loading screen while the 12 worlds build, a **Graphics** button on the menu (Auto / High / Medium / Low), and Auto mode lowers the quality step by step if the game starts to stutter. Small still objects (palm trees, houses, people, cars) are merged so the phone draws far fewer pieces each frame.
+
 🌌 **Two ways to play:** *Arcade* (2:30 on the clock, beat your best score) or *Free Explore* (no timer, your shield reboots instead of game over; tap ⏹ to end and bank your credits).
 
 ## How to play
