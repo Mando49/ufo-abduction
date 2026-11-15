@@ -49,7 +49,7 @@ body.touch #controls{display:block}
 #bLand{display:none;left:26px;bottom:250px;width:76px;height:76px;font-size:22px;line-height:1;flex-direction:column;background:radial-gradient(circle,rgba(70,20,90,.7),rgba(20,5,35,.75));border:3px solid #c58bff;box-shadow:0 0 18px rgba(197,139,255,.7)}
 #bLand small{font-size:11px;font-weight:900}
 body.canland #bLand{display:flex}
-body.walking #bFire,body.walking #bDown{display:none}
+body.walking #bDown{display:none}
 #bFire{right:118px;bottom:190px;width:62px;height:62px;font-size:13px;background:radial-gradient(circle,rgba(10,50,70,.7),rgba(5,15,30,.75));border:3px solid #45eaff;box-shadow:0 0 18px rgba(70,230,255,.6)}
 #bBoost{right:30px;bottom:164px;width:74px;height:74px;font-size:13px;background:radial-gradient(circle,rgba(70,45,10,.7),rgba(25,15,5,.75));border:3px solid #ffbe46;box-shadow:0 0 18px rgba(255,180,60,.6)}
 #bUp{right:134px;bottom:118px;width:58px;height:58px}
@@ -2217,6 +2217,41 @@ function makeRelic(){const g=new THREE.Group();const c=new THREE.Mesh(new THREE.
   const pil=new THREE.Mesh(new THREE.CylinderGeometry(0.25,0.25,60,6,1,true),new THREE.MeshBasicMaterial({color:0xc58bff,transparent:true,opacity:.22,blending:THREE.AdditiveBlending,depthWrite:false}));pil.position.y=30;g.add(pil);
   g.userData.gem=c;scene.add(g);return g;}
 function freeAt(x,z){for(const b of colliders){if(x>b.x0-1.5&&x<b.x1+1.5&&z>b.z0-1.5&&z<b.z1+1.5&&b.y0<4)return false;}return Math.hypot(x,z)<600;}
+// ---------- on-foot gear: laser eyes + jetpack ----------
+const eyeBeamMat=new THREE.MeshBasicMaterial({color:0xff3a8a,transparent:true,opacity:.95,blending:THREE.AdditiveBlending,depthWrite:false});
+const eyeBeamGeo=new THREE.CylinderGeometry(0.07,0.07,1,6);eyeBeamGeo.translate(0,0.5,0);eyeBeamGeo.rotateX(PI/2);
+const eyeBeams=[0,1].map(()=>{const m=new THREE.Mesh(eyeBeamGeo,eyeBeamMat);m.visible=false;m.frustumCulled=false;scene.add(m);return m;});
+const eyeGlow=[0,1].map(()=>{const s=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:0xff3a8a,transparent:true,blending:THREE.AdditiveBlending,depthWrite:false}));s.scale.set(1.4,1.4,1);s.visible=false;scene.add(s);return s;});
+let eyeCd=0,eyeShow=0;
+// mystery crates to blast
+const CRATES={};let crateFx=[];
+function makeCrate(){const g=new THREE.Group();const b=new THREE.Mesh(new THREE.BoxGeometry(2.6,2.6,2.6),new THREE.MeshStandardMaterial({color:0x2a3142,metalness:.5,roughness:.4,emissive:0x0a0c16}));b.position.y=1.3;g.add(b);
+  const e=new THREE.Mesh(new THREE.BoxGeometry(2.7,0.18,2.7),basic(0xffbe46));e.position.y=2.55;g.add(e);const e2=e.clone();e2.position.y=0.08;g.add(e2);
+  const c=document.createElement('canvas');c.width=c.height=64;const x=c.getContext('2d');x.fillStyle='#ffbe46';x.font='900 48px system-ui';x.textAlign='center';x.textBaseline='middle';x.fillText('?',32,36);
+  const q=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(c),transparent:true,depthWrite:false}));q.position.y=4;q.scale.set(1.8,1.8,1);g.add(q);g.userData.q=q;
+  scene.add(g);return g;}
+function setupCrates(){
+  const n=curTown;crateFx.forEach(c=>c.g.visible=false);
+  if(!CRATES[n]){CRATES[n]=[];for(let i=0;i<8;i++){let x,z,k=0;do{const a=rand(0,2*PI),r=rand(15,160);x=pos.x+Math.cos(a)*r;z=pos.z+Math.sin(a)*r;k++;}while(!freeAt(x,z)&&k<60);
+    CRATES[n].push({p:new V3(x,0,z),hp:2,dead:false,g:makeCrate()});}}
+  crateFx=CRATES[n];crateFx.forEach(c=>{c.g.visible=!c.dead;c.g.position.copy(c.p);});
+}
+function eyeLasers(dt,fire,t){
+  eyeCd-=dt;eyeShow-=dt;
+  const head=pos.clone().add(new V3(0,3.05,0)).addScaledVector(fwd,0.6);
+  if(fire&&eyeCd<=0){eyeCd=0.22;eyeShow=0.09;
+    let tgt=null,bd=1e9;for(const c of crateFx){if(c.dead)continue;const d=c.p.clone().add(new V3(0,1.3,0)).sub(head),dist=d.length();if(dist>90)continue;const ang=fwd.angleTo(d.clone().setY(0).normalize());if(ang<0.45&&dist<bd){bd=dist;tgt=c;}}
+    const end=tgt?tgt.p.clone().add(new V3(0,1.3,0)):head.clone().addScaledVector(fwd,60).add(new V3(0,-2,0));
+    const side=new V3(-fwd.z,0,fwd.x).normalize();
+    eyeBeams.forEach((m,i)=>{const s=head.clone().addScaledVector(side,(i?0.33:-0.33)*1.15);m.position.copy(s);m.lookAt(end);m.scale.set(1,1,s.distanceTo(end));eyeGlow[i].position.copy(s);});
+    spawnFx(end,tmpV.set(0,1,0),0.3,3,6,0xff5a9a,true);blip(1800,600,0.08,'sawtooth',0.04);
+    if(tgt){tgt.hp--;if(tgt.hp<=0){tgt.dead=true;tgt.g.visible=false;explode(tgt.p.clone().add(new V3(0,1.3,0)),false);score+=25;
+      const r=Math.random();if(r<0.35){timer+=10;pop('📦 +25 · ⏰ +10s');}else if(r<0.6){energy=100;pop('📦 +25 · 🔋 FULL POWER');}else if(r<0.75){save.bank+=100;persist();pop('📦 +25 · 💰 +100 credits');}else pop('📦 +25');}}
+  }
+  const show=eyeShow>0;eyeBeams.forEach(m=>m.visible=show);eyeGlow.forEach(s=>s.visible=show);
+  crateFx.forEach(c=>{if(!c.dead)c.g.userData.q.position.y=4+Math.sin(t*3+c.p.x)*0.3;});
+}
+
 function setupRelics(){
   const n=curTown;relicFx.forEach(r=>r.g.visible=false);
   if(!RELICS[n]){RELICS[n]=[];const c=new V3(pos.x,0,pos.z);
@@ -2230,20 +2265,22 @@ function landShip(){
   onFoot=true;clearEnemies();heat=0;beamActive=false;speed=0;vy=0;
   shipPark.set(pos.x,4,pos.z);shipYaw=yaw;
   pos.copy(shipPark).addScaledVector(right,7);pos.y=0;wv=0;wJumps=0;
-  walker.visible=true;document.body.classList.add('walking');setupRelics();
+  walker.visible=true;document.body.classList.add('walking');setupRelics();setupCrates();
   pop('🚶 EXPLORE ON FOOT');pop(`Find 5 💠 relics${SECRETS[curTown]&&!SECRETS[curTown].foundThisRun?' · a 🔍 secret is hidden here':''}`,'t');blip(300,600,0.25,'sine',0.12);lastHud='';
 }
 function boardShip(){
-  onFoot=false;walker.visible=false;document.body.classList.remove('walking');relicFx.forEach(r=>r.g.visible=false);
+  onFoot=false;walker.visible=false;document.body.classList.remove('walking');relicFx.forEach(r=>r.g.visible=false);crateFx.forEach(c=>c.g.visible=false);eyeBeams.forEach(m=>m.visible=false);eyeGlow.forEach(s=>s.visible=false);
   pos.copy(shipPark);pos.y=10;yaw=shipYaw;speed=0;vy=0;fadeIn();snapCam();
   pop('🛸 BACK IN THE SHIP');blip(600,300,0.25,'sine',0.12);lastHud='';
 }
 function walkUpdate(dt,ix,iy,jumpBtn,run,shipBtn,t){
   yaw-=ix*2.6*dt;fwd.set(-Math.sin(yaw),0,-Math.cos(yaw));
-  const sp=(iy>0?iy*(run?17:9):iy*5);pos.addScaledVector(fwd,sp*dt);
+  const air=!wGround&&pos.y>2.5;const sp=(iy>0?iy*(run?17:9)*(air?1.6:1):iy*5);pos.addScaledVector(fwd,sp*dt);
   const grav=30*(curTown==='moon'?0.35:curTown==='mars'?0.6:1);
   if(jumpBtn&&!prevJump){if(wGround){wv=14;wJumps=1;blip(300,700,0.12,'sine',0.08);}else if(wJumps<2){wv=12;wJumps=2;blip(500,1100,0.12,'sine',0.08);spawnFx(pos,tmpV.set(0,-3,0),0.4,2.5,3,0x7ffcff,true);}}
   prevJump=jumpBtn;
+  const jetting=jumpBtn&&!wGround&&wv<6&&energy>1&&pos.y<140;
+  if(jetting){wv=Math.min(wv+48*dt,9);energy-=16*dt;if(Math.random()<0.6)spawnFx(pos.clone().add(new V3(0,1.1,0)).addScaledVector(fwd,-0.7),tmpV.set(rand(-1,1),-8,rand(-1,1)),0.35,1.6,2.5,pick([0x7ffcff,0xffa040]),true);}
   pos.y+=wv*dt;wv-=grav*dt;
   const hd=Math.hypot(pos.x,pos.z);if(hd>620){pos.x*=620/hd;pos.z*=620/hd;}
   let gh=0;const R=0.7;
@@ -2259,7 +2296,7 @@ function walkUpdate(dt,ix,iy,jumpBtn,run,shipBtn,t){
   const mv=Math.abs(sp)>0.5&&wGround;walkPh+=dt*(run?14:9)*(mv?1:0);
   const sw=mv?Math.sin(walkPh)*0.7:(wGround?0:0.4);
   wParts.lLeg.rotation.x=sw;wParts.rLeg.rotation.x=wGround?-sw:-0.4;wParts.lArm.rotation.x=-sw*0.8;wParts.rArm.rotation.x=sw*0.8;
-  wParts.jet.visible=!wGround;wParts.jet.scale.setScalar(0.8+Math.random()*0.5);
+  wParts.jet.visible=!wGround;wParts.jet.scale.setScalar((jumpBtn&&!wGround?1.8:0.8)+Math.random()*0.6);
   walker.position.copy(pos);walker.position.y+=mv?Math.abs(Math.sin(walkPh))*0.15:0;walker.rotation.y=yaw;
   // relics
   for(const r of relicFx){if(r.got)continue;r.g.userData.gem.rotation.y+=dt*2;r.g.position.y=r.p.y+Math.sin(t*2)*0.3;
@@ -2270,7 +2307,8 @@ function walkUpdate(dt,ix,iy,jumpBtn,run,shipBtn,t){
   // say hi to critters
   heartCd-=dt;if(heartCd<=0)for(const T of targets){if(T.state==='ground'&&T.mesh.position.distanceTo(pos)<3.5){heartCd=1.2;spawnFx(T.mesh.position.clone().add(new V3(0,3.5,0)),tmpV.set(0,2,0),1,2.5,1,0xff5ad8,true);pop('💖','t');break;}}
   if(shipBtn&&!prevShip)boardShip();prevShip=shipBtn;
-  energy=Math.min(100,energy+15*dt);
+  if(wGround)energy=Math.min(100,energy+15*dt);
+  eyeLasers(dt,inp.fire||keys.x,t);
 }
 function walkCam(dt){
   desired.copy(pos).addScaledVector(fwd,-12);desired.y=pos.y+5.5;camera.position.lerp(desired,1-Math.exp(-6*dt));
@@ -2519,7 +2557,7 @@ function startGame(){
   mode='ground';spaceGroup.visible=false;sky.visible=true;setTown('city');
   for(const k in towns)towns[k].targets.forEach(T=>T.spawn(T));
   crystals.forEach(placeCrystal);
-  if(onFoot){onFoot=false;walker.visible=false;document.body.classList.remove('walking');}for(const k in RELICS){RELICS[k].forEach(r=>scene.remove(r.g));delete RELICS[k];}relicFx=[];
+  if(onFoot){onFoot=false;walker.visible=false;document.body.classList.remove('walking');}for(const k in RELICS){RELICS[k].forEach(r=>scene.remove(r.g));delete RELICS[k];}relicFx=[];for(const k in CRATES){CRATES[k].forEach(c=>scene.remove(c.g));delete CRATES[k];}crateFx=[];
   for(const k in SECRETS)SECRETS[k].foundThisRun=false;
   clearEnemies();clearSpaceFoes();spaceKills=0;heat=0;resetPU();puScoreSeen=0;if(boss){enemyGroup.remove(boss.g);boss=null;}bossNext=8;$('bossbar').style.display='none';warpGroup.visible=false;heatIdle=0;lastHurt=99;spawnT=3;
   $('menu').classList.add('hidden');$('over').classList.add('hidden');
@@ -2659,6 +2697,7 @@ function drawRadar(t){
   rx.globalAlpha=1;
   for(const e of enemies){let [r,f]=proj(e.p.x,e.p.z);const d=Math.hypot(f,r);if(d>320){f*=320/d;r*=320/d;}rx.fillStyle='#ff3b4a';rx.beginPath();if(e.type==='jet'){rx.moveTo(60+r*S,60-f*S-4);rx.lineTo(60+r*S-3.5,60-f*S+3);rx.lineTo(60+r*S+3.5,60-f*S+3);}else rx.arc(60+r*S,60-f*S,3.2,0,2*PI);rx.fill();}
   if(boss&&mode==='space'){let [r,f]=proj(boss.p.x,boss.p.z);const d=Math.hypot(f,r);if(d>320){f*=320/d;r*=320/d;}rx.fillStyle='#ff2a4a';rx.beginPath();rx.arc(60+r*S,60-f*S,6,0,2*PI);rx.fill();}
+  if(onFoot)for(const c of crateFx){if(c.dead)continue;let [rr,f]=proj(c.p.x,c.p.z);if(Math.hypot(f,rr)>320)continue;rx.fillStyle='#ffbe46';rx.fillRect(60+rr*S-2,60-f*S-2,4,4);}
   if(onFoot)for(const r of relicFx){if(r.got)continue;let [rr,f]=proj(r.p.x,r.p.z);const d=Math.hypot(f,rr);if(d>320){f*=320/d;rr*=320/d;}rx.fillStyle='#c58bff';rx.shadowColor='#c58bff';rx.shadowBlur=8;rx.beginPath();rx.arc(60+rr*S,60-f*S,4,0,2*PI);rx.fill();rx.shadowBlur=0;}
   for(const P of pickups){if(!P.g.visible)continue;let [r,f]=proj(P.g.position.x,P.g.position.z);const d=Math.hypot(f,r);if(d>320){f*=320/d;r*=320/d;}rx.fillStyle='#'+new THREE.Color(PU_TYPES[P.type].c).getHexString();rx.beginPath();rx.moveTo(60+r*S,60-f*S-4);rx.lineTo(60+r*S+4,60-f*S);rx.lineTo(60+r*S,60-f*S+4);rx.lineTo(60+r*S-4,60-f*S);rx.fill();}
   if(mode==='space'&&curSector==='earth')for(const B of SOLAR){let [r,f]=proj(B.p.x,B.p.z);const d=Math.hypot(f,r);if(d>320){f*=320/d;r*=320/d;}rx.fillStyle=B.css;rx.beginPath();rx.arc(60+r*S,60-f*S,7,0,2*PI);rx.fill();}
@@ -2674,9 +2713,9 @@ function hud(){
   const reach=pos.y<BEAM_MAX,altTxt=onFoot?`🚶 ON FOOT · 💠 ${relicCount()}/5`:mode==='warp'?'🌀 WORMHOLE':mode==='space'?'🚀 SPACE':`ALT ${Math.round(pos.y)}m`;
   const key=score+'|'+ts+'|'+cows+'|'+cars+'|'+altTxt+reach+mode+onFoot;
   if(key!==lastHud){lastHud=key;
-    $('bBeam').textContent=onFoot?'🛸 SHIP':mode==='space'?'FIRE':'BEAM';$('bBoost').textContent=onFoot?'RUN':'BOOST';$('bUp').innerHTML=onFoot?'<span style="font-size:13px">JUMP</span>':'▲';$('score').textContent=score;$('time').textContent=ts;$('time').classList.toggle('low',timer<10);
+    $('bBeam').textContent=onFoot?'🛸 SHIP':mode==='space'?'FIRE':'BEAM';$('bBoost').textContent=onFoot?'RUN':'BOOST';$('bUp').innerHTML=onFoot?'<span style="font-size:11px;line-height:1.1">JUMP<br>hold=FLY</span>':'▲';$('bFire').textContent=onFoot?'👀 ZAP':'FIRE';$('score').textContent=score;$('time').textContent=ts;$('time').classList.toggle('low',timer<10);
     $('tally').innerHTML=`🐄 ${cows} &nbsp;|&nbsp; 🚗 ${cars}`;
-    $('alt').innerHTML=altTxt+' · '+(onFoot?'<b>JUMP ▲ ×2</b>':mode!=='ground'?(mode==='warp'?'<b>HOLD ON!</b>':'<b>FIND A PORTAL</b>'):towns[curTown].planet?(pos.y>150?'<b class="no">⬆ SPACE ABOVE</b>':reach?'<b>BEAM OK</b>':'<b class="no">TOO HIGH</b>'):pos.y>CLOUD_Y+10?'<b class="no">☁️ SKY REALM</b>':pos.y>120?'<b class="no">⬆ CLOUDS ABOVE</b>':reach?'<b>BEAM OK</b>':'<b class="no">TOO HIGH</b>');
+    $('alt').innerHTML=altTxt+' · '+(onFoot?'<b>HOLD JUMP = JETPACK</b>':mode!=='ground'?(mode==='warp'?'<b>HOLD ON!</b>':'<b>FIND A PORTAL</b>'):towns[curTown].planet?(pos.y>150?'<b class="no">⬆ SPACE ABOVE</b>':reach?'<b>BEAM OK</b>':'<b class="no">TOO HIGH</b>'):pos.y>CLOUD_Y+10?'<b class="no">☁️ SKY REALM</b>':pos.y>120?'<b class="no">⬆ CLOUDS ABOVE</b>':reach?'<b>BEAM OK</b>':'<b class="no">TOO HIGH</b>');
   }
   $('shieldBar').style.width=shield+'%';
   const pb=$('powerBar');pb.style.width=energy+'%';pb.classList.toggle('lock',lock);
