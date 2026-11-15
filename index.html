@@ -24,6 +24,9 @@ html,body{margin:0;height:100%;overflow:hidden;background:#0a0c2a;font-family:-a
 #powerBar.lock{background:#ff9f43;box-shadow:0 0 8px #ff9f43}
 #alt{font-size:12px;font-weight:700;font-variant-numeric:tabular-nums}
 #alt b{color:#6dff8a;text-shadow:0 0 6px rgba(80,255,140,.7)}#alt b.no{color:#ffb347;text-shadow:0 0 6px rgba(255,170,60,.7)}
+#heat{font-size:13px;letter-spacing:1px;color:#ff4a5a;text-shadow:0 0 8px rgba(255,60,80,.8);margin-top:2px}
+#warn{display:none;position:absolute;top:22%;left:0;right:0;text-align:center;font-size:22px;font-weight:900;color:#ff3b4a;text-shadow:0 0 14px rgba(255,40,60,.9);animation:blinkw .5s steps(2) infinite}
+@keyframes blinkw{50%{opacity:.2}}
 #pops{position:absolute;top:30%;left:0;right:0;display:flex;flex-direction:column;align-items:center;gap:4px}
 .pop{font-size:30px;font-weight:900;color:#7dffa8;text-shadow:0 0 14px rgba(80,255,150,.9),0 2px 6px rgba(0,0,0,.7);animation:pop 1.2s ease-out forwards}
 .pop.t{font-size:18px;color:#ffe08a;text-shadow:0 0 10px rgba(255,210,100,.8)}
@@ -74,10 +77,11 @@ body.touch #keys{display:none}
         <div id="alt">ALT 0m · <b>BEAM OK</b></div>
       </div>
     </div>
-    <div class="panel center"><div class="lbl">TIME</div><div id="time" class="big">1:30</div></div>
+    <div class="panel center"><div class="lbl">TIME</div><div id="time" class="big">1:30</div><div id="heat" class="stars">☆☆☆☆☆</div></div>
     <canvas id="radar" width="240" height="240"></canvas>
   </div>
   <div id="pops"></div>
+  <div id="warn">⚠ MISSILE LOCK</div>
   <div id="flash"></div>
   <div id="fade" style="position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none"></div>
 </div>
@@ -110,7 +114,8 @@ body.touch #keys{display:none}
       <b>SPACE</b> – tractor beam · <b>SHIFT</b> – boost<br>
       Tip: the beam only reaches when you're <b>below 70m</b>.
     </div>
-    <p style="font-size:13px">🐄 Cow 10 · 🚗 Car 25 · 🚚 Army truck 40 · 💎 Space crystal 5</p>
+    <p style="font-size:13px">🐄 Cow 10 · 🚗 Car 25 · 🚚 Army truck 40 · 🚁 Helicopter 60 · 💎 Space crystal 5</p>
+    <p style="font-size:13px">⭐ Every abduction raises your <b>wanted level</b>. Helicopters, then fighter jets with homing missiles come after you. Boost to outrun missiles. Beam up helicopters flying below you!</p>
     <p style="font-size:13px">🚀 Fly up through the clouds (250m+) to reach space, then fly through a portal to travel to the <b>Area 51 desert</b>.</p>
     <button class="play" id="playBtn">PLAY</button>
     <div class="best" id="bestMenu"></div>
@@ -1100,6 +1105,167 @@ function doBurst(p){
   captureFlash.material.opacity=1;captureFlash.visible=true;captureLife=1;
 }
 
+// ---------- enemies: helicopters, jets, missiles ----------
+let heat=0,heatIdle=0,lastHurt=99,spawnT=0,shownStars=-1,warnOn=false;
+const enemies=[],missiles=[],bullets=[],fx=[];
+const enemyGroup=new THREE.Group();scene.add(enemyGroup);
+const X_AXIS=new V3(1,0,0),tmpV=new V3(),tmpV2=new V3(),UFO_V=new V3();
+function navSprite(color,size){const s=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color,transparent:true,depthWrite:false}));s.scale.set(size,size,1);return s;}
+function makeHeli(){
+  const g=new THREE.Group();const body=lam(0x3b4434),dark=0x1a1a1a;
+  box(g,4.2,2.2,2.4,body,0,0,0);
+  const glass=new THREE.Mesh(new THREE.SphereGeometry(1.3,12,8),new THREE.MeshLambertMaterial({color:0x1a2a38,emissive:0x0a2a3a}));glass.position.set(2,0.1,0);glass.scale.set(1,0.85,0.9);g.add(glass);
+  box(g,6,0.6,0.6,body,-4.5,0.4,0);box(g,0.3,2,0.8,body,-7.3,1.2,0);
+  box(g,4,0.2,0.2,dark,0,-1.5,1.1);box(g,4,0.2,0.2,dark,0,-1.5,-1.1);
+  const rotor=new THREE.Group();rotor.position.set(0,1.4,0);for(let k=0;k<2;k++){const b=box(rotor,11,0.08,0.45,dark,0,0,0);b.rotation.y=k*PI/2;}g.add(rotor);
+  const tr=new THREE.Group();tr.position.set(-7.4,1.3,0.5);box(tr,0.15,2.4,0.25,dark,0,0,0);g.add(tr);
+  const r=navSprite(0xff3030,1.6);r.position.set(0,0,1.4);g.add(r);const gr=navSprite(0x30ff60,1.6);gr.position.set(0,0,-1.4);g.add(gr);
+  const blink=navSprite(0xffffff,2.2);blink.position.set(-7.6,2.4,0);g.add(blink);
+  const sl=new THREE.ConeGeometry(6,46,14,1,true);sl.translate(0,-23,0);
+  const cone=new THREE.Mesh(sl,new THREE.MeshBasicMaterial({color:0xfff2c0,transparent:true,opacity:.1,blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide}));
+  cone.position.set(2.5,-1,0);cone.rotation.z=0.55;g.add(cone);
+  g.rotation.order='YXZ';enemyGroup.add(g);return{g,rotor,tr,blink};
+}
+function makeJet(){
+  const g=new THREE.Group();const m=lam(0x6a7280);
+  const fus=new THREE.Mesh(new THREE.CylinderGeometry(0.6,0.9,9,10),m);fus.rotation.z=PI/2;g.add(fus);
+  const nose=new THREE.Mesh(new THREE.ConeGeometry(0.6,2.6,10),m);nose.rotation.z=-PI/2;nose.position.x=5.8;g.add(nose);
+  const can=new THREE.Mesh(new THREE.SphereGeometry(0.7,12,8),new THREE.MeshLambertMaterial({color:0x1a2a38,emissive:0x0a2a3a}));can.position.set(2.4,0.6,0);can.scale.set(1.8,0.7,0.8);g.add(can);
+  const ws=new THREE.Shape();ws.moveTo(2,0);ws.lineTo(-2.6,5.2);ws.lineTo(-3.6,5.2);ws.lineTo(-3,0);ws.lineTo(-3.6,-5.2);ws.lineTo(-2.6,-5.2);ws.closePath();
+  const wg=new THREE.ExtrudeGeometry(ws,{depth:0.18,bevelEnabled:false});wg.rotateX(PI/2);g.add(new THREE.Mesh(wg,m));
+  box(g,1.6,0.12,3.8,m,-3.9,0,0);box(g,1.8,2.1,0.15,m,-3.6,1.1,0);
+  const burner=navSprite(0xff8a30,3.4);burner.position.set(-5,0,0);g.add(burner);
+  const r=navSprite(0xff3030,1.5);r.position.set(-3,0.1,5.2);g.add(r);const gr=navSprite(0x30ff60,1.5);gr.position.set(-3,0.1,-5.2);g.add(gr);
+  enemyGroup.add(g);return{g,burner};
+}
+function makeMissile(){
+  const g=new THREE.Group();
+  const b=new THREE.Mesh(new THREE.CylinderGeometry(0.22,0.22,2.4,8),lam(0xe8e8e8));b.rotation.z=PI/2;g.add(b);
+  const tip=new THREE.Mesh(new THREE.ConeGeometry(0.22,0.6,8),lam(0xd03030));tip.rotation.z=-PI/2;tip.position.x=1.5;g.add(tip);
+  const fl=navSprite(0xffb050,2.6);fl.position.x=-1.5;g.add(fl);
+  enemyGroup.add(g);return g;
+}
+// pooled sprite effects (fire, smoke, sparks, tracers)
+function spawnFx(p,v,life,size,grow,color,additive){
+  let f=fx.find(f=>f.life<=0&&f.add===additive);
+  if(!f){if(fx.length>260)return;const s=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,transparent:true,depthWrite:false,blending:additive?THREE.AdditiveBlending:THREE.NormalBlending}));scene.add(s);f={s,v:new V3(),add:additive};fx.push(f);}
+  f.s.position.copy(p);f.v.copy(v);f.life=f.max=life;f.size=size;f.grow=grow;f.s.material.color.setHex(color);f.s.visible=true;
+}
+function explode(p,big){
+  const n=big?22:10;
+  for(let i=0;i<n;i++){tmpV.set(rand(-1,1),rand(-0.4,1),rand(-1,1)).normalize().multiplyScalar(rand(4,big?16:8));spawnFx(p,tmpV,rand(0.5,1.1),big?rand(4,8):rand(2,4),big?9:5,pick([0xffd060,0xff8a30,0xff5020,0xfff0b0]),true);}
+  for(let i=0;i<(big?8:3);i++){tmpV.set(rand(-1,1),rand(0.2,1),rand(-1,1)).multiplyScalar(rand(2,5));spawnFx(p,tmpV,rand(1,1.8),big?6:3,6,0x3a3a40,false);}
+  spawnFx(p,tmpV.set(0,0,0),0.25,big?26:12,30,0xffffff,true);
+  boom(big?0.5:0.25);
+}
+let noiseBuf=null;
+function boom(vol){if(!AC||muted)return;if(!noiseBuf){noiseBuf=AC.createBuffer(1,AC.sampleRate*0.9|0,AC.sampleRate);const d=noiseBuf.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/d.length,2.2);}
+  const s=AC.createBufferSource();s.buffer=noiseBuf;const f=AC.createBiquadFilter();f.type='lowpass';f.frequency.value=700;const g=AC.createGain();g.gain.value=vol;s.connect(f);f.connect(g);g.connect(master);s.start();}
+function inCollider(p){for(const b of colliders){if(p.y<b.h&&p.y>b.y0&&p.x>b.x0&&p.x<b.x1&&p.z>b.z0&&p.z<b.z1)return b;}return null;}
+function hurt(n){
+  shield-=n;lastHurt=0;shake=Math.max(shake,0.45);
+  const f=$('flash');f.style.transition='none';f.style.opacity=0.7;requestAnimationFrame(()=>{f.style.transition='opacity .4s';f.style.opacity=0;});
+  if(navigator.vibrate)try{navigator.vibrate(40);}catch(e){}
+  if(shield<=0){shield=0;explode(pos,true);endGame('shield');}
+}
+function removeEnemy(e){enemyGroup.remove(e.g);enemies.splice(enemies.indexOf(e),1);}
+function clearEnemies(){enemies.slice().forEach(removeEnemy);missiles.forEach(M=>enemyGroup.remove(M.g));missiles.length=0;bullets.forEach(B=>B.f.life=0);bullets.length=0;$('warn').style.display='none';}
+function spawnEnemy(type){
+  const a=rand(0,2*PI),R=400,e=type==='heli'?makeHeli():makeJet();
+  e.type=type;e.p=new V3(pos.x+Math.cos(a)*R,Math.max(45,pos.y+rand(5,30)),pos.z+Math.sin(a)*R);
+  e.v=new V3();e.dir=new V3(-Math.cos(a),0,-Math.sin(a));e.cd=rand(2,3.5);e.phase=rand(0,6);e.state='fly';e.burst=0;e.bt=0;e.leaving=false;
+  e.g.position.copy(e.p);enemies.push(e);
+  pop(type==='heli'?'🚁 HELICOPTER INCOMING':'✈️ FIGHTER JET INCOMING','t');
+}
+const bulletSprites=[];
+function bulletSprite(i){if(!bulletSprites[i]){const s=navSprite(0xfff080,1.5);scene.add(s);bulletSprites[i]=s;}return bulletSprites[i];}
+function updateEnemies(dt,t,canGrab,bR){
+  const playing=state==='play'&&mode==='ground';
+  // heat / wanted level
+  if(playing){
+    heatIdle+=dt;if(heatIdle>10)heat=Math.max(0,heat-dt/8);
+    if(curTown==='desert'&&pos.x>-500&&pos.x<-20&&pos.z>-370&&pos.z<-140&&pos.y<120){heat=Math.min(5,heat+0.25*dt);heatIdle=0;}
+    lastHurt+=dt;if(lastHurt>4)shield=Math.min(100,shield+3*dt);
+    const wantH=Math.min(3,Math.floor(heat)),wantJ=heat>=3?Math.min(2,Math.floor(heat)-2):0;
+    const live=k=>enemies.filter(e=>e.type===k&&!e.leaving&&e.state==='fly');
+    spawnT-=dt;
+    if(spawnT<=0){spawnT=2.5;
+      const hs=live('heli'),js=live('jet');
+      if(hs.length<wantH)spawnEnemy('heli');else if(js.length<wantJ)spawnEnemy('jet');
+      if(hs.length>wantH)hs[0].leaving=true;if(js.length>wantJ)js[0].leaving=true;}
+  }
+  const ufoVel=UFO_V.copy(fwd).multiplyScalar(speed);ufoVel.y=vy;
+  let danger=false;
+  for(const e of enemies.slice()){
+    const toU=tmpV.copy(pos).sub(e.p),dist=toU.length();
+    if(e.type==='heli'){
+      e.rotor.rotation.y+=dt*28;e.tr.rotation.z+=dt*40;e.blink.visible=(t*2+e.phase)%1<0.15;
+      if(e.state==='fly'){
+        const tgt=new V3();
+        if(e.leaving||!playing)tgt.copy(e.p).addScaledVector(e.dir,-200).setY(e.p.y+20);
+        else{const a=e.phase+t*0.35;tgt.set(pos.x+Math.cos(a)*38,Math.max(18,pos.y-12),pos.z+Math.sin(a)*38);}
+        const want=tgt.sub(e.p);if(want.length()>34)want.setLength(34);
+        e.v.lerp(want,1-Math.exp(-1.4*dt));e.p.addScaledVector(e.v,dt);
+        const b=inCollider(tmpV2.set(e.p.x,e.p.y-3,e.p.z));if(b)e.p.y=b.h+4;
+        const yawE=Math.atan2(-(pos.z-e.p.z),pos.x-e.p.x);e.g.rotation.set(0,yawE,-Math.min(0.3,e.v.length()/90));
+        // beam can grab helicopters below you
+        const hx=e.p.x-pos.x,hz=e.p.z-pos.z;
+        if(canGrab&&hx*hx+hz*hz<bR*bR&&e.p.y<pos.y-2){e.state='lift';pop('🚁 GOT ONE!','t');}
+        if(playing&&!e.leaving){e.cd-=dt;if(dist<140&&e.cd<=0){e.cd=rand(2.2,3.4);e.burst=3;}
+          if(e.burst>0){e.bt-=dt;if(e.bt<=0){e.bt=0.13;e.burst--;
+            const aim=pos.clone().addScaledVector(ufoVel,0.5*dist/115);const sp=3.5+Math.abs(speed)*0.06;aim.x+=rand(-sp,sp);aim.y+=rand(-1.5,1.5);aim.z+=rand(-sp,sp);
+            const v=aim.sub(e.p).normalize().multiplyScalar(115);bullets.push({p:e.p.clone(),v,life:1.5});blip(1000,300,0.05,'square',0.025);}}}
+        if(e.leaving&&dist>450)removeEnemy(e);
+      }else if(e.state==='lift'){
+        if(!canGrab){e.state='fall';e.vy=0;}
+        else{e.p.y+=14*dt;const k=1-Math.exp(-3*dt);e.p.x+=(pos.x-e.p.x)*k;e.p.z+=(pos.z-e.p.z)*k;e.g.rotation.y+=dt*3;e.g.rotation.z=Math.sin(t*5)*0.5;
+          if(e.p.y>=pos.y-2.5){doBurst(e.p);score+=60;timer+=8;heat=Math.min(5,heat+1);heatIdle=0;pop('+60 🚁');pop('+8s','t');blip(260,920,0.28,'sine',0.14);removeEnemy(e);continue;}}
+      }else if(e.state==='fall'){
+        e.vy=(e.vy||0)-30*dt;e.p.y+=e.vy*dt;e.g.rotation.y+=dt*6;
+        if(e.p.y<=1){explode(e.p,true);score+=20;pop('+20 💥');removeEnemy(e);continue;}
+      }
+      e.g.position.copy(e.p);
+    }else{ // jet
+      const tgt=new V3();
+      if(e.leaving||!playing)tgt.copy(e.p).addScaledVector(e.dir,300).setY(Math.max(e.p.y,90));
+      else tgt.copy(pos).setY(Math.max(pos.y+14,55));
+      const des=tgt.sub(e.p).normalize(),ang=e.dir.angleTo(des);
+      if(ang>0.0001)e.dir.lerp(des,Math.min(1,1.05*dt/ang)).normalize();
+      if(e.p.y<50&&e.dir.y<0.15){e.dir.y=0.15;e.dir.normalize();}
+      e.p.addScaledVector(e.dir,78*dt);e.g.position.copy(e.p);e.g.quaternion.setFromUnitVectors(X_AXIS,e.dir);
+      e.burner.scale.setScalar(3+Math.random()*1.2);
+      if(playing&&!e.leaving){e.cd-=dt;const aim=e.dir.angleTo(toU.clone().normalize());
+        if(e.cd<=0&&dist<260&&dist>40&&aim<0.45){e.cd=rand(4,6);const M={g:makeMissile(),p:e.p.clone().addScaledVector(e.dir,4),dir:e.dir.clone(),life:7,pt:0};missiles.push(M);blip(300,1000,0.45,'sawtooth',0.07);}}
+      if((e.leaving||!playing)&&dist>500)removeEnemy(e);
+    }
+  }
+  // missiles
+  for(const M of missiles.slice()){
+    const des=tmpV.copy(pos).sub(M.p),d=des.length();des.normalize();
+    const ang=M.dir.angleTo(des);if(ang>0.0001)M.dir.lerp(des,Math.min(1,1.9*dt/ang)).normalize();
+    M.p.addScaledVector(M.dir,60*dt);M.life-=dt;M.g.position.copy(M.p);M.g.quaternion.setFromUnitVectors(X_AXIS,M.dir);
+    M.pt-=dt;if(M.pt<=0){M.pt=0.045;spawnFx(M.p,tmpV2.set(rand(-.5,.5),rand(0,1),rand(-.5,.5)),1.1,2,5,0x9a9aa4,false);}
+    if(d<190)danger=true;
+    let gone=false;
+    if(d<5&&playing){hurt(12);gone=true;}
+    else if(M.p.y<0.5||inCollider(M.p)||M.life<=0||!playing)gone=true;
+    if(gone){explode(M.p,d<5);enemyGroup.remove(M.g);missiles.splice(missiles.indexOf(M),1);}
+  }
+  // bullets
+  for(let i=bullets.length-1;i>=0;i--){const B=bullets[i];B.p.addScaledVector(B.v,dt);B.life-=dt;
+    const s=bulletSprite(i);s.visible=true;s.position.copy(B.p);
+    if(playing&&B.p.distanceTo(pos)<4.5){hurt(3);spawnFx(B.p,tmpV.set(0,0,0),0.3,4,10,0xfff0a0,true);B.life=0;}
+    else if(B.p.y<0.3||inCollider(B.p))B.life=0;
+    if(B.life<=0)bullets.splice(i,1);}
+  for(let i=bullets.length;i<bulletSprites.length;i++)bulletSprites[i].visible=false;
+  // effects
+  for(const f of fx){if(f.life<=0)continue;f.life-=dt;f.s.position.addScaledVector(f.v,dt);f.v.multiplyScalar(0.97);
+    const k=Math.max(0,f.life/f.max);f.s.material.opacity=f.add?k:k*0.55;const sz=f.size+f.grow*(1-k);f.s.scale.set(sz,sz,1);if(f.life<=0)f.s.visible=false;}
+  // HUD: wanted stars + missile warning
+  const n=Math.min(5,Math.floor(heat));if(n!==shownStars){shownStars=n;$('heat').textContent='★'.repeat(n)+'☆'.repeat(5-n);}
+  if(danger!==warnOn){warnOn=danger;$('warn').style.display=danger?'block':'none';}
+}
+
 // ---------- input ----------
 const keys={},inp={up:false,down:false,beam:false,boost:false},joy={x:0,y:0};
 document.addEventListener('visibilitychange',()=>{
@@ -1170,6 +1336,7 @@ function startGame(){
   mode='ground';spaceGroup.visible=false;sky.visible=true;setTown('city');
   for(const k in towns)towns[k].targets.forEach(T=>T.spawn(T));
   crystals.forEach(placeCrystal);
+  clearEnemies();heat=0;heatIdle=0;lastHurt=99;spawnT=3;
   $('menu').classList.add('hidden');$('over').classList.add('hidden');
   state='play';perfT=0;perfN=0;perfSum=0;
 }
@@ -1195,7 +1362,7 @@ function setTown(n){
   scene.fog.near=T.fog[0];scene.fog.far=T.fog[1];cloudLayer.visible=true;
 }
 function enterSpace(){
-  mode='space';fadeIn();
+  clearEnemies();mode='space';fadeIn();
   for(const k in towns)towns[k].group.visible=false;
   spaceGroup.visible=true;cloudLayer.visible=false;sky.visible=false;
   colliders=[];targets=[];torusCols=[];
@@ -1254,7 +1421,7 @@ function collide(){
 function abduct(T){
   T.state='gone';T.mesh.visible=false;T.rt=rand(5,9);doBurst(T.mesh.position);
   const k=T.type,isCow=k==='cow',pts={cow:10,car:25,truck:40}[k],tb={cow:4,car:6,truck:7}[k];
-  score+=pts;timer+=tb;isCow?cows++:cars++;
+  score+=pts;timer+=tb;isCow?cows++:cars++;heat=Math.min(5,heat+{cow:0.5,car:0.8,truck:1.5}[k]);heatIdle=0;
   pop(`+${pts} ${{cow:'🐄',car:'🚗',truck:'🚚'}[k]}`);pop(`+${tb}s`,'t');
   // Two-part capture chime: rising energy sweep followed by a bright confirmation ping.
   blip(isCow?210:260,isCow?720:920,0.28,'sine',0.14);
@@ -1296,7 +1463,10 @@ function drawRadar(t){
     rx.globalAlpha=a;rx.fillStyle=T.type==='cow'?'#ffffff':T.type==='truck'?'#9dff6a':'#ffd84a';
     rx.beginPath();rx.arc(60+r*S,60-f*S,T.type==='cow'?2.2:2.8,0,2*PI);rx.fill();
   }
-  rx.globalAlpha=1;rx.fillStyle='#5dff9a';rx.shadowColor='#5dff9a';rx.shadowBlur=6;rx.beginPath();rx.moveTo(60,52);rx.lineTo(54.5,65);rx.lineTo(65.5,65);rx.closePath();rx.fill();rx.shadowBlur=0;
+  rx.globalAlpha=1;
+  for(const e of enemies){let [r,f]=proj(e.p.x,e.p.z);const d=Math.hypot(f,r);if(d>320){f*=320/d;r*=320/d;}rx.fillStyle='#ff3b4a';rx.beginPath();if(e.type==='jet'){rx.moveTo(60+r*S,60-f*S-4);rx.lineTo(60+r*S-3.5,60-f*S+3);rx.lineTo(60+r*S+3.5,60-f*S+3);}else rx.arc(60+r*S,60-f*S,3.2,0,2*PI);rx.fill();}
+  for(const M of missiles){const [r,f]=proj(M.p.x,M.p.z);if(Math.hypot(f,r)<320){rx.fillStyle='#ffa040';rx.fillRect(60+r*S-1.5,60-f*S-1.5,3,3);}}
+  rx.fillStyle='#5dff9a';rx.shadowColor='#5dff9a';rx.shadowBlur=6;rx.beginPath();rx.moveTo(60,52);rx.lineTo(54.5,65);rx.lineTo(65.5,65);rx.closePath();rx.fill();rx.shadowBlur=0;
 }
 
 // ---------- HUD ----------
@@ -1470,6 +1640,7 @@ function loop(now){
     if(C.along>292)C.along=-292;if(C.along<-292)C.along=292;
     if(C.axis==='x')C.g.position.set(C.along,0,C.lane);else C.g.position.set(C.lane,0,C.along);
   });
+  updateEnemies(dt,t,canGrab,bR);
   trains.forEach(T=>{T.s+=T.r.dir*30*dt;if(T.s>300)T.s=-300;if(T.s<-300)T.s=300;const y=T.r.h+2.2;
     if(T.isZ)T.g.position.set(T.r.c,y,T.s);else T.g.position.set(T.s,y,T.r.c);});
   boats.forEach(B=>{B.x+=B.dir*B.sp*dt;if(B.x>285)B.x=-285;if(B.x<-285)B.x=285;B.g.position.set(B.x,Math.sin(t*2+B.lane)*0.08,-150+B.lane);B.g.rotation.y=B.dir>0?0:PI;});
