@@ -3390,31 +3390,82 @@ const raceGroup=new THREE.Group();skyRealm.add(raceGroup);
     raceGroup.add(g);race.rings.push({g,tor,disc,gl,beam,p,dir,side:0,k});}
 })();
 // black hole shortcut on the race course (between ring 9 and 10)
-// 🌬️ AIR CURRENT: a wind stream that flows through every ring in order — ride it like the ocean currents
+// 🎢 AIR CURRENT ROLLER COASTER: a glowing wind track through every ring — drops, hills, corkscrews and banked turns
 const airCur=(function(){
-  const pts=[];race.rings.forEach(R=>{if(!pts.some(q=>q.distanceTo(R.p)<5))pts.push(R.p.clone());});
+  const ringPts=[];race.rings.forEach(R=>{if(!ringPts.some(q=>q.distanceTo(R.p)<5))ringPts.push(R.p.clone());});
+  const LOW=CLOUD_Y+9,HIGH=338,UP=new V3(0,1,0),pts=[],screws=[];
+  const nR=ringPts.length;
+  for(let i=0;i<nR;i++){const a=ringPts[i],b=ringPts[(i+1)%nR],d=b.clone().sub(a),L=d.length(),f=d.clone().normalize();
+    const side=new V3().crossVectors(f,UP).normalize(),up=new V3().crossVectors(side,f).normalize();
+    pts.push(a.clone());const at=u=>a.clone().addScaledVector(d,u);const type=i%4;
+    if(type===0){ // big drop: crest then dive to skim the clouds
+      const c=at(0.22);c.y=Math.min(HIGH,Math.max(a.y,b.y)+30);pts.push(c);const m=at(0.55);m.y=LOW;pts.push(m);const n=at(0.8);n.y=(LOW+b.y)/2;pts.push(n);}
+    else if(type===1){ // corkscrew: spiral around the line between rings
+      const ax0=at(0.12);pts.push(ax0);const K=7;for(let k=1;k<K;k++){const u=0.12+0.76*k/K,ang=k/K*2*PI,r=18*Math.sin(Math.PI*k/K)+6;
+        pts.push(at(u).addScaledVector(side,Math.cos(ang-PI/2)*r).addScaledVector(up,Math.sin(ang-PI/2)*r+r));}
+      pts.push(at(0.88));screws.push({a:at(0.12),b:at(0.88),f,side,up});}
+    else if(type===2){ // camel-back hill
+      const m=at(0.5);m.y=Math.min(HIGH,Math.max(a.y,b.y)+50);pts.push(at(0.2).setY(a.y+12));pts.push(m);pts.push(at(0.8).setY(b.y+12));}
+    else{ // banked S-turn with a dip
+      pts.push(at(0.3).addScaledVector(side,34).setY((a.y+b.y)/2-25));pts.push(at(0.7).addScaledVector(side,-34).setY((a.y+b.y)/2-10));}
+  }
+  pts.forEach(p=>{p.y=clamp(p.y,LOW,HIGH);});
   const curve=new THREE.CatmullRomCurve3(pts,true,'centripetal');
+  const N=1600,samp=[],tan=[],roll=[],kind=[];for(let k=0;k<N;k++){samp.push(curve.getPointAt(k/N));tan.push(curve.getTangentAt(k/N));}
+  // bank angle: lean into turns; spin through corkscrews
+  for(let k=0;k<N;k++){const T=tan[k],c=tan[(k+4)%N].clone().sub(tan[(k-4+N)%N]),side=new V3().crossVectors(T,UP).normalize();
+    let r=clamp(c.dot(side)*7,-1.1,1.1),kd=0;
+    for(const S of screws){const ab=S.b.clone().sub(S.a),u=samp[k].clone().sub(S.a).dot(ab)/ab.lengthSq();if(u<0||u>1)continue;
+      const o=samp[k].clone().sub(S.a.clone().addScaledVector(ab,u));if(o.length()>30)continue;
+      const w=clamp(o.length()/10,0,1),spin=Math.atan2(-o.dot(S.side),-o.dot(S.up));r=r*(1-w)+spin*w;kd=1;}
+    roll.push(r);kind.push(kd);}
+  // smooth the bank so it never snaps (unwrap angles first)
+  for(let k=1;k<N;k++){while(roll[k]-roll[k-1]>PI)roll[k]-=2*PI;while(roll[k]-roll[k-1]<-PI)roll[k]+=2*PI;}
+  for(let pass=0;pass<3;pass++){const r2=roll.slice();for(let k=0;k<N;k++)r2[k]=(roll[(k-2+N)%N]+roll[(k-1+N)%N]+roll[k]+roll[(k+1)%N]+roll[(k+2)%N])/5;for(let k=2;k<N-2;k++)roll[k]=r2[k];}
+  // track frame at each sample
+  const frames=samp.map((P,k)=>{const T=tan[k],side=new V3().crossVectors(T,UP).normalize(),up=new V3().crossVectors(side,T).normalize();
+    const q=new THREE.Quaternion().setFromAxisAngle(T,-roll[k]);return {side:side.applyQuaternion(q),up:up.applyQuaternion(q)};});
+  // wind tube
   const mat=new THREE.ShaderMaterial({uniforms:{t:{value:0},boost:{value:0}},transparent:true,depthWrite:false,side:THREE.DoubleSide,
     vertexShader:'varying vec2 vUv;void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}',
-    fragmentShader:'uniform float t,boost;varying vec2 vUv;void main(){float s=fract(vUv.x*220.0-t*(2.0+boost*3.0)+sin(vUv.y*12.566)*0.15);float streak=smoothstep(0.55,1.0,s)*(0.5+0.5*sin(vUv.y*37.7));float rim=0.35+0.65*abs(sin(vUv.y*3.1416));vec3 c=mix(vec3(0.55,0.85,1.0),vec3(1.0),streak);gl_FragColor=vec4(c,(0.06+streak*0.32)*rim);}'});
-  const tube=new THREE.Mesh(new THREE.TubeGeometry(curve,600,7,12,true),mat);raceGroup.add(tube);
-  const N=600,samp=[],tan=[];for(let k=0;k<N;k++){samp.push(curve.getPointAt(k/N));tan.push(curve.getTangentAt(k/N));}
-  const puffs=[];for(let k=0;k<90;k++){const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:0xeaf8ff,transparent:true,opacity:.55,blending:THREE.AdditiveBlending,depthWrite:false}));sp.scale.setScalar(rand(1.4,3));sp.material.opacity=0.35;raceGroup.add(sp);puffs.push({sp,u:k/90,o:new V3(rand(-4,4),rand(-4,4),rand(-4,4))});}
-  return {curve,samp,tan,N,mat,puffs,riding:false,msg:0,idx:0};})();
+    fragmentShader:'uniform float t,boost;varying vec2 vUv;void main(){float s=fract(vUv.x*420.0-t*(2.0+boost*3.0)+sin(vUv.y*12.566)*0.15);float streak=smoothstep(0.55,1.0,s)*(0.5+0.5*sin(vUv.y*37.7));float rim=0.35+0.65*abs(sin(vUv.y*3.1416));vec3 c=mix(vec3(0.55,0.85,1.0),vec3(1.0),streak);gl_FragColor=vec4(c,(0.05+streak*0.28)*rim);}'});
+  const tube=new THREE.Mesh(new THREE.TubeGeometry(curve,1400,7,12,true),mat);raceGroup.add(tube);
+  // glowing coaster rails + cross ties under the wind
+  const railPts=[[],[]];for(let k=0;k<N;k+=4){const P=samp[k],F=frames[k],c=P.clone().addScaledVector(F.up,-4.2);railPts[0].push(c.clone().addScaledVector(F.side,2.4));railPts[1].push(c.clone().addScaledVector(F.side,-2.4));}
+  const railM=new THREE.MeshBasicMaterial({color:0xff4fd8});
+  railPts.forEach(rp=>raceGroup.add(new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(rp,true),N/2,0.35,6,true),railM)));
+  const nT=Math.floor(N/6),ties=new THREE.InstancedMesh(new THREE.BoxGeometry(6,0.35,0.9),new THREE.MeshBasicMaterial({color:0x6a3cff}),nT),dm=new THREE.Object3D(),M4=new THREE.Matrix4();
+  for(let i=0;i<nT;i++){const k=i*6,F=frames[k],T=tan[k];M4.makeBasis(F.side,F.up,T.clone().negate());dm.quaternion.setFromRotationMatrix(M4);dm.position.copy(samp[k]).addScaledVector(F.up,-4.4);dm.updateMatrix();ties.setMatrixAt(i,dm.matrix);}
+  ties.frustumCulled=false;raceGroup.add(ties);
+  const puffs=[];for(let k=0;k<90;k++){const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:0xeaf8ff,transparent:true,opacity:.35,blending:THREE.AdditiveBlending,depthWrite:false}));sp.scale.setScalar(rand(1.4,3));raceGroup.add(sp);puffs.push({sp,u:k/90,o:new V3(rand(-4,4),rand(-4,4),rand(-4,4))});}
+  return {curve,samp,tan,roll,kind,N,mat,puffs,riding:false,msg:0,idx:0,LOW,HIGH,kick:0,click:0,wheeCd:0,screwCd:0,free:0,exitHold:0};})();
 function airCurrentUpdate(dt,t,can){
-  const A=airCur;A.mat.uniforms.t.value=t;A.mat.uniforms.boost.value=A.riding?1:0;A.msg-=dt;
-  A.puffs.forEach(P=>{P.u=(P.u+(dt||0)*0.012*(A.riding?2:1))%1;if(!(P.u>=0))P.u=0;const f=P.u*A.N,k=Math.floor(f)%A.N;P.sp.position.copy(A.samp[k]).lerp(A.samp[(k+1)%A.N],f-Math.floor(f)).add(P.o);});
-  if(!can||pos.y<CLOUD_Y-10){A.riding=false;return;}
-  // nearest sample: search near the last one first, full scan if we lost it
-  let bi=-1,bd=100;const s0=A.riding?A.idx:0,span=A.riding?40:A.N;
-  for(let j=-(A.riding?span:0);j<(A.riding?span:A.N);j+=(A.riding?1:3)){const k=((s0+j)%A.N+A.N)%A.N,d=A.samp[k].distanceToSquared(pos);if(d<bd){bd=d;bi=k;}}
+  const A=airCur;A.mat.uniforms.t.value=t;A.mat.uniforms.boost.value=A.riding?1:0;A.msg-=dt;A.wheeCd-=dt;A.screwCd-=dt;A.free-=dt;
+  A.puffs.forEach(P=>{P.u=(P.u+(dt||0)*0.008*(A.riding?2:1))%1;if(!(P.u>=0))P.u=0;const f=P.u*A.N,k=Math.floor(f)%A.N;P.sp.position.copy(A.samp[k]).lerp(A.samp[(k+1)%A.N],f-Math.floor(f)).add(P.o);});
+  A.kick+=(0-A.kick)*Math.min(1,dt*2);
+  if(!can||pos.y<CLOUD_Y-10||A.free>0){A.riding=false;return;}
+  let bi=-1,bd=100;
+  if(A.riding){for(let j=-60;j<=60;j++){const k=((A.idx+j)%A.N+A.N)%A.N,d=A.samp[k].distanceToSquared(pos);if(d<bd){bd=d;bi=k;}}}
+  else for(let k=0;k<A.N;k+=3){const d=A.samp[k].distanceToSquared(pos);if(d<bd){bd=d;bi=k;}}
   if(bi<0){A.riding=false;return;}
-  if(!A.riding&&A.msg<=0){pop('🌬️ RIDING THE AIR CURRENT!');pop('It carries you through the rings','t');mEvent('aircurrent');A.msg=8;blip(300,1200,0.4,'sine',0.1);}
+  // hold UP or DOWN to jump off the coaster
+  const up=inp.up||keys.r||keys.e,down=inp.down||keys.f||keys.q;
+  if(A.riding&&(up||down)){A.exitHold+=dt;if(A.exitHold>0.5){A.riding=false;A.free=2;A.exitHold=0;pop('🪂 Jumped off!','t');return;}}else A.exitHold=0;
+  if(!A.riding&&A.msg<=0){pop('🎢 AIR COASTER!');pop('Hold ▲ or ▼ to jump off','t');mEvent('aircurrent');A.msg=8;blip(300,1200,0.4,'sine',0.1);}
   A.riding=true;A.idx=bi;if(race.on)race.usedCur=true;
-  const T=A.tan[bi],P=A.samp[bi],sp=75*(race.on?(1+(race.mult-1)*0.35):1);
-  pos.addScaledVector(T,sp*dt);pos.lerp(tmpV2.copy(P).addScaledVector(T,6),Math.min(1,dt*2.5));
-  const want=Math.atan2(-T.x,-T.z);let dy=want-yaw;dy=Math.atan2(Math.sin(dy),Math.cos(dy));yaw+=dy*Math.min(1,dt*5);
-  speed=Math.max(speed,40);
+  const T=A.tan[bi],P=A.samp[bi];
+  // coaster physics: slow on the climb, fast at the bottom of a drop
+  const hk=clamp((A.HIGH-P.y)/(A.HIGH-A.LOW),0,1),sp=(42+78*hk)*(race.on?(1+(race.mult-1)*0.3):1);
+  pos.addScaledVector(T,sp*dt);pos.lerp(tmpV2.copy(P).addScaledVector(T,5),Math.min(1,dt*5));
+  const want=Math.atan2(-T.x,-T.z);let dy=want-yaw;dy=Math.atan2(Math.sin(dy),Math.cos(dy));yaw+=dy*Math.min(1,dt*6);
+  speed=Math.max(speed,30);
+  // lean the ship with the track (banks, corkscrew barrel-rolls, nose up/down on hills)
+  tilt.rotation.set(Math.asin(clamp(T.y,-1,1))*0.9,0,A.roll[bi]);bank=A.roll[bi];
+  // sounds + feel
+  if(T.y>0.22){A.click-=dt;if(A.click<=0){A.click=0.1;blip(2200,2000,0.02,'square',0.035);}}
+  if(T.y<-0.3){A.kick=Math.max(A.kick,clamp(-T.y,0,1));shake=Math.max(shake,0.25);
+    if(A.wheeCd<=0){A.wheeCd=4;pop(pick(['🎢 WHEEE!','😱 DROP!','🎢 HOLD ON!']));blip(700,90,0.9,'sawtooth',0.08);}}
+  if(A.kind[bi]&&A.screwCd<=0){A.screwCd=5;pop('🌀 CORKSCREW!');blip(400,1600,0.6,'sine',0.08);}
   if(Math.random()<0.7)spawnFx(tmpV.copy(pos).add(tmpV2.set(rand(-6,6),rand(-4,4),rand(-6,6))),tmpV2.copy(T).multiplyScalar(-30),0.4,rand(0.6,1.4),1,0xffffff,true);
 }
 const raceBH=(function(){const a=race.rings[9].p,b=race.rings[10].p,c=a.clone().add(b).multiplyScalar(0.5).add(new V3(0,32,0));
@@ -3477,7 +3528,7 @@ function raceUpdate(dt,t){
     const ms=Math.floor(race.t/60),ss=(race.t%60).toFixed(1).padStart(4,'0');
     $('race').innerHTML=`🏁 RING <b>${Math.min(race.next,RACE_N)}/${RACE_N}</b> · ${ms}:${ss} · <b style="color:#ffd84a">⚡x${race.mult.toFixed(1)}</b> · ${dist}m${race.best?` <small>· best ${race.best.toFixed(1)}s</small>`:''}`;
   }
-  const want=baseFov+(race.on?(race.mult-1)*10:0);if(Math.abs(want-fovNow)>0.05){fovNow+=(want-fovNow)*Math.min(1,dt*3);camera.fov=fovNow;camera.updateProjectionMatrix();}
+  const want=baseFov+(race.on?(race.mult-1)*10:0)+airCur.kick*16;if(Math.abs(want-fovNow)>0.05){fovNow+=(want-fovNow)*Math.min(1,dt*3);camera.fov=fovNow;camera.updateProjectionMatrix();}
 }
 
 // ---------- input ----------
