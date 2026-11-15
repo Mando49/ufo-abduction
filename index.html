@@ -1165,6 +1165,7 @@ beginTown('desert');
   }
   box(root,112,3,14,0x242b35,HX,42,HZ-65);
   sign('USAF • RESEARCH DIVISION','#53dcff',54,8,HX,49,HZ-72,0);
+  colliders.push({x0:HX-56,x1:HX+56,z0:HZ-72,z1:HZ-58,h:44,y0:0}); // solid hangar
   const hangarGlow=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:0x3bdfff,transparent:true,opacity:.35,blending:THREE.AdditiveBlending,depthWrite:false}));
   hangarGlow.position.set(HX,18,HZ-76);hangarGlow.scale.set(150,72,1);root.add(hangarGlow);
   // Caution pylons and runway edge lamps
@@ -1176,7 +1177,7 @@ beginTown('desert');
     }
   }
   // Recovered saucer on a raised examination platform
-  const CX=-610,CZ=330;
+  const CX=-470,CZ=290; // moved inside the 620 boundary so players can reach it
   flatPlane(150,130,0x555a60,-1,CX,CZ);
   const pad=new THREE.Mesh(new THREE.CylinderGeometry(42,48,3,40),new THREE.MeshLambertMaterial({color:0x343b45,emissive:0x101820}));pad.position.set(CX,1,CZ);root.add(pad);
   const saucer=new THREE.Group();saucer.position.set(CX,20,CZ);root.add(saucer);
