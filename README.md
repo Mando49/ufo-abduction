@@ -10,6 +10,12 @@ A 3D browser game: fly a triangle UFO over a neon cyberpunk city and farmland, a
 
 ❄️ **Frostara upgrade:** falling snow, the **Frost Palace** (crystal towers, ice walls, a giant ice gate to fly through), a **frozen lake** with an ancient ice dragon trapped below (its eye glows when you get close), an **igloo village** with waddling **penguins** to abduct, and **Yetis** that throw snowballs at your ship (a hit frosts your screen and slows you) — beam one up for +150. Less glare on the snow. New missions: Abduct a Yeti, Abduct 5 penguins, Fly through the Frost Palace gate.
 
+🌋 **Magmor upgrade:** **Mount Inferno** erupts every few seconds and throws lava bombs (some aimed at you), **fire geysers** blast up from the ground, a giant **Fire Worm** bursts out of the ground in an arc in front of you (zap it with FIRE, +300), 9 glowing **fire gems** to collect, and an obsidian temple. Missions: Destroy the Fire Worm, Collect 5 fire gems.
+
+🍄 **Verdana upgrade:** a giant **waterfall** with a rainbow and mist, an **ancient temple** with a green beam into the sky, **bounce flowers** that launch you up, **Chomper plants** that lunge and bite at your ship (zap them, +150), and little **dinos** 🦖 to abduct (+120). Missions: Abduct 3 dinos, Zap 2 chompers, Bounce on a flower.
+
+🏡 **Neon City neighborhoods:** three suburbs (Maple Grove, Sunny Acres, Pine Hollow) between the farms, plus a farmhouse at every farm. Look for floating **Zzz** — someone is asleep in that bedroom. Hover over the roof and BEAM them up out of bed (the bedroom light goes dark). **People walk** the sidewalks and parks and panic when you fly low. Abducting humans raises your wanted level. Missions: Beam up 5 sleeping humans, Abduct 5 people out walking.
+
 🏁 **Sky Race:** fly up above the clouds over the city to the checkered 🏁 SKY RACE ring. Touch 20 rings in order — each one makes the ship faster (up to x3 speed). Halfway around, dive into the 🕳️ black hole shortcut to skip ahead at max speed. Follow the floating arrow, beat your best time, and earn bonus score + credits.
 
 🕳️ **The Black Hole:** in Earth Orbit, fly toward the giant black hole (past Mars). Its gravity pulls you in — boost away, or let it take you: the ship spirals and stretches, the screen goes dark, you ride through the inside, and get spat out on a random planet or town (+250).
