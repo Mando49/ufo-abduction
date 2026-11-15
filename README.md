@@ -6,7 +6,7 @@ A 3D browser game: fly a triangle UFO over a neon cyberpunk city and farmland, a
 
 🌊 **The Ocean:** take the 🌊 portal in Earth Orbit to dive into an underwater world — coral reefs, swaying kelp forests, sunbeams, bubbles, fish schools, stinging jellyfish, and fish (15), sea turtles (25), sharks (40) and whales (150) to beam up. A sunken pirate galleon is hidden somewhere. Fly up through the surface to return to space.
 
-🏁 **Sky Race:** fly up above the clouds over the city to the checkered 🏁 SKY RACE ring. Fly through 20 rings — each one makes the ship faster (up to x3 speed). Follow the floating arrow, beat your best time, and earn bonus score + credits.
+🏁 **Sky Race:** fly up above the clouds over the city to the checkered 🏁 SKY RACE ring. Touch 20 rings in order — each one makes the ship faster (up to x3 speed). Halfway around, dive into the 🕳️ black hole shortcut to skip ahead at max speed. Follow the floating arrow, beat your best time, and earn bonus score + credits.
 
 🎯 **Missions:** 3 goals are always on screen (abduct police cars, beat the Mothership, land on Mars, Ring Run Saturn, find a secret, climb a pyramid… 30 in all). Finish one for Hangar credits and a new one takes its place. Progress is saved between games; tap the panel to hide it.
 

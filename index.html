@@ -63,6 +63,7 @@ body.promo #race{display:none!important}
 .pop{font-size:30px;font-weight:900;color:#7dffa8;text-shadow:0 0 14px rgba(80,255,150,.9),0 2px 6px rgba(0,0,0,.7);animation:pop 1.2s ease-out forwards}
 .pop.t{font-size:18px;color:#ffe08a;text-shadow:0 0 10px rgba(255,210,100,.8)}
 @keyframes pop{0%{transform:translateY(10px) scale(.6);opacity:0}15%{transform:translateY(0) scale(1.15);opacity:1}70%{opacity:1}100%{transform:translateY(-40px) scale(1);opacity:0}}
+#bhflash{position:absolute;inset:0;background:radial-gradient(circle at center,#000 30%,#3a0a6a 70%,#ff8a30);opacity:0;pointer-events:none;transition:opacity .6s;z-index:5}
 #flash{position:absolute;inset:0;background:radial-gradient(ellipse at center,transparent 40%,rgba(255,40,40,.6));opacity:0;transition:opacity .4s}
 #controls{position:fixed;inset:0;pointer-events:none;display:none}
 body.touch #controls{display:block}
@@ -147,7 +148,7 @@ body.promo #hud,body.promo #controls,body.promo #keys,body.promo #mute,body.prom
   <div id="pops"></div>
   <div id="sndwarn">🔇 Sound is paused · tap anywhere to turn it on</div>
   <div id="warn">⚠ MISSILE LOCK</div>
-  <div id="flash"></div>
+  <div id="flash"></div><div id="bhflash"></div>
   <div id="lflash" style="position:absolute;inset:0;background:#dfe8ff;opacity:0;pointer-events:none"></div>
   <div id="fade" style="position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none"></div>
 </div>
@@ -2627,6 +2628,17 @@ const raceGroup=new THREE.Group();skyRealm.add(raceGroup);
       const lab=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(lc),transparent:true,depthWrite:false}));lab.position.set(0,30,0);lab.scale.set(60,15,1);g.add(lab);}
     raceGroup.add(g);race.rings.push({g,tor,disc,gl,beam,p,dir,side:0,k});}
 })();
+// black hole shortcut on the race course (between ring 9 and 10)
+const raceBH=(function(){const a=race.rings[9].p,b=race.rings[10].p,c=a.clone().add(b).multiplyScalar(0.5).add(new V3(0,32,0));
+  const g=new THREE.Group();g.position.copy(c);raceGroup.add(g);
+  const halo=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:0x5a1aa0,transparent:true,opacity:.35,blending:THREE.AdditiveBlending,depthWrite:false}));halo.scale.set(80,80,1);g.add(halo);
+  const shade=new THREE.Mesh(new THREE.CircleGeometry(30,48),new THREE.MeshBasicMaterial({color:0x12002a,transparent:true,opacity:.75,depthWrite:false,fog:false}));g.add(shade);
+  const vm=vortexMat(0x7a1aff,0xff7a20);vm.blending=THREE.NormalBlending;
+  const disc=new THREE.Mesh(new THREE.RingGeometry(9,30,64,1),vm);disc.position.z=0.2;g.add(disc);
+  const core=new THREE.Mesh(new THREE.CircleGeometry(9.5,40),new THREE.MeshBasicMaterial({color:0x000000,fog:false,depthWrite:false}));core.position.z=0.4;g.add(core);
+  const lc=document.createElement('canvas');lc.width=512;lc.height=128;const lg=lc.getContext('2d');lg.font='900 60px system-ui,-apple-system,sans-serif';lg.textAlign='center';lg.textBaseline='middle';lg.shadowColor='#9b4bff';lg.shadowBlur=20;lg.fillStyle='#fff';lg.fillText('🕳️ SHORTCUT',256,64);
+  const lab=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(lc),transparent:true,depthWrite:false}));lab.position.set(0,38,0);lab.scale.set(56,14,1);g.add(lab);
+  return {g,disc,c,cd:0};})();
 const raceArrow=new THREE.Mesh(new THREE.ConeGeometry(1.4,4.4,8),new THREE.MeshBasicMaterial({color:0xff1e3c}));raceArrow.geometry.rotateX(PI/2);raceArrow.visible=false;scene.add(raceArrow);
 let baseFov=camera.fov,fovNow=camera.fov;
 function styleRings(){race.rings.forEach((R,i)=>{if(i===RACE_N)return;const idx=race.on?race.next%RACE_N:0;const isNext=race.on?(i===idx):i===0,isSoon=race.on&&((i-idx+RACE_N)%RACE_N)<6;
@@ -2635,24 +2647,33 @@ function styleRings(){race.rings.forEach((R,i)=>{if(i===RACE_N)return;const idx=
   R.beam.visible=isNext;R.beam.material.color.setHex(0xff1e3c);});}
 styleRings();
 function raceEnd(fin){
-  race.on=false;$('race').style.display='none';raceArrow.visible=false;
+  race.on=false;race.cd=3;$('race').style.display='none';raceArrow.visible=false;
   if(fin){const tt=race.t,bonus=Math.max(0,Math.round(600-tt*5));score+=200+bonus;save.bank+=100+bonus;persist();
     const nb=!race.best||tt<race.best;if(nb){race.best=tt;try{localStorage.setItem('ufoRaceBest',tt);}catch(e){}}
     pop(`🏁 FINISH! ${tt.toFixed(1)}s${nb?' · 🏆 NEW RECORD':''}`);pop(`+${200+bonus} · 💰 +${100+bonus}`,'t');mEvent('race',{t:tt});blip(523,1046,0.3,'triangle',0.15);setTimeout(()=>blip(784,1568,0.4,'triangle',0.15),200);}
   else pop('🏁 RACE ABANDONED','t');
   styleRings();
 }
-function raceCross(R){const lp=pos.clone().sub(R.p),dz=lp.dot(R.dir),side=Math.sign(dz),lat=lp.clone().addScaledVector(R.dir,-dz).length();
-  const crossed=R.side&&side!==R.side&&lat<16.5&&Math.abs(dz)<12;R.side=side;return crossed;}
+function raceCross(R){return pos.distanceTo(R.p)<22;}
 function raceUpdate(dt,t){
   const can=state==='play'&&mode==='ground'&&!onFoot&&!towns[curTown].planet;
+  raceBH.g.quaternion.copy(camera.quaternion);raceBH.disc.rotation.z-=dt*2;raceBH.disc.material.uniforms.t.value=t;raceBH.g.visible=!race.on||(race.next>=6&&race.next<=10);
   {const NR=race.rings[race.on?race.next%RACE_N:0];NR.g.scale.setScalar(1+0.1*Math.sin(t*6));}
   if(!race.on){const near=can&&pos.y>CLOUD_Y-40;raceArrow.visible=near;if(near){raceArrow.position.copy(pos).addScaledVector(fwd,9).add(new V3(0,3.5,0));raceArrow.lookAt(race.rings[0].p);raceArrow.scale.setScalar(1+0.12*Math.sin(t*8));}}
-  if(!race.on){if(can&&pos.y>CLOUD_Y&&raceCross(race.rings[0])){race.on=true;race.next=1;race.t=0;race.mult=1.25;race.hits=1;heat=0;clearEnemies();pop('🏁 GO! GO! GO!');blip(400,1600,0.3,'square',0.12);race.rings.forEach(R=>R.side=0);$('race').style.display='block';styleRings();}}
+  race.cd=(race.cd||0)-dt;
+  if(!race.on){if(can&&pos.y>CLOUD_Y&&race.cd<=0&&raceCross(race.rings[0])){race.on=true;race.next=1;race.t=0;race.mult=1.25;race.hits=1;heat=0;clearEnemies();pop('🏁 GO! GO! GO!');blip(400,1600,0.3,'square',0.12);race.rings.forEach(R=>R.side=0);$('race').style.display='block';styleRings();}}
   else{
     race.t+=dt;race.mult=Math.max(1,race.mult-dt*0.05);
     if(!can||pos.y<CLOUD_Y-5||race.t>240){raceEnd(false);return;}
     if(pos.y>SPACE_Y-12){pos.y=SPACE_Y-12;if(vy>0)vy=0;}
+    raceBH.cd-=dt;
+    if(race.next>=6&&race.next<=10&&raceBH.cd<=0){const d=pos.distanceTo(raceBH.c);
+      if(d<55)pos.lerp(raceBH.c,Math.min(1,dt*1.4*(1-d/55)+dt*0.3));
+      if(d<14){raceBH.cd=5;const E=race.rings[14];pos.copy(E.p).addScaledVector(E.dir,12);yaw=Math.atan2(-E.dir.x,-E.dir.z);vy=0;
+        const skip=15-race.next;race.hits+=skip;race.next=15;race.mult=3;score+=150;
+        const f=$('bhflash');f.style.transition='none';f.style.opacity=1;requestAnimationFrame(()=>{f.style.transition='opacity .9s';f.style.opacity=0;});
+        pop('🕳️ BLACK HOLE SHORTCUT!');pop(`skipped ${skip} rings · ⚡x3 · +150`,'t');blip(1600,80,0.7,'sawtooth',0.14);setTimeout(()=>blip(200,1800,0.4,'triangle',0.13),350);
+        styleRings();return;}}
     const R=race.rings[race.next];
     if(raceCross(R)){
       if(R.finish){raceEnd(true);return;}
