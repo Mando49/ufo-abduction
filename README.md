@@ -12,7 +12,8 @@ A 3D browser game: fly a triangle UFO over a neon cyberpunk city and farmland, a
 - The beam only reaches when you're below 70m. Don't crash into the skyscrapers!
 - ⭐ Abductions raise your wanted level: helicopters (beam them up from above for 60 pts!), then fighter jets with homing missiles. Boost to outrun missiles; your shield recharges when you stop taking hits.
 - 🛠️ Every point you score goes into your bank. Spend it in the **Hangar** on upgrades (engine, beam, armor, power) and new ships (Classic Saucer, Shadow Triangle, Mothership).
-- 🚀 Climb past 250m through the clouds to reach space, then fly through a portal to travel between **Neon City** and the **Area 51 desert**.
+- 🔫 **FIRE** shoots auto-aiming lasers: blast helicopters (50), jets (80) and even incoming missiles.
+- 🚀 Climb past 250m through the clouds to reach space, then fly through a portal to travel between **Neon City** and the **Area 51 desert**. Space is a shooter: alien hunter ships attack in waves, asteroids can be blasted for crystals.
 
 Sponsored by [Mando Window Tinting](https://lasvegaswindowtintnv.com): window tint & PPF in Las Vegas.
 
