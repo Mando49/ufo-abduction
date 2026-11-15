@@ -1132,6 +1132,90 @@ beginTown('jungle');
   addCritters('blob',30);
 })();
 endTown('jungle',[140,850]);Object.assign(towns.jungle,{planet:true,fogC:new THREE.Color(0x2a2048),skyTint:0xc09cff,label:'🍄 VERDANA'});
+// 🌕 THE MOON
+function texCanvas(w,h,fn){const c=document.createElement('canvas');c.width=w;c.height=h;fn(c.getContext('2d'));return new THREE.CanvasTexture(c);}
+const MOON_TEX=texCanvas(512,256,g=>{g.fillStyle='#9a9ca4';g.fillRect(0,0,512,256);for(let i=0;i<140;i++){const x=rand(0,512),y=rand(0,256),r=rand(3,26);g.fillStyle=`rgba(${pick(['60,62,70','120,122,130','170,172,180'])},${rand(.3,.7).toFixed(2)})`;g.beginPath();g.arc(x,y,r,0,2*PI);g.fill();g.strokeStyle='rgba(200,202,210,.4)';g.lineWidth=1.5;g.stroke();}});
+const marsPaint=(caps)=>texCanvas(512,256,g=>{g.fillStyle='#b8552e';g.fillRect(0,0,512,256);for(let i=0;i<90;i++){g.fillStyle=pick(['rgba(120,40,20,.5)','rgba(220,120,70,.45)','rgba(90,30,15,.5)']);g.beginPath();g.ellipse(rand(0,512),rand(20,236),rand(10,60),rand(5,22),rand(0,3),0,2*PI);g.fill();}if(caps){g.fillStyle='rgba(255,245,240,.85)';g.fillRect(0,0,512,14);g.fillRect(0,242,512,14);}});
+const MARS_TEX=marsPaint(true);
+function roverMesh(){const g=new THREE.Group();box(g,3,0.8,2,0xd8dce2,0,1.1,0);box(g,1,0.7,1.2,0xc8a040,-0.6,1.85,0);
+  for(const x of[-1.1,0,1.1])for(const z of[-1.1,1.1]){const w=new THREE.Mesh(new THREE.CylinderGeometry(0.42,0.42,0.3,10),lam(0x2a2a2e));w.rotation.x=PI/2;w.position.set(x,0.42,z);g.add(w);}
+  box(g,0.08,1.2,0.08,0x888888,0.9,2,0.5);const d=new THREE.Mesh(new THREE.SphereGeometry(0.45,10,6,0,2*PI,0,PI/2),lam(0xeeeeee));d.position.set(0.9,2.6,0.5);d.rotation.x=PI;g.add(d);
+  const l=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:0x7ffcff,transparent:true,depthWrite:false}));l.position.set(1.6,1.2,0);l.scale.set(1.6,1.6,1);g.add(l);
+  g.userData.emoji='🚙';root.add(g);return g;}
+function martianMesh(){const g=new THREE.Group();const m=new THREE.MeshLambertMaterial({color:0x7aff6a,emissive:0x1a5a10});
+  const b=new THREE.Mesh(new THREE.CylinderGeometry(0.4,0.6,1.4,10),m);b.position.y=1;g.add(b);
+  const h=new THREE.Mesh(new THREE.SphereGeometry(0.9,14,10),m);h.position.y=2.3;h.scale.set(1,1.15,1);g.add(h);
+  for(const z of[-0.32,0.32]){const e=new THREE.Mesh(new THREE.SphereGeometry(0.26,10,8),basic(0x050505));e.position.set(0.75,2.4,z);e.scale.set(0.6,1.4,1);g.add(e);
+    box(g,0.08,0.8,0.08,0x5adf4a,0,3.3,z*1.4);const t=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:0xff5ad8,transparent:true,depthWrite:false}));t.position.set(0,3.75,z*1.4);t.scale.set(1,1,1);g.add(t);}
+  for(const z of[-0.3,0.3])box(g,0.22,0.6,0.22,0x5adf4a,0,0.3,z);
+  g.userData.emoji='👽';root.add(g);return g;}
+function addTargets(fn,n){for(let i=0;i<n;i++){const T={type:'critter',mesh:fn(),spawn:spawnCow,fl:fields};T.spawn(T);targets.push(T);}}
+function domeBase(cx,cz,col,glass){
+  for(let i=0;i<5;i++){const a=i/5*2*PI,x=cx+Math.cos(a)*(i?26:0),z=cz+Math.sin(a)*(i?26:0),r=i?rand(8,11):15;
+    const d=new THREE.Mesh(new THREE.SphereGeometry(r,24,12,0,2*PI,0,PI/2),new THREE.MeshStandardMaterial({color:glass,transparent:true,opacity:.55,emissive:glass,emissiveIntensity:.35,roughness:.1}));d.position.set(x,0,z);root.add(d);
+    const ring=new THREE.Mesh(new THREE.TorusGeometry(r,0.6,6,32),lam(col));ring.rotation.x=PI/2;ring.position.set(x,0.4,z);root.add(ring);
+    glowSprite(0xffe0a0,x,r*0.4,z,r*1.6,0.5);colliders.push({x0:x-r*0.7,x1:x+r*0.7,z0:z-r*0.7,z1:z+r*0.7,h:r*0.85,y0:0});}
+  const pad=new THREE.Mesh(new THREE.CircleGeometry(14,32),flatMat(0x3a3c44,-3));pad.rotation.x=-PI/2;pad.position.set(cx+55,0,cz);root.add(pad);
+  const pr=new THREE.Mesh(new THREE.RingGeometry(11,12.2,32),new THREE.MeshBasicMaterial({color:0xffbe46,polygonOffset:true,polygonOffsetFactor:-4,polygonOffsetUnits:-4}));pr.rotation.x=-PI/2;pr.position.set(cx+55,0.05,cz);root.add(pr);
+  box(root,0.5,24,0.5,0x9aa0aa,cx-40,12,cz+10);const bl=glowSprite(0xff3030,cx-40,24.5,cz+10,5);roofLights.push(bl);colliders.push({x0:cx-42,x1:cx-38,z0:cz+8,z1:cz+12,h:25,y0:0});
+}
+
+beginTown('moon');
+(function(){
+  const gt=MOON_TEX.clone();gt.needsUpdate=true;gt.wrapS=gt.wrapT=THREE.RepeatWrapping;gt.repeat.set(12,12);
+  const gnd=new THREE.Mesh(new THREE.PlaneGeometry(3000,3000),new THREE.MeshLambertMaterial({map:gt,color:0xb8bac2}));gnd.rotation.x=-PI/2;root.add(gnd);
+  makeFields(8,480);
+  // craters
+  for(let i=0;i<45;i++){const x=rand(-620,620),z=rand(-620,620),r=rand(10,45);if(!freeSpot(x,z,fields))continue;
+    const c=new THREE.Mesh(new THREE.CircleGeometry(r,28),flatMat(0x6a6c74,-2));c.rotation.x=-PI/2;c.position.set(x,0,z);root.add(c);
+    const rim=new THREE.Mesh(new THREE.TorusGeometry(r,r*0.12,6,32),lam(0xa4a6ae));rim.rotation.x=PI/2;rim.scale.z=0.6;rim.position.set(x,0,z);root.add(rim);}
+  const rocks=[];for(let i=0;i<220;i++){const x=rand(-640,640),z=rand(-640,640);if(freeSpot(x,z,fields))rocks.push({x,z,s:rand(0.8,4)});}
+  inst(new THREE.IcosahedronGeometry(1,0),lam(0x8a8c94),rocks,r=>compose(r.x,r.s*0.3,r.z,r.s*1.3,r.s,r.s*1.2,0,rand(0,6),0));
+  ringMountains(0x5a5c64,0xb4b6be,90,200);
+  domeBase(-120,-80,0xcfd4dc,0x8fd8ff);
+  // lander + flag
+  const L=new THREE.Group();L.position.set(90,0,60);box(L,6,3,6,0xd8b040,0,4,0);box(L,4,3,4,0xc8ccd2,0,7,0);
+  for(const [x,z] of[[-4,-4],[4,-4],[-4,4],[4,4]]){const lg=box(L,0.3,4.5,0.3,0x9aa0aa,x*0.8,2,z*0.8);lg.rotation.set(z*0.06,0,-x*0.06);}
+  root.add(L);colliders.push({x0:85,x1:95,z0:55,z1:65,h:9,y0:0});
+  box(root,0.2,7,0.2,0xdddddd,100,3.5,52);box(root,4,2.4,0.08,0x2a5adf,102,6,52);
+  // Earth hanging in the black sky
+  const E=new THREE.Mesh(new THREE.SphereGeometry(180,40,28),new THREE.MeshPhongMaterial({color:0xffffff,emissive:0x0a1430,shininess:15}));E.position.set(-500,520,-1300);root.add(E);window.__moonEarth=E;
+  const EG=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:0x6ab8ff,transparent:true,opacity:.6,blending:THREE.AdditiveBlending,depthWrite:false,fog:false}));EG.position.copy(E.position);EG.scale.set(560,560,1);root.add(EG);
+  E.material.fog=false;planetAnim.push({town:'moon',f:(t,dt)=>{E.rotation.y+=dt*0.02;}});
+  const sp=[];for(let i=0;i<1200;i++){const v=new V3(rand(-1,1),rand(0.05,1),rand(-1,1)).normalize().multiplyScalar(1600);sp.push(v.x,v.y,v.z);}
+  const sg=new THREE.BufferGeometry();sg.setAttribute('position',new THREE.Float32BufferAttribute(sp,3));root.add(new THREE.Points(sg,new THREE.PointsMaterial({color:0xffffff,size:1.6,sizeAttenuation:false,fog:false})));
+  addTargets(roverMesh,26);
+})();
+endTown('moon',[260,1400]);Object.assign(towns.moon,{planet:true,fogC:new THREE.Color(0x05060a),skyTint:0x000000,label:'🌕 THE MOON'});
+
+// 🔴 MARS
+beginTown('mars');
+(function(){
+  const gt=marsPaint(false);gt.wrapS=gt.wrapT=THREE.RepeatWrapping;gt.repeat.set(14,14);
+  const gnd=new THREE.Mesh(new THREE.PlaneGeometry(3000,3000),new THREE.MeshLambertMaterial({map:gt,color:0xd88a60}));gnd.rotation.x=-PI/2;root.add(gnd);
+  makeFields(8,480);
+  // canyon mesas
+  const mg=new THREE.CylinderGeometry(1,1.25,1,8);mg.translate(0,0.5,0);
+  const mes=[];for(let i=0;i<300&&mes.length<26;i++){const x=rand(-600,600),z=rand(-600,600);if(freeSpot(x,z,fields)&&Math.hypot(x+150,z-120)>90)mes.push({x,z,r:rand(14,34),h:rand(25,70)});}
+  inst(mg,new THREE.MeshLambertMaterial({color:0x9a3e20,flatShading:true}),mes,m=>compose(m.x,0,m.z,m.r,m.h,m.r*rand(0.7,1.3),0,rand(0,6),0));
+  mes.forEach(m=>colliders.push({x0:m.x-m.r*0.8,x1:m.x+m.r*0.8,z0:m.z-m.r*0.8,z1:m.z+m.r*0.8,h:m.h,y0:0}));
+  const rocks=[];for(let i=0;i<260;i++){const x=rand(-640,640),z=rand(-640,640);if(freeSpot(x,z,fields))rocks.push({x,z,s:rand(0.6,3)});}
+  inst(new THREE.IcosahedronGeometry(1,0),lam(0x7a2e18),rocks,r=>compose(r.x,r.s*0.3,r.z,r.s*1.3,r.s,r.s*1.1,0,rand(0,6),0));
+  ringMountains(0x6a2a14,0xd0784a,160,330);
+  // Olympus-style giant volcano in the distance
+  const v=new THREE.Mesh(new THREE.ConeGeometry(420,260,24,1,true),lam(0x8a3a1e));v.position.set(250,130,-1000);root.add(v);
+  domeBase(-150,120,0xd0c8c0,0xffb070);
+  // dust devils
+  for(let i=0;i<4;i++){const d=new THREE.Mesh(new THREE.CylinderGeometry(8,2,50,12,1,true),new THREE.MeshBasicMaterial({color:0xd89a70,transparent:true,opacity:.25,depthWrite:false,side:THREE.DoubleSide}));const x0=rand(-400,400),z0=rand(-400,400);d.position.set(x0,25,z0);root.add(d);
+    planetAnim.push({town:'mars',f:(t,dt)=>{d.rotation.y+=dt*4;d.position.x=x0+Math.sin(t*0.2+i)*80;d.position.z=z0+Math.cos(t*0.17+i)*80;}});}
+  const dp=[];for(let i=0;i<500;i++)dp.push(rand(-600,600),rand(0,60),rand(-600,600));const dg=new THREE.BufferGeometry();dg.setAttribute('position',new THREE.Float32BufferAttribute(dp,3));
+  root.add(new THREE.Points(dg,new THREE.PointsMaterial({color:0xe0a07a,size:0.8,transparent:true,opacity:.6})));
+  // two tiny moons in the sky
+  for(const [x,y,z,r] of[[600,420,-900,40],[-800,300,-700,24]]){const m=new THREE.Mesh(new THREE.SphereGeometry(r,16,10),new THREE.MeshLambertMaterial({color:0x8a7a6a,fog:false}));m.position.set(x,y,z);root.add(m);}
+  addTargets(martianMesh,28);
+})();
+endTown('mars',[200,1200]);Object.assign(towns.mars,{planet:true,fogC:new THREE.Color(0xc87a52),skyTint:0xffb08a,label:'🔴 MARS'});
+
 
 
 // ---------- cloud layer (between the towns and space) ----------
@@ -1861,10 +1945,27 @@ function applySector(sec){
   buildPortals(sec);
 }
 const WARPC={city:[0x3de1ff,0xb44dff],desert:[0xffa040,0xff3fd2],ice:[0xbfefff,0x5ad8ff],lava:[0xff3a1a,0xffa040],jungle:[0x6dff7a,0xb46bff]};
-function homeTown(sec){return sec==='earth'?(TOWN_SECTOR[curTown]==='earth'?curTown:'city'):SECTORS[sec].home;}
+function homeTown(sec){return sec==='earth'?((curTown==='city'||curTown==='desert')?curTown:'city'):SECTORS[sec].home;}
 
 spaceGroup.children.filter(o=>o.isGroup&&Math.abs(o.position.z+300)<1&&Math.abs(Math.abs(o.position.x)-110)<1&&!portals.some(P=>P.g===o)).forEach(o=>spaceGroup.remove(o));
 applySector('earth');
+// ---------- fly to the Moon and Mars (Earth Orbit) ----------
+const BODIES=[];let landCd=0;
+(function(){
+  const find=r=>spaceGroup.children.find(o=>o.isMesh&&o.geometry&&o.geometry.parameters&&o.geometry.parameters.radius===r&&o.geometry.type==='SphereGeometry');
+  const mk=(mesh,tex,town,p,sc,label,css)=>{
+    mesh.material=new THREE.MeshLambertMaterial({map:tex,emissive:0x1a1a1a,fog:false});mesh.position.copy(p);mesh.scale.setScalar(sc);
+    spaceGroup.remove(mesh);sectorDecor.earth.add(mesh);
+    const r=mesh.geometry.parameters.radius*sc;
+    const glow=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:css==='#ff7a50'?0xff6a3a:0xbfd0ff,transparent:true,opacity:.35,blending:THREE.AdditiveBlending,depthWrite:false,fog:false}));glow.position.copy(p);glow.scale.set(r*3.2,r*3.2,1);sectorDecor.earth.add(glow);
+    const lc=document.createElement('canvas');lc.width=512;lc.height=128;const lg=lc.getContext('2d');lg.font='900 60px system-ui,-apple-system,sans-serif';lg.textAlign='center';lg.textBaseline='middle';lg.shadowColor=css;lg.shadowBlur=20;lg.fillStyle='#fff';lg.fillText(label,256,64);
+    const lab=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(lc),transparent:true,depthWrite:false,fog:false}));lab.position.copy(p).add(new V3(0,r+45,0));lab.scale.set(150,38,1);sectorDecor.earth.add(lab);
+    BODIES.push({mesh,town,p:p.clone(),r,css});};
+  mk(find(150),MOON_TEX,'moon',new V3(-650,180,-950),1.25,'🌕 LAND ON THE MOON','#cfe0ff');
+  mk(find(90),MARS_TEX,'mars',new V3(900,140,-1250),1.7,'🔴 LAND ON MARS','#ff7a50');
+})();
+TOWN_SECTOR.moon='earth';TOWN_SECTOR.mars='earth';
+window.__moonEarth.material.map=SECTORS.earth.tex;window.__moonEarth.material.needsUpdate=true;
 
 // ---------- promo camera (for TikTok / Reels) ----------
 const promo={t:0,prev:'menu',shot:-1,anchor:new V3(),ang:0};
@@ -2059,7 +2160,7 @@ function snapCam(){fwd.set(-Math.sin(yaw),0,-Math.cos(yaw));camera.position.copy
 function setTown(n){
   curTown=n;const T=towns[n];for(const k in towns)towns[k].group.visible=(k===n);
   colliders=T.colliders;fields=T.fields;targets=T.targets;torusCols=T.torusCols;
-  scene.fog.near=T.fog[0];scene.fog.far=T.fog[1];cloudLayer.visible=!T.planet;skyRealm.visible=!T.planet;sky.material.color.setHex(T.skyTint||0xffffff);
+  scene.fog.near=T.fog[0];scene.fog.far=T.fog[1];cloudLayer.visible=!T.planet;skyRealm.visible=!T.planet;sky.children.forEach(c=>{if(c.isSprite)c.visible=!T.planet;});sky.material.color.setHex(T.skyTint||0xffffff);
 }
 function enterSpace(sec){
   sec=sec||TOWN_SECTOR[curTown]||'earth';applySector(sec);
@@ -2068,8 +2169,10 @@ function enterSpace(sec){
   spaceGroup.visible=true;cloudLayer.visible=false;skyRealm.visible=false;sky.visible=false;
   colliders=[];targets=[];torusCols=[];
   scene.background.setHex(SECTORS[sec].bg);scene.fog.color.setHex(SECTORS[sec].bg);scene.fog.near=3000;scene.fog.far=9000;
-  pos.set(0,0,90);yaw=0;vy=0;speed=Math.max(speed,20);snapCam();
-  pop('🚀 '+SECTORS[sec].name);pop('Shoot alien hunters · find a portal','t');blip(200,900,0.8,'sine',0.15);
+  pos.set(0,0,90);yaw=0;vy=0;speed=Math.max(speed,20);landCd=3;
+  const B=BODIES.find(b=>b.town===curTown);if(B&&sec==='earth'){pos.copy(B.p).add(new V3(0,0,B.r+120));yaw=PI;}
+  snapCam();
+  pop('🚀 '+SECTORS[sec].name);pop(sec==='earth'?'Fly to the Moon 🌕 or Mars 🔴 · or find a portal':'Shoot alien hunters · find a portal','t');blip(200,900,0.8,'sine',0.15);
 }
 function landAt(n){
   clearSpaceFoes();mode='ground';fadeIn();spaceGroup.visible=false;sky.visible=true;setTown(n);
@@ -2078,8 +2181,10 @@ function landAt(n){
 }
 function spaceUpdate(dt){
   if(pos.y<-170){landAt(homeTown(curSector));return;}
-  if(pos.y>220){pos.y=220;if(vy>0)vy=0;}
-  const dx=pos.x,dz=pos.z+150,hd=Math.hypot(dx,dz);if(hd>700){pos.x=dx*700/hd;pos.z=dz*700/hd-150;}
+  if(pos.y>900){pos.y=900;if(vy>0)vy=0;}
+  const dx=pos.x,dz=pos.z+300,hd=Math.hypot(dx,dz);if(hd>2000){pos.x=dx*2000/hd;pos.z=dz*2000/hd-300;}
+  landCd-=dt;
+  if(curSector==='earth')for(const B of BODIES){const d=pos.distanceTo(B.p);if(d<B.r+14){if(landCd<=0){fadeIn();landAt(B.town);return;}else{pos.copy(B.p).addScaledVector(pos.clone().sub(B.p).normalize(),B.r+14);}}}
   for(const A of asteroids){if(!A.m.visible)continue;const d=pos.distanceTo(A.m.position),lim=A.r+2.5;
     if(d<lim){const n=pos.clone().sub(A.m.position).normalize();pos.addScaledVector(n,lim-d);speed*=-0.3;hit();}}
   for(const C of crystals){
@@ -2169,6 +2274,7 @@ function drawRadar(t){
   for(const e of enemies){let [r,f]=proj(e.p.x,e.p.z);const d=Math.hypot(f,r);if(d>320){f*=320/d;r*=320/d;}rx.fillStyle='#ff3b4a';rx.beginPath();if(e.type==='jet'){rx.moveTo(60+r*S,60-f*S-4);rx.lineTo(60+r*S-3.5,60-f*S+3);rx.lineTo(60+r*S+3.5,60-f*S+3);}else rx.arc(60+r*S,60-f*S,3.2,0,2*PI);rx.fill();}
   if(boss&&mode==='space'){let [r,f]=proj(boss.p.x,boss.p.z);const d=Math.hypot(f,r);if(d>320){f*=320/d;r*=320/d;}rx.fillStyle='#ff2a4a';rx.beginPath();rx.arc(60+r*S,60-f*S,6,0,2*PI);rx.fill();}
   for(const P of pickups){if(!P.g.visible)continue;let [r,f]=proj(P.g.position.x,P.g.position.z);const d=Math.hypot(f,r);if(d>320){f*=320/d;r*=320/d;}rx.fillStyle='#'+new THREE.Color(PU_TYPES[P.type].c).getHexString();rx.beginPath();rx.moveTo(60+r*S,60-f*S-4);rx.lineTo(60+r*S+4,60-f*S);rx.lineTo(60+r*S,60-f*S+4);rx.lineTo(60+r*S-4,60-f*S);rx.fill();}
+  if(mode==='space'&&curSector==='earth')for(const B of BODIES){let [r,f]=proj(B.p.x,B.p.z);const d=Math.hypot(f,r);if(d>320){f*=320/d;r*=320/d;}rx.fillStyle=B.css;rx.beginPath();rx.arc(60+r*S,60-f*S,B.town==='moon'?5:6,0,2*PI);rx.fill();rx.font='bold 9px system-ui';rx.fillStyle='#fff';rx.fillText(B.town==='moon'?'MOON':'MARS',60+r*S-12,60-f*S-8);}
   for(const M of missiles){const [r,f]=proj(M.p.x,M.p.z);if(Math.hypot(f,r)<320){rx.fillStyle='#ffa040';rx.fillRect(60+r*S-1.5,60-f*S-1.5,3,3);}}
   rx.fillStyle='#5dff9a';rx.shadowColor='#5dff9a';rx.shadowBlur=6;rx.beginPath();rx.moveTo(60,52);rx.lineTo(54.5,65);rx.lineTo(65.5,65);rx.closePath();rx.fill();rx.shadowBlur=0;
 }
@@ -2211,9 +2317,9 @@ function loop(now){
     if(energy<=0.5)lock=true;if(lock&&energy>25)lock=false;
     boosting=boostBtn&&!lock&&iy>0.1;
     yaw-=ix*1.7*dt;
-    const maxS=(boosting?(pu.turbo>0?110:80):40)*M.spd,tgt=iy>0?iy*maxS:iy*maxS*0.5;
+    const maxS=(boosting?(pu.turbo>0?110:80):40)*M.spd*(mode==='space'?1.8:1),tgt=iy>0?iy*maxS:iy*maxS*0.5;
     speed+=(tgt-speed)*(1-Math.exp(-(boosting?3:2.2)*dt));
-    const tv=((up?1:0)-(down?1:0))*26;vy+=(tv-vy)*(1-Math.exp(-4*dt));
+    const tv=((up?1:0)-(down?1:0))*26*(mode==='space'?2:1);vy+=(tv-vy)*(1-Math.exp(-4*dt));
     fwd.set(-Math.sin(yaw),0,-Math.cos(yaw));
     pos.addScaledVector(fwd,speed*dt);pos.y+=vy*dt;
     if(mode==='ground'){
