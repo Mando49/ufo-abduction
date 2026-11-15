@@ -1522,6 +1522,67 @@ beginTown('ocean');
   let stingCd=0;
   planetAnim.push({town:'ocean',f:(t,dt)=>{stingCd-=dt;jellies.forEach(J=>{const s=1+0.15*Math.sin(t*2+J.ph);J.g.scale.set(s,1/s,s);J.g.position.y=J.y+Math.sin(t*0.5+J.ph)*4;
     if(state==='play'&&stingCd<=0&&J.g.position.distanceTo(pos)<5){stingCd=1;hurt(6);pop('⚡ JELLYFISH STING!','t');}});}});
+  // THE ABYSSAL CITADEL — monumental ruins and luminous deep-sea gateways
+  const abyssRings=[];
+  const abyssColors=[0x35eaff,0x4f9dff,0x9b72ff];
+  [[0,72,-430,58],[-285,54,-650,38],[300,88,-760,46]].forEach(([x,y,z,r],i)=>{
+    const ruin=new THREE.Group();ruin.position.set(x,y,z);root.add(ruin);
+    const ring=new THREE.Mesh(new THREE.TorusGeometry(r,3.2,10,64),new THREE.MeshBasicMaterial({color:abyssColors[i],transparent:true,opacity:.78,blending:THREE.AdditiveBlending,depthWrite:false}));
+    ring.rotation.x=PI/2;ruin.add(ring);
+    const inner=new THREE.Mesh(new THREE.TorusGeometry(r*.78,0.8,6,64),new THREE.MeshBasicMaterial({color:0xc8ffff,transparent:true,opacity:.5,blending:THREE.AdditiveBlending,depthWrite:false}));
+    inner.rotation.x=PI/2;ruin.add(inner);
+    const glow=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:abyssColors[i],transparent:true,opacity:.35,blending:THREE.AdditiveBlending,depthWrite:false}));
+    glow.scale.set(r*3.4,r*3.4,1);ruin.add(glow);
+    for(let side of [-1,1]){
+      const pillar=new THREE.Mesh(new THREE.CylinderGeometry(4.5,6, y+25,8),new THREE.MeshLambertMaterial({color:0x294d5b,emissive:0x071b2b}));
+      pillar.position.set(side*(r+9),-(y+25)/2,0);ruin.add(pillar);
+      const cap=new THREE.Mesh(new THREE.CylinderGeometry(8,7,5,8),new THREE.MeshLambertMaterial({color:0x477080,emissive:0x102b3a}));
+      cap.position.set(side*(r+9),-y+27,0);ruin.add(cap);
+    }
+    const base=new THREE.Mesh(new THREE.BoxGeometry(r*2.8,5,22),new THREE.MeshLambertMaterial({color:0x263f50,emissive:0x071722}));
+    base.position.y=-y+5;ruin.add(base);
+    abyssRings.push({ruin,ring,inner,glow,ph:i*1.8});
+  });
+  // Broken columns and fallen masonry leading into the abyss
+  const ruinStones=[];
+  for(let i=0;i<34;i++){
+    const side=i%2?1:-1,x=side*rand(90,360),z=rand(-900,-300),h=rand(8,28);
+    const stone=new THREE.Mesh(new THREE.BoxGeometry(rand(5,11),h,rand(5,12)),new THREE.MeshLambertMaterial({color:pick([0x294653,0x385968,0x466a78]),emissive:0x07151e,flatShading:true}));
+    stone.position.set(x,h/2,z);stone.rotation.y=rand(0,PI);stone.rotation.z=rand(-.18,.18);root.add(stone);
+    const rune=new THREE.Mesh(new THREE.BoxGeometry(.35,h*.55,.4),new THREE.MeshBasicMaterial({color:pick(abyssColors),transparent:true,opacity:.48}));
+    rune.position.set(x+side*5.2,h*.55,z);root.add(rune);ruinStones.push({stone,rune,ph:rand(0,6)});
+  }
+  // Hydrothermal vents: dark chimneys with rising luminous mineral plumes
+  const ventMotes=[];
+  for(let v=0;v<7;v++){
+    const x=rand(-520,520),z=rand(-520,520),h=rand(12,25);
+    const chimney=new THREE.Mesh(new THREE.CylinderGeometry(3,8,h,7),new THREE.MeshLambertMaterial({color:0x182b36,emissive:0x07131c,flatShading:true}));
+    chimney.position.set(x,h/2,z);root.add(chimney);
+    const mouth=new THREE.Mesh(new THREE.TorusGeometry(3.2,.8,6,16),new THREE.MeshBasicMaterial({color:0x42dfff,transparent:true,opacity:.7,blending:THREE.AdditiveBlending}));
+    mouth.position.set(x,h,z);root.add(mouth);
+    const plume=[];
+    for(let j=0;j<18;j++){
+      const mote=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:pick([0x4ceaff,0x70aaff,0x9c79ff]),transparent:true,opacity:rand(.18,.45),blending:THREE.AdditiveBlending,depthWrite:false}));
+      const size=rand(3,9);mote.scale.set(size,size,1);mote.position.set(x+rand(-5,5),h+rand(0,35),z+rand(-5,5));root.add(mote);
+      plume.push({mote,ph:rand(0,6),rise:rand(12,42)});
+    }
+    ventMotes.push({mouth,plume,x,z,h,ph:rand(0,6)});
+  }
+  planetAnim.push({town:'ocean',f:(t,dt)=>{
+    abyssRings.forEach(A=>{
+      A.ring.rotation.z+=dt*(.12+A.ph*.012);A.inner.rotation.z-=dt*.17;
+      A.glow.material.opacity=.24+.14*Math.sin(t*1.3+A.ph);
+    });
+    ruinStones.forEach(R=>{R.rune.material.opacity=.3+.22*(.5+.5*Math.sin(t*1.7+R.ph));});
+    ventMotes.forEach(V=>{
+      V.mouth.material.opacity=.48+.25*Math.sin(t*2+V.ph);
+      V.plume.forEach(P=>{
+        const q=(t*.22+P.ph)%(P.rise/8);
+        P.mote.position.set(V.x+Math.sin(t*.7+P.ph)*3,V.h+q*8,V.z+Math.cos(t*.6+P.ph)*3);
+        P.mote.material.opacity=.12+.32*Math.sin((q/(P.rise/8))*PI);
+      });
+    });
+  }});
   // abductable sea life
   [['fish',28],['turtle',8],['shark',6],['whale',2]].forEach(([k,n])=>{for(let i=0;i<n;i++){const T={type:'critter',mesh:fishMesh(k),spawn:spawnSwim,fl:fields};T.spawn(T);targets.push(T);}});
   planetAnim.push({town:'ocean',f:t=>{targets.forEach(T=>{if(T.state==='ground'){T.mesh.position.y=T.swimY+Math.sin(t*1.5+T.mesh.id)*0.8;if(T.mesh.userData.tail)T.mesh.userData.tail.rotation.y=Math.sin(t*8+T.mesh.id)*0.4;}});}});
