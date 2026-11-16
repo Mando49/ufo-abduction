@@ -1042,6 +1042,7 @@ const MODELS={cow:{file:'cow',len:3.0,rotY:PI/2,list:[]},car:{file:'car',len:4.4
   sr71:{file:'sr71',len:34,rotY:0,list:[]},bop:{file:'bop',len:15,rotY:PI/2,list:[]},dropship:{file:'dropship',len:22,rotY:0,list:[]},wing:{file:'wing',len:22,rotY:-PI/2,list:[]},
   trainF:{file:'trainF',len:13.5,rotY:PI/2,list:[]},trainM:{file:'trainM',len:12.5,rotY:PI/2,list:[]},
   whale:{file:'whale',len:3.8,rotY:-PI/2,list:[]},octopus:{file:'octopus',height:1.6,rotY:0,list:[]},sub:{file:'sub',len:6.5,rotY:0,list:[]},dolphin:{file:'dolphin',len:3.6,rotY:PI/2,rotX:PI/4,list:[]},
+  carrier:{file:'carrier',len:150,rotY:0,list:[]},destroyer:{file:'destroyer',len:70,rotY:0,list:[]},cargo:{file:'cargo',len:100,rotY:0,list:[]},cruise:{file:'cruise',len:90,rotY:0,list:[]},fishboat:{file:'fishboat',len:9,rotY:0,list:[]},sailboat:{file:'sailboat',len:8,rotY:0,list:[]},
   mustang:{file:'mustang',height:4.2,rotY:PI/4,list:[]},burro:{file:'burro',height:3,rotY:0,list:[]}};
 function useModel(type,g){const M=MODELS[type];if(M.proto)attachModel(M,g);else M.list.push(g);return g;}
 barnGroups.forEach(b=>useModel('barn',b));TRAIN_CARS.forEach(c=>useModel(c.k===0||c.k===4?'trainF':'trainM',c.g));
@@ -2994,6 +2995,43 @@ beginTown('ocean');
   planetAnim.push({town:'ocean',f:t=>{targets.forEach(T=>{if(T.state==='ground'){T.mesh.position.y=T.swimY+Math.sin(t*1.5+T.mesh.id)*0.8;if(T.mesh.userData.tail)T.mesh.userData.tail.rotation.y=Math.sin(t*8+T.mesh.id)*0.4;}});}});
 })();
 endTown('ocean',[20,280]);Object.assign(towns.ocean,{planet:true,fogC:new THREE.Color(0x0a5a7a),skyTint:0x0a3a5a,label:'🌊 THE OCEAN'});
+// 🚢 THE OPEN SEA — the ocean surface you pop out on when you fly up out of the deep
+beginTown('seas');
+(function(){
+  const wt=texCanvas(512,512,g=>{g.fillStyle='#1d6f9e';g.fillRect(0,0,512,512);for(let i=0;i<900;i++){g.fillStyle=`rgba(${pick(['255,255,255','140,210,240','10,60,100'])},${rand(0.05,0.22).toFixed(2)})`;g.fillRect(rand(0,512),rand(0,512),rand(8,40),2);}});
+  wt.wrapS=wt.wrapT=THREE.RepeatWrapping;wt.repeat.set(40,40);
+  const sea=new THREE.Mesh(new THREE.PlaneGeometry(4000,4000),new THREE.MeshPhongMaterial({map:wt,color:0xffffff,shininess:30,specular:0x2a4a5a,emissive:0x05243a}));sea.rotation.x=-PI/2;root.add(sea);
+  // a few tropical islands
+  for(const [x,z,r] of[[-380,-300,60],[420,260,45],[-150,480,35]]){const is=new THREE.Mesh(new THREE.SphereGeometry(r,24,10,0,2*PI,0,PI/2),lam(0xe8d49a));is.scale.y=0.18;is.position.set(x,-1,z);root.add(is);
+    const gr=new THREE.Mesh(new THREE.SphereGeometry(r*0.7,20,8,0,2*PI,0,PI/2),lam(0x3f8a3a));gr.scale.y=0.22;gr.position.set(x,0,z);root.add(gr);for(let k=0;k<5;k++)palmTree(x+rand(-r*0.5,r*0.5),z+rand(-r*0.5,r*0.5),rand(0.9,1.3));}
+  // dive whirlpool: fly into it to go back under the sea
+  const wp=new THREE.Mesh(new THREE.TorusGeometry(26,3,8,48),new THREE.MeshBasicMaterial({color:0x7ff4ff,transparent:true,opacity:0.7}));wp.rotation.x=PI/2;wp.position.set(0,1,0);root.add(wp);
+  const wpG=glowSprite(0x7ff4ff,0,4,0,70,0.5);sign('DIVE ▼ UNDER THE SEA','#7ff4ff',30,4,0,16,-30,0);
+  // big ships cruising (with white wakes)
+  const ships=[],wakeM=new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:0.45,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-3,polygonOffsetUnits:-3});
+  const addShip=(k,len,R,cx,cz,sp,ph)=>{const g=new THREE.Group();box(g,len,len*0.12,len*0.16,0x5a6470,0,len*0.06,0);root.add(g);useModel(k,g);
+    const wk=new THREE.Mesh(new THREE.PlaneGeometry(len*2.2,len*0.22),wakeM);wk.rotation.x=-PI/2;wk.position.y=0.3;root.add(wk);ships.push({g,wk,len,R,cx,cz,sp,ph});};
+  addShip('carrier',150,420,0,0,0.035,0);addShip('destroyer',70,300,100,-80,-0.06,1.5);addShip('destroyer',70,300,100,-80,-0.06,4);
+  addShip('cargo',100,520,-60,90,0.04,2.6);addShip('cruise',90,560,40,20,-0.03,0.8);
+  // ✈️ jets parked on the carrier deck idea: navy helicopter circling above the fleet
+  const heli=new THREE.Group();box(heli,6,2.4,2.4,0x4a5260,0,1,0);root.add(heli);useModel('heli',heli);
+  planetAnim.push({town:'seas',f:(t,dt)=>{wt.offset.set(t*0.004,t*0.006);sea.position.set(Math.round(pos.x/100)*100,0,Math.round(pos.z/100)*100);
+    wp.rotation.z=t*1.5;wpG.material.opacity=0.35+0.2*Math.sin(t*3);
+    ships.forEach(S=>{const a=t*S.sp+S.ph,x=S.cx+Math.cos(a)*S.R,z=S.cz+Math.sin(a)*S.R,ry=-a-Math.sign(S.sp)*PI/2;S.g.position.set(x,Math.sin(t*0.8+S.ph)*0.4,z);S.g.rotation.set(0,ry,Math.sin(t*0.6+S.ph)*0.015);
+      const bx=-Math.cos(ry),bz=Math.sin(ry);S.wk.position.set(x+bx*S.len*1.05,0.3,z+bz*S.len*1.05);S.wk.rotation.z=ry;});
+    const ha=t*0.12;heli.position.set(Math.cos(ha)*180,60,Math.sin(ha)*180);heli.rotation.set(0.1,-ha-PI/2,0);}});
+  // small boats you can beam up
+  const boat=(k,emoji,pts,n,rMin,rMax)=>{for(let i=0;i<n;i++){const g=new THREE.Group();box(g,k==='fishboat'?8:7,2,3,0xffffff,0,1,0);g.userData.emoji=emoji;g.userData.pts=pts;g.userData.heat=0.5;root.add(g);useModel(k,g);
+    const T={type:'critter',mesh:g,still:true,R:rand(rMin,rMax),ph:rand(0,6),sp:rand(0.03,0.07)*(Math.random()<0.5?-1:1),cx:rand(-150,150),cz:rand(-150,150),spawn:T=>{T.mesh.visible=true;T.state='ground';resetRot(T.mesh);}};T.spawn(T);targets.push(T);
+    planetAnim.push({town:'seas',f:t=>{if(T.state!=='ground')return;const a=t*T.sp+T.ph;g.position.set(T.cx+Math.cos(a)*T.R,Math.sin(t*1.3+T.ph)*0.3,T.cz+Math.sin(a)*T.R);g.rotation.set(Math.sin(t*1.1+T.ph)*0.05,-a-Math.sign(T.sp)*PI/2,Math.sin(t*1.4+T.ph)*0.06);}});}};
+  boat('fishboat','🎣',60,9,120,560);boat('sailboat','⛵',50,9,140,580);
+  // 🐬 dolphins leaping out of the waves
+  for(let i=0;i<8;i++){const g=new THREE.Group();box(g,3,1,1,0x8a9aaa,0,0,0);g.scale.setScalar(2);g.userData.emoji='🐬';g.userData.pts=60;root.add(g);useModel('dolphin',g);
+    const T={type:'critter',mesh:g,still:true,cx:rand(-450,450),cz:rand(-450,450),ph:rand(0,6),spawn:T=>{T.mesh.visible=true;T.state='ground';resetRot(T.mesh);}};T.spawn(T);targets.push(T);
+    planetAnim.push({town:'seas',f:t=>{if(T.state!=='ground')return;const a=t*0.25+T.ph,j=(t*0.9+T.ph)%2.4,hop=j<1.2?Math.sin(j/1.2*PI):-0.3;g.position.set(T.cx+Math.cos(a)*40,hop*9-1,T.cz+Math.sin(a)*40);g.rotation.set(0,-a-PI/2,j<1.2?(0.6-j)*0.9:0);}});}
+  colliders.push({x0:-9999,x1:9999,z0:-9999,z1:9999,h:0,y0:-1});
+})();
+endTown('seas',[300,1600]);Object.assign(towns.seas,{planet:true,fogC:new THREE.Color(0x9fd4f0),skyTint:0xcfeeff,label:'🚢 THE OPEN SEA',bloom:0.25});
 // 🛸 HANGAR 18 — the underground base under Area 51 (fly in through the black-site hangar doors)
 beginTown('sub51');
 (function(){
@@ -4041,7 +4079,7 @@ function pilotPlay(k){if(!PILOT.mixer)return;if(!PILOT.acts[k])k=PILOT.acts.walk
 // relics
 const RELICS={};let relicFx=[];
 let badges={};try{badges=JSON.parse(localStorage.getItem('ufoBadges')||'{}');}catch(e){}
-const TOWN_NAMES={egypt:'Giza, Egypt',maya:'Yucatán, Mexico',vegas:'Las Vegas',fifth:'The 5th Dimension',ocean:'The Ocean',city:'Neon City',desert:'Area 51',ice:'Antarctica',lava:'Magmor',jungle:'Verdana',moon:'The Moon',mars:'Mars'};
+const TOWN_NAMES={seas:'The Open Sea',sub51:'Hangar 18',egypt:'Giza, Egypt',maya:'Yucatán, Mexico',vegas:'Las Vegas',fifth:'The 5th Dimension',ocean:'The Ocean',city:'Neon City',desert:'Area 51',ice:'Antarctica',lava:'Magmor',jungle:'Verdana',moon:'The Moon',mars:'Mars'};
 function makeRelic(){const g=new THREE.Group();const c=new THREE.Mesh(new THREE.OctahedronGeometry(0.9),new THREE.MeshBasicMaterial({color:0xc58bff}));c.scale.y=1.5;g.add(c);
   const gl=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:0xb46bff,transparent:true,depthWrite:false}));gl.scale.set(6,6,1);g.add(gl);
   const pil=new THREE.Mesh(new THREE.CylinderGeometry(0.25,0.25,60,6,1,true),new THREE.MeshBasicMaterial({color:0xc58bff,transparent:true,opacity:.22,blending:THREE.AdditiveBlending,depthWrite:false}));pil.position.y=30;g.add(pil);
@@ -4444,6 +4482,8 @@ const MISSIONS=[
   {id:'yeti',t:'Abduct a Yeti (Antarctica)',ev:'abduct',m:d=>d.emoji==='🦍',g:1,r:700},
   {id:'penguin',t:'Abduct 5 penguins',ev:'abduct',m:d=>d.emoji==='🐧',g:5,r:400},
   {id:'icearch',t:'Fly through the Frost Palace gate',ev:'icearch',g:1,r:300},
+  {id:'opensea',t:'Fly up out of the Ocean to the Open Sea',ev:'visit',m:d=>d.town==='seas',g:1,r:400},
+  {id:'boats',t:'Beam up 3 boats on the Open Sea',ev:'abduct',m:d=>d.emoji==='🎣'||d.emoji==='⛵',g:3,r:500},
   {id:'octopus',t:'Abduct 2 octopuses (Ocean floor)',ev:'abduct',m:d=>d.emoji==='🐙',g:2,r:500},
   {id:'sub',t:'Beam up a submarine (Ocean)',ev:'abduct',m:d=>d.emoji==='🚢',g:1,r:700},
   {id:'dolphins',t:'Abduct 3 dolphins',ev:'abduct',m:d=>d.emoji==='🐬',g:3,r:500},
@@ -4818,6 +4858,7 @@ function wantTrack(){
   if(mode==='space')return 'space';
   if(heat>=3&&state==='play'&&!towns[curTown].planet)return 'boss';
   if(curTown==='sub51')return 'desert';
+  if(curTown==='seas')return 'ocean';
   if(towns[curTown].planet)return curTown;
   if(pos.y>CLOUD_Y-10)return 'sky';
   return curTown;
@@ -4942,6 +4983,8 @@ function enterSpace(sec){
   snapCam();
   pop('🚀 '+SECTORS[sec].name);pop(sec==='earth'?'Fly to the Moon 🌕 or Mars 🔴 · or find a portal':'Shoot alien hunters · find a portal','t');blip(200,900,0.8,'sine',0.15);
 }
+function enterSeas(){fadeIn();setTown('seas');mEvent('visit',{town:'seas'});pos.y=12;vy=6;snapCam();pop('🚢 THE OPEN SEA');pop('Navy fleet ahead! Fly down into the whirlpool to dive back under','t');blip(300,900,0.6,'sine',0.12);}
+function diveSea(){fadeIn();setTown('ocean');pos.set(0,SURF-15,0);vy=-6;snapCam();pop('🌊 UNDER THE SEA');blip(900,200,0.6,'sine',0.12);}
 function enterHangar18(){clearEnemies();heat=0;fadeIn();setTown('sub51');pos.set(0,22,270);yaw=0;speed=Math.min(speed,22);vy=0;snapCam();
   pop('🛸 HANGAR 18');pop('Top-secret underground base · fly into the far elevator to leave','t');blip(300,90,0.8,'sawtooth',0.08);mEvent('h18');}
 function exitHangar18(){fadeIn();setTown('desert');pos.set(420,26,-385);yaw=PI;speed=Math.min(speed,22);vy=0;snapCam();pop('🏜️ BACK TO AREA 51');blip(90,300,0.6,'sine',0.1);}
@@ -5140,7 +5183,7 @@ function loop(now){
       if(curTown==='desert'&&state==='play'&&!FLYP&&pos.z<-406&&pos.z>-440&&Math.abs(pos.x-420)<44&&pos.y<34)enterHangar18();
       collide();
       if(curTown==='sub51'){pos.y=Math.min(pos.y,60);pos.x=clamp(pos.x,-88,88);pos.z=clamp(pos.z,-300,292);if(pos.z<-282&&Math.abs(pos.x)<34&&pos.y<46)exitHangar18();}
-      if(pos.y>SPACE_Y||(curTown==='ocean'&&pos.y>SURF-3))enterSpace();
+      if(curTown==='ocean'&&pos.y>SURF-3)enterSeas();else if(curTown==='seas'&&down&&pos.y<6&&Math.hypot(pos.x,pos.z)<30)diveSea();else if(pos.y>SPACE_Y)enterSpace();
       if(curTown==='city'&&state==='play'){const pdx=pos.x-VEGAS_PORTAL.x,pdy=pos.y-VEGAS_PORTAL.y,pdz=pos.z-VEGAS_PORTAL.z;if(Math.abs(pdz)<5&&Math.hypot(pdx,pdy)<VEGAS_PORTAL.R+3)enterWarp('vegas');}
     }else if(mode==='space'){spaceUpdate(dt);if(mode==='space')stationUpdate(dt);}else warpUpdate(dt,ix,(up?1:0)-(down?1:0));
     beamActive=beamBtn&&!lock&&mode==='ground'&&!FLYP;
