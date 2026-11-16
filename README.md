@@ -116,3 +116,7 @@ Mars has a hidden cave (crystals, bats, a fossil, a crashed saucer and a Sleepin
 ## Jupiter
 
 Fly into Jupiter from space to enter its storm clouds. There is no ground and no landing: dive to the cloud tops to beam up gas floaters and a lost probe, fly into the eye of the Great Red Spot, dodge lightning from the thunderheads, and do not sink too deep. Fly straight up to leave.
+
+## Legends
+
+Crop circles (hold the beam over a Neon City farm field), the Bermuda Triangle in the Open Sea (it swallows you and spits you out on another world), a fire-breathing dragon boss on Magmor, and Santa with his sleigh and reindeer circling Antarctica. Also Bigfoot in the Neon City pine woods and unicorns in the 5th Dimension.

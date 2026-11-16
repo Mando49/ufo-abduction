@@ -1073,7 +1073,7 @@ const MODELS={cow:{file:'cow',len:3.0,rotY:PI/2,list:[]},car:{file:'car',len:4.4
   whale:{file:'whale',len:3.8,rotY:-PI/2,list:[]},octopus:{file:'octopus',height:1.6,rotY:0,list:[]},sub:{file:'sub',len:6.5,rotY:0,list:[]},dolphin:{file:'dolphin',len:3.6,rotY:PI/2,rotX:0.69,list:[]},
   carrier:{file:'carrier',len:150,rotY:0,list:[]},destroyer:{file:'destroyer',len:70,rotY:0,list:[]},cargo:{file:'cargo',len:100,rotY:0,list:[]},cruise:{file:'cruise',len:90,rotY:0,list:[]},fishboat:{file:'fishboat',len:9,rotY:0,list:[]},sailboat:{file:'sailboat',len:8,rotY:0,list:[]},
   subE:{file:'sub',len:7,rotY:0,list:[],recolor:true},
-  unicorn:{file:'unicorn',height:4.6,rotY:0,list:[]},
+  unicorn:{file:'unicorn',height:4.6,rotY:0,list:[]},dragon:{file:'dragon',len:30,rotY:0,list:[]},sleigh:{file:'sleigh',len:10,rotY:PI/2,list:[]},reindeer:{file:'reindeer',height:4.4,rotY:PI/2,list:[]},
   mustang:{file:'mustang',height:4.2,rotY:PI/4,list:[]},burro:{file:'burro',height:3,rotY:0,list:[]}};
 let MODELS_BOOTED=false;
 function useModel(type,g){const M=MODELS[type];if(M.proto)attachModel(M,g);else{M.list.push(g);if(MODELS_BOOTED&&!M.loading&&window.loadModel)loadModel(type);}return g;}
@@ -4266,7 +4266,7 @@ renderShop();
 // ---------- 📖 Abduction Log: a collection book of everything ever beamed up ----------
 const LOG_NAMES={'🐄':'Cow','🚗':'Car','🚓':'Police Car','🚚':'Truck','😴':'Sleeper','🚶':'Walker','🚜':'Tractor','🦊':'Fox','🤖':'Robot','📣':'Cheerleader','🏈':'Football Player','🎈':'Balloon','🏎️':'Luxury / Race Car','📺':'News Van','🌮':'Taco Truck','🍔':'Diner Guest','🔘':'Mystery Orb','🌑':'Jellyfish UFO',
   '👽':'Little Alien','🏃':'Area 51 Raider','🤳':'Streamer','🪖':'Soldier','🐎':'Mustang','🫏':'Burro','🔩':'Secret Tech','🕴️':'Man in Black','❄️':'Yeti','🐧':'Penguin','🦍':'Ice Ape','🦕':'Dinosaur','🦀':'Lava Crab','🦖':'T-Rex','🚙':'Moon Rover','🧊':'Hypercube','🪼':'Glitch Jelly','🤍':'Tall White','💙':'Nordic',
-  '🐪':'Camel','🧟':'Mummy','🐆':'Jaguar','🧗':'Climber / Zipliner','🛩️':'Fighter Jet','🚤':'Speedboat','🛫':'Airliner','🥾':'Hiker','🕺':'Elvis','💃':'Showgirl','🚢':'Submarine','🐟':'Fish','🐢':'Sea Turtle','🦈':'Shark','🐋':'Whale','🐬':'Dolphin','🐙':'Octopus','🎣':'Fishing Boat','⛵':'Sailboat','👾':'Alien Specimen','🥼':'Scientist','🛞':'Mars Rover','🚁':'Mars Helicopter','💎':'Cave Crystal','🦇':'Cave Bat','👑':'Sleeping King','🦶':'Bigfoot','🦄':'Unicorn','🎐':'Gas Floater','🛰️':'Lost Probe','🩶':'Grey','🦎':'Reptilian','🦗':'Mantis'};
+  '🐪':'Camel','🧟':'Mummy','🐆':'Jaguar','🧗':'Climber / Zipliner','🛩️':'Fighter Jet','🚤':'Speedboat','🛫':'Airliner','🥾':'Hiker','🕺':'Elvis','💃':'Showgirl','🚢':'Submarine','🐟':'Fish','🐢':'Sea Turtle','🦈':'Shark','🐋':'Whale','🐬':'Dolphin','🐙':'Octopus','🎣':'Fishing Boat','⛵':'Sailboat','👾':'Alien Specimen','🥼':'Scientist','🛞':'Mars Rover','🚁':'Mars Helicopter','💎':'Cave Crystal','🦇':'Cave Bat','👑':'Sleeping King','👻':'Ghost Ship','🦌':'Reindeer','🎅':'Santa\'s Sleigh','🎁':'Present','🦶':'Bigfoot','🦄':'Unicorn','🎐':'Gas Floater','🛰️':'Lost Probe','🩶':'Grey','🦎':'Reptilian','🦗':'Mantis'};
 let LOG={};try{LOG=JSON.parse(localStorage.getItem('ufoLog')||'{}');}catch(e){}
 const logKey=T=>{const u=T.mesh.userData;return u.emoji||(u.police?'🚓':{cow:'🐄',car:'🚗',truck:'🚚'}[T.type]);};
 let LOG_CAT=null;
@@ -5133,6 +5133,88 @@ const VISITORS=[];
     planetAnim.push({town:'fifth',f:(t,dt)=>{U.forEach(u=>{const on=u.T.state==='ground',p=u.T.mesh.position;u.t+=dt;if(u.t>0.12){u.t=0;u.h.unshift([p.x,p.y+2.6,p.z]);if(u.h.length>8)u.h.pop();}
       u.tr.forEach((s,k)=>{const q=u.h[k+1];s.visible=on&&!!q;if(q)s.position.set(q[0],q[1],q[2]);});});}});}
   root=r0;colliders=c0;})();
+// 🌾 CROP CIRCLES (Neon City) · 🔺 BERMUDA TRIANGLE (Open Sea) · 🐉 DRAGON (Magmor) · 🎅 SANTA (Antarctica)
+(function(){const r0=root,c0=colliders;
+  // ---------- crop circles: hold the beam over a farm field to draw one ----------
+  root=towns.city.group;colliders=towns.city.colliders;
+  {const CC=(towns.city.fields||[]).map((f,i)=>{const cv=document.createElement('canvas');cv.width=cv.height=256;const tex=new THREE.CanvasTexture(cv);
+      const m=new THREE.Mesh(new THREE.PlaneGeometry(88,88),new THREE.MeshBasicMaterial({map:tex,transparent:true,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-5,polygonOffsetUnits:-5}));m.rotation.x=-PI/2;m.position.set(f.x,0.12,f.z);m.userData.keep=true;m.visible=false;root.add(m);
+      const gl=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:0xd8ffb0,transparent:true,opacity:0,blending:THREE.AdditiveBlending,depthWrite:false}));gl.position.set(f.x,3,f.z);gl.scale.set(110,110,1);gl.userData.keep=true;root.add(gl);
+      return {f,cv,tex,m,gl,p:0,done:false,kind:i%4,drawn:-1,flash:0};});
+    const draw=C=>{const g=C.cv.getContext('2d'),p=C.p;g.clearRect(0,0,256,256);g.strokeStyle='rgba(238,224,150,.95)';g.fillStyle='rgba(238,224,150,.95)';g.lineCap='round';
+      const ring=(x,y,r,w,a)=>{if(a<=0)return;g.lineWidth=w;g.beginPath();g.arc(x,y,r,-PI/2,-PI/2+2*PI*Math.min(1,a));g.stroke();},dot=(x,y,r,a)=>{if(a<=0)return;g.beginPath();g.arc(x,y,r*Math.min(1,a),0,2*PI);g.fill();};
+      if(C.kind===0){dot(128,128,16,p*5);ring(128,128,44,9,p*3-0.6);ring(128,128,82,7,p*3-1.3);for(let k=0;k<6;k++){const a=k/6*2*PI;dot(128+Math.cos(a)*108,128+Math.sin(a)*108,10,p*8-5-k*0.4);}}
+      else if(C.kind===1){for(let k=0;k<7;k++){const a=k*0.9,r=k*15;dot(128+Math.cos(a)*r,128+Math.sin(a)*r,20-k*2,p*8-k);}ring(128,128,112,5,p*3-2);}
+      else if(C.kind===2){ring(128,128,100,8,p*2.5);for(let k=0;k<3;k++){const a=k/3*2*PI-PI/2;g.lineWidth=7;if(p>0.4+k*0.12){g.beginPath();g.moveTo(128+Math.cos(a)*100,128+Math.sin(a)*100);g.lineTo(128+Math.cos(a+2.094)*100,128+Math.sin(a+2.094)*100);g.stroke();}dot(128+Math.cos(a)*60,128+Math.sin(a)*60,13,p*6-3.5-k*0.5);}dot(128,128,22,p*6-4.6);}
+      else{for(let k=0;k<5;k++)ring(128,128,22+k*20,5,p*4-k*0.6);for(let k=0;k<8;k++){const a=k/8*2*PI;dot(128+Math.cos(a)*62,128+Math.sin(a)*62,7,p*9-7);}}
+      C.tex.needsUpdate=true;};
+    let lastSt='';cityAnim.push((t,dt)=>{if(state!==lastSt){lastSt=state;if(state==='menu'||state==='over')CC.forEach(C=>{C.p=0;C.done=false;C.m.visible=false;C.drawn=-1;});}
+      CC.forEach(C=>{C.flash-=dt;C.gl.material.opacity=Math.max(0,C.flash)*0.5;if(C.done||state!=='play'||onFoot)return;
+        if(beamActive&&pos.y<BEAM_MAX&&Math.hypot(pos.x-C.f.x,pos.z-C.f.z)<40){if(C.p===0){pop('🌾 Drawing a crop circle… keep the beam on!','t');}C.p=Math.min(1,C.p+dt/3.5);C.m.visible=true;const q=Math.floor(C.p*30);if(q!==C.drawn){C.drawn=q;draw(C);}
+          if(C.p>=1){C.done=true;C.flash=2;score+=150;timer+=6;mEvent('crop');pop('🌾 CROP CIRCLE COMPLETE! +150');pop('+6s','t');blip(500,1500,0.5,'triangle',0.13);
+            if(CC.every(c=>c.done)){score+=500;save.bank+=300;persist();pop('🛸 ALL FIELDS MARKED! +500 · 💰 +300','t');}}}});});}
+  // ---------- the Bermuda Triangle ----------
+  root=towns.seas.group;colliders=towns.seas.colliders;
+  {const BX=-300,BZ=40,R=120,V=[0,1,2].map(k=>new V3(BX+Math.cos(k/3*2*PI+0.4)*R,0,BZ+Math.sin(k/3*2*PI+0.4)*R)),edges=[];
+    for(let k=0;k<3;k++){const a=V[k],b=V[(k+1)%3],len=a.distanceTo(b),e=new THREE.Mesh(new THREE.BoxGeometry(len,0.3,2.2),new THREE.MeshBasicMaterial({color:0x6dffb0,transparent:true,opacity:.7}));e.position.copy(a).add(b).multiplyScalar(.5);e.position.y=0.5;e.rotation.y=-Math.atan2(b.z-a.z,b.x-a.x);e.userData.keep=true;root.add(e);edges.push(e);
+      const s=glowSprite(0x6dffb0,a.x,4,a.z,26,0.7);s.userData.keep=true;edges.push(s);}
+    const wp=new THREE.Mesh(new THREE.CircleGeometry(46,48),new THREE.MeshBasicMaterial({map:texCanvas(256,256,g=>{g.fillStyle='#06202c';g.fillRect(0,0,256,256);for(let a=0;a<4;a++){g.strokeStyle=a%2?'#bff8ff':'#2a8aa8';g.lineWidth=7;g.beginPath();for(let k=0;k<200;k++){const r=k*0.62,th=k*0.09+a*1.57;const x=128+Math.cos(th)*r,y=128+Math.sin(th)*r;k?g.lineTo(x,y):g.moveTo(x,y);}g.stroke();}const gr=g.createRadialGradient(128,128,0,128,128,128);gr.addColorStop(0,'#000');gr.addColorStop(.2,'rgba(0,0,0,0)');g.fillStyle=gr;g.fillRect(0,0,256,256);}),transparent:true,opacity:.9,polygonOffset:true,polygonOffsetFactor:-4,polygonOffsetUnits:-4}));
+    wp.rotation.x=-PI/2;wp.position.set(BX,0.4,BZ);wp.userData.keep=true;root.add(wp);
+    const mist=[];for(let i=0;i<14;i++){const s=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:0xc8ffe8,transparent:true,opacity:.18,depthWrite:false}));s.position.set(BX+rand(-90,90),rand(4,26),BZ+rand(-90,90));s.scale.set(90,40,1);s.userData.keep=true;root.add(s);mist.push(s);}
+    sign('THE BERMUDA TRIANGLE','#6dffb0',70,8,BX,62,BZ,0);
+    const ghostM=new THREE.MeshBasicMaterial({color:0xbff8ff,transparent:true,opacity:.4,depthWrite:false});
+    const ship=new THREE.Group();const gb=(par,w,h,d,x,y,z)=>{const b=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),ghostM);b.position.set(x,y,z);par.add(b);return b;};
+    gb(ship,22,4,6,0,2,0);gb(ship,6,3,5,-6,5.5,0);for(const x of[-2,5])gb(ship,0.5,14,0.5,x,10,0);gb(ship,0.3,8,7,-2,11,0);gb(ship,0.3,7,6,5,10,0);ship.userData.emoji='👻';ship.userData.pts=220;ship.userData.heat=0;root.add(ship);
+    const ST={type:'critter',mesh:ship,still:true,spawn:T=>{T.mesh.visible=true;T.state='ground';resetRot(T.mesh);}};ST.state='ground';towns.seas.targets.push(ST);
+    const planes=[];for(let k=0;k<5;k++){const p=new THREE.Group();gb(p,7,1.2,1.2,0,0,0);gb(p,1.6,0.2,10,0.8,0.3,0);gb(p,1,0.2,3.4,-3,0.4,0);gb(p,1,1.6,0.2,-3,1,0);root.add(p);planes.push(p);} // the lost flight of 5 planes
+    let cd=0,warn=0;planetAnim.push({town:'seas',f:(t,dt)=>{wp.rotation.z=-t*1.4;edges.forEach((e,i)=>{e.material.opacity=.45+.3*Math.sin(t*2+i);});mist.forEach((s,i)=>{s.position.x+=Math.sin(t*.3+i)*dt*3;});
+      ghostM.opacity=.25+.2*Math.sin(t*.7);if(ST.state==='ground'){const a=t*.12;ship.position.set(BX+Math.cos(a)*70,Math.sin(t)*0.6,BZ+Math.sin(a)*70);ship.rotation.set(0,-a-PI/2,Math.sin(t*.8)*.05);}
+      planes.forEach((p,k)=>{const a=-t*.35+k*.22;p.position.set(BX+Math.cos(a)*(88-k*2),44+k*3+Math.sin(t+k)*2,BZ+Math.sin(a)*(88-k*2));p.rotation.set(0,-a+PI/2,0.3);});
+      cd-=dt;warn-=dt;if(state!=='play'||onFoot||FLYP||cd>0)return;const dx=BX-pos.x,dz=BZ-pos.z,d=Math.hypot(dx,dz);
+      if(d<R*0.75&&pos.y<80){if(warn<=0){warn=12;pop('🧭 INSTRUMENTS GOING CRAZY…','t');blip(900,300,0.6,'square',0.05);}const k=(1-d/(R*0.75))*38*dt;pos.x+=dx/d*k-dz/d*k*0.8;pos.z+=dz/d*k+dx/d*k*0.8;if(d<45)pos.y=Math.max(8,pos.y-14*dt);
+        if(d<16&&pos.y<34){cd=20;score+=300;mEvent('bermuda');const to=pick(['fifth','egypt','maya','ice','moon']);landAt(to);pop('🔺 SWALLOWED BY THE BERMUDA TRIANGLE! +300');pop('…and spat out somewhere else','t');}}}});}
+  // ---------- the dragon of Magmor ----------
+  root=towns.lava.group;colliders=towns.lava.colliders;
+  {const g=new THREE.Group();const ph=new THREE.Group();g.add(ph);box(ph,14,3,3,0x8a1a10,0,0,0);box(ph,12,0.4,22,0x5a100a,0,1,0);box(ph,4,2.4,2.4,0x8a1a10,8,1,0);useModel('dragon',g);root.add(g);
+    const fire=[];for(let k=0;k<16;k++){const s=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:k%2?0xff7a20:0xffd040,transparent:true,blending:THREE.AdditiveBlending,depthWrite:false}));s.visible=false;s.userData.keep=true;root.add(s);fire.push(s);}
+    const D={town:'lava',p:g.position,r:11,hp:45,max:45,st:'fly',a:rand(0,6),cd:6,ft:0,rt:0,hurtCd:0,roar:0,lastHp:45,
+      alive(){return this.st!=='dead';},
+      onKill(){explode(this.p,true);setTimeout(()=>explode(this.p.clone().add(new V3(6,-4,3)),true),160);this.st='dead';this.rt=75;g.visible=false;fire.forEach(s=>s.visible=false);score+=500;timer+=10;save.bank+=250;persist();mEvent('dragon');pop('🐉 DRAGON SLAIN! +500');pop('+10s · 💰 +250','t');}};
+    EXTRA_TARGETS.push(D);g.position.set(250,80,0);const dir=new V3(1,0,0),want=new V3(),mouth=new V3();
+    planetAnim.push({town:'lava',f:(t,dt)=>{if(D.st==='dead'){D.rt-=dt;if(D.rt<=0){D.st='fly';D.hp=D.max;D.lastHp=D.max;g.visible=true;g.position.set(-300,90,-300);}return;}
+      const play=state==='play'&&!onFoot,dist=g.position.distanceTo(pos),chase=play&&dist<260;
+      if(chase){want.copy(pos).sub(g.position);if(dist<55)want.multiplyScalar(-1);want.y+=dist<55?0:6;want.normalize();if(D.roar<=0){D.roar=40;pop('🐉 A DRAGON! Shoot it with FIRE · dodge its flames','t');blip(120,50,0.9,'sawtooth',0.16);}}
+      else{D.a+=dt*0.14;want.set(Math.cos(D.a)*260-g.position.x,70+Math.sin(t*.4)*20-g.position.y,Math.sin(D.a)*260-g.position.z).normalize();}
+      D.roar-=dt;dir.lerp(want,Math.min(1,dt*1.6)).normalize();g.position.addScaledVector(dir,(chase?30:22)*dt);g.position.y=clamp(g.position.y,24,150);
+      g.rotation.set(0,Math.atan2(-dir.z,dir.x),0);g.rotateZ(Math.asin(clamp(dir.y,-.6,.6)));g.rotateX(Math.sin(t*2.2)*0.16);
+      if(D.hp<D.lastHp){D.lastHp=D.hp;D.roar=Math.max(D.roar,1);}
+      // fire breath
+      D.cd-=dt;if(chase&&dist<120&&D.cd<=0&&D.ft<=0){D.ft=1.5;D.cd=rand(3.5,5.5);blip(90,300,1.2,'sawtooth',0.12);}
+      if(D.ft>0){D.ft-=dt;mouth.copy(g.position).addScaledVector(dir,13);const aim=tmpV.copy(pos).sub(mouth).normalize();
+        fire.forEach((s,k)=>{const u=((t*2.2+k/16)%1);s.visible=true;s.position.copy(mouth).addScaledVector(aim,u*80).add(tmpV2.set(Math.sin(k*7+t*9),Math.cos(k*5+t*8),Math.sin(k*3+t*7)).multiplyScalar(u*5));s.scale.setScalar(4+u*14);s.material.opacity=0.9*(1-u);});
+        D.hurtCd-=dt;if(play&&dist<95&&D.hurtCd<=0){D.hurtCd=0.45;hurt(7);pop('🔥 DRAGON FIRE!','t');}}
+      else fire.forEach(s=>s.visible=false);}});}
+  // ---------- Santa's sleigh over Antarctica ----------
+  root=towns.ice.group;colliders=towns.ice.colliders;
+  {const mkDeer=()=>{const g=makeHorse(0x8a5a30,0.8);g.userData.emoji='🦌';g.userData.pts=120;g.userData.heat=0;useModel('reindeer',g);return g;};
+    const deer=[];for(let k=0;k<6;k++){const g=mkDeer();const T={type:'critter',mesh:g,still:true,spawn:T=>{T.mesh.visible=true;T.state='ground';resetRot(T.mesh);}};T.state='ground';towns.ice.targets.push(T);deer.push({g,T,row:Math.floor(k/2),side:k%2?1:-1});}
+    const nose=glowSprite(0xff2020,0,0,0,5,1);nose.userData.keep=true;
+    const sl=new THREE.Group();box(sl,7,2.2,3.4,0xc81e1e,0,1.6,0);box(sl,2,2.6,3.4,0xc81e1e,-3,3,0);box(sl,8,0.3,0.4,0xd8a628,0,0.2,1.5);box(sl,8,0.3,0.4,0xd8a628,0,0.2,-1.5);box(sl,1.6,2.2,1.6,0xffffff,0.4,3.6,0);
+    sl.userData.emoji='🎅';sl.userData.pts=400;sl.userData.heat=0;useModel('sleigh',sl);root.add(sl);
+    const SLT={type:'critter',mesh:sl,still:true,spawn:T=>{T.mesh.visible=true;T.state='ground';resetRot(T.mesh);}};SLT.state='ground';towns.ice.targets.push(SLT);
+    const trail=[];for(let k=0;k<14;k++){const s=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:k%2?0xffe9a0:0xffffff,transparent:true,blending:THREE.AdditiveBlending,depthWrite:false}));s.userData.keep=true;root.add(s);trail.push(s);}
+    // presents dropped across the green land inside the wall
+    const wrap=[0xe83a3a,0x3a8ae8,0x3ac060,0xf0c040,0xb060e0];for(let i=0;i<10;i++){const g=new THREE.Group(),c=pick(wrap);box(g,2.2,2,2.2,c,0,1,0);box(g,2.3,0.4,0.5,0xfff0b0,0,1.4,0);box(g,0.5,2.05,2.3,0xfff0b0,0,1,0);const bw=box(g,1,0.5,1,0xfff0b0,0,2.3,0);
+      g.userData.emoji='🎁';g.userData.pts=60;g.userData.heat=0;root.add(g);const a=rand(0,2*PI),r=rand(120,520),x=Math.cos(a)*r,z=Math.sin(a)*r;
+      const T={type:'critter',mesh:g,still:true,spawn:T=>{T.mesh.position.set(x,0,z);resetRot(T.mesh);T.mesh.visible=true;T.state='ground';}};T.spawn(T);towns.ice.targets.push(T);}
+    let jing=0,hoho=0;const P=(a,back,side,dy)=>{const r=360,x=Math.cos(a)*r,z=Math.sin(a)*r,tx=-Math.sin(a),tz=Math.cos(a);return [x-tx*back+Math.cos(a)*side,36+Math.sin(a*3)*7+dy,z-tz*back+Math.sin(a)*side];};
+    planetAnim.push({town:'ice',f:(t,dt)=>{const a=t*0.07,ry=-(a+PI/2);
+      if(SLT.state==='ground'){const p=P(a,0,0,0);sl.position.set(p[0],p[1],p[2]);sl.rotation.set(0,ry,Math.sin(t*1.5)*0.05);}
+      deer.forEach((d,i)=>{if(d.T.state!=='ground')return;const p=P(a,-(9+d.row*7),d.side*2.2,Math.sin(t*6+i)*0.5);d.g.position.set(p[0],p[1]-1,p[2]);d.g.rotation.set(0,ry,Math.sin(t*6+i)*0.12);});
+      const lead=deer[5];nose.visible=lead.T.state==='ground';if(nose.visible){const p=P(a,-(9+2*7+2.4),lead.side*2.2,0);nose.position.set(p[0],p[1]+2.2,p[2]);}
+      trail.forEach((s,k)=>{const p=P(a,6+k*4,Math.sin(t*5+k)*1.5,Math.cos(t*4+k));s.position.set(p[0],p[1]+1,p[2]);s.scale.setScalar(4-k*0.22);s.material.opacity=SLT.state==='ground'?0.7*(1-k/14):0;});
+      jing-=dt;hoho-=dt;const d=Math.hypot(pos.x-sl.position.x,pos.z-sl.position.z);if(state==='play'&&d<150&&SLT.state==='ground'){if(jing<=0){jing=0.5;blip(2200+Math.random()*600,2000,0.08,'triangle',0.04);}if(hoho<=0){hoho=45;pop('🎅 HO HO HO! Santa is flying by','t');}}}});}
+  root=r0;colliders=c0;})();
 // 🤖 BOSS: MECH-51, the Area 51 battle robot. Sleeps in a pit; wakes when you're wanted (2+ stars) or fly too close.
 inTown('desert',()=>{
   let MX=-450,MZ=100;const g=new THREE.Group();g.position.set(MX,-46,MZ);root.add(g);
@@ -5369,6 +5451,11 @@ const MISSIONS=[
   {id:'marscave',t:'Find the hidden cave on Mars',ev:'marscave',g:1,r:600},
   {id:'king',t:'Beam up the Sleeping King (Mars cave)',ev:'abduct',m:d=>d.emoji==='👑',g:1,r:1200},
   {id:'rovers',t:'Beam up 2 Mars rovers',ev:'abduct',m:d=>d.emoji==='🛞',g:2,r:700},
+  {id:'crop',t:'Draw 2 crop circles (hold the beam over a farm field)',ev:'crop',g:2,r:500},
+  {id:'bermuda',t:'Get swallowed by the Bermuda Triangle (Open Sea)',ev:'bermuda',g:1,r:700},
+  {id:'dragon',t:'Slay the dragon of Magmor',ev:'dragon',g:1,r:1200},
+  {id:'santa',t:'Beam up Santa\'s sleigh (Antarctica)',ev:'abduct',m:d=>d.emoji==='🎅',g:1,r:900},
+  {id:'deer',t:'Beam up 3 reindeer (Antarctica)',ev:'abduct',m:d=>d.emoji==='🦌',g:3,r:600},
   {id:'bigfoot',t:'Beam up Bigfoot (pine woods at the edge of Neon City)',ev:'abduct',m:d=>d.emoji==='🦶',g:1,r:900},
   {id:'unicorns',t:'Beam up 3 unicorns (5th Dimension)',ev:'abduct',m:d=>d.emoji==='🦄',g:3,r:600},
   {id:'darkside',t:'Find the 3 alien ships on the dark side of the Moon',ev:'darkship',g:3,r:900},
