@@ -342,7 +342,7 @@ const scene=new THREE.Scene();
 const FOG=new THREE.Color(0x1f2448);
 scene.fog=new THREE.Fog(FOG,160,820);
 scene.background=FOG.clone();const SPACE_C=new THREE.Color(0x02030a),CLOUD_C=new THREE.Color(0xa77f9e),STORM_C=new THREE.Color(0x6a6e86),ABOVE_C=new THREE.Color(0x8e88aa);
-const camera=new THREE.PerspectiveCamera(65,1,0.5,3000);
+const camera=new THREE.PerspectiveCamera(65,1,1.2,3000);
 
 let composer=null,bloom=null;
 try{
@@ -422,6 +422,7 @@ function freezeStatic(objs,parent,bake){if(!THREE.BufferGeometryUtils)return;par
     if(!g.attributes.normal)g.computeVertexNormals();
     g.applyMatrix4(new THREE.Matrix4().multiplyMatrices(inv,m.matrixWorld));
     let key=m.material;const M=m.material;
+    if(M.polygonOffset&&parent===m.parent&&Math.abs(m.position.y)<0.5)g.translate(0,0.05*Math.min(6,Math.abs(M.polygonOffsetFactor||1)),0); // flat ground decals: physically lift them a hair so phones don't flicker (z-fighting)
     if(bake&&!M.map&&!M.transparent&&!M.vertexColors&&!M.polygonOffset&&M.side===THREE.FrontSide&&M.fog!==false&&M.depthWrite!==false&&(M.isMeshLambertMaterial||M.isMeshBasicMaterial)){
       const c=M.color.clone();if(M.emissive)c.add(M.emissive.clone().multiplyScalar(0.5));const n=g.attributes.position.count,a=new Float32Array(n*3);for(let i=0;i<n;i++){a[i*3]=c.r;a[i*3+1]=c.g;a[i*3+2]=c.b;}
       g.setAttribute('color',new THREE.Float32BufferAttribute(a,3));key=M.isMeshBasicMaterial?BAKED.basic:BAKED.lam;}
@@ -954,15 +955,15 @@ function makeHuman(sleeper){
     HOODS.push({x:cx,z:cz});
     const toW=(lx,lz)=>{const v=new V3(lx,0,lz).applyAxisAngle(new V3(0,1,0),hood.rotation.y);return {x:cx+v.x,z:cz+v.z};};
     // main street (local x axis) + sidewalks
-    const road=new THREE.Mesh(new THREE.PlaneGeometry(140,10),roadM);road.rotation.x=-PI/2;road.position.y=0.06;hood.add(road);
-    for(let x=-65;x<=65;x+=8){const d=new THREE.Mesh(new THREE.PlaneGeometry(3.5,0.4),stripe);d.rotation.x=-PI/2;d.position.set(x,0.08,0);hood.add(d);}
-    for(const z of[-6.5,6.5]){const sw=new THREE.Mesh(new THREE.PlaneGeometry(140,3),walkM);sw.rotation.x=-PI/2;sw.position.set(0,0.07,z);hood.add(sw);}
+    const road=new THREE.Mesh(new THREE.PlaneGeometry(140,10),roadM);road.rotation.x=-PI/2;road.position.y=0.25;hood.add(road);
+    for(let x=-65;x<=65;x+=8){const d=new THREE.Mesh(new THREE.PlaneGeometry(3.5,0.4),stripe);d.rotation.x=-PI/2;d.position.set(x,0.4,0);hood.add(d);}
+    for(const z of[-6.5,6.5]){const sw=new THREE.Mesh(new THREE.PlaneGeometry(140,3),walkM);sw.rotation.x=-PI/2;sw.position.set(0,0.32,z);hood.add(sw);}
     const lc=document.createElement('canvas');lc.width=512;lc.height=128;const lg=lc.getContext('2d');lg.font='900 52px system-ui,-apple-system,sans-serif';lg.textAlign='center';lg.textBaseline='middle';lg.shadowColor='#ffd070';lg.shadowBlur=14;lg.fillStyle='#fff';
     lg.fillText(['🏡 MAPLE GROVE','🏡 SUNNY ACRES','🏡 PINE HOLLOW'][hi],256,64);
     const sign=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(lc),transparent:true,depthWrite:false}));sign.position.set(0,46,0);sign.scale.set(70,17,1);hood.add(sign);
     for(let i=0;i<5;i++)for(const side of[-1,1]){
       const hx=-52+i*26,hz=side*21,h=new THREE.Group();h.position.set(hx,0,hz);if(side>0)h.rotation.y=PI;hood.add(h);
-      const lawn=new THREE.Mesh(new THREE.PlaneGeometry(22,24),lawnM);lawn.rotation.x=-PI/2;lawn.position.set(0,0.05,-1);h.add(lawn);
+      const lawn=new THREE.Mesh(new THREE.PlaneGeometry(22,24),lawnM);lawn.rotation.x=-PI/2;lawn.position.set(0,0.18,-1);h.add(lawn);
       const walls=new THREE.Mesh(new THREE.BoxGeometry(13,7,11),lam(pick(wallC)));walls.position.y=3.5;h.add(walls);
       const roof=new THREE.Mesh(roofG,lam(pick(roofC)));roof.position.y=7;h.add(roof);
       const ch=new THREE.Mesh(new THREE.BoxGeometry(1.6,4,1.6),lam(0x8a4a3a));ch.position.set(3.5,9.5,-2);h.add(ch);
