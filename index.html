@@ -2995,6 +2995,11 @@ beginTown('ocean');
   planetAnim.push({town:'ocean',f:t=>{targets.forEach(T=>{if(T.state==='ground'){T.mesh.position.y=T.swimY+Math.sin(t*1.5+T.mesh.id)*0.8;if(T.mesh.userData.tail)T.mesh.userData.tail.rotation.y=Math.sin(t*8+T.mesh.id)*0.4;}});}});
 })();
 endTown('ocean',[20,280]);Object.assign(towns.ocean,{planet:true,fogC:new THREE.Color(0x0a5a7a),skyTint:0x0a3a5a,label:'🌊 THE OCEAN'});
+const PLANE_SPOTS=[];const CARRIER={x:220,z:-170,deckY:16,g:null,measured:false,hx:72,hz:21};
+function carrierDeckY(){const C=CARRIER;if(!C.measured&&C.g&&MODELS.carrier.proto){C.measured=true;const rc=new THREE.Raycaster(),hs=[];C.g.updateMatrixWorld(true);
+    for(let x=-60;x<=60;x+=10)for(const z of[-8,0,8]){rc.set(new V3(C.x+x,300,C.z+z),new V3(0,-1,0));const h=rc.intersectObject(C.g,true)[0];if(h)hs.push(h.point.y);}
+    if(hs.length>6){hs.sort((a,b)=>a-b);C.deckY=hs[Math.floor(hs.length*0.3)];}}return C.deckY;}
+function onDeck(x,z){return curTown==='seas'&&Math.abs(x-CARRIER.x)<CARRIER.hx&&Math.abs(z-CARRIER.z)<CARRIER.hz;}
 // 🚢 THE OPEN SEA — the ocean surface you pop out on when you fly up out of the deep
 beginTown('seas');
 (function(){
@@ -3011,13 +3016,13 @@ beginTown('seas');
   const ships=[],wakeM=new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:0.45,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-3,polygonOffsetUnits:-3});
   const addShip=(k,len,R,cx,cz,sp,ph)=>{const g=new THREE.Group();box(g,len,len*0.12,len*0.16,0x5a6470,0,len*0.06,0);root.add(g);useModel(k,g);
     const wk=new THREE.Mesh(new THREE.PlaneGeometry(len*2.2,len*0.22),wakeM);wk.rotation.x=-PI/2;wk.position.y=0.3;root.add(wk);ships.push({g,wk,len,R,cx,cz,sp,ph});};
-  addShip('carrier',150,420,0,0,0.035,0);addShip('destroyer',70,300,100,-80,-0.06,1.5);addShip('destroyer',70,300,100,-80,-0.06,4);
+  addShip('carrier',150,0,220,-170,0,0);CARRIER.g=ships[0].g;ships[0].wk.visible=false;addShip('destroyer',70,300,100,-80,-0.06,1.5);addShip('destroyer',70,300,100,-80,-0.06,4);
   addShip('cargo',100,520,-60,90,0.04,2.6);addShip('cruise',90,560,40,20,-0.03,0.8);
   // ✈️ jets parked on the carrier deck idea: navy helicopter circling above the fleet
   const heli=new THREE.Group();box(heli,6,2.4,2.4,0x4a5260,0,1,0);root.add(heli);useModel('heli',heli);
   planetAnim.push({town:'seas',f:(t,dt)=>{wt.offset.set(t*0.004,t*0.006);sea.position.set(Math.round(pos.x/100)*100,0,Math.round(pos.z/100)*100);
     wp.rotation.z=t*1.5;wpG.material.opacity=0.35+0.2*Math.sin(t*3);
-    ships.forEach(S=>{const a=t*S.sp+S.ph,x=S.cx+Math.cos(a)*S.R,z=S.cz+Math.sin(a)*S.R,ry=-a-Math.sign(S.sp)*PI/2;S.g.position.set(x,Math.sin(t*0.8+S.ph)*0.4,z);S.g.rotation.set(0,ry,Math.sin(t*0.6+S.ph)*0.015);
+    ships.forEach(S=>{if(S.sp===0){S.g.position.set(S.cx,0,S.cz);S.g.rotation.set(0,0,0);return;}const a=t*S.sp+S.ph,x=S.cx+Math.cos(a)*S.R,z=S.cz+Math.sin(a)*S.R,ry=-a-Math.sign(S.sp)*PI/2;S.g.position.set(x,Math.sin(t*0.8+S.ph)*0.4,z);S.g.rotation.set(0,ry,Math.sin(t*0.6+S.ph)*0.015);
       const bx=-Math.cos(ry),bz=Math.sin(ry);S.wk.position.set(x+bx*S.len*1.05,0.3,z+bz*S.len*1.05);S.wk.rotation.z=ry;});
     const ha=t*0.12;heli.position.set(Math.cos(ha)*180,60,Math.sin(ha)*180);heli.rotation.set(0.1,-ha-PI/2,0);}});
   // small boats you can beam up
@@ -3030,6 +3035,10 @@ beginTown('seas');
     const T={type:'critter',mesh:g,still:true,cx:rand(-450,450),cz:rand(-450,450),ph:rand(0,6),spawn:T=>{T.mesh.visible=true;T.state='ground';resetRot(T.mesh);}};T.spawn(T);targets.push(T);
     planetAnim.push({town:'seas',f:t=>{if(T.state!=='ground')return;const a=t*0.25+T.ph,j=(t*0.9+T.ph)%2.4,hop=j<1.2?Math.sin(j/1.2*PI):-0.3;g.position.set(T.cx+Math.cos(a)*40,hop*9-1,T.cz+Math.sin(a)*40);g.rotation.set(0,-a-PI/2,j<1.2?(0.6-j)*0.9:0);}});}
   colliders.push({x0:-9999,x1:9999,z0:-9999,z1:9999,h:0,y0:-1});
+  // ✈️ jets on the carrier deck you can fly (land on the deck, walk up, tap SHIP)
+  [['bop',-45,8],['sr71',5,-6],['wing',55,6]].forEach(([k,lx,lz])=>{const g=new THREE.Group();g.position.set(CARRIER.x+lx,CARRIER.deckY,CARRIER.z+lz);g.rotation.y=0;root.add(g);useModel(k,g);
+    PLANE_SPOTS.push({k,g,col:{x0:0,x1:0,z0:0,z1:0,h:0,y0:0},town:'seas',deck:lx});});
+  planetAnim.push({town:'seas',f:()=>{const d=carrierDeckY();PLANE_SPOTS.forEach(P=>{if(P.town==='seas'&&P.deck!=null&&P.g.visible)P.g.position.y=d;});}});
   // 🏄 SURF THE WAVES: big swells roll across the sea — fly low into one and ride it
   const WL=440,waves=[],waveM=new THREE.MeshPhongMaterial({color:0x13608f,emissive:0x062a40,shininess:40,specular:0x4a90b8});
   const wg=new THREE.CylinderGeometry(1,1,1,24,1);wg.rotateZ(PI/2);
@@ -4156,15 +4165,15 @@ function setupRelics(){
 }
 function relicCount(){return relicFx.filter(r=>r.got).length;}
 // ✈️ fly the secret planes: walk up to one at Area 51 and tap SHIP
-const PLANE_SPOTS=[],PLANE_INFO={sr71:{name:'SR-71 Blackbird',spd:1.7},bop:{name:'Bird of Prey',spd:1.4},wing:{name:'B-2 Spirit',spd:1.25}},PILOT_G={};let FLYP=null,planeHint=0;
+const PLANE_INFO={sr71:{name:'SR-71 Blackbird',spd:1.7},bop:{name:'Bird of Prey',spd:1.4},wing:{name:'B-2 Spirit',spd:1.25}},PILOT_G={};let FLYP=null,planeHint=0;
 ['sr71','bop','wing'].forEach(k=>{const g=new THREE.Group(),inner=new THREE.Group();inner.rotation.y=PI/2;inner.scale.setScalar(k==='sr71'?0.55:0.8);g.add(inner);g.visible=false;tilt.add(g);useModel(k,inner);PILOT_G[k]=g;});
 function nearPlane(){return PLANE_SPOTS.find(P=>P.town===curTown&&P.g.visible&&Math.hypot(P.g.position.x-pos.x,P.g.position.z-pos.z)<16);}
 function boardPlane(P){FLYP=P;P.g.visible=false;P.col.h=0;
   onFoot=false;walker.visible=false;document.body.classList.remove('walking');relicFx.forEach(r=>r.g.visible=false);crateFx.forEach(c=>c.g.visible=false);eyeBeams.forEach(m=>m.visible=false);eyeGlow.forEach(s=>s.visible=false);
   for(const k in SHIPS)SHIPS[k].g.visible=false;PILOT_G[P.k].visible=true;M=Object.assign({},M,{spd:M.spd*PLANE_INFO[P.k].spd});
-  pos.set(P.g.position.x,8,P.g.position.z);yaw=P.g.rotation.y-PI/2;speed=20;vy=4;fadeIn();snapCam();
-  pop('✈️ FLYING THE '+PLANE_INFO[P.k].name.toUpperCase());pop('No tractor beam in planes · fly low and tap LAND to park it','t');blip(200,700,0.6,'sawtooth',0.08);mEvent('plane');lastHud='';}
-function parkPlane(){const P=FLYP;FLYP=null;P.g.position.set(pos.x,0,pos.z);P.g.rotation.y=yaw+PI/2;P.g.visible=true;
+  pos.set(P.g.position.x,P.g.position.y+8,P.g.position.z);P.deck=null;yaw=P.g.rotation.y-PI/2;speed=20;vy=4;fadeIn();snapCam();
+  if(P.town==='seas'&&P.g.position.y>3)mEvent('carrier');pop('✈️ FLYING THE '+PLANE_INFO[P.k].name.toUpperCase());pop('No tractor beam in planes · fly low and tap LAND to park it','t');blip(200,700,0.6,'sawtooth',0.08);mEvent('plane');lastHud='';}
+function parkPlane(){const P=FLYP;FLYP=null;P.g.position.set(pos.x,onDeck(pos.x,pos.z)?carrierDeckY():0,pos.z);P.g.rotation.y=yaw+PI/2;P.g.visible=true;
   if(P.g.parent!==towns[curTown].group)towns[curTown].group.add(P.g);P.town=curTown;Object.assign(P.col,{x0:pos.x-12,x1:pos.x+12,z0:pos.z-12,z1:pos.z+12,h:5});if(!colliders.includes(P.col))colliders.push(P.col);
   PILOT_G[P.k].visible=false;applyShip();}
 function landShip(){
@@ -4172,8 +4181,10 @@ function landShip(){
   const wasPlane=!!FLYP;if(FLYP)parkPlane();
   onFoot=true;clearEnemies();heat=0;beamActive=false;speed=0;vy=0;
   shipPark.set(pos.x,4,pos.z);shipYaw=yaw;
-  if(wasPlane){shipPark.addScaledVector(right,-16);setTimeout(()=>pop('🛸 Your UFO flew over to pick you up','t'),900);}
+  if(wasPlane&&!onDeck(pos.x,pos.z)){shipPark.addScaledVector(right,-16);setTimeout(()=>pop('🛸 Your UFO flew over to pick you up','t'),900);}
   pos.copy(shipPark).addScaledVector(right,7);pos.y=0;wv=0;wJumps=0;
+  if(onDeck(shipPark.x,shipPark.z)){shipPark.y=carrierDeckY()+4;pos.copy(shipPark).addScaledVector(fwd,18);}
+  if(onDeck(pos.x,pos.z))pos.y=carrierDeckY();
   walker.visible=true;document.body.classList.add('walking');setupRelics();setupCrates();
   pop('🚶 EXPLORE ON FOOT');pop(`Find 5 💠 relics${SECRETS[curTown]&&!SECRETS[curTown].foundThisRun?' · a 🔍 secret is hidden here':''}`,'t');blip(300,600,0.25,'sine',0.12);lastHud='';
 }
@@ -4193,7 +4204,7 @@ function walkUpdate(dt,ix,iy,jumpBtn,run,shipBtn,t){
   pos.y+=wv*dt;wv-=grav*dt;
   const hd=Math.hypot(pos.x,pos.z),HL=curTown==='ice'?930:620;if(hd>HL){pos.x*=HL/hd;pos.z*=HL/hd;}
   if(curTown==='ice')iceWallBlock(1.2);
-  let gh=0;const R=0.7;
+  let gh=0;const R=0.7;if(onDeck(pos.x,pos.z)){gh=carrierDeckY();if(pos.y<gh-2.5&&wv<=0)pos.y=gh;} // walk/climb onto the carrier deck
   for(const b of colliders){
     const cx=clamp(pos.x,b.x0,b.x1),cz=clamp(pos.z,b.z0,b.z1),dx=pos.x-cx,dz=pos.z-cz,d2=dx*dx+dz*dz;if(d2>=R*R)continue;
     if(pos.y>=b.h-0.9){gh=Math.max(gh,b.h);continue;}
@@ -4510,6 +4521,7 @@ const MISSIONS=[
   {id:'penguin',t:'Abduct 5 penguins',ev:'abduct',m:d=>d.emoji==='🐧',g:5,r:400},
   {id:'icearch',t:'Fly through the Frost Palace gate',ev:'icearch',g:1,r:300},
   {id:'opensea',t:'Fly up out of the Ocean to the Open Sea',ev:'visit',m:d=>d.town==='seas',g:1,r:400},
+  {id:'carrier',t:'Take off from the aircraft carrier (Open Sea)',ev:'carrier',g:1,r:700},
   {id:'surf',t:'Surf a wave for 30 seconds (Open Sea)',ev:'surf30',g:1,r:700},
   {id:'boats',t:'Beam up 3 boats on the Open Sea',ev:'abduct',m:d=>d.emoji==='🎣'||d.emoji==='⛵',g:3,r:500},
   {id:'octopus',t:'Abduct 2 octopuses (Ocean floor)',ev:'abduct',m:d=>d.emoji==='🐙',g:2,r:500},
