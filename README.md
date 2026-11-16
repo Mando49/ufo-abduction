@@ -108,3 +108,7 @@ A collection book (menu, pause and game-over screens) with a card for everything
 ## Bosses
 
 Alien Mothership (space), Kraken (Ocean), Fire Worm (Magmor) and MECH-51, the Area 51 battle robot: it climbs out of the sand when you reach 2 wanted stars in Area 51, fires homing missiles and a lock-on eye laser, and goes down when you shoot its head.
+
+## Underground worlds
+
+Mars has a hidden cave (crystals, bats, a fossil, a crashed saucer and a Sleeping King frozen at the back) plus the four famous rovers and the little helicopter on the surface. The Moon has a giant crater you fly down into: an inner-world city with robots, Greys, Reptilians and Mantis aliens.
