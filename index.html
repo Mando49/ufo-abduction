@@ -2760,6 +2760,8 @@ function makeShowgirl(){
         else{const t=new THREE.Mesh(new THREE.ConeGeometry(1.4,5,8),lam(0x2a6e2e));t.position.set(x,2.5,z);root.add(t);add(t);}}} // cypress
     freezeStatic(objs,root,true);}
   const POOL_W=new THREE.MeshBasicMaterial({color:0x35d4f0});
+  const ZZ_ON=new THREE.MeshBasicMaterial({color:0xffe6a0}),ZZ_OFF=new THREE.MeshBasicMaterial({color:0x1a1c28});
+  const ZZ_TEX=(()=>{const c=document.createElement('canvas');c.width=128;c.height=64;const g=c.getContext('2d');g.font='900 44px system-ui,sans-serif';g.fillStyle='#cfe4ff';g.shadowColor='#7ab0ff';g.shadowBlur=8;g.fillText('Zzz',8,48);return new THREE.CanvasTexture(c);})();
   // 🏘️ regular Las Vegas suburbs on both sides of the Strip: stucco houses, tile roofs, block walls, backyard pools, palms
   {const objs=[],roofG=new THREE.ConeGeometry(1,1,4),RES=[];
     const stucco=[0xd8c3a0,0xe2cfae,0xcdb48e,0xe8d6c0,0xd4b896,0xc9a882,0xe6c9a8],tile=[0xa0523a,0x8e4a34,0xb0644a,0x7a5a4a,0x9a6a50];
@@ -2791,7 +2793,15 @@ function makeShowgirl(){
           }
           if(Math.random()<0.35){const p=palmTree(hx+face*(w/2+5),z-d*0.4,rand(0.6,0.85));add(p);}
           else if(Math.random()<0.4){const tr=new THREE.Mesh(new THREE.SphereGeometry(1.6,6,5),lam(0x5a7a3a));tr.position.set(hx+face*(w/2+4),1.6,z-d*0.35);root.add(tr);add(tr);}
-          colliders.push({x0:hx-w/2,x1:hx+w/2,z0:z-d/2,z1:z+d/2,h:H+3,y0:0});}}
+          colliders.push({x0:hx-w/2,x1:hx+w/2,z0:z-d/2,z1:z+d/2,h:H+3,y0:0});
+          if(Math.random()<0.22){ // 😴 someone asleep inside: lit bedroom window + Zzz over the roof
+            const win=new THREE.Mesh(new THREE.PlaneGeometry(2.2,1.6),ZZ_ON);win.userData.keep=true;win.position.set(hx-face*(w/2+0.06),H*0.55,z+d*0.2);win.rotation.y=face>0?-PI/2:PI/2;root.add(win);
+            const zz=new THREE.Sprite(new THREE.SpriteMaterial({map:ZZ_TEX,transparent:true,depthWrite:false}));zz.scale.set(6,3,1);root.add(zz);
+            const T={type:'critter',mesh:makeHuman(true),still:true},bx2=hx,bz2=z,ph=rand(0,6),top=H+5;
+            T.spawn=T=>{T.mesh.position.set(bx2,1.2,bz2);T.mesh.rotation.set(0,rand(0,6),0);T.mesh.userData.body.rotation.set(0,0,PI/2);T.mesh.userData.body.position.set(1.6,0,0);T.mesh.visible=true;T.state='ground';};
+            T.spawn(T);targets.push(T);
+            planetAnim.push({town:'vegas',f:(t,dt)=>{const home=T.state==='ground';win.material=home?ZZ_ON:ZZ_OFF;zz.visible=home;const k=(t*0.6+ph)%1;zz.position.set(bx2+Math.sin(t+ph)*1.2,top+k*4,bz2);zz.material.opacity=1-k;
+              if(!home)T.mesh.userData.body.rotation.z+=(0-T.mesh.userData.body.rotation.z)*Math.min(1,dt*2);}});}}}
       // street lights
       for(const X of xs)for(let z=-400;z<=(side<0?280:440);z+=60){add(box(root,0.4,7,0.4,0x55565e,X+side*7,3.5,z));glowSprite(0xffc070,X+side*7,7.2,z,7,0.6);}
       // a strip mall + gas station at the edge of each neighborhood
