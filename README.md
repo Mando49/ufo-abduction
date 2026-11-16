@@ -91,3 +91,7 @@ Built with three.js. No install needed: it's a single `index.html` file.
 ## Fast loading
 
 Only the models for Neon City and your alien download when the game opens (about 5 MB). Each other world downloads its own models the first time you fly there. Every model was also slimmed down (smaller animations and files) without a visible difference.
+
+## Visitors in every world
+
+Chrome mystery orbs and the dark Jellyfish UFO (dangling tentacles) drift, zip around and blink out to reappear somewhere else in every world. Beam them up for big points. The 5th Dimension also has Tall Whites and Nordics walking around.

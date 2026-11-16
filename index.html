@@ -1070,6 +1070,7 @@ const ANIM={alien:{file:'alien',height:2.3,rotY:PI/2,clips:{walk:0},list:[]},
   soldier:{file:'soldier',height:3.5,rotY:PI/2,clips:{walk:0},list:[]},
   person:{file:'person',height:3.4,rotY:PI/2,clips:{walk:0},tint:true,list:[]},mummy:{file:'mummy',height:3.7,rotY:PI/2,clips:{walk:0},list:[]},yeti:{file:'yeti',height:7.2,rotY:PI/2,clips:{walk:0},list:[]},
   fox:{file:'fox',len:3.4,axis:'z',rotY:PI/2,clips:{idle:'Survey',walk:'Walk',run:'Run'},list:[]},
+  tallwhite:{file:'tallwhite',height:5.4,rotY:PI/2,clips:{walk:0},list:[]},nordic:{file:'nordic',height:4.5,rotY:PI/2,clips:{walk:0},list:[]},
   robot:{file:'robot',height:4.2,rotY:PI/2,clips:{idle:'Idle',walk:'Walking',run:'Running',wave:'Wave'},list:[]}};
 const animInst=[];
 function useAnim(type,g,town){const A=ANIM[type];g.userData.animType=type;g.userData.animTown=town;if(A.proto)attachAnim(A,g);else{A.list.push(g);if(MODELS_BOOTED&&!A.loading&&window.loadAnim)loadAnim(type);}return g;}
@@ -2441,6 +2442,10 @@ beginTown('fifth');
     J.g.visible=J.g.visible&&!(Math.sin(t*7+J.ph)>.985); // little dimensional glitch flicker
     if(!J.g.visible&&Math.random()<.5)J.g.visible=true;
     const T=jT.get(J.g);if(!T||T.state==='ground')J.g.position.y+=(6+Math.sin(t*.9+J.ph)*3-J.g.position.y)*Math.min(1,dt*2);});}});
+  // 👽 TALL WHITES and NORDICS walk the dimension (beam them up)
+  for(let i=0;i<12;i++){const tw=i<6,g=makeHuman(false);g.userData.emoji=tw?'🤍':'💙';g.userData.pts=tw?110:90;g.userData.heat=0.3;
+    const T={type:'critter',mesh:useAnim(tw?'tallwhite':'nordic',g,'fifth'),spawn:spawnCow};T.mesh.userData.T=T;T.spawn(T);targets.push(T);
+    const aura=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:tw?0xeaf4ff:0x6aa8ff,transparent:true,opacity:tw?.1:.22,blending:THREE.AdditiveBlending,depthWrite:false}));aura.position.y=3;aura.scale.set(9,11,1);g.add(aura);}
   // TIME ECHOES: ghost copies of your UFO follow a few seconds behind you
   const trail=[],echoes=[];let echoT=0;
   planetAnim.push({town:'fifth',f:(t,dt)=>{
@@ -4464,6 +4469,32 @@ function makeOrb(r){const g=new THREE.Group();const m=new THREE.Mesh(new THREE.S
       if(wasAbove&&m.position.y<=0){splash(m.position,16);}
       if(m.position.y<-8){m.visible=false;T.state='under';T.uw=rand(3,7);}}});}
   root=r0;})();
+// 🛸 RANDOM VISITORS in every world: chrome UAP orbs + the dark "jellyfish" UFO with dangling tentacles
+const JELLY_MAT=new THREE.MeshPhongMaterial({color:0x1c2128,specular:0xdfe8ff,shininess:120,emissive:0x05070a});
+function makeJellyUFO(){const g=new THREE.Group(),body=new THREE.Group();g.add(body);body.position.y=9;
+  const dome=new THREE.Mesh(new THREE.SphereGeometry(4.2,28,18),JELLY_MAT);dome.scale.y=0.9;body.add(dome);
+  for(let i=0;i<14;i++){const sp=new THREE.Mesh(new THREE.SphereGeometry(rand(.15,.35),6,5),new THREE.MeshBasicMaterial({color:0xf2f6ff}));const a=rand(0,2*PI),b=rand(-.2,1.2);sp.position.set(Math.cos(a)*Math.cos(b)*4.15,Math.sin(b)*3.75,Math.sin(a)*Math.cos(b)*4.15);body.add(sp);}
+  const tents=[];for(let k=0;k<9;k++){const a=k/9*2*PI+rand(-.2,.2),r=rand(1.2,3),n=6,len=rand(1.1,1.8),segs=[];let par=body;
+    for(let s=0;s<n;s++){const pv=new THREE.Group();if(s===0)pv.position.set(Math.cos(a)*r,-2.6,Math.sin(a)*r);else pv.position.y=-len;par.add(pv);
+      const seg=new THREE.Mesh(new THREE.CylinderGeometry(.42*(1-s/n)+.08,.42*(1-(s+1)/n)+.06,len,6),JELLY_MAT);seg.position.y=-len/2;pv.add(seg);segs.push(pv);par=pv;}
+    tents.push({segs,ph:rand(0,6)});}
+  const gl=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:0x9ab4ff,transparent:true,opacity:.25,blending:THREE.AdditiveBlending,depthWrite:false}));gl.scale.set(16,16,1);gl.position.y=9;g.add(gl);
+  g.userData.emoji='🌑';g.userData.pts=250;g.userData.heat=1;g.userData.body=body;g.userData.tents=tents;return g;}
+function makeVisitorOrb(){const g=makeOrb(1.6);g.userData.ball.position.y=0;const gl=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:0xbfe8ff,transparent:true,blending:THREE.AdditiveBlending,depthWrite:false,opacity:0.55}));gl.scale.set(7,7,1);g.add(gl);
+  g.userData.emoji='🔘';g.userData.pts=120;g.userData.heat=0.8;return g;}
+const VISITORS=[];
+(function(){const W={city:[2,1],ice:[2,1],lava:[2,1],jungle:[2,1],moon:[2,1],fifth:[2,1],egypt:[2,1],maya:[2,1],vegas:[2,1],mars:[2,1],desert:[0,1],seas:[0,1]};
+  for(const n in W){if(!towns[n])continue;const [no,nj]=W[n];
+    const spawnV=T=>{const m=T.mesh;m.position.set(rand(-420,420),rand(T.jelly?18:12,T.jelly?40:30),rand(-420,420));resetRot(m);m.visible=true;T.state='ground';T.to=m.position.clone();T.wait=rand(1,4);T.blink=rand(14,30);};
+    for(let i=0;i<no+nj;i++){const jelly=i>=no,g=jelly?makeJellyUFO():makeVisitorOrb();towns[n].group.add(g);
+      const T={type:'critter',mesh:g,still:true,jelly,spawn:spawnV,town:n};T.spawn(T);towns[n].targets.push(T);VISITORS.push(T);}}})();
+function visitorTick(t,dt){VISITORS.forEach(T=>{if(T.town!==curTown)return;const m=T.mesh;
+  if(T.jelly){const u=m.userData;u.body.rotation.y+=dt*.15;u.body.position.y=9+Math.sin(t*.8+T.wait)*.6;
+    u.tents.forEach(A=>A.segs.forEach((s,i)=>{s.rotation.x=Math.sin(t*1.6+A.ph+i*.7)*(.12+i*.05);s.rotation.z=Math.cos(t*1.3+A.ph+i*.6)*(.1+i*.04);}));}
+  if(T.state!=='ground')return;T.wait-=dt;T.blink-=dt;
+  if(T.blink<=0){m.position.set(clamp(pos.x+rand(-300,300),-560,560),rand(T.jelly?18:12,T.jelly?40:30),clamp(pos.z+rand(-300,300),-560,560));T.to.copy(m.position);T.blink=rand(14,30);return;} // vanishes and reappears somewhere else
+  if(T.wait<=0){T.wait=rand(T.jelly?3:1.5,T.jelly?7:5);T.to.set(clamp(m.position.x+rand(-120,120),-560,560),rand(T.jelly?18:12,T.jelly?40:30),clamp(m.position.z+rand(-120,120),-560,560));}
+  m.position.lerp(T.to,1-Math.exp(-dt*(T.jelly?0.6:2.5)));if(!T.jelly)m.rotation.y+=dt*0.7;});}
 inTown('desert',()=>{
   const T51=towns.desert.targets,HX=420,HZ=-360;
   // 🛩️ secret aircraft parked in front of the black-site hangar
@@ -4653,6 +4684,10 @@ const MISSIONS=[
   {id:'pyramid',t:'Stand on top of a pyramid (Egypt or Mars)',ev:'pyramid',g:1,r:500},
   {id:'debris',t:'Recover 5 pieces of UFO wreckage (Area 51)',ev:'abduct',m:d=>d.emoji==='🔩',g:5,r:600},
   {id:'mib',t:'Abduct 3 Men in Black',ev:'abduct',m:d=>d.emoji==='🕴️',g:3,r:700},
+  {id:'tallwhite',t:'Beam up 3 Tall Whites (5th Dimension)',ev:'abduct',m:d=>d.emoji==='🤍',g:3,r:600},
+  {id:'nordic',t:'Beam up 3 Nordics (5th Dimension)',ev:'abduct',m:d=>d.emoji==='💙',g:3,r:600},
+  {id:'jellyufo',t:'Catch a Jellyfish UFO (they show up in every world)',ev:'abduct',m:d=>d.emoji==='🌑',g:1,r:900},
+  {id:'orbsall',t:'Catch 5 mystery orbs in any world',ev:'abduct',m:d=>d.emoji==='🔘',g:5,r:700},
   {id:'orbs',t:'Catch 3 mystery spheres (Area 51)',ev:'abduct',m:d=>d.emoji==='🔘',g:3,r:700},
   {id:'stadium',t:'Abduct 3 football players (stadium)',ev:'abduct',m:d=>d.emoji==='🏈',g:3,r:500},
   {id:'blimp',t:'Catch the stadium blimp',ev:'abduct',m:d=>d.emoji==='🎈',g:1,r:700},
@@ -5459,7 +5494,7 @@ function loop(now){
     }else if(T.state==='fall'){
       T.vy-=35*dt;m.position.y+=T.vy*dt;
       if(m.position.y<=0){m.position.y=0;T.state='ground';
-        if(T.type!=='cow'){T.along=T.axis==='x'?m.position.x:m.position.z;placeCar(T);}else resetRot(m);
+        if(T.axis&&(T.type==='car'||T.type==='truck')){T.along=T.axis==='x'?m.position.x:m.position.z;placeCar(T);}else resetRot(m);
         if(T.vy<-20)blip(120,60,0.15,'square',0.08);}
     }
   }
@@ -5513,6 +5548,7 @@ function loop(now){
     look.copy(pos).addScaledVector(fwd,16);look.y-=1.5;camera.lookAt(look);
   }
   sky.position.copy(camera.position);
+  if(mode==='ground')visitorTick(t,dt);
   if(mode==='ground'&&towns[curTown].planet){const T=towns[curTown],k=clamp((pos.y-260)/90,0,1);
     sky.material.opacity=1-k*0.9;scene.fog.near=T.fog[0];scene.fog.far=T.fog[1]+(1500-T.fog[1])*clamp((pos.y-120)/140,0,1);
     scene.background.copy(T.fogC).lerp(SPACE_C,k);scene.fog.color.copy(scene.background);raysMat.opacity=0;if(bloom)bloom.strength=T.bloom!=null?T.bloom+(0.75-T.bloom)*k:0.75;
