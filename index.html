@@ -5254,7 +5254,8 @@ function loop(now){
       collide();
       if(curTown==='sub51'){pos.y=Math.min(pos.y,60);pos.x=clamp(pos.x,-88,88);pos.z=clamp(pos.z,-300,292);if(pos.z<-282&&Math.abs(pos.x)<34&&pos.y<46)exitHangar18();}
       if(curTown==='ocean'&&pos.y>SURF-3)enterSeas();else if(curTown==='seas'&&down&&pos.y<6&&!onDeck(pos.x,pos.z))diveSea();
-      if(curTown==='seas'&&onDeck(pos.x,pos.z)&&pos.y<carrierDeckY()+3){pos.y=carrierDeckY()+3;if(vy<0)vy=0;} // hover above the carrier deck instead of sinking into itelse if(pos.y>SPACE_Y)enterSpace();
+      if(curTown==='seas'&&onDeck(pos.x,pos.z)&&pos.y<carrierDeckY()+3){pos.y=carrierDeckY()+3;if(vy<0)vy=0;} // hover above the carrier deck
+      if(pos.y>SPACE_Y&&mode==='ground')enterSpace();
       if(curTown==='city'&&state==='play'){const pdx=pos.x-VEGAS_PORTAL.x,pdy=pos.y-VEGAS_PORTAL.y,pdz=pos.z-VEGAS_PORTAL.z;if(Math.abs(pdz)<5&&Math.hypot(pdx,pdy)<VEGAS_PORTAL.R+3)enterWarp('vegas');}
     }else if(mode==='space'){spaceUpdate(dt);if(mode==='space')stationUpdate(dt);}else warpUpdate(dt,ix,(up?1:0)-(down?1:0));
     beamActive=beamBtn&&!lock&&mode==='ground'&&!FLYP;
