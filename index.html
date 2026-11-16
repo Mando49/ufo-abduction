@@ -3032,9 +3032,8 @@ beginTown('seas');
   boat('fishboat','🎣',60,9,120,560);boat('sailboat','⛵',50,9,140,580);
   // 🐬 dolphins leaping out of the waves
   for(let i=0;i<8;i++){const g=new THREE.Group();box(g,3,1,1,0x8a9aaa,0,0,0);g.scale.setScalar(2);g.userData.emoji='🐬';g.userData.pts=60;root.add(g);useModel('dolphin',g);
-    const T={type:'critter',mesh:g,still:true,cx:rand(-450,450),cz:rand(-450,450),ph:rand(0,6),spawn:T=>{T.mesh.visible=true;T.state='ground';resetRot(T.mesh);}};T.spawn(T);targets.push(T);
+    const T={type:'critter',mesh:g,still:true,dolphin:true,cx:rand(-450,450),cz:rand(-450,450),ph:rand(0,6),spawn:T=>{T.mesh.visible=true;T.state='ground';resetRot(T.mesh);}};T.spawn(T);targets.push(T);
     planetAnim.push({town:'seas',f:t=>{if(T.state!=='ground')return;const a=t*0.25+T.ph,j=(t*0.9+T.ph)%2.4,hop=j<1.2?Math.sin(j/1.2*PI):-0.3;g.position.set(T.cx+Math.cos(a)*40,hop*9-1,T.cz+Math.sin(a)*40);g.rotation.set(0,-a-PI/2,j<1.2?(0.6-j)*0.9:0);}});}
-  colliders.push({x0:-9999,x1:9999,z0:-9999,z1:9999,h:0,y0:-1});
   // ✈️ jets on the carrier deck you can fly (land on the deck, walk up, tap SHIP)
   [['bop',-45,8],['sr71',5,-6],['wing',55,6]].forEach(([k,lx,lz])=>{const g=new THREE.Group();g.position.set(CARRIER.x+lx,CARRIER.deckY,CARRIER.z+lz);g.rotation.y=0;root.add(g);useModel(k,g);
     PLANE_SPOTS.push({k,g,col:{x0:0,x1:0,z0:0,z1:0,h:0,y0:0},town:'seas',deck:lx});});
@@ -4188,14 +4187,27 @@ function landShip(){
   walker.visible=true;document.body.classList.add('walking');setupRelics();setupCrates();
   pop('🚶 EXPLORE ON FOOT');pop(`Find 5 💠 relics${SECRETS[curTown]&&!SECRETS[curTown].foundThisRun?' · a 🔍 secret is hidden here':''}`,'t');blip(300,600,0.25,'sine',0.12);lastHud='';
 }
-function boardShip(){
+function boardShip(){if(RIDE)endRide();SWIM=false;
   onFoot=false;walker.visible=false;document.body.classList.remove('walking');relicFx.forEach(r=>r.g.visible=false);crateFx.forEach(c=>c.g.visible=false);eyeBeams.forEach(m=>m.visible=false);eyeGlow.forEach(s=>s.visible=false);
   pos.copy(shipPark);pos.y=10;yaw=shipYaw;speed=0;vy=0;fadeIn();snapCam();
   pop('🛸 BACK IN THE SHIP');blip(600,300,0.25,'sine',0.12);lastHud='';
 }
+// 🏊 swimming + 🐬 dolphin riding (Open Sea)
+let SWIM=false,SWIM_HINT=0,RIDE=null,rideHint=0;
+function splash(p,n){for(let i=0;i<(n||10);i++)spawnFx(tmpV2.set(p.x+rand(-1.5,1.5),0.3,p.z+rand(-1.5,1.5)),tmpV.set(rand(-5,5),rand(6,14),rand(-5,5)),0.6,0.9,1.2,0x9fd8f0,true);blip(260,120,0.2,'sine',0.06);}
+function nearDolphin(){if(curTown!=='seas'||!SWIM)return null;return towns.seas.targets.find(T=>T.dolphin&&T.state==='ground'&&Math.hypot(T.mesh.position.x-pos.x,T.mesh.position.z-pos.z)<11);}
+function startRide(T){RIDE=T;T.state='ridden';T.rt0=0;RIDE.t=0;RIDE.tick=0;yaw=Math.atan2(-(T.mesh.position.x-pos.x),-(T.mesh.position.z-pos.z));pop('🐬 RIDING A DOLPHIN!');pop('Steer · RUN = faster · SHIP to hop off','t');splash(pos,14);}
+function endRide(){const T=RIDE;RIDE=null;T.state='ground';T.cx=pos.x-Math.cos(T.ph)*40;T.cz=pos.z-Math.sin(T.ph)*40;pos.y=-1.3;wv=0;pop(`Rode the dolphin ${T.t.toFixed(1)}s`,'t');}
 function walkUpdate(dt,ix,iy,jumpBtn,run,shipBtn,t){
+  if(RIDE){const T=RIDE;yaw-=ix*1.8*dt;fwd.set(-Math.sin(yaw),0,-Math.cos(yaw));pos.addScaledVector(fwd,(24+(run?16:0)+Math.max(0,iy)*6)*dt);
+    const hd=Math.hypot(pos.x,pos.z);if(hd>620){pos.x*=620/hd;pos.z*=620/hd;yaw+=PI*dt*2;}
+    T.t+=dt;T.tick+=dt;if(T.tick>=1){T.tick=0;score+=10;}if(T.t>=20&&!T.did){T.did=true;mEvent('ride20');pop('🐬 20s DOLPHIN RIDE!');}
+    const j=(T.t*0.85)%2.2,hop=j<1.1?Math.sin(j/1.1*PI):0,wasUp=pos.y>0.2;pos.y=-0.4+hop*8;if(wasUp!==(pos.y>0.2))splash(pos,8);
+    T.mesh.position.set(pos.x,pos.y-1.4,pos.z);T.mesh.rotation.set(0,yaw+PI/2,j<1.1?(0.55-j)*0.9:0);
+    walker.position.set(pos.x,pos.y,pos.z);walker.rotation.y=yaw;if(PILOT.mixer){pilotPlay('idle');PILOT.mixer.update(dt);}wParts.jet.visible=false;
+    if(shipBtn&&!prevShip)endRide();prevShip=shipBtn;return;}
   yaw-=ix*2.6*dt;fwd.set(-Math.sin(yaw),0,-Math.cos(yaw));
-  const air=!wGround&&pos.y>2.5;const sp=(iy>0?iy*(run?17:9)*(air?1.6:1):iy*5);pos.addScaledVector(fwd,sp*dt);
+  const air=!wGround&&pos.y>2.5;const sp=(iy>0?iy*(run?17:9)*(air?1.6:1):iy*5)*(SWIM?0.6:1);pos.addScaledVector(fwd,sp*dt);
   const grav=30*(curTown==='moon'?0.35:curTown==='mars'?0.6:1);
   if(jumpBtn&&!prevJump){if(wGround){wv=14;wJumps=1;blip(300,700,0.12,'sine',0.08);}else if(wJumps<2){wv=12;wJumps=2;blip(500,1100,0.12,'sine',0.08);spawnFx(pos,tmpV.set(0,-3,0),0.4,2.5,3,0x7ffcff,true);}}
   prevJump=jumpBtn;
@@ -4212,13 +4224,16 @@ function walkUpdate(dt,ix,iy,jumpBtn,run,shipBtn,t){
     const d=Math.sqrt(d2);if(d>0.001){pos.x+=dx/d*(R-d);pos.z+=dz/d*(R-d);}
     else{const e=[pos.x-b.x0,b.x1-pos.x,pos.z-b.z0,b.z1-pos.z],mi=Math.min(...e);if(mi===e[0])pos.x=b.x0-R;else if(mi===e[1])pos.x=b.x1+R;else if(mi===e[2])pos.z=b.z0-R;else pos.z=b.z1+R;}
   }
+  if(curTown==='seas'&&!onDeck(pos.x,pos.z))gh=-1.3; // open water: swim chest-deep
   if(pos.y<=gh){pos.y=gh;if(wv<0)wv=0;wGround=true;wJumps=0;}else wGround=false;
+  {const sw=curTown==='seas'&&!onDeck(pos.x,pos.z)&&pos.y<-0.8;if(sw&&!SWIM){splash(pos,12);if(!SWIM_HINT){SWIM_HINT=1;pop('🏊 SWIMMING · swim up to a 🐬 dolphin and tap SHIP to ride it','t');}}SWIM=sw;}
   // animate
   const mv=Math.abs(sp)>0.5&&wGround;walkPh+=dt*(run?14:9)*(mv?1:0);
   const sw=mv?Math.sin(walkPh)*0.7:(wGround?0:0.4);
   wParts.lLeg.rotation.x=sw;wParts.rLeg.rotation.x=wGround?-sw:-0.4;wParts.lArm.rotation.x=-sw*0.8;wParts.rArm.rotation.x=sw*0.8;
   wParts.jet.visible=!wGround;wParts.jet.scale.setScalar((jumpBtn&&!wGround?1.8:0.8)+Math.random()*0.6);
-  if(PILOT.mixer){pilotPlay(!wGround?'jump':mv?(run?'run':'walk'):'idle');PILOT.mixer.update(dt);}
+  if(PILOT.mixer){pilotPlay(SWIM?(Math.abs(sp)>0.5?'swim':'swimIdle'):!wGround?'jump':mv?(run?'run':'walk'):'idle');PILOT.mixer.update(dt);}
+  if(SWIM&&Math.random()<dt*(Math.abs(sp)>0.5?4:0.5))spawnFx(tmpV2.set(pos.x+rand(-1,1),0.2,pos.z+rand(-1,1)),tmpV.set(0,2,0),0.5,0.6,1,0x9fd8f0,true);
   walker.position.copy(pos);walker.position.y+=(mv&&!PILOT.mixer)?Math.abs(Math.sin(walkPh))*0.15:0;walker.rotation.y=yaw;
   // relics
   for(const r of relicFx){if(r.got)continue;r.g.userData.gem.rotation.y+=dt*2;r.g.position.y=r.p.y+Math.sin(t*2)*0.3;
@@ -4229,7 +4244,8 @@ function walkUpdate(dt,ix,iy,jumpBtn,run,shipBtn,t){
   // say hi to critters
   heartCd-=dt;if(heartCd<=0)for(const T of targets){if(T.state==='ground'&&T.mesh.position.distanceTo(pos)<3.5){heartCd=1.2;spawnFx(T.mesh.position.clone().add(new V3(0,3.5,0)),tmpV.set(0,2,0),1,2.5,1,0xff5ad8,true);pop('💖','t');break;}}
   const NP=nearPlane();if(NP){planeHint-=dt;if(planeHint<=0){planeHint=5;pop('✈️ Tap SHIP to fly the '+PLANE_INFO[NP.k].name,'t');}}
-  if(shipBtn&&!prevShip){if(NP)boardPlane(NP);else boardShip();}prevShip=shipBtn;
+  const ND=nearDolphin();if(ND&&!NP){rideHint-=dt;if(rideHint<=0){rideHint=5;pop('🐬 Tap SHIP to ride the dolphin','t');}}
+  if(shipBtn&&!prevShip){if(ND&&!NP)startRide(ND);else if(NP)boardPlane(NP);else boardShip();}prevShip=shipBtn;
   if(wGround)energy=Math.min(100,energy+15*dt);
   eyeLasers(dt,inp.fire||keys.x,t);
 }
@@ -4238,7 +4254,7 @@ function walkCam(dt){
   if(camera.position.y<1)camera.position.y=1;look.copy(pos).addScaledVector(fwd,8);look.y=pos.y+2;camera.lookAt(look);
 }
 $('bLand').addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();landShip();});
-addEventListener('keydown',e=>{if(e.key.toLowerCase()==='l'){if(onFoot){const NP=nearPlane();if(NP)boardPlane(NP);else boardShip();}else landShip();}});
+addEventListener('keydown',e=>{if(e.key.toLowerCase()==='l'){if(onFoot){if(RIDE)endRide();else{const ND=nearDolphin(),NP=nearPlane();if(ND&&!NP)startRide(ND);else if(NP)boardPlane(NP);else boardShip();}}else landShip();}});
 
 // ---------- HIDDEN SECRETS (found on foot) ----------
 const SECRETS={
@@ -4354,7 +4370,20 @@ const ORB_TEX=texCanvas(512,256,g=>{const gr=g.createLinearGradient(0,0,0,256);g
     g.font='bold 13px monospace';g.fillStyle='rgba(40,46,56,.8)';for(let r=0;r<16;r++){const a=r/16*2*PI;g.fillText(String.fromCharCode(0x16A0+((r*7+k*3)%60)),cx+Math.cos(a)*58-5,128+Math.sin(a)*58+5);}
     g.beginPath();g.moveTo(cx,40);g.lineTo(cx+14,64);g.lineTo(cx-14,64);g.closePath();g.stroke();g.beginPath();g.moveTo(cx,216);g.lineTo(cx+14,192);g.lineTo(cx-14,192);g.closePath();g.stroke();}});
 const ORB_MAT=new THREE.MeshPhongMaterial({map:ORB_TEX,bumpMap:ORB_TEX,bumpScale:0.6,color:0xffffff,specular:0xeef6ff,shininess:140,emissive:0x101418});
+function makeOrbSea(){const g=makeOrb(1.6);g.userData.ball.position.y=0;const gl=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:0xbfe8ff,transparent:true,blending:THREE.AdditiveBlending,depthWrite:false,opacity:0.55}));gl.scale.set(7,7,1);g.add(gl);g.userData.emoji='🔘';g.userData.pts=120;g.userData.heat=0.8;return g;}
 function makeOrb(r){const g=new THREE.Group();const m=new THREE.Mesh(new THREE.SphereGeometry(r,32,20),ORB_MAT);m.position.y=r;g.add(m);g.userData.ball=m;return g;}
+// 🔘 mystery orbs over the Open Sea: they zip around, plunge into the water and burst back out
+(function(){const r0=root;root=towns.seas.group;const TS=towns.seas.targets;
+  for(let i=0;i<6;i++){const g=makeOrbSea();root.add(g);
+    const T={type:'critter',mesh:g,still:true,spawn:T=>{T.mesh.position.set(rand(-450,450),rand(15,40),rand(-450,450));resetRot(T.mesh);T.mesh.visible=true;T.state='ground';T.to=T.mesh.position.clone();T.wait=rand(1,4);T.dive=false;}};T.spawn(T);TS.push(T);
+    planetAnim.push({town:'seas',f:(t,dt)=>{const m=T.mesh;
+      if(T.state==='under'){T.uw-=dt;if(T.uw<=0){m.position.set(rand(-450,450),-6,rand(-450,450));m.visible=true;T.state='ground';T.to=m.position.clone().setY(rand(18,40));T.wait=rand(2,4);splash(m.position,14);}return;}
+      if(T.state!=='ground')return;T.wait-=dt;
+      if(T.wait<=0){T.wait=rand(1.5,4.5);if(Math.random()<0.3){T.dive=true;T.to.set(m.position.x+rand(-40,40),-14,m.position.z+rand(-40,40));}else{T.dive=false;T.to.set(clamp(m.position.x+rand(-140,140),-560,560),rand(8,45),clamp(m.position.z+rand(-140,140),-560,560));}}
+      const wasAbove=m.position.y>0;m.position.lerp(T.to,1-Math.exp(-dt*(T.dive?1.8:2.6)));m.rotation.y+=dt*0.7;
+      if(wasAbove&&m.position.y<=0){splash(m.position,16);}
+      if(m.position.y<-8){m.visible=false;T.state='under';T.uw=rand(3,7);}}});}
+  root=r0;})();
 inTown('desert',()=>{
   const T51=towns.desert.targets,HX=420,HZ=-360;
   // 🛩️ secret aircraft parked in front of the black-site hangar
@@ -4522,6 +4551,7 @@ const MISSIONS=[
   {id:'icearch',t:'Fly through the Frost Palace gate',ev:'icearch',g:1,r:300},
   {id:'opensea',t:'Fly up out of the Ocean to the Open Sea',ev:'visit',m:d=>d.town==='seas',g:1,r:400},
   {id:'carrier',t:'Take off from the aircraft carrier (Open Sea)',ev:'carrier',g:1,r:700},
+  {id:'ride',t:'Ride a dolphin for 20 seconds (Open Sea)',ev:'ride20',g:1,r:700},
   {id:'surf',t:'Surf a wave for 30 seconds (Open Sea)',ev:'surf30',g:1,r:700},
   {id:'boats',t:'Beam up 3 boats on the Open Sea',ev:'abduct',m:d=>d.emoji==='🎣'||d.emoji==='⛵',g:3,r:500},
   {id:'octopus',t:'Abduct 2 octopuses (Ocean floor)',ev:'abduct',m:d=>d.emoji==='🐙',g:2,r:500},
@@ -4944,7 +4974,7 @@ const pos=new V3(0,60,400),fwd=new V3(),right=new V3(),desired=new V3(),look=new
 
 function pop(txt,cls){const d=document.createElement('div');d.className='pop '+(cls||'');d.textContent=txt;$('pops').appendChild(d);setTimeout(()=>d.remove(),1250);}
 let freeMode=false;
-function startGame(free){if(FLYP){PILOT_G[FLYP.k].visible=false;FLYP.g.visible=true;FLYP.col.h=5;FLYP=null;applyShip();}
+function startGame(free){if(RIDE){RIDE.state='ground';RIDE=null;}SWIM=false;if(FLYP){PILOT_G[FLYP.k].visible=false;FLYP.g.visible=true;FLYP.col.h=5;FLYP=null;applyShip();}
   initAudio();freeMode=free===true;document.body.classList.toggle('free',freeMode);
   score=0;timer=150;shield=100;energy=100;lock=false;cows=0;cars=0;
   yaw=0;speed=0;vy=0;pos.set(0,60,400);hitCd=0;

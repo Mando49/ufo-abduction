@@ -44,7 +44,7 @@ A 3D browser game: fly a triangle UFO over a neon cyberpunk city and farmland, a
 
 🐋 **Busier ocean:** humpback whales, sharks, dolphins, octopuses on the sea floor, 7 swirling schools of fish and yellow research submarines with spotlights (beam one up!).
 
-🚢 **The Open Sea:** fly up out of the Ocean to pop out on the surface — an aircraft carrier, destroyers, a cargo ship and a cruise ship sail by, a navy helicopter circles, dolphins leap, and fishing boats and sailboats are yours to beam up. Fly low into one of the big rolling waves to SURF it (steer to carve, grab rings, BOOST for big air). Land on the anchored aircraft carrier, walk up to a jet on the deck and tap SHIP to take off. Fly down into the glowing whirlpool to dive back under.
+🚢 **The Open Sea:** fly up out of the Ocean to pop out on the surface — an aircraft carrier, destroyers, a cargo ship and a cruise ship sail by, a navy helicopter circles, dolphins leap, and fishing boats and sailboats are yours to beam up. Fly low into one of the big rolling waves to SURF it (steer to carve, grab rings, BOOST for big air). Land on the anchored aircraft carrier, walk up to a jet on the deck and tap SHIP to take off. Land in the water to swim with your alien, ride a dolphin (swim up and tap SHIP), and watch for chrome orbs that plunge into the sea and burst back out. Fly down into the glowing whirlpool to dive back under.
 
 🧸 **Real 3D models:** your pilot alien is now a fully animated 3D character when you land (idle, walk, run and jump); camels, penguins, T-rexes, jaguars, sharks, tractors, barns and sunken treasure, plus *animated* walking people, mummies, yetis, robots, foxes and lost little aliens at Area 51 (rescue them by beaming them up!).
 
