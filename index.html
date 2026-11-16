@@ -3030,6 +3030,33 @@ beginTown('seas');
     const T={type:'critter',mesh:g,still:true,cx:rand(-450,450),cz:rand(-450,450),ph:rand(0,6),spawn:T=>{T.mesh.visible=true;T.state='ground';resetRot(T.mesh);}};T.spawn(T);targets.push(T);
     planetAnim.push({town:'seas',f:t=>{if(T.state!=='ground')return;const a=t*0.25+T.ph,j=(t*0.9+T.ph)%2.4,hop=j<1.2?Math.sin(j/1.2*PI):-0.3;g.position.set(T.cx+Math.cos(a)*40,hop*9-1,T.cz+Math.sin(a)*40);g.rotation.set(0,-a-PI/2,j<1.2?(0.6-j)*0.9:0);}});}
   colliders.push({x0:-9999,x1:9999,z0:-9999,z1:9999,h:0,y0:-1});
+  // 🏄 SURF THE WAVES: big swells roll across the sea — fly low into one and ride it
+  const WL=440,waves=[],waveM=new THREE.MeshPhongMaterial({color:0x13608f,emissive:0x062a40,shininess:40,specular:0x4a90b8});
+  const wg=new THREE.CylinderGeometry(1,1,1,24,1);wg.rotateZ(PI/2);
+  const ringG=new THREE.TorusGeometry(3.2,0.45,8,24),ringM=new THREE.MeshBasicMaterial({color:0xffe14a});
+  for(let i=0;i<4;i++){const g=new THREE.Group();root.add(g);
+    const body=new THREE.Mesh(wg,waveM);body.scale.set(WL,13,20);g.add(body);
+    const foam=box(g,WL,1.6,6,0xf4fbff,0,12.6,-3);box(g,WL,0.8,3,0xbfe8ff,0,11.2,4);const foamG=[];for(let k=0;k<8;k++){const f=glowSprite(0xffffff,-WL/2+k*WL/7,13.5,-3,16,0.5);g.add(f);foamG.push(f);}
+    const rings=[];for(let k=0;k<3;k++){const r=new THREE.Mesh(ringG,ringM);r.rotation.y=PI/2;g.add(r);rings.push({m:r,x:rand(-WL/2+20,WL/2-20),got:false});}
+    waves.push({g,x:rand(-200,200),z:-600+i*300,sp:rand(16,22),rings,foamG});}
+  const SURF={W:null,t:0,cd:0,best:0,tick:0,did30:false};
+  planetAnim.push({town:'seas',f:(t,dt)=>{
+    waves.forEach(W=>{W.z+=W.sp*dt;if(W.z>640){W.z=-640;W.x=rand(-250,250);W.rings.forEach(r=>{r.got=false;r.x=rand(-WL/2+20,WL/2-20);});}
+      W.g.position.set(W.x,Math.sin(t*0.9+W.x)*0.6,W.z);W.rings.forEach((r,k)=>{r.m.visible=!r.got;r.m.position.set(r.x,18+Math.sin(t*3+k)*0.6,0);r.m.rotation.x=t*2;});
+      W.foamG.forEach((f,k)=>{f.material.opacity=0.35+0.25*Math.sin(t*4+k);});});
+    SURF.cd-=dt;const playing=state==='play'&&mode==='ground'&&!onFoot&&curTown==='seas';
+    if(!SURF.W){if(!playing||SURF.cd>0||pos.y>22)return;
+      const W=waves.find(W=>Math.abs(pos.z-W.z)<14&&Math.abs(pos.x-W.x)<WL/2-5);
+      if(W){SURF.W=W;SURF.t=0;SURF.tick=0;SURF.did30=false;pop('🏄 SURFING!');pop('Steer to carve · BOOST = big air · ▲ to let go','t');blip(200,600,0.5,'sine',0.12);}return;}
+    const W=SURF.W;if(!playing){SURF.W=null;return;}
+    SURF.t+=dt;SURF.tick+=dt;pos.z+=(W.z+3-pos.z)*Math.min(1,dt*8);pos.y+=(17+Math.sin(t*2.2)*1.6-pos.y)*Math.min(1,dt*6);vy=0;speed=Math.max(speed,24);
+    if(SURF.tick>=1){SURF.tick=0;score+=5;}
+    W.rings.forEach(r=>{if(!r.got&&Math.abs(pos.x-(W.x+r.x))<5){r.got=true;score+=25;pop('💫 +25');blip(900,1800,0.15,'triangle',0.1);}});
+    if(!SURF.did30&&SURF.t>=30){SURF.did30=true;mEvent('surf30');pop('🏄 30s SURF! Legend!');}
+    const off=Math.abs(pos.x-W.x)>WL/2-2,boost=inp.boost||keys.shift,up=inp.up||keys.r||keys.e;
+    if(boost||up||off){SURF.W=null;SURF.cd=1.2;if(boost){vy=34;pos.y+=2;score+=50;pop('🚀 BIG AIR! +50');blip(300,1400,0.4,'sawtooth',0.08);}else if(off)pop('🌊 Wiped out','t');
+      if(SURF.t>SURF.best)SURF.best=SURF.t;pop(`Rode it ${SURF.t.toFixed(1)}s`,'t');}
+  }});
 })();
 endTown('seas',[300,1600]);Object.assign(towns.seas,{planet:true,fogC:new THREE.Color(0x9fd4f0),skyTint:0xcfeeff,label:'🚢 THE OPEN SEA',bloom:0.25});
 // 🛸 HANGAR 18 — the underground base under Area 51 (fly in through the black-site hangar doors)
@@ -4483,6 +4510,7 @@ const MISSIONS=[
   {id:'penguin',t:'Abduct 5 penguins',ev:'abduct',m:d=>d.emoji==='🐧',g:5,r:400},
   {id:'icearch',t:'Fly through the Frost Palace gate',ev:'icearch',g:1,r:300},
   {id:'opensea',t:'Fly up out of the Ocean to the Open Sea',ev:'visit',m:d=>d.town==='seas',g:1,r:400},
+  {id:'surf',t:'Surf a wave for 30 seconds (Open Sea)',ev:'surf30',g:1,r:700},
   {id:'boats',t:'Beam up 3 boats on the Open Sea',ev:'abduct',m:d=>d.emoji==='🎣'||d.emoji==='⛵',g:3,r:500},
   {id:'octopus',t:'Abduct 2 octopuses (Ocean floor)',ev:'abduct',m:d=>d.emoji==='🐙',g:2,r:500},
   {id:'sub',t:'Beam up a submarine (Ocean)',ev:'abduct',m:d=>d.emoji==='🚢',g:1,r:700},
@@ -4983,7 +5011,7 @@ function enterSpace(sec){
   snapCam();
   pop('🚀 '+SECTORS[sec].name);pop(sec==='earth'?'Fly to the Moon 🌕 or Mars 🔴 · or find a portal':'Shoot alien hunters · find a portal','t');blip(200,900,0.8,'sine',0.15);
 }
-function enterSeas(){fadeIn();setTown('seas');mEvent('visit',{town:'seas'});pos.y=12;vy=6;snapCam();pop('🚢 THE OPEN SEA');pop('Navy fleet ahead! Fly down into the whirlpool to dive back under','t');blip(300,900,0.6,'sine',0.12);}
+function enterSeas(){fadeIn();setTown('seas');mEvent('visit',{town:'seas'});pos.y=12;vy=6;snapCam();pop('🚢 THE OPEN SEA');pop('Fly low into a big wave to SURF it 🏄 · whirlpool = dive back under','t');blip(300,900,0.6,'sine',0.12);}
 function diveSea(){fadeIn();setTown('ocean');pos.set(0,SURF-15,0);vy=-6;snapCam();pop('🌊 UNDER THE SEA');blip(900,200,0.6,'sine',0.12);}
 function enterHangar18(){clearEnemies();heat=0;fadeIn();setTown('sub51');pos.set(0,22,270);yaw=0;speed=Math.min(speed,22);vy=0;snapCam();
   pop('🛸 HANGAR 18');pop('Top-secret underground base · fly into the far elevator to leave','t');blip(300,90,0.8,'sawtooth',0.08);mEvent('h18');}
