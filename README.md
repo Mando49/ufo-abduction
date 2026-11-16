@@ -99,3 +99,4 @@ Chrome mystery orbs and the dark Jellyfish UFO (dangling tentacles) drift, zip a
 ## Greater Las Vegas
 
 Las Vegas now reaches past the Strip: Fremont Street downtown (LED light-show canopy, old-school neon casinos, a zipline with riders to beam off, a waving neon cowboy), Nellis Air Force Base (runway, hangars, parked fighters to steal, an air-show team looping overhead, jets taking off), and Hoover Dam with Lake Mead, the canyon, cars crossing the dam, boats on the lake and the big arch bridge to fly under.
+Also: Harry Reid Airport (jets landing/taking off, airliners at the gates), Red Rock Canyon (cliffs, Joshua trees, hikers, burros, rock climbers), animated Sphere shows (an eyeball that follows your UFO, spinning Earth, UFO abduction, fireworks, slot jackpot) with a crowd bonus for beaming in front of it, and the Mando Window Tinting shop on the east side.

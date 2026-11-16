@@ -2698,9 +2698,36 @@ function makeShowgirl(){
   // "Welcome to Las Vegas" diamond sign at the south end of the Strip
   // the Sphere is a giant LED screen: it cycles through big pictures
   const sphC=document.createElement('canvas');sphC.width=1024;sphC.height=512;const sphG=sphC.getContext('2d');const sphTex=new THREE.CanvasTexture(sphC);
-  const SPH=[['👽','#2a0a5a','#18c8ff'],['🌍','#02142a','#0a5aa8'],['👁️','#1a0a0a','#ff6a20'],['🛸','#0a0a2a','#ff3fd2'],['🎰','#2a1a00','#ffd040']];let sphI=-1;
-  const drawSph=i=>{const [e,a,b]=SPH[i];const gr=sphG.createLinearGradient(0,0,0,512);gr.addColorStop(0,a);gr.addColorStop(0.5,b);gr.addColorStop(1,a);sphG.fillStyle=gr;sphG.fillRect(0,0,1024,512);
-    sphG.font='300px system-ui,"Apple Color Emoji","Segoe UI Emoji"';sphG.textAlign='center';sphG.textBaseline='middle';sphG.fillText(e,256,270);sphG.fillText(e,768,270);sphTex.needsUpdate=true;};
+  let sphI=-1,sphT=0,SPH_SHOW=0;const sphSeed=[...Array(60)].map((_,i)=>[Math.random()*1024,Math.random()*512,20+Math.random()*70,Math.random()]);
+  const drawShow=(t,k)=>{const g=sphG;g.textAlign='center';g.textBaseline='middle';
+    if(k===0){ // 👁️ the giant eyeball that watches YOU
+      g.fillStyle='#e8e2dc';g.fillRect(0,0,1024,512);for(let i=0;i<14;i++){g.strokeStyle='rgba(200,40,40,.35)';g.lineWidth=3;g.beginPath();const a=i/14*2*PI;g.moveTo(sphEye.u+Math.cos(a)*90,sphEye.v+Math.sin(a)*90);g.quadraticCurveTo(sphEye.u+Math.cos(a+.3)*170,sphEye.v+Math.sin(a+.3)*150,sphEye.u+Math.cos(a)*260,sphEye.v+Math.sin(a)*220);g.stroke();}
+      for(const ox of[-1024,0,1024]){const x=sphEye.u+ox,y=sphEye.v;const gr=g.createRadialGradient(x,y,10,x,y,85);gr.addColorStop(0,'#2a1a08');gr.addColorStop(.35,'#c86a1a');gr.addColorStop(.9,'#7a3a10');gr.addColorStop(1,'#2a1404');g.fillStyle=gr;g.beginPath();g.arc(x,y,85,0,2*PI);g.fill();
+        g.fillStyle='#050505';g.beginPath();g.arc(x,y,34+6*Math.sin(t*2),0,2*PI);g.fill();g.fillStyle='rgba(255,255,255,.85)';g.beginPath();g.arc(x-24,y-26,12,0,2*PI);g.fill();}
+      const bl=(t%5)<0.18?1:0;if(bl){g.fillStyle='#b88a6a';g.fillRect(0,0,1024,512);}}
+    else if(k===1){ // 🌍 spinning Earth
+      g.fillStyle='#0a3a8a';g.fillRect(0,0,1024,512);const off=(t*60)%1024;
+      for(const [x,y,r,c] of sphSeed){if(c>.55)continue;for(const ox of[-1024,0]){g.fillStyle=c<.25?'#3a8a3a':'#8a7a4a';g.beginPath();g.ellipse((x+off)%1024+ox+1024*(x+off>1024?0:0),y,r*1.6,r,0,0,2*PI);g.fill();}}
+      g.fillStyle='rgba(255,255,255,.75)';for(const [x,y,r,c] of sphSeed){if(c<.6)continue;g.beginPath();g.ellipse((x+off*1.6)%1024,y,r*1.8,r*.35,0,0,2*PI);g.fill();}
+      g.fillStyle='#f4f8ff';g.fillRect(0,0,1024,40);g.fillRect(0,472,1024,40);}
+    else if(k===2){ // 🛸 UFO beams up a cow
+      g.fillStyle='#050318';g.fillRect(0,0,1024,512);g.fillStyle='#fff';for(const [x,y] of sphSeed)g.fillRect((x+t*20)%1024,y,3,3);
+      for(const cx of[256,768]){const x=cx+Math.sin(t*1.5)*60,cy=150;g.fillStyle='rgba(180,255,180,.35)';g.beginPath();g.moveTo(x-30,cy+20);g.lineTo(x+30,cy+20);g.lineTo(x+110,470);g.lineTo(x-110,470);g.fill();
+        g.fillStyle='#9affb0';g.beginPath();g.ellipse(x,cy,120,30,0,0,2*PI);g.fill();g.fillStyle='#45eaff';g.beginPath();g.ellipse(x,cy-20,50,40,0,PI,2*PI);g.fill();
+        const cy2=440-((t*80)%300);g.font='110px system-ui,"Apple Color Emoji","Segoe UI Emoji"';g.fillText('🐄',x,cy2);}}
+    else if(k===3){ // 🎆 fireworks
+      g.fillStyle='rgba(5,3,20,1)';g.fillRect(0,0,1024,512);for(let b=0;b<7;b++){const ph=(t*0.6+b*0.37)%1,x=(b*157+300)%1024,y=120+(b*71)%240,R=ph*180;
+        for(let i=0;i<24;i++){const a=i/24*2*PI;g.fillStyle=`hsla(${b*50},100%,${70-ph*30}%,${1-ph})`;g.beginPath();g.arc(x+Math.cos(a)*R,y+Math.sin(a)*R+ph*ph*60,6,0,2*PI);g.fill();}}}
+    else if(k===4){ // 🎰 slot machine jackpot
+      g.fillStyle='#2a1400';g.fillRect(0,0,1024,512);const sy=['🍒','🔔','💎','7️⃣','👽','🍋'];g.font='150px system-ui,"Apple Color Emoji","Segoe UI Emoji"';
+      for(const cx of[256,768])for(let r=0;r<3;r++){const x=cx-170+r*170,stop=(t%8)>2+r*1.2;g.fillStyle='#fff8e0';g.fillRect(x-75,170,150,180);g.fillText(stop?'7️⃣':sy[Math.floor(t*14+r*2)%6],x,265);}
+      if((t%8)>5.6){g.font='900 80px system-ui';g.fillStyle=(t*6%1)<.5?'#ffd040':'#ff3fd2';g.fillText('JACKPOT!',256,90);g.fillText('JACKPOT!',768,90);}}
+    else{ // 👽 hello earthlings
+      g.fillStyle=`hsl(${(t*40)%360},70%,18%)`;g.fillRect(0,0,1024,512);g.font='240px system-ui,"Apple Color Emoji","Segoe UI Emoji"';const b=Math.sin(t*4)*20;g.fillText('👽',256,250+b);g.fillText('👽',768,250-b);
+      g.font='900 54px system-ui';g.fillStyle='#9affb0';g.fillText('HELLO EARTHLINGS',256,450);g.fillText('WELCOME TO VEGAS',768,450);}
+    sphTex.needsUpdate=true;};
+  const sphEye={u:256,v:256};
+
   const sphereMat=new THREE.MeshBasicMaterial({map:sphTex,color:0xb8b8b8});
   const sphere=new THREE.Mesh(new THREE.SphereGeometry(42,48,32),sphereMat);sphere.position.set(-260,44,-520);root.add(sphere);
   (function(){const rb=new THREE.Mesh(new THREE.TorusGeometry(43,1.5,8,64),basic(0xffd84a));rb.rotation.x=PI/2;rb.position.set(-260,2,-520);root.add(rb);})();
@@ -2745,7 +2772,10 @@ function makeShowgirl(){
       const r=Math.random();slot.res=r<0.12?[6,6,6]:r<0.25?[5,5,5]:r<0.38?(()=>{const s=(Math.random()*5)|0;return[s,s,s];})():[(Math.random()*7)|0,(Math.random()*7)|0,(Math.random()*7)|0];
       pop('🎰 SPINNING…');blip(800,1200,0.15,'square',0.08);}
     targets.forEach(T=>{const u=T.mesh.userData;if(u.legs&&T.state==='ground'){const sw=Math.sin(t*7+T.mesh.id)*0.4;u.legs[0].rotation.z=sw;u.legs[1].rotation.z=-sw;u.arms[0].rotation.z=-sw;u.arms[1].rotation.z=sw;}});
-    {const k=Math.floor(t/6)%SPH.length;if(k!==sphI){sphI=k;drawSph(k);}}sphere.rotation.y+=dt*0.1;
+    {const k=Math.floor(t/9)%6;SPH_SHOW=k;if(k===0){sphere.rotation.y=0;const dx=pos.x+260,dz=pos.z+520,dy=pos.y-44,phi=Math.atan2(dz,-dx),th=Math.acos(clamp(dy/Math.max(1,Math.hypot(dx,dy,dz)),-1,1));
+        const tu=((phi/(2*PI))%1+1)%1*1024,tv=th/PI*512;let du=tu-sphEye.u;if(du>512)du-=1024;if(du<-512)du+=1024;sphEye.u=((sphEye.u+du*Math.min(1,dt*3))%1024+1024)%1024;sphEye.v+=(tv-sphEye.v)*Math.min(1,dt*3);}
+      else sphere.rotation.y+=dt*0.1;
+      sphT-=dt;if(sphT<=0&&Math.hypot(pos.x+260,pos.z+520)<1100){sphT=0.07;drawShow(t,k);}}
     mono.position.z=((t*14)%1160)-580;
   }});
   // 🌴 green Strip: lawns, hedges, flower beds and palms filling the gaps between the casinos
@@ -2969,6 +2999,92 @@ function makeShowgirl(){
       planetAnim.push({town:'vegas',f:(t,dt)=>{if(T.state!=='ground')return;const a=t*0.12+T.ph;g.position.set(DX+230+Math.cos(a)*150,62.2,DZ+Math.sin(a)*45);g.rotation.set(0,-a-PI/2,0);}});}
     let bmsg=0;planetAnim.push({town:'vegas',f:(t,dt)=>{bmsg-=dt;if(state==='play'&&!onFoot&&bmsg<=0&&Math.abs(pos.x-BX)<8&&Math.abs(pos.z-DZ)<90&&pos.y<80){bmsg=5;score+=100;mEvent('dambridge');pop('🌉 UNDER THE DAM BRIDGE! +100');blip(800,2000,0.3,'sine',0.12);}}});
   }
+  // ✈️ HARRY REID AIRPORT (south-east of the Strip): two runways, terminal + gates, jets landing and taking off
+  const mkAirliner=(tail)=>{const g=new THREE.Group(),wht=lam(0xf2f2f4),gry=lam(0xb8bcc4);
+    const fus=new THREE.Mesh(new THREE.CylinderGeometry(2.2,2.2,30,14),wht);fus.rotation.z=PI/2;fus.position.y=4;g.add(fus);
+    const nose=new THREE.Mesh(new THREE.SphereGeometry(2.2,14,10),wht);nose.scale.set(2,1,1);nose.position.set(15,4,0);g.add(nose);
+    const tc=new THREE.Mesh(new THREE.ConeGeometry(2.2,7,14),wht);tc.rotation.z=PI/2;tc.position.set(-18.4,4.3,0);g.add(tc);
+    box(g,1.2,0.6,1.8,basic(0x1a2a3a),13.5,5.2,0); // cockpit window
+    for(let x=-12;x<=11;x+=2.4)for(const z of[-2.18,2.18])box(g,0.9,0.5,0.06,basic(0x223344),x,4.9,z);
+    const wing=new THREE.Mesh(new THREE.BoxGeometry(7,0.5,34),gry);wing.position.set(1,3,0);g.add(wing);
+    for(const z of[-8,8]){const en=new THREE.Mesh(new THREE.CylinderGeometry(1.2,1.2,5,10),gry);en.rotation.z=PI/2;en.position.set(3.4,1.6,z);g.add(en);}
+    const fin=new THREE.Mesh(new THREE.BoxGeometry(5,8,0.5),lam(tail));fin.position.set(-17,9,0);fin.rotation.z=0.35;g.add(fin);
+    box(g,3.6,0.4,12,gry,-17.5,5,0);box(g,26,0.6,0.08,lam(tail),0,3.2,2.21);box(g,26,0.6,0.08,lam(tail),0,3.2,-2.21);
+    for(const [x,z] of[[11,0],[0,-3],[0,3]]){const wh=new THREE.Mesh(new THREE.CylinderGeometry(0.7,0.7,0.6,8),lam(0x111114));wh.rotation.x=PI/2;wh.position.set(x,0.7,z);g.add(wh);}
+    const bl=glowSprite(0xff2a2a,0,0,0,3,0.9);g.add(bl);bl.position.set(0,8.4,0);g.userData.blink=bl;return g;};
+  {const AX=420,AZ=800,objs=[],add=m=>{objs.push(m);return m;},tails=[0x1a4aa8,0xe03a3a,0xf0a020,0x2aa86a,0x7a2ad8,0x18b0d8];
+    add(flatPlane(700,360,0x6a6258,-1.2,AX,AZ+10));
+    for(const rz of[740,860]){add(flatPlane(620,32,0x2a2b30,-2,AX,rz));for(let x=-290;x<=290;x+=22)add(flatPlane(11,1.1,0xf2f2f2,-3,AX+x,rz));
+      for(const e of[-1,1])for(let k=0;k<8;k++)add(flatPlane(1.4,18,0xf2f2f2,-3,AX+e*(296-k*2.4),rz)); // threshold stripes
+      for(let x=-310;x<=310;x+=16)for(const z of[-17,17])add(box(root,0.6,0.6,0.6,basic(0xfff2c0),AX+x,0.3,rz+z));}
+    add(flatPlane(560,14,0x34353a,-2,AX,800));add(flatPlane(300,70,0x3a3b40,-2,AX,672));
+    // terminal with glass front + jet bridges
+    add(box(root,280,18,34,0xd8dce4,AX,9,630));add(box(root,280,6,0.6,basic(0x6ad8ff),AX,10,647.4));add(box(root,284,1.4,38,0x9aa4b4,AX,18.7,630));
+    for(let k=0;k<5;k++){const gx=AX-120+k*60;add(box(root,3.6,3.6,18,0xc8ccd4,gx,7,656));}
+    const tw=new THREE.Mesh(new THREE.CylinderGeometry(3,4,44,10),lam(0xe0e0e4));tw.position.set(AX+180,22,640);root.add(tw);add(tw);add(box(root,12,6,12,basic(0x6ad8ff),AX+180,46,640));add(box(root,13,1,13,0x3a3a40,AX+180,49.5,640));
+    colliders.push({x0:AX-140,x1:AX+140,z0:613,z1:647,h:20,y0:0},{x0:AX+174,x1:AX+186,z0:634,z1:646,h:50,y0:0});
+    sign('HARRY REID INTERNATIONAL','#ffffff',90,7,AX,24,648,0);
+    freezeStatic(objs,root,true);
+    // airliners parked at the gates (beam one up = jackpot, but security notices)
+    for(let k=0;k<5;k++){const g=mkAirliner(tails[k]);g.userData.emoji='🛫';g.userData.pts=300;g.userData.heat=1.6;root.add(g);const gx=AX-120+k*60;
+      const T={type:'critter',mesh:g,still:true,spawn:T=>{T.mesh.position.set(gx,0,684);T.mesh.rotation.set(0,PI/2,0);T.mesh.visible=true;T.state='ground';}};T.spawn(T);targets.push(T);}
+    // travelers with luggage outside the terminal
+    for(let i=0;i<10;i++){const T={type:'critter',mesh:useAnim('person',makeHuman(false),'vegas'),spawn:spawnCow,fl:[{x:AX-60,z:600},{x:AX+60,z:600}],rad:30};T.spawn(T);targets.push(T);}
+    // one jet landing on the north runway, one taking off on the south runway (loops)
+    const land=mkAirliner(tails[4]),dep=mkAirliner(tails[5]);root.add(land,dep);
+    const lightL=glowSprite(0xffffff,0,0,0,8,0.9);land.add(lightL);lightL.position.set(17,3,0);
+    planetAnim.push({town:'vegas',f:(t,dt)=>{[land,dep].forEach(p=>p.userData.blink.visible=(t*2%1)<0.5);
+      const a=(t%30)/30; // landing: comes in from the east, flares, rolls out
+      if(a<0.6){const k=a/0.6,x=AX+900-k*900,y=Math.max(0,180*(1-k)*(1-k)*1.4-6);land.position.set(x,y,740);land.rotation.set(0,PI,y>0?0.06:0);land.visible=true;}
+      else if(a<0.85){const k=(a-0.6)/0.25;land.position.set(AX-k*(2-k)*230,0,740);land.rotation.set(0,PI,0);}
+      else land.visible=false;
+      const b=((t+12)%30)/30; // takeoff: rolls west -> east and climbs out
+      if(b<0.55){const k=b/0.55,x=AX-300+k*k*760,y=k<0.45?0:(k-0.45)*(k-0.45)*900;dep.position.set(x,y,860);dep.rotation.set(0,0,k<0.45?0:Math.min(0.28,(k-0.45)*1.5));dep.visible=true;}else dep.visible=false;}});
+  }
+  // 🏜️ RED ROCK CANYON (far west): striped red/cream sandstone cliffs, Joshua trees, hikers, climbers, wild burros
+  {const objs=[],add=m=>{objs.push(m);return m;},bands=[0xb0442a,0xc85a34,0xe0a070,0xa83a24,0xe8b888,0xc0502e];
+    for(let i=0;i<46;i++){const x=rand(-1130,-860),z=rand(-420,320),lv=(i%3);const r=new THREE.Mesh(new THREE.DodecahedronGeometry(rand(26,44),0),lam(pick(bands)));r.material.flatShading=true;
+      r.position.set(x-lv*30,rand(4,26)+lv*26,z);r.scale.set(rand(1,1.6),rand(0.7,1.3),rand(1,1.6));r.rotation.y=rand(0,6);root.add(r);add(r);}
+    // layered escarpment (stripes) at the back
+    for(let k=0;k<7;k++){const s=new THREE.Mesh(new THREE.BoxGeometry(60,16,760),lam(bands[k%6]));s.position.set(-1150-k*4,8+k*14,-50);s.scale.x=1-k*0.08;root.add(s);add(s);}
+    colliders.push({x0:-1240,x1:-1110,z0:-430,z1:330,h:110,y0:0});
+    // scenic loop road
+    for(let i=0;i<40;i++){const a=i/40*2*PI,x=-760+Math.cos(a)*70,z=-50+Math.sin(a)*330;add(flatPlane(12,54,0x4a4038,-2,x,z)).rotation.z=-Math.atan2(Math.cos(a)*330,-Math.sin(a)*70)+PI/2;}
+    // Joshua trees + creosote bushes
+    for(let i=0;i<50;i++){const x=rand(-1080,-640),z=rand(-440,340),jt=new THREE.Group();jt.position.set(x,0,z);root.add(jt);
+      box(jt,0.9,rand(5,8),0.9,0x6a5a40,0,3,0);for(let b=0;b<3;b++){const arm=new THREE.Group();arm.position.set(0,rand(4,6.5),0);arm.rotation.set(rand(-0.7,0.7),rand(0,6),rand(-0.7,0.7));jt.add(arm);box(arm,0.6,3,0.6,0x6a5a40,0,1.5,0);const tuft=new THREE.Mesh(new THREE.SphereGeometry(1,6,5),lam(0x5a7a3a));tuft.position.y=3.2;tuft.scale.set(1,1.4,1);arm.add(tuft);}
+      add(jt);}
+    for(let i=0;i<60;i++){const b=new THREE.Mesh(new THREE.SphereGeometry(rand(0.8,1.6),6,4),lam(pick([0x6a7a40,0x7a7a4a])));b.position.set(rand(-1080,-620),0.5,rand(-440,340));b.scale.y=0.6;root.add(b);add(b);}
+    sign('RED ROCK CANYON','#ffb070',46,6,-640,5,-50,-PI/2);
+    freezeStatic(objs,root,true);
+    for(let i=0;i<10;i++){const T={type:'critter',mesh:useAnim('person',makeHuman(false),'vegas'),spawn:spawnCow,fl:[{x:-800,z:-250},{x:-800,z:150},{x:-900,z:-50}],rad:60};T.mesh.userData.emoji='🥾';T.mesh.userData.pts=50;T.spawn(T);targets.push(T);}
+    for(let i=0;i<8;i++){const g=makeHorse(0x8a8078,0.85);g.userData.emoji='🫏';g.userData.pts=50;const T={type:'critter',mesh:useModel('burro',g),spawn:spawnCow,fl:[{x:-720,z:-300},{x:-720,z:200}],rad:60};T.spawn(T);targets.push(T);}
+    // rock climbers clinging to the cliffs
+    for(let i=0;i<6;i++){const g=makeHuman(false);g.userData.emoji='🧗';g.userData.pts=110;g.userData.heat=0.3;root.add(g);const cz=-380+i*130,cy=rand(18,48);
+      const T={type:'critter',mesh:g,still:true,spawn:T=>{T.mesh.position.set(-1104,cy,cz);T.mesh.rotation.set(0,PI/2,0);T.mesh.visible=true;T.state='ground';}};T.spawn(T);targets.push(T);
+      const rope=new THREE.Mesh(new THREE.CylinderGeometry(0.08,0.08,30,4),basic(0xffd040));rope.position.set(-1105,cy+15,cz);root.add(rope);}}
+  // 🪟 MANDO WINDOW TINTING (east suburbs, next to the strip mall)
+  {const SX=560,SZ=330,objs=[],add=m=>{objs.push(m);return m;};
+    add(flatPlane(70,110,0x34353a,-2,SX,SZ));
+    add(box(root,30,12,70,0x2a2c34,SX+14,6,SZ));add(box(root,30.6,1.4,70.6,0x111216,SX+14,12.7,SZ)); // shop building
+    for(let k=0;k<3;k++){const bz=SZ-22+k*22;add(box(root,0.4,8,14,basic(0xf4f6ff),SX-1.2,4.2,bz));} // 3 open bays (lit inside)
+    add(box(root,0.5,2.2,44,basic(0xff3fd2),SX-1.4,10.2,SZ));
+    sign('MANDO WINDOW TINTING','#45eaff',40,6,SX-1.6,16,SZ,-PI/2);sign('lasvegaswindowtintnv.com','#ffffff',30,3,SX-1.6,11.4,SZ+0.2,-PI/2);
+    const pole=box(root,1,22,1,0x3a3a40,SX-28,11,SZ-48);sign('TINT & PPF','#ff3fd2',18,5,SX-28,24,SZ-48,-PI/2);
+    colliders.push({x0:SX-1,x1:SX+29,z0:SZ-35,z1:SZ+35,h:14,y0:0});
+    freezeStatic(objs,root,true);
+    // cars getting tinted: windows slowly go dark, then drive off and a new one pulls in
+    const shopCars=[];for(let k=0;k<3;k++){const g=new THREE.Group(),col=pick([0xffffff,0x111114,0xc8ccd4,0xd8141e,0x1a4aa8]);box(g,4.6,1.1,2.1,lam(col),0,0.9,0);
+      const glass=new THREE.MeshPhongMaterial({color:0xbfe4ff,transparent:true,opacity:0.6,shininess:120});const gl=new THREE.Mesh(new THREE.BoxGeometry(2.6,0.9,1.95),glass);gl.position.set(-0.2,1.9,0);g.add(gl);
+      for(const x of[1.5,-1.5])for(const z of[-1,1]){const wh=new THREE.Mesh(new THREE.CylinderGeometry(0.42,0.42,0.3,10),lam(0x111114));wh.rotation.x=PI/2;wh.position.set(x,0.42,z);g.add(wh);}
+      g.userData.emoji='🚗';g.userData.pts=60;g.userData.heat=0.3;root.add(g);const bz=SZ-22+k*22;
+      const T={type:'critter',mesh:g,still:true,glass,tint:rand(0,1),spawn:T=>{T.tint=0;T.mesh.position.set(SX-6,0,bz);T.mesh.rotation.set(0,PI,0);T.mesh.visible=true;T.state='ground';}};T.spawn(T);targets.push(T);shopCars.push(T);}
+    const tinter=useAnim('person',makeHuman(false),'vegas');tinter.position.set(SX+4,0,SZ);root.add(tinter);
+    let shopMsg=0;planetAnim.push({town:'vegas',f:(t,dt)=>{shopCars.forEach(T=>{if(T.state!=='ground')return;T.tint=Math.min(1,T.tint+dt*0.05);
+        T.glass.color.setRGB(0.75*(1-T.tint)+0.03,0.89*(1-T.tint)+0.03,1*(1-T.tint)+0.05);T.glass.opacity=0.6+0.35*T.tint;
+        if(T.tint>=1){T.tint=0;}});
+      tinter.position.set(SX-10,0,SZ+Math.sin(t*0.4)*22);tinter.rotation.y=Math.cos(t*0.4)>0?0:PI;
+      shopMsg-=dt;if(state==='play'&&!onFoot&&shopMsg<=0&&Math.hypot(pos.x-SX,pos.z-SZ)<60&&pos.y<60){shopMsg=30;score+=50;mEvent('tintshop');pop('🪟 MANDO WINDOW TINTING · +50 · lasvegaswindowtintnv.com');}}});}
   // tourists everywhere
   for(let i=0;i<34;i++){const T={type:'critter',mesh:useAnim('person',makeHuman(false),'vegas'),spawn:spawnCow,fl:fields,rad:20};T.spawn(T);targets.push(T);}
   // 🕺 Elvis impersonators (100 pts) strolling the west sidewalk
@@ -4907,6 +5023,10 @@ const MISSIONS=[
   {id:'mib',t:'Abduct 3 Men in Black',ev:'abduct',m:d=>d.emoji==='🕴️',g:3,r:700},
   {id:'tallwhite',t:'Beam up 3 Tall Whites (5th Dimension)',ev:'abduct',m:d=>d.emoji==='🤍',g:3,r:600},
   {id:'nordic',t:'Beam up 3 Nordics (5th Dimension)',ev:'abduct',m:d=>d.emoji==='💙',g:3,r:600},
+  {id:'airport',t:'Beam up a parked airliner at Harry Reid Airport',ev:'abduct',m:d=>d.emoji==='🛫',g:1,r:900},
+  {id:'redrock',t:'Pluck 2 rock climbers off Red Rock Canyon',ev:'abduct',m:d=>d.emoji==='🧗',g:2,r:500},
+  {id:'sphere',t:'Beam something up in front of the Sphere',ev:'sphere',g:1,r:400},
+  {id:'tintshop',t:'Fly by Mando Window Tinting (east side)',ev:'tintshop',g:1,r:300},
   {id:'fremont',t:'Beam 2 riders off the Fremont Street zipline',ev:'abduct',m:d=>d.emoji==='🧗',g:2,r:500},
   {id:'nellis',t:'Steal a fighter jet from Nellis Air Force Base',ev:'abduct',m:d=>d.emoji==='🛩️',g:1,r:800},
   {id:'dambridge',t:'Fly under the bridge by Hoover Dam',ev:'dambridge',g:1,r:500},
@@ -5481,6 +5601,7 @@ function collide(){
 function abduct(T){
   mEvent('abduct',{type:T.type,cop:!!(T.mesh&&T.mesh.userData.police),emoji:T.mesh&&T.mesh.userData.emoji});
   T.state='gone';T.mesh.visible=false;T.rt=rand(5,9);doBurst(T.mesh.position);
+  if(curTown==='vegas'&&Math.hypot(T.mesh.position.x+260,T.mesh.position.z+520)<220){score+=40;mEvent('sphere');pop('🎆 THE SPHERE CROWD GOES WILD! +40');}
   const k=T.type,isCow=k==='cow',cop=!!T.mesh.userData.police,tb={cow:4,car:6,truck:7,critter:5}[k];let pts=T.mesh.userData.pts||{cow:10,car:cop?40:25,truck:40,critter:20}[k];
   if(T.mesh.userData.combo){const now=performance.now();COMBO.n=(now-COMBO.t<3500)?COMBO.n+1:1;COMBO.t=now;if(COMBO.n>1){pts*=Math.min(COMBO.n,6);pop(`🔥 COMBO x${Math.min(COMBO.n,6)}!`);}}
   if(INV.on&&curTown==='desert')pts*=2;
