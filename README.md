@@ -42,6 +42,8 @@ A 3D browser game: fly a triangle UFO over a neon cyberpunk city and farmland, a
 
 🧊 **Antarctica & the Ice Wall:** the ice world is now Antarctica: a green land with lakes, forests, dinosaurs and a lost golden city, ringed by a giant Ice Wall. Fly up and over it and everything beyond is frozen — snow, ice spikes, igloos, penguins, yetis and the Frost Palace.
 
+🐋 **Busier ocean:** humpback whales, sharks, dolphins, octopuses on the sea floor, 7 swirling schools of fish and yellow research submarines with spotlights (beam one up!).
+
 🧸 **Real 3D models:** your pilot alien is now a fully animated 3D character when you land (idle, walk, run and jump); camels, penguins, T-rexes, jaguars, sharks, tractors, barns and sunken treasure, plus *animated* walking people, mummies, yetis, robots, foxes and lost little aliens at Area 51 (rescue them by beaming them up!).
 
 ⚙️ **Runs on older phones:** a loading screen while the 12 worlds build, a **Graphics** button on the menu (Auto / High / Medium / Low), and Auto mode lowers the quality step by step if the game starts to stutter. Small still objects (palm trees, houses, people, cars) are merged so the phone draws far fewer pieces each frame.

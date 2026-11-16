@@ -1041,6 +1041,7 @@ const MODELS={cow:{file:'cow',len:3.0,rotY:PI/2,list:[]},car:{file:'car',len:4.4
   barn:{file:'barn',height:14,rotY:-PI/2,list:[]},chest:{file:'chest',height:2.6,rotY:0,list:[]},
   sr71:{file:'sr71',len:34,rotY:0,list:[]},bop:{file:'bop',len:15,rotY:PI/2,list:[]},dropship:{file:'dropship',len:22,rotY:0,list:[]},wing:{file:'wing',len:22,rotY:-PI/2,list:[]},
   trainF:{file:'trainF',len:13.5,rotY:PI/2,list:[]},trainM:{file:'trainM',len:12.5,rotY:PI/2,list:[]},
+  whale:{file:'whale',len:3.8,rotY:-PI/2,list:[]},octopus:{file:'octopus',height:1.6,rotY:0,list:[]},sub:{file:'sub',len:6.5,rotY:0,list:[]},dolphin:{file:'dolphin',len:3.6,rotY:PI/2,rotX:PI/4,list:[]},
   mustang:{file:'mustang',height:4.2,rotY:PI/4,list:[]},burro:{file:'burro',height:3,rotY:0,list:[]}};
 function useModel(type,g){const M=MODELS[type];if(M.proto)attachModel(M,g);else M.list.push(g);return g;}
 barnGroups.forEach(b=>useModel('barn',b));TRAIN_CARS.forEach(c=>useModel(c.k===0||c.k===4?'trainF':'trainM',c.g));
@@ -1048,7 +1049,7 @@ function attachModel(M,g){g.children.forEach(c=>{if(!c.isSprite&&!c.userData.kee
 if(THREE.GLTFLoader){const ld=new THREE.GLTFLoader();
   for(const k in MODELS){const M=MODELS[k];
     const onLoad=gl=>{
-      const holder=new THREE.Group(),inner=gl.scene;inner.rotation.y=M.rotY;holder.add(inner);
+      const holder=new THREE.Group(),inner=gl.scene;inner.rotation.set(M.rotX||0,M.rotY,0,'YXZ');holder.add(inner);
       inner.traverse(o=>{if(o.isMesh&&M.recolor){o.material=new THREE.MeshStandardMaterial({color:0x3a4252,metalness:0.6,roughness:0.28,emissive:0x0c1018,normalMap:o.material.normalMap||null});return;}if(o.isMesh){const mt=o.material;if(mt&&mt.map){mt.emissive=new THREE.Color(0xffffff);mt.emissiveMap=mt.map;mt.emissiveIntensity=0.22;mt.needsUpdate=true;}}});
       holder.updateMatrixWorld(true);let b=new THREE.Box3().setFromObject(holder),sz=b.getSize(new V3());
       const sc=M.height?M.height/Math.max(sz.y,0.001):M.len/Math.max(sz.x,0.001);holder.scale.setScalar(sc);holder.updateMatrixWorld(true);
@@ -2706,8 +2707,8 @@ endTown('mars',[200,1200]);Object.assign(towns.mars,{planet:true,fogC:new THREE.
 const SURF=130;
 function fishMesh(kind){
   const g=new THREE.Group();
-  const C={fish:pick([0xff7a30,0xffd84a,0x45eaff,0xff4fd8,0x6dff7a]),shark:0x7a8a9a,turtle:0x4a9a5a,whale:0x2a4a7a}[kind];
-  const S={fish:1,shark:2.6,turtle:1.6,whale:9}[kind];
+  const C={fish:pick([0xff7a30,0xffd84a,0x45eaff,0xff4fd8,0x6dff7a]),shark:0x7a8a9a,turtle:0x4a9a5a,whale:0x2a4a7a,dolphin:0x8a9aaa,octopus:0xb46bff}[kind];
+  const S={fish:1,shark:2.6,turtle:1.6,whale:9,dolphin:2,octopus:2.4}[kind];
   const mat=new THREE.MeshLambertMaterial({color:C,emissive:C,emissiveIntensity:0.18});
   if(kind==='turtle'){const sh=new THREE.Mesh(new THREE.SphereGeometry(1,16,10,0,2*PI,0,PI/2),new THREE.MeshLambertMaterial({color:0x6a5030}));sh.scale.set(1.3,0.6,1);g.add(sh);
     const hd=new THREE.Mesh(new THREE.SphereGeometry(0.4,10,8),mat);hd.position.set(1.4,0.1,0);g.add(hd);
@@ -2717,11 +2718,11 @@ function fishMesh(kind){
     const fin=new THREE.Mesh(new THREE.ConeGeometry(0.35,kind==='shark'?1.2:0.6,4),mat);fin.position.set(0,0.75,0);fin.scale.z=0.3;g.add(fin);
     for(const z of[-0.4,0.4]){const e=new THREE.Mesh(new THREE.SphereGeometry(0.12,8,6),basic(0x050505));e.position.set(1.25,0.15,z);g.add(e);}
     if(kind==='whale'){const sp=new THREE.Mesh(new THREE.SphereGeometry(1,16,10),new THREE.MeshLambertMaterial({color:0xd8e0e8}));sp.scale.set(1.4,0.35,0.5);sp.position.y=-0.4;g.add(sp);}}
-  if(kind==='shark'){g.userData.tail=null;useModel('shark',g);}
-  g.scale.setScalar(S);g.userData.emoji={fish:'🐟',shark:'🦈',turtle:'🐢',whale:'🐋'}[kind];g.userData.pts={fish:15,shark:40,turtle:25,whale:150}[kind];
+  if(kind!=='fish'&&kind!=='turtle'){g.userData.tail=null;useModel(kind,g);}
+  g.scale.setScalar(S);g.userData.emoji={fish:'🐟',shark:'🦈',turtle:'🐢',whale:'🐋',dolphin:'🐬',octopus:'🐙'}[kind];g.userData.pts={fish:15,shark:40,turtle:25,whale:150,dolphin:60,octopus:90}[kind];
   root.add(g);return g;
 }
-function spawnSwim(T){spawnCow(T);T.mesh.position.y=T.swimY=rand(4,T.mesh.userData.pts>=150?45:30);}
+function spawnSwim(T){spawnCow(T);const e=T.mesh.userData.emoji;T.mesh.position.y=T.swimY=e==='🐙'?rand(2,6):rand(4,T.mesh.userData.pts>=150?45:30);}
 let KRAKEN=null;
 beginTown('ocean');
 (function(){
@@ -2974,7 +2975,22 @@ beginTown('ocean');
   // sunken gold: scenery treasure piles on the sea floor
   for(let i=0;i<9;i++){const g=new THREE.Group(),an=rand(0,2*PI),r=rand(120,520);g.position.set(Math.cos(an)*r,0,Math.sin(an)*r);g.rotation.y=rand(0,6);g.scale.setScalar(rand(1.4,2.4));root.add(g);useModel('chest',g);
     glowSprite(0xffd060,g.position.x,2.5,g.position.z,9,0.55);}
-  [['fish',28],['turtle',8],['shark',6],['whale',2]].forEach(([k,n])=>{for(let i=0;i<n;i++){const T={type:'critter',mesh:fishMesh(k),spawn:spawnSwim,fl:fields};T.spawn(T);targets.push(T);}});
+  // 🐠 schools of fish swirling through the water (one draw call per school)
+  {const fg=new THREE.ConeGeometry(0.35,1.2,5);fg.rotateZ(-PI/2);const schools=[];
+    for(let k=0;k<7;k++){const N=50,im=new THREE.InstancedMesh(fg,new THREE.MeshLambertMaterial({color:0xffffff,emissive:0x202020}),N),cols=[pick([0xffd84a,0xff7a30,0x45eaff,0xc0c8d8,0xff4fd8]),0xffffff];
+      for(let i=0;i<N;i++){col.setHex(Math.random()<0.8?cols[0]:cols[1]);im.setColorAt(i,col);}im.frustumCulled=false;root.add(im);
+      schools.push({im,N,cx:rand(-400,400),cz:rand(-400,400),y:rand(10,50),r:rand(10,18),sp:rand(0.25,0.5)*(Math.random()<0.5?-1:1),seed:rand(0,99),drift:rand(0,6)});}
+    planetAnim.push({town:'ocean',f:(t,dt)=>{schools.forEach(S=>{const cx=S.cx+Math.sin(t*0.05+S.drift)*120,cz=S.cz+Math.cos(t*0.04+S.drift)*120;
+      for(let i=0;i<S.N;i++){const a=t*S.sp+i*0.61+S.seed,rr=S.r*(0.5+((i*37)%17)/17),y=S.y+Math.sin(i*1.7+t*0.8)*4;
+        const x=cx+Math.cos(a)*rr,z=cz+Math.sin(a)*rr;compose(x,y,z,1,1,1,0,-a-Math.sign(S.sp)*PI/2,0);S.im.setMatrixAt(i,m4);}S.im.instanceMatrix.needsUpdate=true;});}});}
+  // 🟡 research submarines cruising the deep with their spotlights on (beam one up!)
+  for(let i=0;i<2;i++){const g=new THREE.Group();box(g,6,2.4,2.4,0xffd040,0,0,0);
+    const beamC=new THREE.Mesh(new THREE.ConeGeometry(4,22,16,1,true),new THREE.MeshBasicMaterial({color:0xfff2b0,transparent:true,opacity:0.12,blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide}));beamC.rotation.z=PI/2;beamC.position.set(14,-1,0);beamC.userData.keep=true;g.add(beamC);
+    const lamp=glowSprite(0xfff2b0,0,0,0,5,0.9);g.add(lamp);lamp.position.set(3.4,0,0);
+    g.scale.setScalar(2.2);g.userData.emoji='🚢';g.userData.pts=250;g.userData.heat=1;root.add(g);useModel('sub',g);
+    const T={type:'critter',mesh:g,still:true,ph:i*PI,swimY:14+i*8,spawn:T=>{T.mesh.visible=true;T.state='ground';resetRot(T.mesh);}};T.spawn(T);targets.push(T);
+    planetAnim.push({town:'ocean',f:t=>{if(T.state!=='ground')return;const a=t*0.06+T.ph,R=300+i*90;g.position.set(Math.cos(a)*R,14+i*8+Math.sin(t*0.5)*2,Math.sin(a)*R);g.rotation.set(0,-a-PI/2,Math.sin(t*0.7)*0.05);}});}
+  [['fish',40],['turtle',10],['shark',10],['whale',4],['dolphin',10],['octopus',8]].forEach(([k,n])=>{for(let i=0;i<n;i++){const T={type:'critter',mesh:fishMesh(k),spawn:spawnSwim,fl:fields};T.spawn(T);targets.push(T);}});
   planetAnim.push({town:'ocean',f:t=>{targets.forEach(T=>{if(T.state==='ground'){T.mesh.position.y=T.swimY+Math.sin(t*1.5+T.mesh.id)*0.8;if(T.mesh.userData.tail)T.mesh.userData.tail.rotation.y=Math.sin(t*8+T.mesh.id)*0.4;}});}});
 })();
 endTown('ocean',[20,280]);Object.assign(towns.ocean,{planet:true,fogC:new THREE.Color(0x0a5a7a),skyTint:0x0a3a5a,label:'🌊 THE OCEAN'});
@@ -4428,6 +4444,9 @@ const MISSIONS=[
   {id:'yeti',t:'Abduct a Yeti (Antarctica)',ev:'abduct',m:d=>d.emoji==='🦍',g:1,r:700},
   {id:'penguin',t:'Abduct 5 penguins',ev:'abduct',m:d=>d.emoji==='🐧',g:5,r:400},
   {id:'icearch',t:'Fly through the Frost Palace gate',ev:'icearch',g:1,r:300},
+  {id:'octopus',t:'Abduct 2 octopuses (Ocean floor)',ev:'abduct',m:d=>d.emoji==='🐙',g:2,r:500},
+  {id:'sub',t:'Beam up a submarine (Ocean)',ev:'abduct',m:d=>d.emoji==='🚢',g:1,r:700},
+  {id:'dolphins',t:'Abduct 3 dolphins',ev:'abduct',m:d=>d.emoji==='🐬',g:3,r:500},
   {id:'sharks',t:'Abduct 3 sharks',ev:'abduct',m:d=>d.emoji==='🦈',g:3,r:500},
   {id:'aliens',t:'Rescue 3 lost aliens at Area 51',ev:'abduct',m:d=>d.emoji==='👽',g:3,r:700},
   {id:'tractor',t:'Abduct 2 farm tractors',ev:'abduct',m:d=>d.emoji==='🚜',g:2,r:400},
