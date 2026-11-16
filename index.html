@@ -816,7 +816,7 @@ const barnLights=[],farmVanes=[],barnGroups=[];
   const posts=[],rails=[];
   const barnRed=lam(0xa32a22),trim=lam(0xf2efe6),roofM=lam(0x3d3f4c),winM=basic(0xffcf70);
   for(let i=0;i<7;i++){
-    const a=i/7*2*PI+PI/2+rand(-0.12,0.12),R=rand(380,470),fx=Math.cos(a)*R,fz=Math.sin(a)*R;
+    const a=i/7*2*PI+PI/2+rand(-0.12,0.12),R=Math.max(rand(380,470),356/Math.max(Math.abs(Math.cos(a)),Math.abs(Math.sin(a)))),fx=Math.cos(a)*R,fz=Math.sin(a)*R; // keep every farm clear of the city streets (corners need more room)
     if(i===3){LOT={x:fx,z:fz,a};continue;} // this farm is now the stadium parking lot
     fields.push({x:fx,z:fz});
     flatPlane(96,96,i%2?0x4a8a32:0x6f9435,-2,fx,fz);
