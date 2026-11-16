@@ -231,6 +231,7 @@ body.promo #hud,body.promo #controls,body.promo #keys,body.promo #mute,body.prom
     <div><button class="hbtn" id="gfxBtn">⚙️ Graphics: Auto</button></div>
     <div><button class="hbtn" id="freeBtn" style="border-color:#7ffcff;color:#bff8ff;background:rgba(5,30,40,.6)">🌌 FREE EXPLORE <small style="font-size:11px;opacity:.8">· no timer</small></button></div>
     <div><button class="hbtn" id="promoBtn2" style="border-color:#ff4fd8;color:#ffb3ef;background:rgba(40,5,30,.6)">🎬 PROMO CAMERA</button></div>
+    <div><button class="hbtn" id="tutBtn">❓ HOW TO PLAY</button></div>
     <div><button class="hbtn" id="shopBtn">🛠️ HANGAR</button></div>
     <div><button class="hbtn" id="logBtn">📖 ABDUCTION LOG</button></div>
     <div class="best" id="bankMenu"></div>
@@ -264,6 +265,16 @@ body.promo #hud,body.promo #controls,body.promo #keys,body.promo #mute,body.prom
   </div>
 </div>
 
+<div id="tut" class="overlay hidden" style="z-index:60">
+  <div class="card">
+    <div id="tutIcon" style="font-size:64px;line-height:1.1"></div>
+    <h1 id="tutTitle" style="font-size:26px"></h1>
+    <p id="tutText" style="font-size:16px;line-height:1.45"></p>
+    <div id="tutDots" style="letter-spacing:6px;opacity:.8;margin:6px 0"></div>
+    <button class="play" id="tutNext">NEXT</button>
+    <div><button class="hbtn" id="tutSkip">Skip</button></div>
+  </div>
+</div>
 <div id="logv" class="overlay hidden">
   <div class="card shopcard">
     <h1>📖 ABDUCTION LOG</h1>
@@ -4023,6 +4034,21 @@ function openShop(from){initAudio();shopFrom=from;renderShop();$('menu').classLi
 $('shopBtn').addEventListener('click',()=>openShop('menu'));$('shopBtn2').addEventListener('click',()=>openShop('over'));$('shopBtn3').addEventListener('click',()=>openShop('pause'));
 $('shopBack').addEventListener('click',()=>{$('shop').classList.add('hidden');$(shopFrom).classList.remove('hidden');});
 renderShop();
+
+// ---------- ❓ first-time tutorial (5 quick cards) ----------
+(function(){const T=isTouch,S=[
+  ['🛸','FLY YOUR UFO',T?'Drag the <b>green stick</b> to fly and turn.<br>Use <b>▲ ▼</b> to go up and down.':'<b>W / S</b> fly forward / back · <b>A / D</b> turn<br><b>R / F</b> go up / down'],
+  ['🐄','BEAM THINGS UP',(T?'Hold the big <b>BEAM</b> button':'Hold <b>SPACE</b>')+' over cows, cars and people.<br>Fly <b>low</b>: the beam only reaches when the screen says <b style="color:#7dffb0">BEAM OK</b>.'],
+  ['⭐','YOU ARE WANTED','Every abduction adds wanted stars. Helicopters and jets will chase you.<br>'+(T?'<b>BOOST</b>':'<b>SHIFT</b>')+' to escape · '+(T?'<b>FIRE</b>':'<b>X</b>')+' to shoot back.<br>Watch your <b>SHIELD</b> and <b>POWER</b> bars.'],
+  ['🚀','EXPLORE 14 WORLDS','Fly <b>straight up</b> through the clouds to reach space, then fly into a <b>portal</b>.<br>Area 51, Las Vegas, the Ocean, the Moon and more.'],
+  ['💰','EARN & UPGRADE','Points become <b>credits</b>. Spend them in the <b>🛠️ HANGAR</b> on upgrades and new ships.<br>Finish <b>🎯 missions</b> and fill your <b>📖 Abduction Log</b> for bonus credits.']];
+  let i=0,after=null;const show=()=>{$('tutIcon').textContent=S[i][0];$('tutTitle').textContent=S[i][1];$('tutText').innerHTML=S[i][2];$('tutDots').textContent=S.map((_,k)=>k===i?'●':'○').join('');$('tutNext').textContent=i===S.length-1?(after?"LET'S GO!":'GOT IT'):'NEXT';};
+  const done=()=>{$('tut').classList.add('hidden');try{localStorage.setItem('ufoTut','1');}catch(e){}const b=after;after=null;if(b)b.click();};
+  const open=b=>{i=0;after=b||null;show();$('tut').classList.remove('hidden');};
+  $('tutNext').addEventListener('click',()=>{if(i<S.length-1){i++;show();}else done();});$('tutSkip').addEventListener('click',done);$('tutBtn').addEventListener('click',()=>open(null));
+  let seen=false;try{seen=!!localStorage.getItem('ufoTut')||!!localStorage.getItem('ufoBest')||!!localStorage.getItem('ufoSave');}catch(e){}
+  for(const id of['playBtn','freeBtn'])$(id).addEventListener('click',e=>{if(seen)return;seen=true;e.stopImmediatePropagation();e.preventDefault();open($(id));},true);
+})();
 
 // ---------- 📖 Abduction Log: a collection book of everything ever beamed up ----------
 const LOG_NAMES={'🐄':'Cow','🚗':'Car','🚓':'Police Car','🚚':'Truck','😴':'Sleeper','🚶':'Walker','🚜':'Tractor','🦊':'Fox','🤖':'Robot','📣':'Cheerleader','🏈':'Football Player','🎈':'Balloon','🏎️':'Luxury / Race Car','📺':'News Van','🌮':'Taco Truck','🍔':'Diner Guest','🔘':'Mystery Orb','🌑':'Jellyfish UFO',
