@@ -1041,7 +1041,7 @@ const MODELS={cow:{file:'cow',len:3.0,rotY:PI/2,list:[]},car:{file:'car',len:4.4
   barn:{file:'barn',height:14,rotY:-PI/2,list:[]},chest:{file:'chest',height:2.6,rotY:0,list:[]},
   sr71:{file:'sr71',len:34,rotY:0,list:[]},bop:{file:'bop',len:15,rotY:PI/2,list:[]},dropship:{file:'dropship',len:22,rotY:0,list:[]},wing:{file:'wing',len:22,rotY:-PI/2,list:[]},
   trainF:{file:'trainF',len:13.5,rotY:PI/2,list:[]},trainM:{file:'trainM',len:12.5,rotY:PI/2,list:[]},
-  whale:{file:'whale',len:3.8,rotY:-PI/2,list:[]},octopus:{file:'octopus',height:1.6,rotY:0,list:[]},sub:{file:'sub',len:6.5,rotY:0,list:[]},dolphin:{file:'dolphin',len:3.6,rotY:PI/2,rotX:PI/4,list:[]},
+  whale:{file:'whale',len:3.8,rotY:-PI/2,list:[]},octopus:{file:'octopus',height:1.6,rotY:0,list:[]},sub:{file:'sub',len:6.5,rotY:0,list:[]},dolphin:{file:'dolphin',len:3.6,rotY:PI/2,rotX:0.69,list:[]},
   carrier:{file:'carrier',len:150,rotY:0,list:[]},destroyer:{file:'destroyer',len:70,rotY:0,list:[]},cargo:{file:'cargo',len:100,rotY:0,list:[]},cruise:{file:'cruise',len:90,rotY:0,list:[]},fishboat:{file:'fishboat',len:9,rotY:0,list:[]},sailboat:{file:'sailboat',len:8,rotY:0,list:[]},
   mustang:{file:'mustang',height:4.2,rotY:PI/4,list:[]},burro:{file:'burro',height:3,rotY:0,list:[]}};
 function useModel(type,g){const M=MODELS[type];if(M.proto)attachModel(M,g);else M.list.push(g);return g;}
@@ -4193,18 +4193,18 @@ function boardShip(){if(RIDE)endRide();SWIM=false;
   pop('🛸 BACK IN THE SHIP');blip(600,300,0.25,'sine',0.12);lastHud='';
 }
 // 🏊 swimming + 🐬 dolphin riding (Open Sea)
-let SWIM=false,SWIM_HINT=0,RIDE=null,rideHint=0;
+let RIDE_SEAT=-1.15,SWIM=false,SWIM_HINT=0,RIDE=null,rideHint=0;
 function splash(p,n){for(let i=0;i<(n||10);i++)spawnFx(tmpV2.set(p.x+rand(-1.5,1.5),0.3,p.z+rand(-1.5,1.5)),tmpV.set(rand(-5,5),rand(6,14),rand(-5,5)),0.6,0.9,1.2,0x9fd8f0,true);blip(260,120,0.2,'sine',0.06);}
 function nearDolphin(){if(curTown!=='seas'||!SWIM)return null;return towns.seas.targets.find(T=>T.dolphin&&T.state==='ground'&&Math.hypot(T.mesh.position.x-pos.x,T.mesh.position.z-pos.z)<11);}
-function startRide(T){RIDE=T;T.state='ridden';T.rt0=0;RIDE.t=0;RIDE.tick=0;yaw=Math.atan2(-(T.mesh.position.x-pos.x),-(T.mesh.position.z-pos.z));pop('🐬 RIDING A DOLPHIN!');pop('Steer · RUN = faster · SHIP to hop off','t');splash(pos,14);}
-function endRide(){const T=RIDE;RIDE=null;T.state='ground';T.cx=pos.x-Math.cos(T.ph)*40;T.cz=pos.z-Math.sin(T.ph)*40;pos.y=-1.3;wv=0;pop(`Rode the dolphin ${T.t.toFixed(1)}s`,'t');}
+function startRide(T){RIDE=T;T.state='ridden';const m=T.mesh;m.scale.setScalar(2.8);m.rotation.set(0,0,0);m.updateMatrixWorld(true);const b=new THREE.Box3().setFromObject(m);T.rideOff=m.worldToLocal(b.getCenter(new V3()));T.rt0=0;RIDE.t=0;RIDE.tick=0;yaw=Math.atan2(-(T.mesh.position.x-pos.x),-(T.mesh.position.z-pos.z));pop('🐬 RIDING A DOLPHIN!');pop('Steer · RUN = faster · SHIP to hop off','t');splash(pos,14);}
+function endRide(){walker.rotation.set(0,yaw,0);const T=RIDE;RIDE=null;T.state='ground';T.mesh.scale.setScalar(2);T.cx=pos.x-Math.cos(T.ph)*40;T.cz=pos.z-Math.sin(T.ph)*40;pos.y=-1.3;wv=0;pop(`Rode the dolphin ${T.t.toFixed(1)}s`,'t');}
 function walkUpdate(dt,ix,iy,jumpBtn,run,shipBtn,t){
   if(RIDE){const T=RIDE;yaw-=ix*1.8*dt;fwd.set(-Math.sin(yaw),0,-Math.cos(yaw));pos.addScaledVector(fwd,(24+(run?16:0)+Math.max(0,iy)*6)*dt);
     const hd=Math.hypot(pos.x,pos.z);if(hd>620){pos.x*=620/hd;pos.z*=620/hd;yaw+=PI*dt*2;}
     T.t+=dt;T.tick+=dt;if(T.tick>=1){T.tick=0;score+=10;}if(T.t>=20&&!T.did){T.did=true;mEvent('ride20');pop('🐬 20s DOLPHIN RIDE!');}
-    const j=(T.t*0.85)%2.2,hop=j<1.1?Math.sin(j/1.1*PI):0,wasUp=pos.y>0.2;pos.y=-0.4+hop*8;if(wasUp!==(pos.y>0.2))splash(pos,8);
-    T.mesh.position.set(pos.x,pos.y-1.4,pos.z);T.mesh.rotation.set(0,yaw+PI/2,j<1.1?(0.55-j)*0.9:0);
-    walker.position.set(pos.x,pos.y,pos.z);walker.rotation.y=yaw;if(PILOT.mixer){pilotPlay('idle');PILOT.mixer.update(dt);}wParts.jet.visible=false;
+    const j=(T.t*0.7)%2.8,hop=j<1.2?Math.sin(j/1.2*PI):0,wasUp=pos.y>0.6;pos.y=0.2+hop*6;if(wasUp!==(pos.y>0.6))splash(pos,10);
+    const pitch=j<1.2?(0.6-j)*0.45:0;T.mesh.rotation.set(0,yaw+PI/2,pitch);{const o=T.rideOff.clone().multiplyScalar(2.8).applyEuler(T.mesh.rotation);T.mesh.position.set(pos.x-o.x,pos.y+RIDE_SEAT-o.y,pos.z-o.z);}
+    walker.position.set(pos.x,pos.y,pos.z);walker.rotation.set(-pitch,yaw,0);if(PILOT.mixer){pilotPlay(PILOT.acts.sit?'sit':'idle');PILOT.mixer.update(dt);}wParts.jet.visible=false;
     if(shipBtn&&!prevShip)endRide();prevShip=shipBtn;return;}
   yaw-=ix*2.6*dt;fwd.set(-Math.sin(yaw),0,-Math.cos(yaw));
   const air=!wGround&&pos.y>2.5;const sp=(iy>0?iy*(run?17:9)*(air?1.6:1):iy*5)*(SWIM?0.6:1);pos.addScaledVector(fwd,sp*dt);
@@ -4250,7 +4250,7 @@ function walkUpdate(dt,ix,iy,jumpBtn,run,shipBtn,t){
   eyeLasers(dt,inp.fire||keys.x,t);
 }
 function walkCam(dt){
-  desired.copy(pos).addScaledVector(fwd,-12);desired.y=pos.y+5.5;camera.position.lerp(desired,1-Math.exp(-6*dt));
+  if(RIDE){desired.copy(pos).addScaledVector(fwd,-17).addScaledVector(right,5);desired.y=Math.max(pos.y,0)+7;}else{desired.copy(pos).addScaledVector(fwd,-12);desired.y=pos.y+5.5;}camera.position.lerp(desired,1-Math.exp(-6*dt));
   if(camera.position.y<1)camera.position.y=1;look.copy(pos).addScaledVector(fwd,8);look.y=pos.y+2;camera.lookAt(look);
 }
 $('bLand').addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();landShip();});
