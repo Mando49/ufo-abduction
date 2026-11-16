@@ -435,16 +435,16 @@ function snapKey(m){const M=m.material,p=m.position,r=m.rotation,sc=m.scale;
   return p.x+','+p.y+','+p.z+','+r.x+','+r.y+','+r.z+','+sc.x+','+sc.y+','+sc.z+','+m.visible+','+(M&&M.uuid)+','+(M&&M.color?M.color.getHex():'')+','+(M&&M.emissive?M.emissive.getHex():'')+','+(M&&M.opacity);}
 function freezeTick(dt){if(state!=='play'||mode!=='ground')return;const n=curTown,T=towns[n];if(!T)return;let F=FREEZE[n];
   if(!F){const tg=new Set(T.targets.map(t=>t.mesh));F=FREEZE[n]={t:0,k:0,list:T.group.children.filter(o=>o.isMesh&&!o.isInstancedMesh&&!o.isSkinnedMesh&&!o.userData.keep&&!tg.has(o)&&!Array.isArray(o.material)&&o.geometry&&o.geometry.attributes.position).map(m=>({m,s:snapKey(m),dyn:false})),
-    spr:T.group.children.filter(o=>o.isSprite&&!o.userData.keep&&o.material.map===GLOW&&o.material.blending===THREE.AdditiveBlending&&Math.abs(o.scale.x-o.scale.y)<0.01).map(m=>({m,s:snapKey(m),dyn:false}))};}
+    spr:T.group.children.filter(o=>o.isSprite&&!o.userData.keep&&o.material.map===GLOW&&(o.material.blending===THREE.AdditiveBlending||o.material.blending===THREE.NormalBlending)&&Math.abs(o.scale.x-o.scale.y)<0.01).map(m=>({m,s:snapKey(m),dyn:false}))};}
   if(F.done)return;F.t+=dt;if((F.k++)%2===0){F.list.forEach(c=>{if(!c.dyn&&snapKey(c.m)!==c.s)c.dyn=true;});F.spr.forEach(c=>{if(!c.dyn&&snapKey(c.m)!==c.s)c.dyn=true;});}
   if(F.t>6){F.done=true;const st=F.list.filter(c=>!c.dyn).map(c=>c.m);if(st.length>8)try{freezeStatic(st,T.group,true);}catch(e){}
     try{batchGlows(F.spr.filter(c=>!c.dyn&&c.m.visible).map(c=>c.m),T.group);}catch(e){}}}
 // many still glow sprites -> a few point clouds (each glow was its own draw call)
 function batchGlows(list,parent){if(list.length<6)return;const tn=Math.tan(camera.fov*PI/360),B=new Map();
-  list.forEach(sp=>{const S=sp.scale.x/tn,k=Math.round(Math.log(S)/Math.log(1.18));const L=B.get(k)||[];L.push(sp);B.set(k,L);});
-  B.forEach((L,k)=>{const P=[],C=[];L.forEach(sp=>{sp.updateWorldMatrix(true,false);const v=new V3().setFromMatrixPosition(sp.matrixWorld);parent.worldToLocal(v);P.push(v.x,v.y,v.z);const c=sp.material.color,o=sp.material.opacity;C.push(c.r*o,c.g*o,c.b*o);});
+  list.forEach(sp=>{const S=sp.scale.x/tn,add=sp.material.blending===THREE.AdditiveBlending,k=Math.round(Math.log(S)/Math.log(1.18))+(add?'':'|n'+Math.round(sp.material.opacity*10));const L=B.get(k)||[];L.push(sp);B.set(k,L);});
+  B.forEach((L,k)=>{const P=[],C=[],add=typeof k==='number',op=add?1:L[0].material.opacity;L.forEach(sp=>{sp.updateWorldMatrix(true,false);const v=new V3().setFromMatrixPosition(sp.matrixWorld);parent.worldToLocal(v);P.push(v.x,v.y,v.z);const c=sp.material.color,o=add?sp.material.opacity:1;C.push(c.r*o,c.g*o,c.b*o);});
     const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(P,3));g.setAttribute('color',new THREE.Float32BufferAttribute(C,3));
-    const pts=new THREE.Points(g,new THREE.PointsMaterial({map:GLOW,size:Math.pow(1.18,k),sizeAttenuation:true,vertexColors:true,transparent:true,depthWrite:false,blending:THREE.AdditiveBlending}));pts.frustumCulled=false;parent.add(pts);
+    const pts=new THREE.Points(g,new THREE.PointsMaterial({map:GLOW,size:Math.pow(1.18,parseInt(k)),sizeAttenuation:true,vertexColors:true,transparent:true,opacity:op,depthWrite:false,blending:add?THREE.AdditiveBlending:THREE.NormalBlending}));pts.frustumCulled=false;parent.add(pts);
     L.forEach(sp=>{if(sp.parent)sp.parent.remove(sp);});});}
 // merge each part-group of a character into one mesh per color (moving pivots like legs/arms stay separate)
 function compactCritter(g,whole){if(whole){const B=g.userData.body||g;freezeStatic(B.children.slice(),B,true);return g;}
@@ -983,7 +983,7 @@ function makeHuman(sleeper){
     // street lamps
     for(let x=-60;x<=60;x+=30)for(const z of[-8.5,8.5]){const p=new THREE.Mesh(new THREE.CylinderGeometry(0.2,0.25,7,6),lam(0x2a2a30));p.position.set(x,3.5,z);hood.add(p);const hd=new THREE.Mesh(new THREE.SphereGeometry(0.6,8,6),lampHead);hd.position.set(x,7.2,z);hood.add(hd);
       const w=toW(x,z);glowSprite(0xffe0a0,w.x,7.2,w.z,8,0.7);}
-    freezeStatic([hood],hood);
+    freezeStatic([hood],hood,true);
   });
   // farmhouses next to each farm (a farmer asleep in each)
   fields.forEach((f,i)=>{const a=Math.atan2(f.z,f.x),hx=f.x+Math.cos(a+PI/2)*68,hz=f.z+Math.sin(a+PI/2)*68;
@@ -1770,7 +1770,7 @@ function critterMesh(kind){
     box(g,0.1,1.2,0.1,0x3a9a4a,0,3,0);const tip=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:0xff5ad8,transparent:true,depthWrite:false}));tip.position.set(0,3.7,0);tip.scale.set(1.6,1.6,1);g.add(tip);
     g.userData.emoji='👽';
   }
-  root.add(g);return g;
+  root.add(g);return compactCritter(g);
 }
 function addCritters(kind,n){for(let i=0;i<n;i++){const T={type:'critter',mesh:critterMesh(kind),spawn:spawnCow,fl:fields};T.spawn(T);targets.push(T);}}
 function makeFields(n,R){for(let i=0;i<n;i++){const a=i/n*2*PI+rand(-0.2,0.2),r=rand(R*0.25,R);fields.push({x:Math.cos(a)*r,z:Math.sin(a)*r});}}
@@ -2185,14 +2185,14 @@ function roverMesh(){const g=new THREE.Group();box(g,3,0.8,2,0xd8dce2,0,1.1,0);b
   for(const x of[-1.1,0,1.1])for(const z of[-1.1,1.1]){const w=new THREE.Mesh(new THREE.CylinderGeometry(0.42,0.42,0.3,10),lam(0x2a2a2e));w.rotation.x=PI/2;w.position.set(x,0.42,z);g.add(w);}
   box(g,0.08,1.2,0.08,0x888888,0.9,2,0.5);const d=new THREE.Mesh(new THREE.SphereGeometry(0.45,10,6,0,2*PI,0,PI/2),lam(0xeeeeee));d.position.set(0.9,2.6,0.5);d.rotation.x=PI;g.add(d);
   const l=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:0x7ffcff,transparent:true,depthWrite:false}));l.position.set(1.6,1.2,0);l.scale.set(1.6,1.6,1);g.add(l);
-  g.userData.emoji='🚙';root.add(g);return g;}
+  g.userData.emoji='🚙';root.add(g);return compactCritter(g);}
 function martianMesh(){const g=new THREE.Group();const m=new THREE.MeshLambertMaterial({color:0x7aff6a,emissive:0x1a5a10});
   const b=new THREE.Mesh(new THREE.CylinderGeometry(0.4,0.6,1.4,10),m);b.position.y=1;g.add(b);
   const h=new THREE.Mesh(new THREE.SphereGeometry(0.9,14,10),m);h.position.y=2.3;h.scale.set(1,1.15,1);g.add(h);
   for(const z of[-0.32,0.32]){const e=new THREE.Mesh(new THREE.SphereGeometry(0.26,10,8),basic(0x050505));e.position.set(0.75,2.4,z);e.scale.set(0.6,1.4,1);g.add(e);
     box(g,0.08,0.8,0.08,0x5adf4a,0,3.3,z*1.4);const t=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:0xff5ad8,transparent:true,depthWrite:false}));t.position.set(0,3.75,z*1.4);t.scale.set(1,1,1);g.add(t);}
   for(const z of[-0.3,0.3])box(g,0.22,0.6,0.22,0x5adf4a,0,0.3,z);
-  g.userData.emoji='👽';root.add(g);return g;}
+  g.userData.emoji='👽';root.add(g);return compactCritter(g);}
 function addTargets(fn,n){for(let i=0;i<n;i++){const T={type:'critter',mesh:fn(),spawn:spawnCow,fl:fields};T.spawn(T);targets.push(T);}}
 function domeBase(cx,cz,col,glass){
   for(let i=0;i<5;i++){const a=i/5*2*PI,x=cx+Math.cos(a)*(i?26:0),z=cz+Math.sin(a)*(i?26:0),r=i?rand(8,11):15;
