@@ -1076,7 +1076,7 @@ const MODELS={cow:{file:'cow',len:3.0,rotY:PI/2,list:[]},car:{file:'car',len:4.4
   whale:{file:'whale',len:3.8,rotY:-PI/2,list:[]},octopus:{file:'octopus',height:1.6,rotY:0,list:[]},sub:{file:'sub',len:6.5,rotY:0,list:[]},dolphin:{file:'dolphin',len:3.6,rotY:PI/2,rotX:0.69,list:[]},
   carrier:{file:'carrier',len:150,rotY:0,list:[]},destroyer:{file:'destroyer',len:70,rotY:0,list:[]},cargo:{file:'cargo',len:100,rotY:0,list:[]},cruise:{file:'cruise',len:90,rotY:0,list:[]},fishboat:{file:'fishboat',len:9,rotY:0,list:[]},sailboat:{file:'sailboat',len:8,rotY:0,list:[]},
   subE:{file:'sub',len:7,rotY:0,list:[],recolor:true},
-  unicorn:{file:'unicorn',height:4.6,rotY:0,list:[]},nileboat:{file:'nileboat',len:20,rotY:0,list:[]},croc:{file:'croc',len:9,rotY:0,list:[]},dragon:{file:'dragon',len:30,rotY:0,list:[]},sleigh:{file:'sleigh',len:10,rotY:PI/2,list:[]},reindeer:{file:'reindeer',height:4.4,rotY:PI/2,list:[]},
+  unicorn:{file:'unicorn',height:4.6,rotY:0,list:[]},nileboat:{file:'nileboat',len:20,rotY:0,list:[]},croc:{file:'croc',len:9,rotY:0,list:[]},jeep:{file:'jeep',len:7.5,rotY:0,list:[]},dragon:{file:'dragon',len:30,rotY:0,list:[]},sleigh:{file:'sleigh',len:10,rotY:PI/2,list:[]},reindeer:{file:'reindeer',height:4.4,rotY:PI/2,list:[]},
   mustang:{file:'mustang',height:4.2,rotY:PI/4,list:[]},burro:{file:'burro',height:3,rotY:0,list:[]}};
 let MODELS_BOOTED=false;
 function useModel(type,g){const M=MODELS[type];if(M.proto)attachModel(M,g);else{M.list.push(g);if(MODELS_BOOTED&&!M.loading&&window.loadModel)loadModel(type);}return g;}
@@ -1103,6 +1103,7 @@ const ANIM={alien:{file:'alien',height:2.3,rotY:PI/2,clips:{walk:0},list:[]},
   soldier:{file:'soldier',height:3.5,rotY:PI/2,clips:{walk:0},list:[]},
   person:{file:'person',height:3.4,rotY:PI/2,clips:{walk:0},tint:true,list:[]},mummy:{file:'mummy',height:3.7,rotY:PI/2,clips:{walk:0},list:[]},yeti:{file:'yeti',height:7.2,rotY:PI/2,clips:{walk:0},list:[]},
   fox:{file:'fox',len:3.4,axis:'z',rotY:PI/2,clips:{idle:'Survey',walk:'Walk',run:'Run'},list:[]},
+  pharaoh:{file:'pharaoh',height:4.4,rotY:PI/2,clips:{walk:0},list:[]},queen:{file:'queen',height:4,rotY:PI/2,clips:{walk:0},list:[]},
   bigfoot:{file:'bigfoot',height:3.9,rotY:PI/2,clips:{walk:0},list:[]},
   reptilian:{file:'reptilian',height:4.4,rotY:PI/2,clips:{walk:0},list:[]},mantis:{file:'mantis',height:5,rotY:PI/2,clips:{walk:0},list:[]},
   tallwhite:{file:'tallwhite',height:5.4,rotY:PI/2,clips:{walk:0},list:[]},nordic:{file:'nordic',height:4.5,rotY:PI/2,clips:{walk:0},list:[]},
@@ -2530,7 +2531,22 @@ endTown('fifth',[250,1500]);Object.assign(towns.fifth,{planet:true,fogC:new THRE
 
 // 🇪🇬 GIZA, EGYPT
 // shared helpers for the new Earth worlds
-function bigPyramid(x,z,base,h,mat,capC){const r=base/Math.SQRT2,m=new THREE.Mesh(new THREE.ConeGeometry(r,h,4,1),mat);m.rotation.y=PI/4;m.position.set(x,h/2,z);root.add(m);
+let PYR_TEX=null;
+function pyramidMat(){if(!PYR_TEX){PYR_TEX=texCanvas(512,512,g=>{g.fillStyle='#d2b06e';g.fillRect(0,0,512,512);const rows=32,rh=512/rows;
+    for(let r=0;r<rows;r++){let x=(r%2)*14;while(x<512){const w=22+Math.random()*22,sh=Math.random();g.fillStyle=`rgb(${(196+sh*40)|0},${(160+sh*36)|0},${(96+sh*30)|0})`;g.fillRect(x,r*rh,w-1.5,rh-1.5);if(Math.random()<0.12){g.fillStyle='rgba(90,60,30,.35)';g.fillRect(x+3,r*rh+2,w*0.5,rh*0.5);}x+=w;}
+      g.fillStyle='rgba(70,45,20,.55)';g.fillRect(0,(r+1)*rh-1.6,512,1.8);g.fillStyle='rgba(255,240,200,.25)';g.fillRect(0,r*rh,512,1.2);}});
+    PYR_TEX.wrapS=PYR_TEX.wrapT=THREE.RepeatWrapping;PYR_TEX.anisotropy=4;}
+  const t=PYR_TEX.clone();t.needsUpdate=true;return t;}
+function bigPyramid(x,z,base,h,mat,capC){const r=base/Math.SQRT2;let m;
+  if(h>40){ // real-looking: stepped stone courses, weathered blocks, smooth casing near the top, entrance, rubble
+    const tex=pyramidMat();tex.repeat.set(Math.round(base/9),Math.round(h/26*10)/10);const levels=Math.round(h/3.2),g=new THREE.CylinderGeometry(r*0.02,r,h,4,levels,false);
+    {const p=g.attributes.position,n=p.count;for(let i=0;i<n;i++){const y=p.getY(i)+h/2,k=Math.round(y/h*levels);if(k>0&&k<levels){const j=((k*7919)%13)/13-0.5;p.setX(i,p.getX(i)*(1+j*0.012));p.setZ(i,p.getZ(i)*(1+j*0.012));}}g.computeVertexNormals();}
+    m=new THREE.Mesh(g,new THREE.MeshLambertMaterial({map:tex,color:0xf0e0c0,emissive:0x2a1a08}));m.rotation.y=PI/4;m.position.set(x,h/2,z);m.userData.keep=true;root.add(m);
+    const cs=new THREE.Mesh(new THREE.ConeGeometry(r*0.235,h*0.225,4),new THREE.MeshLambertMaterial({color:0xf2e6cc,emissive:0x3a2a14}));cs.rotation.y=PI/4;cs.position.set(x,h*0.8875+0.3,z);root.add(cs); // surviving smooth casing stones
+    const hb=base/2;box(root,10,9,7,0xc8a868,x,4.5,z+hb-2);box(root,5,6,0.6,basic(0x0a0604),x,3,z+hb+1.6);box(root,12,1.6,8,0xb89858,x,9.6,z+hb-2); // entrance
+    box(root,base+10,0.8,base+10,0xc4a264,x,0.4,z); // stone platform
+    for(let i=0;i<Math.round(base/7);i++){const a=rand(0,2*PI),d=hb+rand(4,16),s=rand(1.5,4);const b=box(root,s,s*0.7,s*1.2,pick([0xc8a868,0xb89858,0xd8b878]),x+Math.cos(a)*d*1.2,s*0.3,z+Math.sin(a)*d*1.2);b.rotation.set(rand(-.3,.3),rand(0,3),rand(-.3,.3));}}
+  else{m=new THREE.Mesh(new THREE.ConeGeometry(r,h,4,1),mat);m.rotation.y=PI/4;m.position.set(x,h/2,z);root.add(m);}
   [[0.92,0.34],[0.62,0.67],[0.3,1]].forEach(([b,hh])=>{const hb=base*b/2;colliders.push({x0:x-hb,x1:x+hb,z0:z-hb,z1:z+hb,h:h*hh,y0:0});});
   if(capC){const cap=new THREE.Mesh(new THREE.ConeGeometry(r*0.08,h*0.08,4),new THREE.MeshBasicMaterial({color:capC}));cap.rotation.y=PI/4;cap.position.set(x,h*0.96,z);root.add(cap);glowSprite(capC,x,h,z,base*0.18,0.8);}
   return m;}
@@ -2653,6 +2669,9 @@ beginTown('egypt');
       for(let k=0;k<4;k++){const x=AX-48+k*32+(k>1?10:0),z=AZ-2;add(box(root,14,10,14,0xcfae74,x,5,z));add(box(root,12,18,8,0xcfae74,x,19,z+3));add(box(root,12,5,12,0xcfae74,x,12,z-2));add(box(root,8,9,8,0xcfae74,x,32.5,z+3));add(box(root,11,10,2.4,0x2a4a8a,x,33,z+6.6));add(box(root,3,7,3,0xe8c040,x,40.5,z+3));
         for(const e of[-1.8,1.8])add(box(root,1.5,0.7,0.3,basic(0x1a1006),x+e,34,z-1.2));}
       const dr=new THREE.Mesh(new THREE.PlaneGeometry(9,16),basic(0x0a0604));dr.position.set(AX+5,8,AZ+2.9);dr.rotation.y=PI;root.add(dr);sign('ABU SIMBEL','#ffd890',36,5,AX+5,62,AZ+10,PI);}
+    for(const [type,em,pts,spot] of[['pharaoh','🤴',350,{x:-330,z:215}],['queen','👸',350,{x:-330,z:235}],['pharaoh','🤴',350,{x:40,z:-130}],['queen','👸',350,{x:265,z:-200}]]){const g=makeHuman(false);g.userData.emoji=em;g.userData.pts=pts;g.userData.heat=0.6;
+      const au=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:0xffd040,transparent:true,opacity:.3,blending:THREE.AdditiveBlending,depthWrite:false}));au.position.y=2.4;au.scale.set(7,8,1);g.add(au);
+      const T={type:'critter',mesh:useAnim(type,g,'egypt'),spawn:spawnCow,fl:[spot],rad:14};T.mesh.userData.T=T;T.spawn(T);targets.push(T);}
     freezeStatic(objs,root,true);
     // 🎈 hot-air balloons drifting over the desert at sunrise (beam them)
     const bal=[];for(let i=0;i<4;i++){const g=new THREE.Group(),c1=pick([0xe83a3a,0x2a8ae8,0xf0c040,0x3ac060]),c2=0xfff4d8;
@@ -4336,7 +4355,7 @@ renderShop();
 // ---------- 📖 Abduction Log: a collection book of everything ever beamed up ----------
 const LOG_NAMES={'🐄':'Cow','🚗':'Car','🚓':'Police Car','🚚':'Truck','😴':'Sleeper','🚶':'Walker','🚜':'Tractor','🦊':'Fox','🤖':'Robot','📣':'Cheerleader','🏈':'Football Player','🎈':'Balloon','🏎️':'Luxury / Race Car','📺':'News Van','🌮':'Taco Truck','🍔':'Diner Guest','🔘':'Mystery Orb','🌑':'Jellyfish UFO',
   '👽':'Little Alien','🏃':'Area 51 Raider','🤳':'Streamer','🪖':'Soldier','🐎':'Mustang','🫏':'Burro','🔩':'Secret Tech','🕴️':'Man in Black','❄️':'Yeti','🐧':'Penguin','🦍':'Ice Ape','🦕':'Dinosaur','🦀':'Lava Crab','🦖':'T-Rex','🚙':'Moon Rover','🧊':'Hypercube','🪼':'Glitch Jelly','🤍':'Tall White','💙':'Nordic',
-  '🐪':'Camel','🧟':'Mummy','🐆':'Jaguar','🧗':'Climber / Zipliner','🛩️':'Fighter Jet','🚤':'Speedboat','🛫':'Airliner','🥾':'Hiker','🕺':'Elvis','💃':'Showgirl','🚢':'Submarine','🐟':'Fish','🐢':'Sea Turtle','🦈':'Shark','🐋':'Whale','🐬':'Dolphin','🐙':'Octopus','🎣':'Fishing Boat','⛵':'Sailboat','👾':'Alien Specimen','🥼':'Scientist','🛞':'Mars Rover','🚁':'Mars Helicopter','💎':'Cave Crystal','🦇':'Cave Bat','👑':'Sleeping King','🛶':'Nile Boat','⚱️':'Golden Sarcophagus','⛏️':'Archaeologist','🐊':'Crocodile','👻':'Ghost Ship','🦌':'Reindeer','🎅':'Santa\'s Sleigh','🎁':'Present','🦶':'Bigfoot','🦄':'Unicorn','🎐':'Gas Floater','🛰️':'Lost Probe','🩶':'Grey','🦎':'Reptilian','🦗':'Mantis'};
+  '🐪':'Camel','🧟':'Mummy','🐆':'Jaguar','🧗':'Climber / Zipliner','🛩️':'Fighter Jet','🚤':'Speedboat','🛫':'Airliner','🥾':'Hiker','🕺':'Elvis','💃':'Showgirl','🚢':'Submarine','🐟':'Fish','🐢':'Sea Turtle','🦈':'Shark','🐋':'Whale','🐬':'Dolphin','🐙':'Octopus','🎣':'Fishing Boat','⛵':'Sailboat','👾':'Alien Specimen','🥼':'Scientist','🛞':'Mars Rover','🚁':'Mars Helicopter','💎':'Cave Crystal','🦇':'Cave Bat','👑':'Sleeping King','🛶':'Nile Boat','🤴':'Pharaoh','👸':'Queen of the Nile','⚱️':'Golden Sarcophagus','⛏️':'Archaeologist','🐊':'Crocodile','👻':'Ghost Ship','🦌':'Reindeer','🎅':'Santa\'s Sleigh','🎁':'Present','🦶':'Bigfoot','🦄':'Unicorn','🎐':'Gas Floater','🛰️':'Lost Probe','🩶':'Grey','🦎':'Reptilian','🦗':'Mantis'};
 let LOG={};try{LOG=JSON.parse(localStorage.getItem('ufoLog')||'{}');}catch(e){}
 const logKey=T=>{const u=T.mesh.userData;return u.emoji||(u.police?'🚓':{cow:'🐄',car:'🚗',truck:'🚚'}[T.type]);};
 let LOG_CAT=null;
@@ -4965,7 +4984,7 @@ function landShip(){
   walker.visible=true;document.body.classList.add('walking');setupRelics();setupCrates();
   pop('🚶 EXPLORE ON FOOT');pop(`Find 5 💠 relics${SECRETS[curTown]&&!SECRETS[curTown].foundThisRun?' · a 🔍 secret is hidden here':''}`,'t');blip(300,600,0.25,'sine',0.12);lastHud='';
 }
-function boardShip(){if(RIDE)endRide();SWIM=false;
+function boardShip(){if(DRIVE)endDrive();if(RIDE)endRide();SWIM=false;
   onFoot=false;walker.visible=false;document.body.classList.remove('walking');relicFx.forEach(r=>r.g.visible=false);crateFx.forEach(c=>c.g.visible=false);eyeBeams.forEach(m=>m.visible=false);eyeGlow.forEach(s=>s.visible=false);
   pos.copy(shipPark);pos.y=10;yaw=shipYaw;speed=0;vy=0;fadeIn();snapCam();
   pop('🛸 BACK IN THE SHIP');blip(600,300,0.25,'sine',0.12);lastHud='';
@@ -4977,6 +4996,7 @@ function nearDolphin(){if(curTown!=='seas'||!SWIM)return null;return towns.seas.
 function startRide(T){RIDE=T;T.state='ridden';const m=T.mesh;m.scale.setScalar(2.8);m.rotation.set(0,0,0);m.updateMatrixWorld(true);const b=new THREE.Box3().setFromObject(m);T.rideOff=m.worldToLocal(b.getCenter(new V3()));T.rt0=0;RIDE.t=0;RIDE.tick=0;yaw=Math.atan2(-(T.mesh.position.x-pos.x),-(T.mesh.position.z-pos.z));pop('🐬 RIDING A DOLPHIN!');pop('Steer · RUN = faster · SHIP to hop off','t');splash(pos,14);}
 function endRide(){walker.rotation.set(0,yaw,0);const T=RIDE;RIDE=null;T.state='ground';T.mesh.scale.setScalar(2);T.cx=pos.x-Math.cos(T.ph)*40;T.cz=pos.z-Math.sin(T.ph)*40;pos.y=-1.3;wv=0;pop(`Rode the dolphin ${T.t.toFixed(1)}s`,'t');}
 function walkUpdate(dt,ix,iy,jumpBtn,run,shipBtn,t){
+  if(DRIVE){driveUpdate(dt,ix,iy,jumpBtn,run,shipBtn,t);return;}
   if(RIDE){const T=RIDE;yaw-=ix*1.8*dt;fwd.set(-Math.sin(yaw),0,-Math.cos(yaw));pos.addScaledVector(fwd,(24+(run?16:0)+Math.max(0,iy)*6)*dt);
     const hd=Math.hypot(pos.x,pos.z);if(hd>620){pos.x*=620/hd;pos.z*=620/hd;yaw+=PI*dt*2;}
     T.t+=dt;T.tick+=dt;if(T.tick>=1){T.tick=0;score+=10;}if(T.t>=20&&!T.did){T.did=true;mEvent('ride20');pop('🐬 20s DOLPHIN RIDE!');}
@@ -5023,16 +5043,17 @@ function walkUpdate(dt,ix,iy,jumpBtn,run,shipBtn,t){
   heartCd-=dt;if(heartCd<=0)for(const T of targets){if(T.state==='ground'&&T.mesh.position.distanceTo(pos)<3.5){heartCd=1.2;spawnFx(T.mesh.position.clone().add(new V3(0,3.5,0)),tmpV.set(0,2,0),1,2.5,1,0xff5ad8,true);pop('💖','t');break;}}
   const NP=nearPlane();if(NP){planeHint-=dt;if(planeHint<=0){planeHint=5;pop('✈️ Tap SHIP to fly the '+PLANE_INFO[NP.k].name,'t');}}
   const ND=nearDolphin();if(ND&&!NP){rideHint-=dt;if(rideHint<=0){rideHint=5;pop('🐬 Tap SHIP to ride the dolphin','t');}}
-  if(shipBtn&&!prevShip){if(ND&&!NP)startRide(ND);else if(NP)boardPlane(NP);else boardShip();}prevShip=shipBtn;
+  const NJ=nearJeep();if(NJ&&!NP){jeepHint-=dt;if(jeepHint<=0){jeepHint=6;pop(isTouch?'🚙 Tap SHIP to drive':'🚙 Press L to drive','t');}}
+  if(shipBtn&&!prevShip){if(ND&&!NP)startRide(ND);else if(NP)boardPlane(NP);else if(NJ)startDrive(NJ);else boardShip();}prevShip=shipBtn;
   if(wGround)energy=Math.min(100,energy+15*dt);
   eyeLasers(dt,inp.fire||keys.x,t);
 }
 function walkCam(dt){
-  if(RIDE){desired.copy(pos).addScaledVector(fwd,-17).addScaledVector(right,5);desired.y=Math.max(pos.y,0)+7;}else{desired.copy(pos).addScaledVector(fwd,-12);desired.y=pos.y+5.5;}camera.position.lerp(desired,1-Math.exp(-6*dt));
+  if(DRIVE){desired.copy(pos).addScaledVector(fwd,-19);desired.y=pos.y+8;}else if(RIDE){desired.copy(pos).addScaledVector(fwd,-17).addScaledVector(right,5);desired.y=Math.max(pos.y,0)+7;}else{desired.copy(pos).addScaledVector(fwd,-12);desired.y=pos.y+5.5;}camera.position.lerp(desired,1-Math.exp(-6*dt));
   if(camera.position.y<1)camera.position.y=1;look.copy(pos).addScaledVector(fwd,8);look.y=pos.y+2;camera.lookAt(look);
 }
 $('bLand').addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();landShip();});
-addEventListener('keydown',e=>{if(e.key.toLowerCase()==='l'){if(onFoot){if(RIDE)endRide();else{const ND=nearDolphin(),NP=nearPlane();if(ND&&!NP)startRide(ND);else if(NP)boardPlane(NP);else boardShip();}}else landShip();}});
+addEventListener('keydown',e=>{if(e.key.toLowerCase()==='l'){if(onFoot){if(DRIVE)endDrive();else if(RIDE)endRide();else{const ND=nearDolphin(),NP=nearPlane(),NJ=nearJeep();if(ND&&!NP)startRide(ND);else if(NP)boardPlane(NP);else if(NJ)startDrive(NJ);else boardShip();}}else landShip();}});
 
 // ---------- HIDDEN SECRETS (found on foot) ----------
 const SECRETS={
@@ -5181,6 +5202,32 @@ const VISITORS=[];
     const spawnV=T=>{const m=T.mesh;m.position.set(rand(-420,420),rand(T.jelly?18:12,T.jelly?40:30),rand(-420,420));resetRot(m);m.visible=true;T.state='ground';T.to=m.position.clone();T.wait=rand(1,4);T.blink=rand(14,30);};
     for(let i=0;i<no+nj;i++){const jelly=i>=no,g=jelly?makeJellyUFO():makeVisitorOrb();towns[n].group.add(g);
       const T={type:'critter',mesh:g,still:true,jelly,spawn:spawnV,town:n};T.spawn(T);towns[n].targets.push(T);VISITORS.push(T);}}})();
+// 🚙 DRIVABLE DESERT 4x4s (Egypt + Area 51): walk up, press L / tap SHIP to drive, again to get out
+const JEEPS=[];let DRIVE=null,jeepHint=0;
+(function(){const r0=root,c0=colliders;
+  for(const [town,x,z,yw] of[['egypt',24,290,0.4],['egypt',-60,40,2.2],['egypt',180,-60,-1],['desert',40,350,0.3],['desert',-120,120,1.5]]){if(!towns[town])continue;root=towns[town].group;
+    const g=new THREE.Group();box(g,6,1.4,2.8,0xc8a040,0,1.5,0);box(g,2.2,1,2.6,0xb89030,1.6,2.5,0);box(g,0.2,1.6,2.6,0x2a2a30,-1.2,3,0);for(const wx of[-2,2])for(const wz of[-1.5,1.5]){const w=new THREE.Mesh(new THREE.CylinderGeometry(0.9,0.9,0.7,10),lam(0x1a1a1e));w.rotation.x=PI/2;w.position.set(wx,0.9,wz);g.add(w);}
+    const hl=[];for(const wz of[-0.9,0.9]){const s=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:0xfff2c0,transparent:true,opacity:.0,blending:THREE.AdditiveBlending,depthWrite:false}));s.position.set(3.4,1.9,wz);s.scale.set(3,3,1);s.userData.keep=true;g.add(s);hl.push(s);}
+    g.position.set(x,0,z);g.rotation.y=yw;root.add(g);useModel('jeep',g);JEEPS.push({g,town,hl,sp:0,x0:x,z0:z,y0:yw,t:0,tick:0,air:0,vy:0});}
+  root=r0;colliders=c0;})();
+function nearJeep(){return JEEPS.find(J=>J.town===curTown&&Math.hypot(J.g.position.x-pos.x,J.g.position.z-pos.z)<11&&pos.y<6);}
+function startDrive(J){DRIVE=J;J.sp=0;J.t=0;J.tick=0;pos.set(J.g.position.x,0,J.g.position.z);yaw=J.g.rotation.y-PI/2;J.hl.forEach(s=>s.material.opacity=.9);wv=0;
+  pop('🚙 DRIVING!');pop(isTouch?'Stick = steer + gas · RUN = turbo · JUMP = hop · SHIP = get out':'W/S gas + reverse · A/D steer · SHIFT turbo · SPACE hop · L get out','t');blip(120,300,0.4,'sawtooth',0.1);}
+function endDrive(){const J=DRIVE;DRIVE=null;J.sp=0;J.hl.forEach(s=>s.material.opacity=0);J.g.position.y=0;J.g.rotation.set(0,J.g.rotation.y,0);walker.scale.setScalar(1);walker.rotation.set(0,yaw,0);
+  pos.addScaledVector(right,4.5);pos.y=0;wv=0;pop(`🚙 Drove for ${J.t.toFixed(0)}s`,'t');}
+function driveUpdate(dt,ix,iy,jumpBtn,run,shipBtn,t){const J=DRIVE,g=J.g;
+  const top=(run?46:30),want=iy>0?iy*top:iy*12;J.sp+=(want-J.sp)*Math.min(1,dt*(Math.abs(want)>Math.abs(J.sp)?1.6:2.6));
+  yaw-=ix*dt*1.9*clamp(J.sp/14,-1,1);fwd.set(-Math.sin(yaw),0,-Math.cos(yaw));right.set(Math.cos(yaw),0,-Math.sin(yaw));
+  const ox=pos.x,oz=pos.z;pos.addScaledVector(fwd,J.sp*dt);
+  const hd=Math.hypot(pos.x,pos.z);if(hd>620){pos.x*=620/hd;pos.z*=620/hd;}
+  for(const b of colliders){if(b.y0>3||b.h<1.2)continue;if(pos.x>b.x0-2.2&&pos.x<b.x1+2.2&&pos.z>b.z0-2.2&&pos.z<b.z1+2.2){pos.x=ox;pos.z=oz;if(Math.abs(J.sp)>10){blip(160,60,0.2,'square',0.1);shake=Math.max(shake,0.3);}J.sp*=-0.3;break;}}
+  if(jumpBtn&&!prevJump&&pos.y<=0.01){J.vy=11;blip(300,600,0.15,'sine',0.08);}prevJump=jumpBtn;pos.y+=J.vy*dt;J.vy-=28*dt;if(pos.y<=0){if(J.vy<-6)spawnFx(pos,tmpV.set(0,2,0),0.4,6,8,0xd8b47a,true);pos.y=0;J.vy=0;}
+  const water=curTown==='egypt'&&Math.abs(pos.x-360)<40;if(water){J.sp*=1-Math.min(1,dt*2.5);if(Math.abs(J.sp)>3&&Math.random()<0.5)spawnFx(pos,tmpV.set(rand(-3,3),6,rand(-3,3)),0.5,2,3,0xbfe8ff,true);}
+  else if(Math.abs(J.sp)>8&&pos.y<=0.01&&Math.random()<0.7)spawnFx(tmpV2.copy(pos).addScaledVector(fwd,-3.5),tmpV.set(rand(-2,2),rand(2,5),rand(-2,2)),0.6,2.5,4,curTown==='egypt'?0xd8b47a:0xc08a60,true);
+  g.position.set(pos.x,pos.y+Math.abs(Math.sin(t*22))*Math.min(0.12,Math.abs(J.sp)*0.004),pos.z);g.rotation.set(0,yaw+PI/2,0);g.rotateZ(clamp(J.vy*0.02,-0.3,0.3));g.rotateX(-ix*clamp(J.sp/40,-1,1)*0.12);
+  walker.scale.setScalar(0.8);walker.position.copy(pos).addScaledVector(right,-0.7).addScaledVector(fwd,-0.3);walker.position.y=pos.y+1.5;walker.rotation.set(0,yaw,0);if(PILOT.mixer){pilotPlay(PILOT.acts.sit?'sit':'idle');PILOT.mixer.update(dt);}wParts.jet.visible=false;
+  J.t+=dt;J.tick+=dt*Math.min(1,Math.abs(J.sp)/20);if(J.tick>=1){J.tick=0;score+=5;}if(J.t>=30&&!J.did){J.did=true;mEvent('drive30');pop('🚙 30s JOYRIDE! +100');score+=100;}
+  if(shipBtn&&!prevShip)endDrive();prevShip=shipBtn;}
 // 🦶 BIGFOOT in the pine woods at the edge of Neon City + 🦄 UNICORNS in the 5th Dimension
 (function(){const r0=root,c0=colliders;
   root=towns.city.group;colliders=towns.city.colliders;
@@ -5521,6 +5568,8 @@ const MISSIONS=[
   {id:'marscave',t:'Find the hidden cave on Mars',ev:'marscave',g:1,r:600},
   {id:'king',t:'Beam up the Sleeping King (Mars cave)',ev:'abduct',m:d=>d.emoji==='👑',g:1,r:1200},
   {id:'rovers',t:'Beam up 2 Mars rovers',ev:'abduct',m:d=>d.emoji==='🛞',g:2,r:700},
+  {id:'drive30',t:'Joyride a desert 4x4 for 30 seconds (Egypt or Area 51)',ev:'drive30',g:1,r:500},
+  {id:'pharaoh',t:'Beam up the Pharaoh and the Queen (Egypt)',ev:'abduct',m:d=>d.emoji==='🤴'||d.emoji==='👸',g:2,r:900},
   {id:'sarco',t:'Steal the golden sarcophagus (Valley of the Kings, Egypt)',ev:'abduct',m:d=>d.emoji==='⚱️',g:1,r:900},
   {id:'crocs',t:'Beam up 3 Nile crocodiles (Egypt)',ev:'abduct',m:d=>d.emoji==='🐊',g:3,r:500},
   {id:'crop',t:'Draw 2 crop circles (hold the beam over a farm field)',ev:'crop',g:2,r:500},
@@ -5990,7 +6039,7 @@ const pos=new V3(0,60,400),fwd=new V3(),right=new V3(),desired=new V3(),look=new
 
 function pop(txt,cls){const d=document.createElement('div');d.className='pop '+(cls||'');d.textContent=txt;$('pops').appendChild(d);setTimeout(()=>d.remove(),1250);}
 let freeMode=false;
-function startGame(free){try{mechReset();if(window.MECH)MECH.cd=20;}catch(e){}if(RIDE){RIDE.state='ground';RIDE=null;}SWIM=false;if(FLYP){PILOT_G[FLYP.k].visible=false;FLYP.g.visible=true;FLYP.col.h=5;FLYP=null;applyShip();}
+function startGame(free){try{mechReset();if(window.MECH)MECH.cd=20;}catch(e){}if(DRIVE){try{endDrive();}catch(e){DRIVE=null;}}JEEPS.forEach(J=>{J.g.position.set(J.x0,0,J.z0);J.g.rotation.set(0,J.y0,0);J.did=false;});if(RIDE){RIDE.state='ground';RIDE=null;}SWIM=false;if(FLYP){PILOT_G[FLYP.k].visible=false;FLYP.g.visible=true;FLYP.col.h=5;FLYP=null;applyShip();}
   initAudio();freeMode=free===true;document.body.classList.toggle('free',freeMode);
   score=0;timer=150;shield=100;energy=100;lock=false;cows=0;cars=0;
   yaw=0;speed=0;vy=0;pos.set(0,60,400);hitCd=0;

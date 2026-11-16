@@ -124,3 +124,5 @@ Crop circles (hold the beam over a Neon City farm field), the Bermuda Triangle i
 ## Egypt
 
 Beyond the pyramids and Sphinx: the Temple of Karnak, the Valley of the Kings (steal the golden sarcophagus), Abu Simbel, an archaeology dig, a riverside bazaar, an oasis, hot-air balloons, and Egyptian boats and crocodiles on the Nile.
+
+The three great pyramids now have real stone-block courses, surviving casing stones near the top, entrances and rubble. A Pharaoh and the Queen of the Nile walk the sands. Desert 4x4s are parked in Egypt and Area 51: walk up and press L (or tap SHIP) to drive, again to get out.
