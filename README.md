@@ -112,3 +112,7 @@ Alien Mothership (space), Kraken (Ocean), Fire Worm (Magmor) and MECH-51, the Ar
 ## Underground worlds
 
 Mars has a hidden cave (crystals, bats, a fossil, a crashed saucer and a Sleeping King frozen at the back) plus the four famous rovers and the little helicopter on the surface. The Moon has a giant crater you fly down into: an inner-world city with robots, Greys, Reptilians and Mantis aliens.
+
+## Jupiter
+
+Fly into Jupiter from space to enter its storm clouds. There is no ground and no landing: dive to the cloud tops to beam up gas floaters and a lost probe, fly into the eye of the Great Red Spot, dodge lightning from the thunderheads, and do not sink too deep. Fly straight up to leave.
