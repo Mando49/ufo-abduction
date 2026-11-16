@@ -120,3 +120,7 @@ Fly into Jupiter from space to enter its storm clouds. There is no ground and no
 ## Legends
 
 Crop circles (hold the beam over a Neon City farm field), the Bermuda Triangle in the Open Sea (it swallows you and spits you out on another world), a fire-breathing dragon boss on Magmor, and Santa with his sleigh and reindeer circling Antarctica. Also Bigfoot in the Neon City pine woods and unicorns in the 5th Dimension.
+
+## Egypt
+
+Beyond the pyramids and Sphinx: the Temple of Karnak, the Valley of the Kings (steal the golden sarcophagus), Abu Simbel, an archaeology dig, a riverside bazaar, an oasis, hot-air balloons, and Egyptian boats and crocodiles on the Nile.

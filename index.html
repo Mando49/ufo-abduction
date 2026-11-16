@@ -1076,7 +1076,7 @@ const MODELS={cow:{file:'cow',len:3.0,rotY:PI/2,list:[]},car:{file:'car',len:4.4
   whale:{file:'whale',len:3.8,rotY:-PI/2,list:[]},octopus:{file:'octopus',height:1.6,rotY:0,list:[]},sub:{file:'sub',len:6.5,rotY:0,list:[]},dolphin:{file:'dolphin',len:3.6,rotY:PI/2,rotX:0.69,list:[]},
   carrier:{file:'carrier',len:150,rotY:0,list:[]},destroyer:{file:'destroyer',len:70,rotY:0,list:[]},cargo:{file:'cargo',len:100,rotY:0,list:[]},cruise:{file:'cruise',len:90,rotY:0,list:[]},fishboat:{file:'fishboat',len:9,rotY:0,list:[]},sailboat:{file:'sailboat',len:8,rotY:0,list:[]},
   subE:{file:'sub',len:7,rotY:0,list:[],recolor:true},
-  unicorn:{file:'unicorn',height:4.6,rotY:0,list:[]},nileboat:{file:'nileboat',len:20,rotY:0,list:[]},dragon:{file:'dragon',len:30,rotY:0,list:[]},sleigh:{file:'sleigh',len:10,rotY:PI/2,list:[]},reindeer:{file:'reindeer',height:4.4,rotY:PI/2,list:[]},
+  unicorn:{file:'unicorn',height:4.6,rotY:0,list:[]},nileboat:{file:'nileboat',len:20,rotY:0,list:[]},croc:{file:'croc',len:9,rotY:0,list:[]},dragon:{file:'dragon',len:30,rotY:0,list:[]},sleigh:{file:'sleigh',len:10,rotY:PI/2,list:[]},reindeer:{file:'reindeer',height:4.4,rotY:PI/2,list:[]},
   mustang:{file:'mustang',height:4.2,rotY:PI/4,list:[]},burro:{file:'burro',height:3,rotY:0,list:[]}};
 let MODELS_BOOTED=false;
 function useModel(type,g){const M=MODELS[type];if(M.proto)attachModel(M,g);else{M.list.push(g);if(MODELS_BOOTED&&!M.loading&&window.loadModel)loadModel(type);}return g;}
@@ -2599,6 +2599,72 @@ beginTown('egypt');
   planetAnim.push({town:'egypt',f:(t,dt)=>{beam.material.opacity=0.14+0.08*Math.sin(t*1.5);
     boats.forEach(B=>{if(B.T.state!=='ground')return;B.z+=B.sp*dt;if(B.z>640)B.z=-640;if(B.z<-640)B.z=640;B.g.position.set(B.x,Math.sin(t*1.2+B.x)*0.2,B.z);B.g.rotation.y=B.sp>0?0:PI;B.g.rotation.z=Math.sin(t+B.z)*0.05;});
     targets.forEach(T=>{const u=T.mesh.userData;if(u.legs&&!u.zombie&&T.state==='ground'){const sw=Math.sin(t*7+T.mesh.id)*0.4;u.legs[0].rotation.z=sw;u.legs[1].rotation.z=-sw;u.arms[0].rotation.z=-sw;u.arms[1].rotation.z=sw;}if(u.zombie&&T.state==='ground'){u.legs[0].rotation.z=Math.sin(t*3+T.mesh.id)*0.35;u.legs[1].rotation.z=-Math.sin(t*3+T.mesh.id)*0.35;u.body.rotation.z=Math.sin(t*1.5+T.mesh.id)*0.08;}});}});
+  // ===================== MORE EGYPT =====================
+  {const objs=[],add=m=>{objs.push(m);return m;},sand=lam(0xcfae74,0x1a1006),gold=basic(0xffd040);
+    const cyl=(r1,r2,h,c,x,y,z,seg)=>{const m=new THREE.Mesh(new THREE.CylinderGeometry(r1,r2,h,seg||10),typeof c==='number'?lam(c,0x1a1006):c);m.position.set(x,y,z);root.add(m);return add(m);};
+    // 🏛️ TEMPLE OF KARNAK: a hall of giant painted columns you can fly between
+    {const KX=-330,KZ=90;add(flatPlane(120,170,0xbf9c62,-2,KX,KZ));
+      for(let r=0;r<6;r++)for(const c of[-36,-12,12,36]){const x=KX+c,z=KZ-60+r*24;cyl(4,4.6,34,0xd8b878,x,17,z,12);cyl(5.6,4,4,pick([0xc84a3a,0x2a7a8a,0xd8a030]),x,36,z,12);cyl(4.1,4.1,2,0x2a5a9a,x,8,z,12);cyl(4.1,4.1,1.2,0xc84a3a,x,24,z,12);
+        colliders.push({x0:x-4.5,x1:x+4.5,z0:z-4.5,z1:z+4.5,h:38,y0:0});}
+      for(const c of[-36,-12,12,36])add(box(root,7,3,128,0xd0ae70,KX+c,39.5,KZ));
+      for(const s of[-1,1]){add(box(root,34,46,12,0xd8b878,KX+s*30,23,KZ+86));add(box(root,36,3,13,0xc84a3a,KX+s*30,47.5,KZ+86));colliders.push({x0:KX+s*30-17,x1:KX+s*30+17,z0:KZ+80,z1:KZ+92,h:49,y0:0});
+        // seated pharaoh statues guarding the gate
+        const sx=KX+s*16,sz=KZ+100;add(box(root,7,6,8,0xcfae74,sx,3,sz));add(box(root,6,9,5,0xcfae74,sx,10.5,sz-1));add(box(root,6,3,7,0xcfae74,sx,7,sz+2));add(box(root,4,4.5,4,0xcfae74,sx,17,sz-1));add(box(root,5.4,5,1.2,0x2a4a8a,sx,17.4,sz-3));add(box(root,1.6,3,1.6,0xe8c040,sx,21,sz-1));}
+      for(let k=0;k<8;k++)for(const s of[-1,1]){const z=KZ+115+k*14,x=KX+s*9;add(box(root,3,2,7,0xcfae74,x,1,z));add(box(root,2,2.4,2,0xcfae74,x,2.6,z+2.6));} // avenue of small sphinxes
+      sign('TEMPLE OF KARNAK','#ffd890',50,6,KX,56,KZ+86,0);
+      for(const s of[-1,1]){const f=glowSprite(0xff9a30,KX+s*46,6,KZ+96,12,0.9);planetAnim.push({town:'egypt',f:t=>{f.scale.setScalar(11+Math.sin(t*9+s)*2);}});cyl(0.8,1.2,5,0x4a3a2a,KX+s*46,2.5,KZ+96,6);}}
+    // ⚱️ VALLEY OF THE KINGS: a tomb cut into the cliff with the pharaoh's golden sarcophagus
+    {const VX=-470,VZ=-150,rk=new THREE.MeshLambertMaterial({color:0xb8905a,flatShading:true});
+      for(let i=0;i<16;i++){const r=new THREE.Mesh(new THREE.DodecahedronGeometry(rand(24,38),0),rk);r.position.set(VX-30+rand(-20,10),rand(6,34),VZ+(i-8)*16);r.scale.y=rand(1,1.5);root.add(r);add(r);}
+      colliders.push({x0:VX-70,x1:VX-8,z0:VZ-130,z1:VZ+130,h:60,y0:0});
+      add(box(root,3,22,18,0x8a6a3a,VX+2,11,VZ));const door=new THREE.Mesh(new THREE.PlaneGeometry(11,16),basic(0x0a0604));door.position.set(VX+3.7,8,VZ);door.rotation.y=PI/2;root.add(door);
+      add(box(root,3.4,3,22,0xc84a3a,VX+2.2,23.5,VZ));for(const s of[-1,1]){add(box(root,3.4,22,3,0xd8b878,VX+2.2,11,VZ+s*9));glowSprite(0xff9a30,VX+8,7,VZ+s*13,12,0.9);cyl(0.7,1,6,0x4a3a2a,VX+8,3,VZ+s*13,6);
+        // Anubis statues
+        const ax=VX+16,az=VZ+s*20;add(box(root,5,2,5,0x2a2a30,ax,1,az));add(box(root,3,8,3,0x15161a,ax,6,az));add(box(root,2.6,3,2.6,0x15161a,ax,11.5,az));add(box(root,1.4,1.4,3,0x15161a,ax+1.8,11.2,az));for(const e of[-0.8,0.8])add(box(root,0.6,2.6,0.6,0x15161a,ax-0.4,14,az+e));add(box(root,3.2,0.7,3.2,0xe8c040,ax,9.6,az));}
+      sign('VALLEY OF THE KINGS','#ffd890',44,5,VX+4,30,VZ,PI/2);
+      const sg=new THREE.Group(),gm=new THREE.MeshPhongMaterial({color:0xe8b830,specular:0xfff4c0,shininess:120,emissive:0x3a2a00});
+      const b1=new THREE.Mesh(new THREE.BoxGeometry(3,2,8),gm);b1.position.y=1.6;sg.add(b1);const hd=new THREE.Mesh(new THREE.BoxGeometry(3.4,2.4,2.6),gm);hd.position.set(0,2,-3.6);sg.add(hd);
+      for(let k=0;k<5;k++){const st=new THREE.Mesh(new THREE.BoxGeometry(3.1,0.25,0.5),basic(0x2a4a9a));st.position.set(0,2.7,-1.6+k*1.2);sg.add(st);}const base=new THREE.Mesh(new THREE.BoxGeometry(5,0.6,10),lam(0x6a4a2a));base.position.y=0.3;sg.add(base);
+      const sgl=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:0xffd040,transparent:true,opacity:.6,blending:THREE.AdditiveBlending,depthWrite:false}));sgl.position.y=3;sgl.scale.set(18,12,1);sg.add(sgl);
+      sg.userData.emoji='⚱️';sg.userData.pts=400;sg.userData.heat=0.5;root.add(sg);
+      const T={type:'critter',mesh:sg,still:true,spawn:T=>{T.mesh.position.set(VX+20,0,VZ);resetRot(T.mesh);T.mesh.rotation.y=PI/2;T.mesh.visible=true;T.state='ground';}};T.spawn(T);targets.push(T);}
+    // ⛏️ archaeology dig: tents, trenches, crates and a half-buried giant statue head
+    {const DX=140,DZ=140;for(let k=0;k<3;k++){add(flatPlane(26,10,0x8a6a40,-3,DX-20+k*4,DZ-18+k*16));add(box(root,26,0.8,0.6,0x6a4a2a,DX-20+k*4,0.4,DZ-23+k*16));}
+      for(const [x,z,c] of[[30,-10,0xe8e0c8],[38,14,0xd8c8a0],[22,30,0xe8e0c8]]){const t=new THREE.Mesh(new THREE.ConeGeometry(9,8,4),lam(c));t.rotation.y=PI/4;t.position.set(DX+x,4,DZ+z);root.add(t);add(t);}
+      for(let i=0;i<10;i++)add(box(root,2,2,2,0x8a6a3a,DX+rand(-6,14),1,DZ+rand(-30,30)));
+      const hd=new THREE.Mesh(new THREE.BoxGeometry(12,14,12),sand);hd.position.set(DX-36,3,DZ+30);hd.rotation.set(0.3,0.5,0.25);root.add(hd);add(hd);const nm=new THREE.Mesh(new THREE.BoxGeometry(15,10,3),lam(0x2a4a8a));nm.position.set(DX-37,6,DZ+25);nm.rotation.set(0.3,0.5,0.25);root.add(nm);add(nm);
+      glowSprite(0xffe0a0,DX+30,9,DZ+6,14,0.6);
+      for(let i=0;i<7;i++){const T={type:'critter',mesh:useAnim('person',makeHuman(false),'egypt'),spawn:spawnCow,fl:[{x:DX,z:DZ}],rad:32};T.mesh.userData.emoji='⛏️';T.mesh.userData.pts=55;T.spawn(T);targets.push(T);}}
+    // 🧺 riverside bazaar: striped market stalls, pots and lanterns
+    {const BX=265,BZ=-140,aw=[0xc8322a,0x2a6ab8,0xe8a020,0x2a9a5a,0x8a3ab8];
+      add(flatPlane(60,150,0xb8935a,-2,BX,BZ));
+      for(let k=0;k<10;k++){const s=k%2?1:-1,x=BX+s*14,z=BZ-58+Math.floor(k/2)*29,c=aw[k%5];add(box(root,9,0.5,11,c,x,6,z));add(box(root,9.2,0.5,3.6,0xf4ecd8,x,6.05,z));for(const [px,pz] of[[-4,-5],[4,-5],[-4,5],[4,5]])add(box(root,0.4,6,0.4,0x5a4030,x+px,3,z+pz));
+        add(box(root,7,2,4,0x8a6a40,x,1,z));for(let j=0;j<4;j++){const p=new THREE.Mesh(new THREE.SphereGeometry(0.7,8,6),lam(pick([0xc8642a,0xe8c040,0xa83a24,0x4a8a3a])));p.position.set(x-2.4+j*1.6,2.6,z);root.add(p);add(p);}
+        glowSprite(0xffb050,x,5,z-s*0,6,0.7);}
+      sign('NILE BAZAAR','#ffb050',30,5,BX,12,BZ-76,0);
+      for(let i=0;i<10;i++){const T={type:'critter',mesh:useAnim('person',makeHuman(false),'egypt'),spawn:spawnCow,fl:[{x:BX,z:BZ-40},{x:BX,z:BZ+40}],rad:22};T.spawn(T);targets.push(T);}}
+    // 🌴 oasis in the western desert
+    {const OX=-180,OZ=380;add(flatPlane(110,90,0x5a8a34,-2,OX,OZ));const w=new THREE.Mesh(new THREE.CircleGeometry(26,32),new THREE.MeshPhongMaterial({color:0x2a9ac8,emissive:0x0a3040,shininess:120,polygonOffset:true,polygonOffsetFactor:-4,polygonOffsetUnits:-4}));w.rotation.x=-PI/2;w.position.set(OX,0.25,OZ);w.userData.keep=true;root.add(w);
+      for(let i=0;i<16;i++){const a=i/16*2*PI;palmTree(OX+Math.cos(a)*rand(32,48),OZ+Math.sin(a)*rand(30,40),rand(0.9,1.4));}
+      for(const [x,z] of[[-40,-20],[-46,6]]){const t=new THREE.Mesh(new THREE.ConeGeometry(8,7,6),lam(0x8a2a2a));t.position.set(OX+x,3.5,OZ+z);root.add(t);add(t);}
+      fields.push({x:OX+10,z:OZ-50});}
+    // 🗿 ABU SIMBEL: four giant seated kings carved into the southern cliff
+    {const AX=110,AZ=520;add(box(root,150,56,30,0xc09a60,AX,28,AZ+18));colliders.push({x0:AX-75,x1:AX+75,z0:AZ+3,z1:AZ+33,h:58,y0:0});
+      for(let k=0;k<4;k++){const x=AX-48+k*32+(k>1?10:0),z=AZ-2;add(box(root,14,10,14,0xcfae74,x,5,z));add(box(root,12,18,8,0xcfae74,x,19,z+3));add(box(root,12,5,12,0xcfae74,x,12,z-2));add(box(root,8,9,8,0xcfae74,x,32.5,z+3));add(box(root,11,10,2.4,0x2a4a8a,x,33,z+6.6));add(box(root,3,7,3,0xe8c040,x,40.5,z+3));
+        for(const e of[-1.8,1.8])add(box(root,1.5,0.7,0.3,basic(0x1a1006),x+e,34,z-1.2));}
+      const dr=new THREE.Mesh(new THREE.PlaneGeometry(9,16),basic(0x0a0604));dr.position.set(AX+5,8,AZ+2.9);dr.rotation.y=PI;root.add(dr);sign('ABU SIMBEL','#ffd890',36,5,AX+5,62,AZ+10,PI);}
+    freezeStatic(objs,root,true);
+    // 🎈 hot-air balloons drifting over the desert at sunrise (beam them)
+    const bal=[];for(let i=0;i<4;i++){const g=new THREE.Group(),c1=pick([0xe83a3a,0x2a8ae8,0xf0c040,0x3ac060]),c2=0xfff4d8;
+      for(let k=0;k<8;k++){const gore=new THREE.Mesh(new THREE.SphereGeometry(7,6,12,k/8*2*PI,2*PI/8),lam(k%2?c1:c2,0x201008));gore.scale.y=1.2;gore.position.y=14;g.add(gore);}
+      box(g,2.4,2,2.4,0x8a5a2a,0,2,0);for(const [x,z] of[[1,1],[-1,1],[1,-1],[-1,-1]])box(g,0.1,6,0.1,0x3a2a1a,x,6,z);const fl=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:0xff9a30,transparent:true,blending:THREE.AdditiveBlending,depthWrite:false}));fl.position.y=6.5;fl.scale.set(4,5,1);g.add(fl);
+      compactCritter(g);g.userData.emoji='🎈';g.userData.pts=130;g.userData.heat=0.2;root.add(g);const B={g,fl,cx:rand(-300,150),cz:rand(-200,300),r:rand(60,140),sp:rand(.03,.06)*(i%2?1:-1),ph:rand(0,6),y:rand(34,52)};
+      const T={type:'critter',mesh:g,still:true,spawn:T=>{T.mesh.visible=true;T.state='ground';resetRot(T.mesh);}};T.state='ground';targets.push(T);B.T=T;bal.push(B);}
+    // 🐊 crocodiles cruising the Nile
+    const crocs=[];for(let i=0;i<6;i++){const g=new THREE.Group();box(g,7,0.8,1.6,0x4a6a3a,0,0.4,0);box(g,2.4,0.5,1.1,0x4a6a3a,4.4,0.4,0);g.userData.emoji='🐊';g.userData.pts=110;g.userData.heat=0;root.add(g);useModel('croc',g);
+      const C={g,x:NX+rand(-30,30),z:rand(-600,600),sp:rand(3,6)*(i%2?1:-1),ph:rand(0,6)};const T={type:'critter',mesh:g,still:true,spawn:T=>{T.mesh.visible=true;T.state='ground';resetRot(T.mesh);}};T.state='ground';targets.push(T);C.T=T;crocs.push(C);}
+    planetAnim.push({town:'egypt',f:(t,dt)=>{bal.forEach(B=>{B.fl.material.opacity=.5+.5*Math.abs(Math.sin(t*2+B.ph));if(B.T.state!=='ground')return;const a=t*B.sp+B.ph;B.g.position.set(B.cx+Math.cos(a)*B.r,B.y+Math.sin(t*.4+B.ph)*4,B.cz+Math.sin(a)*B.r);B.g.rotation.y=t*.1;});
+      crocs.forEach(C=>{if(C.T.state!=='ground')return;C.z+=C.sp*dt;if(C.z>640)C.z=-640;if(C.z<-640)C.z=640;C.g.position.set(C.x+Math.sin(t*.3+C.ph)*6,-0.35,C.z);C.g.rotation.set(0,(C.sp>0?-PI/2:PI/2)+Math.sin(t*2+C.ph)*.12,0);});}});}
   // abductable: camels, tourists, and mummies shuffling around the pyramids
   for(let i=0;i<16;i++){const T={type:'critter',mesh:makeCamel(),spawn:spawnCow,fl:fields};T.spawn(T);targets.push(T);}
   for(let i=0;i<14;i++){const T={type:'critter',mesh:useAnim('person',makeHuman(false),'egypt'),spawn:spawnCow,fl:[{x:0,z:-120},{x:-60,z:-190},{x:110,z:-290},{x:NX-60,z:0}],rad:30};T.spawn(T);targets.push(T);}
@@ -4270,7 +4336,7 @@ renderShop();
 // ---------- 📖 Abduction Log: a collection book of everything ever beamed up ----------
 const LOG_NAMES={'🐄':'Cow','🚗':'Car','🚓':'Police Car','🚚':'Truck','😴':'Sleeper','🚶':'Walker','🚜':'Tractor','🦊':'Fox','🤖':'Robot','📣':'Cheerleader','🏈':'Football Player','🎈':'Balloon','🏎️':'Luxury / Race Car','📺':'News Van','🌮':'Taco Truck','🍔':'Diner Guest','🔘':'Mystery Orb','🌑':'Jellyfish UFO',
   '👽':'Little Alien','🏃':'Area 51 Raider','🤳':'Streamer','🪖':'Soldier','🐎':'Mustang','🫏':'Burro','🔩':'Secret Tech','🕴️':'Man in Black','❄️':'Yeti','🐧':'Penguin','🦍':'Ice Ape','🦕':'Dinosaur','🦀':'Lava Crab','🦖':'T-Rex','🚙':'Moon Rover','🧊':'Hypercube','🪼':'Glitch Jelly','🤍':'Tall White','💙':'Nordic',
-  '🐪':'Camel','🧟':'Mummy','🐆':'Jaguar','🧗':'Climber / Zipliner','🛩️':'Fighter Jet','🚤':'Speedboat','🛫':'Airliner','🥾':'Hiker','🕺':'Elvis','💃':'Showgirl','🚢':'Submarine','🐟':'Fish','🐢':'Sea Turtle','🦈':'Shark','🐋':'Whale','🐬':'Dolphin','🐙':'Octopus','🎣':'Fishing Boat','⛵':'Sailboat','👾':'Alien Specimen','🥼':'Scientist','🛞':'Mars Rover','🚁':'Mars Helicopter','💎':'Cave Crystal','🦇':'Cave Bat','👑':'Sleeping King','🛶':'Nile Boat','👻':'Ghost Ship','🦌':'Reindeer','🎅':'Santa\'s Sleigh','🎁':'Present','🦶':'Bigfoot','🦄':'Unicorn','🎐':'Gas Floater','🛰️':'Lost Probe','🩶':'Grey','🦎':'Reptilian','🦗':'Mantis'};
+  '🐪':'Camel','🧟':'Mummy','🐆':'Jaguar','🧗':'Climber / Zipliner','🛩️':'Fighter Jet','🚤':'Speedboat','🛫':'Airliner','🥾':'Hiker','🕺':'Elvis','💃':'Showgirl','🚢':'Submarine','🐟':'Fish','🐢':'Sea Turtle','🦈':'Shark','🐋':'Whale','🐬':'Dolphin','🐙':'Octopus','🎣':'Fishing Boat','⛵':'Sailboat','👾':'Alien Specimen','🥼':'Scientist','🛞':'Mars Rover','🚁':'Mars Helicopter','💎':'Cave Crystal','🦇':'Cave Bat','👑':'Sleeping King','🛶':'Nile Boat','⚱️':'Golden Sarcophagus','⛏️':'Archaeologist','🐊':'Crocodile','👻':'Ghost Ship','🦌':'Reindeer','🎅':'Santa\'s Sleigh','🎁':'Present','🦶':'Bigfoot','🦄':'Unicorn','🎐':'Gas Floater','🛰️':'Lost Probe','🩶':'Grey','🦎':'Reptilian','🦗':'Mantis'};
 let LOG={};try{LOG=JSON.parse(localStorage.getItem('ufoLog')||'{}');}catch(e){}
 const logKey=T=>{const u=T.mesh.userData;return u.emoji||(u.police?'🚓':{cow:'🐄',car:'🚗',truck:'🚚'}[T.type]);};
 let LOG_CAT=null;
@@ -5455,6 +5521,8 @@ const MISSIONS=[
   {id:'marscave',t:'Find the hidden cave on Mars',ev:'marscave',g:1,r:600},
   {id:'king',t:'Beam up the Sleeping King (Mars cave)',ev:'abduct',m:d=>d.emoji==='👑',g:1,r:1200},
   {id:'rovers',t:'Beam up 2 Mars rovers',ev:'abduct',m:d=>d.emoji==='🛞',g:2,r:700},
+  {id:'sarco',t:'Steal the golden sarcophagus (Valley of the Kings, Egypt)',ev:'abduct',m:d=>d.emoji==='⚱️',g:1,r:900},
+  {id:'crocs',t:'Beam up 3 Nile crocodiles (Egypt)',ev:'abduct',m:d=>d.emoji==='🐊',g:3,r:500},
   {id:'crop',t:'Draw 2 crop circles (hold the beam over a farm field)',ev:'crop',g:2,r:500},
   {id:'bermuda',t:'Get swallowed by the Bermuda Triangle (Open Sea)',ev:'bermuda',g:1,r:700},
   {id:'dragon',t:'Slay the dragon of Magmor',ev:'dragon',g:1,r:1200},
