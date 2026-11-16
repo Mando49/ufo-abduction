@@ -2748,6 +2748,17 @@ function makeShowgirl(){
     {const k=Math.floor(t/6)%SPH.length;if(k!==sphI){sphI=k;drawSph(k);}}sphere.rotation.y+=dt*0.1;
     mono.position.z=((t*14)%1160)-580;
   }});
+  // 🌴 green Strip: lawns, hedges, flower beds and palms filling the gaps between the casinos
+  {const objs=[],add=m=>{objs.push(m);return m;},hit=(x,z,m)=>colliders.some(c=>x>c.x0-m&&x<c.x1+m&&z>c.z0-m&&z<c.z1+m)||(x>95&&x<205&&z>-35&&z<155);
+    for(const sd of[-1,1]){add(flatPlane(120,1360,0x3f9a3a,-1.5,sd*91,0));
+      for(let z=-660;z<=660;z+=22){const x=sd*35;if(!hit(x,z,3)){add(palmTree(x,z,rand(0.85,1.05)));}
+        if(!hit(sd*33,z+11,2))add(box(root,1.6,1.1,12,0x2e7a2e,sd*33,0.55,z+11));} // hedge along the sidewalk
+      for(let i=0;i<120;i++){const x=sd*rand(40,148),z=rand(-650,650);if(hit(x,z,4))continue;const r=Math.random();
+        if(r<0.35)add(flatPlane(rand(5,9),rand(3,5),pick([0xff4fa0,0xffd040,0xff7a30,0xb46bff,0xffffff]),-2.5,x,z)); // flower bed
+        else if(r<0.7){const b=new THREE.Mesh(new THREE.SphereGeometry(rand(1.2,2),8,6),lam(pick([0x2f7a2f,0x3a8a34,0x276b2a])));b.position.set(x,1.1,z);b.scale.y=0.8;root.add(b);add(b);} // round shrub
+        else if(r<0.88)add(palmTree(x,z,rand(0.8,1.15)));
+        else{const t=new THREE.Mesh(new THREE.ConeGeometry(1.4,5,8),lam(0x2a6e2e));t.position.set(x,2.5,z);root.add(t);add(t);}}} // cypress
+    freezeStatic(objs,root,true);}
   const POOL_W=new THREE.MeshBasicMaterial({color:0x35d4f0});
   // 🏘️ regular Las Vegas suburbs on both sides of the Strip: stucco houses, tile roofs, block walls, backyard pools, palms
   {const objs=[],roofG=new THREE.ConeGeometry(1,1,4),RES=[];
