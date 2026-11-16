@@ -15,3 +15,4 @@
 
 ## Code
 - three.js r128 (MIT) — https://threejs.org
+- meshoptimizer decoder (MIT, Arseny Kapoulkine) in assets/lib, used to unpack the compressed 3D models.
