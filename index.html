@@ -691,22 +691,35 @@ const VEGAS_PORTAL={x:95,y:58,z:305,R:26}; // out in the open between the city a
   box(root,12,7,16,0x2a2f3c,cx,3.5,cz);box(root,12.4,0.5,16.4,basic(0x5ff0ff),cx,7,cz);
   torusCols.push({x:cx,y:cy,z:cz,R,r:2.6});
 })();
-// elevated sky-train lines
-const trains=[];
+// elevated sky-train: one closed loop over the avenues with two stations (Neon Central + Stadium)
+const trains=[],TRAIN_CARS=[];let TRACK=null;
 (function(){
-  const deckM=lam(0x2c3140),pilM=lam(0x3a3f4c),edgeC=basic(0x45eaff),edgeM=basic(0xff4fd8);
-  [{ax:'z',c:30,h:26,dir:1},{ax:'x',c:90,h:34,dir:-1}].forEach(r=>{
-    const L=580,isZ=r.ax==='z';const put=(w,h,d,mat,y,o)=>box(root,isZ?w:d,h,isZ?d:w,mat,isZ?r.c+o:0,y,isZ?0:r.c+o);
-    put(7,1.6,L,deckM,r.h,0);put(0.3,0.3,L,edgeC,r.h+0.9,3.4);put(0.3,0.3,L,edgeC,r.h+0.9,-3.4);put(7.2,0.25,L,edgeM,r.h-0.9,0);
-    for(let s=-264;s<=264;s+=48){const x=isZ?r.c:s,z=isZ?s:r.c;box(root,2,r.h,2,pilM,x,r.h/2,z);}
-    colliders.push(isZ?{x0:r.c-3.5,x1:r.c+3.5,z0:-290,z1:290,h:r.h+0.8,y0:r.h-0.8}:{x0:-290,x1:290,z0:r.c-3.5,z1:r.c+3.5,h:r.h+0.8,y0:r.h-0.8});
-    const tr=new THREE.Group();
-    for(let k=0;k<5;k++){const o=k*8.6;
-      box(tr,isZ?3:8,2.8,isZ?8:3,0xd8dee8,isZ?0:o,0,isZ?o:0);
-      box(tr,isZ?3.1:7.4,0.7,isZ?7.4:3.1,basic(0x7ff4ff),isZ?0:o,0.3,isZ?o:0);
-      box(tr,isZ?3.15:7.6,0.15,isZ?7.6:3.15,basic(0xff4fd8),isZ?0:o,-1.1,isZ?o:0);}
-    root.add(tr);trains.push({g:tr,r,isZ,s:rand(-280,280)});
-  });
+  const A=210,RC=16,H=30,P=(x,z)=>new V3(x,H,z),C=new THREE.CurvePath();
+  const pts=[[A-RC,-A,A,-A,A,-A+RC],[A,A-RC,A,A,A-RC,A],[-A+RC,A,-A,A,-A,A-RC],[-A,-A+RC,-A,-A,-A+RC,-A]];
+  let prev=P(-A+RC,-A);pts.forEach(q=>{C.add(new THREE.LineCurve3(prev,P(q[0],q[1])));C.add(new THREE.QuadraticBezierCurve3(P(q[0],q[1]),P(q[2],q[3]),P(q[4],q[5])));prev=P(q[4],q[5]);});
+  const L=C.getLength();TRACK={C,L,H};
+  const deck=[],rails=[],under=[],pil=[];
+  for(let d=0;d<L;d+=3){const u=d/L,p=C.getPointAt(u),t=C.getTangentAt(u),ry=Math.atan2(-t.z,t.x),nx=-t.z,nz=t.x;
+    deck.push({x:p.x,z:p.z,ry});rails.push({x:p.x+nx*3.4,z:p.z+nz*3.4,ry,c:0x45eaff},{x:p.x-nx*3.4,z:p.z-nz*3.4,ry,c:0x45eaff});under.push({x:p.x,z:p.z,ry});}
+  for(let d=10;d<L;d+=46){const p=C.getPointAt(d/L);pil.push({x:p.x,z:p.z});}
+  inst(new THREE.BoxGeometry(3.3,1.6,7),lam(0x2c3140),deck,o=>compose(o.x,H,o.z,1,1,1,0,o.ry,0));
+  inst(new THREE.BoxGeometry(3.3,0.3,0.3),basic(0xffffff),rails,o=>compose(o.x,H+0.95,o.z,1,1,1,0,o.ry,0));
+  inst(new THREE.BoxGeometry(3.3,0.25,7.2),basic(0xff4fd8),under,o=>compose(o.x,H-0.9,o.z,1,1,1,0,o.ry,0));
+  inst(new THREE.CylinderGeometry(1.1,1.4,H,8),lam(0x3a3f4c),pil,o=>compose(o.x,H/2,o.z,1,1,1));
+  for(const [x0,x1,z0,z1] of[[-A+RC,A-RC,-A-3.5,-A+3.5],[-A+RC,A-RC,A-3.5,A+3.5],[-A-3.5,-A+3.5,-A+RC,A-RC],[A-3.5,A+3.5,-A+RC,A-RC]])colliders.push({x0,x1,z0,z1,h:H+0.8,y0:H-0.8});
+  // stations on the north (stadium side) and south straights
+  TRACK.stations=[];
+  for(const [z,name] of[[-A,'STADIUM STATION'],[A,'NEON CENTRAL']]){
+    for(const side of[-1,1]){box(root,40,1.2,5,0x3a4050,0,H+0.3,z+side*6.4);box(root,40,0.3,0.3,basic(0xffd84a),0,H+0.95,z+side*4);}
+    box(root,44,0.6,18,0x1a2030,0,H+9,z);for(const x of[-20,0,20])for(const sd of[-1,1])box(root,0.6,8.4,0.6,0x8a94a6,x,H+4.6,z+sd*8.5);
+    const gl=glowSprite(0x7ff4ff,0,H+8,z,30,0.4);
+    for(const sd of[-1,1]){const m=neonText(name,'#7ff4ff',22,3);m.position.set(0,H+11.5,z+sd*9.2);if(sd<0)m.rotation.y=PI;root.add(m);}
+    colliders.push({x0:-22,x1:22,z0:z-9,z1:z+9,h:H+9.3,y0:H+8.7});
+    const u=C.getUtoTmapping?0:0;let best=0,bd=1e9;for(let k=0;k<=400;k++){const p=C.getPointAt(k/400),dd=Math.hypot(p.x,p.z-z);if(dd<bd){bd=dd;best=k/400;}}TRACK.stations.push(best);}
+  // two trains running the loop (front car + 3 coaches + rear car); the cars get the 3D models once those load
+  for(let n=0;n<2;n++){const cars=[];
+    for(let k=0;k<5;k++){const g=new THREE.Group();box(g,k===0||k===4?13:11,3,3.2,0xe8eef6,0,1.6,0);box(g,9,0.9,3.3,basic(0x1a3a6a),0,2,0);root.add(g);cars.push(g);TRAIN_CARS.push({g,k});}
+    trains.push({cars,d:n*L/2,wait:0,lastSt:-1});}
 })();
 // canal with boats
 const boats=[];
@@ -1029,9 +1042,10 @@ const MODELS={cow:{file:'cow',len:3.0,rotY:PI/2,list:[]},car:{file:'car',len:4.4
   jaguar:{file:'jaguar',height:2.4,rotY:0,list:[]},shark:{file:'shark',len:3.8,rotY:PI/2,list:[]},tractor:{file:'tractor',height:3.6,rotY:0,list:[]},
   barn:{file:'barn',height:14,rotY:-PI/2,list:[]},chest:{file:'chest',height:2.6,rotY:0,list:[]},
   sr71:{file:'sr71',len:34,rotY:0,list:[]},bop:{file:'bop',len:15,rotY:PI/2,list:[]},dropship:{file:'dropship',len:22,rotY:0,list:[]},wing:{file:'wing',len:22,rotY:-PI/2,list:[]},
+  trainF:{file:'trainF',len:13.5,rotY:PI/2,list:[]},trainM:{file:'trainM',len:12.5,rotY:PI/2,list:[]},
   mustang:{file:'mustang',height:4.2,rotY:PI/4,list:[]},burro:{file:'burro',height:3,rotY:0,list:[]}};
 function useModel(type,g){const M=MODELS[type];if(M.proto)attachModel(M,g);else M.list.push(g);return g;}
-barnGroups.forEach(b=>useModel('barn',b));
+barnGroups.forEach(b=>useModel('barn',b));TRAIN_CARS.forEach(c=>useModel(c.k===0||c.k===4?'trainF':'trainM',c.g));
 function attachModel(M,g){g.children.forEach(c=>{if(!c.isSprite&&!c.userData.keep)c.visible=false;});const m=M.proto.clone();if(M.yOff)m.position.y=M.yOff;g.add(m);if(g.userData.onAttach)g.userData.onAttach(M);}
 if(THREE.GLTFLoader){const ld=new THREE.GLTFLoader();
   for(const k in MODELS){const M=MODELS[k];
@@ -5232,8 +5246,9 @@ function loop(now){
   shadowTick(dt);
   bossUpdate(dt*ES,t);
   {const ph=Math.floor(t*6)%2;policeLights.forEach(([r,b])=>{r.visible=!!ph;b.visible=!ph;});}
-  trains.forEach(T=>{T.s+=T.r.dir*30*dt;if(T.s>300)T.s=-300;if(T.s<-300)T.s=300;const y=T.r.h+2.2;
-    if(T.isZ)T.g.position.set(T.r.c,y,T.s);else T.g.position.set(T.s,y,T.r.c);});
+  if(TRACK)trains.forEach(T=>{const L=TRACK.L;
+    if(T.wait>0)T.wait-=dt;else{T.d=(T.d+30*dt)%L;const u=T.d/L;TRACK.stations.forEach((su,i)=>{if(T.lastSt!==i&&Math.abs(u-su)<0.004){T.wait=4;T.lastSt=i;}});}
+    T.cars.forEach((g,k)=>{const dd=((T.d-k*13.5)%L+L)%L,u=dd/L,p=TRACK.C.getPointAt(u),tg=TRACK.C.getTangentAt(u);g.position.set(p.x,TRACK.H+0.9,p.z);g.rotation.set(0,Math.atan2(-tg.z,tg.x)+(k===4?PI:0),0);});});
   boats.forEach(B=>{B.x+=B.dir*B.sp*dt;if(B.x>285)B.x=-285;if(B.x<-285)B.x=285;B.g.position.set(B.x,Math.sin(t*2+B.lane)*0.08,-150+B.lane);B.g.rotation.y=B.dir>0?0:PI;});
   if(spaceGroup.visible)spaceAnim(dt,t);
   if(towns.desert.group.visible)desertAnim.forEach(f=>f(dt,t));
