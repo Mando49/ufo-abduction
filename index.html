@@ -2641,9 +2641,9 @@ function makeShowgirl(){
 }
 
 (function(){
-  flatPlane(3000,3000,0x6a5040,0,0,0);
+  flatPlane(4600,4600,0x6a5040,0,0,0);
   for(let i=0;i<20;i++)flatPlane(rand(80,200),rand(80,200),pick([0x7a5a44,0x5e4636,0x846450]),-1,rand(-640,640),rand(-640,640)).rotation.z=rand(0,PI);
-  ringMountains(0x4a3040,0x8a5a5a,70,170);
+  ringMountains(0x4a3040,0x8a5a5a,70,170,undefined,1.7);
   // the Strip: a long boulevard along z with palm medians
   const SX=0;flatPlane(46,1400,0x22232a,-2,SX,0);
   {const D=[];for(let z=-680;z<=680;z+=14)D.push(flatPlane(0.6,6,0xf0e8a0,-3,SX-11,z),flatPlane(0.6,6,0xf0e8a0,-3,SX+11,z));freezeStatic(D);}
@@ -2866,6 +2866,109 @@ function makeShowgirl(){
       T.spawn(T);targets.push(T);lux.push({T,dir,sp:rand(14,24)});}
     planetAnim.push({town:'vegas',f:(t,dt)=>{lux.forEach(L=>{if(L.T.state!=='ground')return;const m=L.T.mesh;m.position.y=0;m.rotation.set(0,L.dir>0?-PI/2:PI/2,0);
       m.position.z+=L.dir*L.sp*dt;if(m.position.z>650)m.position.z=-650;if(m.position.z<-650)m.position.z=650;});}});}
+  // ===================== GREATER LAS VEGAS: Fremont Street, Nellis AFB, Hoover Dam =====================
+  for(let i=0;i<40;i++){const a=rand(0,2*PI),r=rand(700,1250);flatPlane(rand(120,260),rand(120,260),pick([0x7a5a44,0x5e4636,0x846450,0x6e5242]),-1,Math.cos(a)*r,Math.sin(a)*r).rotation.z=rand(0,PI);}
+  // 💡 FREMONT STREET (old downtown, north end of Las Vegas Blvd)
+  {const FZ=-860,objs=[],add=m=>{objs.push(m);return m;};
+    add(flatPlane(46,240,0x22232a,-2,0,-790)); // Las Vegas Blvd continues downtown
+    for(let z=-900;z<=-680;z+=40)add(palmTree(-27,z,1));
+    add(flatPlane(420,34,0x5a4a52,-2,0,FZ)); // pedestrian mall
+    for(let x=-200;x<=200;x+=12)add(flatPlane(1.2,30,0x7a6a72,-3,x,FZ));
+    const oldNames=['LUCKY HORSESHOE','GOLDEN GULCH','FOUR KINGS','SILVER SLIPPER','BIG BINION BAR','EL RANCHO','THE MINT','PIONEER CLUB'],oc=['#ffd040','#ff3fd2','#45eaff','#ff7a30','#6dff7a','#ff4040','#b46bff','#ffe9a0'];
+    let n=0;for(const sd of[-1,1])for(let k=0;k<4;k++){const x=-150+k*100,w=rand(70,88),h=rand(26,48),d=34,z=FZ+sd*(17+d/2),c=oc[n%8];
+      add(box(root,w,h,d,pick([0x3a2a2a,0x2a2a3a,0x4a3a2a,0x2a3a3a]),x,h/2,z));
+      const fr=new THREE.Mesh(new THREE.PlaneGeometry(w-4,8),new THREE.MeshBasicMaterial({color:new THREE.Color(c)}));fr.position.set(x,9,z-sd*(d/2+0.1));fr.rotation.y=sd>0?PI:0;root.add(fr); // marquee
+      for(let bx=-w/2+3;bx<=w/2-3;bx+=3)add(box(root,0.6,0.6,0.6,basic(0xfff2c0),x+bx,13.6,z-sd*(d/2+0.3))); // bulbs
+      sign(oldNames[n%8],c,w*0.8,6,x,h+4,z-sd*(d/2-2),sd>0?PI:0);
+      sign(oldNames[n%8],c,w*0.8,6,x,h+4,z-sd*(d/2-2.6),sd>0?0:PI);
+      colliders.push({x0:x-w/2,x1:x+w/2,z0:z-d/2,z1:z+d/2,h,y0:0});n++;}
+    // neon cowboy waving on top of one casino
+    const cb=new THREE.Group();cb.position.set(-50,48+20,FZ-34);root.add(cb);
+    const nm=c=>new THREE.MeshBasicMaterial({color:c});
+    box(cb,4,10,1,nm(0x45eaff),0,0,0);box(cb,5,1.2,1,nm(0xffd040),0,6,0);box(cb,3,2.4,1,nm(0xffe0b0),0,6.5,0);const hat=box(cb,7,1,1.2,nm(0xffd040),0,8.2,0);box(cb,3.6,2,1.2,nm(0xffd040),0,9.2,0);
+    box(cb,1.4,8,1,nm(0x45eaff),-1.2,-8,0);box(cb,1.4,8,1,nm(0x45eaff),1.2,-8,0);
+    const arm=new THREE.Group();arm.position.set(2.4,4,0);cb.add(arm);box(arm,1.2,6,1,nm(0xffe0b0),0,3,0);
+    box(root,1,20,1,0x2a2a30,-50,58,FZ-34);
+    // the giant LED canopy over the street
+    const cv=document.createElement('canvas');cv.width=512;cv.height=64;const cg=cv.getContext('2d');const ctex=new THREE.CanvasTexture(cv);
+    const can=new THREE.Mesh(new THREE.CylinderGeometry(22,22,400,24,1,true,0,PI),new THREE.MeshBasicMaterial({map:ctex,side:THREE.DoubleSide}));
+    can.rotation.z=PI/2;can.position.set(0,12,FZ);root.add(can);
+    for(let x=-190;x<=190;x+=38){add(box(root,1.6,26,1.6,0x9aa0b0,x,13,FZ-16.5));add(box(root,1.6,26,1.6,0x9aa0b0,x,13,FZ+16.5));}
+    colliders.push({x0:-200,x1:200,z0:FZ-22,z1:FZ+22,h:35,y0:0});
+    let ct=0;const drawCanopy=t=>{const sc=Math.floor(t/8)%4;cg.fillStyle='#05030c';cg.fillRect(0,0,512,64);
+      if(sc===0){for(let i=0;i<40;i++){cg.fillStyle=`hsl(${(t*60+i*20)%360},100%,60%)`;cg.fillRect(((i*31+t*80)%560)-40,(i*13)%64,24,6);}}
+      else if(sc===1){for(let x=0;x<512;x+=16)for(let y=0;y<64;y+=16){cg.fillStyle=`hsl(${(x+y+t*120)%360},90%,${40+20*Math.sin(x*.05+t*3)}%)`;cg.fillRect(x+1,y+1,14,14);}}
+      else if(sc===2){cg.fillStyle='#0a1430';cg.fillRect(0,0,512,64);for(let i=0;i<6;i++){const x=((t*90+i*95)%620)-60,y=20+Math.sin(t*2+i)*10;cg.fillStyle='#9affb0';cg.beginPath();cg.ellipse(x,y,22,6,0,0,2*PI);cg.fill();cg.fillStyle='#45eaff';cg.beginPath();cg.ellipse(x,y-5,9,6,0,PI,2*PI);cg.fill();cg.fillStyle='rgba(255,255,160,.35)';cg.beginPath();cg.moveTo(x-6,y+4);cg.lineTo(x+6,y+4);cg.lineTo(x+16,64);cg.lineTo(x-16,64);cg.fill();}}
+      else{cg.font='900 40px system-ui';cg.fillStyle=`hsl(${(t*90)%360},100%,60%)`;const tx='★ FREMONT STREET ★ WELCOME EARTHLINGS ★ ';const w=cg.measureText(tx).width;const o=-(t*120)%w;for(let x=o;x<512;x+=w)cg.fillText(tx,x,48);}
+      ctex.needsUpdate=true;};
+    // 🧗 zipline over the street (beam the riders off it!)
+    const Z0=new V3(-205,46,FZ+6),Z1=new V3(185,10,FZ+6);
+    add(box(root,8,48,8,0x3a3a44,-205,24,FZ+6));const zg=new THREE.BufferGeometry().setFromPoints([Z0,Z1]);root.add(new THREE.Line(zg,new THREE.LineBasicMaterial({color:0xd8d8e0})));
+    const riders=[];for(let i=0;i<4;i++){const g=makeHuman(false);g.userData.emoji='🧗';g.userData.pts=120;g.userData.heat=0.4;
+      const T={type:'critter',mesh:g,still:true,u:i/4,spawn:T=>{T.u=0;T.mesh.visible=true;T.state='ground';resetRot(T.mesh);}};T.state='ground';targets.push(T);riders.push(T);}
+    freezeStatic(objs,root,true);
+    // downtown crowd under the canopy
+    for(let i=0;i<14;i++){const T={type:'critter',mesh:useAnim('person',makeHuman(false),'vegas'),spawn:spawnCow,fl:[{x:-120,z:FZ},{x:0,z:FZ},{x:120,z:FZ}],rad:12};T.spawn(T);targets.push(T);}
+    planetAnim.push({town:'vegas',f:(t,dt)=>{ct-=dt;if(ct<=0&&Math.abs(pos.z-FZ)<600){ct=0.08;drawCanopy(t);}arm.rotation.z=Math.sin(t*3)*0.6;
+      riders.forEach(T=>{if(T.state!=='ground')return;T.u+=dt*0.07;if(T.u>1)T.u=0;T.mesh.position.lerpVectors(Z0,Z1,T.u);T.mesh.position.y-=4.2;T.mesh.rotation.set(0,0,0);});}});
+  }
+  // ✈️ NELLIS AIR FORCE BASE (north-east)
+  {const NX=640,NZ=-860,objs=[],add=m=>{objs.push(m);return m;};
+    add(flatPlane(640,330,0x5e5650,-1.2,NX,NZ+20));
+    add(flatPlane(560,30,0x2a2b30,-2,NX,NZ-70));for(let x=-260;x<=260;x+=20)add(flatPlane(10,1,0xf0f0f0,-3,NX+x,NZ-70)); // runway
+    add(flatPlane(560,14,0x34353a,-2,NX,NZ-25));add(flatPlane(300,70,0x3a3b40,-2,NX,NZ+30)); // taxiway + apron
+    for(let x=-280;x<=280;x+=14)for(const z of[-86,-54])add(box(root,0.6,0.6,0.6,basic(z<-70?0xffd040:0x6ad8ff),NX+x,0.3,NZ+z)); // runway lights
+    for(let k=0;k<4;k++){const hx=NX-180+k*120,hz=NZ+110;const hg=new THREE.Mesh(new THREE.CylinderGeometry(22,22,50,16,1,false,PI/2,PI),lam(0x8a8e94));hg.rotation.set(PI/2,0,0);hg.position.set(hx,0,hz);root.add(hg);add(hg);
+      add(box(root,40,18,0.6,0x1a1c22,hx,9,hz-25.2));colliders.push({x0:hx-22,x1:hx+22,z0:hz-25,z1:hz+25,h:22,y0:0});}
+    add(box(root,8,34,8,0xd8d4cc,NX+260,17,NZ+40));add(box(root,14,7,14,basic(0x6ad8ff),NX+260,37,NZ+40));add(box(root,15,1,15,0x3a3a40,NX+260,41,NZ+40));colliders.push({x0:NX+252,x1:NX+268,z0:NZ+32,z1:NZ+48,h:42,y0:0}); // control tower
+    sign('NELLIS AIR FORCE BASE','#ffffff',60,6,NX-200,6,NZ+160,PI);
+    freezeStatic(objs,root,true);
+    // parked fighters on the apron (beam one up = big points, but the military WILL notice)
+    for(let i=0;i<6;i++){const g=new THREE.Group();useModel('jet',g);g.userData.emoji='🛩️';g.userData.pts=220;g.userData.heat=2;root.add(g);const px=NX-120+i*48,pz=NZ+40;
+      const T={type:'critter',mesh:g,still:true,spawn:T=>{T.mesh.position.set(px,1.2,pz);T.mesh.rotation.set(0,PI/2,0);T.mesh.visible=true;T.state='ground';}};T.spawn(T);targets.push(T);}
+    // airmen on the flight line
+    for(let i=0;i<8;i++){const g=makeHuman(false);g.userData.emoji='🪖';g.userData.pts=70;g.userData.heat=1.2;const T={type:'critter',mesh:useAnim('soldier',g,'vegas'),spawn:spawnCow,fl:[{x:NX-60,z:NZ+60},{x:NX+80,z:NZ+60}],rad:40};T.spawn(T);targets.push(T);}
+    // air show: 4 jets in diamond formation looping overhead with smoke trails + one jet taking off every so often
+    const show=new THREE.Group();root.add(show);const four=[[0,0],[-14,-10],[-14,10],[-28,0]].map(([dx,dz])=>{const g=new THREE.Group();g.position.set(dx,0,dz);show.add(g);useModel('jet',g);
+      const tr=[];for(let k=0;k<10;k++){const s=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:0xffffff,transparent:true,opacity:.35*(1-k/10),depthWrite:false}));s.scale.setScalar(5+k*1.6);root.add(s);tr.push(s);}return {g,tr,hist:[]};});
+    const tko=new THREE.Group();root.add(tko);useModel('jet',tko);const burner=glowSprite(0xff8a3a,0,0,0,8,0.9);tko.add(burner);burner.position.set(-7,0,0);
+    planetAnim.push({town:'vegas',f:(t,dt)=>{
+      const a=t*0.22,lp=Math.sin(t*0.5);show.position.set(NX+Math.cos(a)*260,150+lp*45,NZ-40+Math.sin(a)*170);show.rotation.set(0,-a-PI/2,0);show.rotateZ(lp*0.25);show.updateMatrixWorld(true);
+      four.forEach(F=>{const w=new V3();F.g.getWorldPosition(w);F.hist.unshift(w);if(F.hist.length>30)F.hist.pop();F.tr.forEach((s,k)=>{const h=F.hist[Math.min(F.hist.length-1,k*3)];s.position.copy(h);});});
+      const c=(t%26)/26;if(c<0.55){const k=c/0.55,x=NX-260+k*k*720,y=k<0.35?1.4:1.4+(k-0.35)*(k-0.35)*900;tko.position.set(x,y,NZ-70);tko.rotation.set(0,0,k<0.35?0:Math.min(0.5,(k-0.35)*3));tko.visible=true;burner.scale.setScalar(6+Math.random()*4);}else tko.visible=false;}});
+  }
+  // 🏞️ HOOVER DAM + LAKE MEAD + the canyon (east of the city)
+  {const DX=1040,DZ=300,objs=[],add=m=>{objs.push(m);return m;},rock=[0x8a5a3a,0x7a4a30,0x9a6a48,0x6a4028];
+    // canyon walls (north + south), stacked rough rocks
+    for(const sd of[-1,1])for(let x=820;x<=1420;x+=34)for(let l=0;l<3;l++){const r=new THREE.Mesh(new THREE.DodecahedronGeometry(rand(28,40),0),lam(pick(rock)));r.material.flatShading=true;r.position.set(x+rand(-8,8),l*32+rand(0,10),DZ+sd*(78+l*16+rand(0,14)));r.scale.y=rand(1,1.4);root.add(r);add(r);}
+    for(const sd of[-1,1])colliders.push({x0:820,x1:1440,z0:sd<0?DZ-160:DZ+70,z1:sd<0?DZ-70:DZ+160,h:110,y0:0});
+    add(flatPlane(260,120,0x2a6a9a,-2,DX-150,DZ)); // Colorado River below the dam
+    const lake=new THREE.Mesh(new THREE.PlaneGeometry(420,150),new THREE.MeshPhongMaterial({color:0x1f6aa0,emissive:0x0a2238,shininess:120,specular:0xffffff}));lake.rotation.x=-PI/2;lake.position.set(DX+230,62,DZ);root.add(lake); // Lake Mead (high behind the dam)
+    // the arch dam itself: curved concrete wall bowing toward the lake
+    const R=140,span=0.92;for(let i=0;i<16;i++){const a=-span/2+span*(i+0.5)/16,x=DX+R*(Math.cos(a)-1)*-1+0,z=DZ+R*Math.sin(a);
+      const seg=new THREE.Mesh(new THREE.BoxGeometry(12,66,R*span/16+0.6),lam(0xd8d0c0));seg.position.set(DX-(R-R*Math.cos(a)),33,z);seg.rotation.y=-a;root.add(seg);add(seg);
+      const base=new THREE.Mesh(new THREE.BoxGeometry(26,24,R*span/16+0.6),lam(0xccc4b4));base.position.set(DX-(R-R*Math.cos(a))-7,12,z);base.rotation.y=-a;root.add(base);add(base);
+      add(box(root,2,1.2,R*span/16,0xf0ead8,DX-(R-R*Math.cos(a))+5,66.6,z));}
+    colliders.push({x0:DX-24,x1:DX+8,z0:DZ-66,z1:DZ+66,h:67,y0:0});
+    add(flatPlane(14,130,0x3a3a40,-2,DX-1,DZ)).position.y=66.2; // road on top
+    // 4 art-deco intake towers in the lake
+    for(const tz of[-38,-12,12,38]){const tx=DX+30+Math.abs(tz)*0.3;add(new THREE.Mesh(new THREE.CylinderGeometry(5,6,80,12),lam(0xe0d8c8)));objs[objs.length-1].position.set(tx,40,DZ+tz);root.add(objs[objs.length-1]);
+      add(box(root,8,6,8,0xd8d0c0,tx,82,DZ+tz));glowSprite(0xffe0a0,tx,86,DZ+tz,8,0.6);}
+    // powerhouse at the base
+    add(box(root,24,22,150,0xd0c8b8,DX-60,11,DZ));for(let z=-60;z<=60;z+=20)add(box(root,0.4,10,6,basic(0xffd890),DX-72.2,12,DZ+z));
+    sign('HOOVER DAM','#ffffff',50,8,DX-25,72,DZ,-PI/2);
+    // the big arch bridge downstream (fly under it!)
+    const BX=DX-160;add(box(root,10,3,300,0xc8c4bc,BX,96,DZ));for(let z=-140;z<=140;z+=20)add(box(root,2,22,2,0xc8c4bc,BX,84,DZ+z*0.9));
+    const arch=new THREE.Mesh(new THREE.TorusGeometry(110,4,8,40,PI),lam(0xbdb8ae));arch.rotation.y=PI/2;arch.position.set(BX,-12,DZ);arch.scale.y=0.95;root.add(arch);add(arch);
+    freezeStatic(objs,root,true);
+    // cars crossing the top of the dam, boats on Lake Mead
+    for(let i=0;i<5;i++){const g=makeCar(),dir=i%2?1:-1;const T={type:'critter',mesh:g,still:true,spawn:T=>{T.mesh.position.set(DX-1+dir*2.5,67,DZ+rand(-60,60));T.mesh.rotation.set(0,dir>0?-PI/2:PI/2,0);T.mesh.visible=true;T.state='ground';}};T.spawn(T);targets.push(T);T.dir=dir;
+      planetAnim.push({town:'vegas',f:(t,dt)=>{if(T.state!=='ground')return;const m=T.mesh;m.position.y=67;m.rotation.set(0,T.dir>0?-PI/2:PI/2,0);m.position.z+=T.dir*9*dt;if(m.position.z>DZ+62)m.position.z=DZ-62;if(m.position.z<DZ-62)m.position.z=DZ+62;}});}
+    for(let i=0;i<4;i++){const g=new THREE.Group();box(g,6,1.4,2.4,0xffffff,0,0.7,0);box(g,2,1,2,0x1a3a6a,0.5,1.8,0);const wk=glowSprite(0xffffff,0,0,0,4,0.5);g.add(wk);wk.position.set(-4,0.2,0);g.userData.emoji='🚤';g.userData.pts=90;g.userData.heat=0.3;root.add(g);
+      const T={type:'critter',mesh:g,still:true,ph:rand(0,6),spawn:T=>{T.mesh.visible=true;T.state='ground';resetRot(T.mesh);}};T.state='ground';targets.push(T);
+      planetAnim.push({town:'vegas',f:(t,dt)=>{if(T.state!=='ground')return;const a=t*0.12+T.ph;g.position.set(DX+230+Math.cos(a)*150,62.2,DZ+Math.sin(a)*45);g.rotation.set(0,-a-PI/2,0);}});}
+    let bmsg=0;planetAnim.push({town:'vegas',f:(t,dt)=>{bmsg-=dt;if(state==='play'&&!onFoot&&bmsg<=0&&Math.abs(pos.x-BX)<8&&Math.abs(pos.z-DZ)<90&&pos.y<80){bmsg=5;score+=100;mEvent('dambridge');pop('🌉 UNDER THE DAM BRIDGE! +100');blip(800,2000,0.3,'sine',0.12);}}});
+  }
   // tourists everywhere
   for(let i=0;i<34;i++){const T={type:'critter',mesh:useAnim('person',makeHuman(false),'vegas'),spawn:spawnCow,fl:fields,rad:20};T.spawn(T);targets.push(T);}
   // 🕺 Elvis impersonators (100 pts) strolling the west sidewalk
@@ -2873,7 +2976,7 @@ function makeShowgirl(){
   // 💃 showgirls (80 pts) by the fountains on the east side
   for(let i=0;i<4;i++){const T={type:'critter',mesh:makeShowgirl(),spawn:spawnCow,fl:[{x:48,z:40,rad:10}],rad:10};T.spawn(T);targets.push(T);}
 })();
-endTown('vegas',[200,1100]);Object.assign(towns.vegas,{planet:true,fogC:new THREE.Color(0x1a1030),skyTint:0x6a3a8a,label:'🎰 LAS VEGAS',bloom:0.7});
+endTown('vegas',[300,1900]);Object.assign(towns.vegas,{planet:true,fogC:new THREE.Color(0x1a1030),skyTint:0x6a3a8a,label:'🎰 LAS VEGAS',bloom:0.7});
 
 // 🔴 MARS
 beginTown('mars');
@@ -4804,6 +4907,9 @@ const MISSIONS=[
   {id:'mib',t:'Abduct 3 Men in Black',ev:'abduct',m:d=>d.emoji==='🕴️',g:3,r:700},
   {id:'tallwhite',t:'Beam up 3 Tall Whites (5th Dimension)',ev:'abduct',m:d=>d.emoji==='🤍',g:3,r:600},
   {id:'nordic',t:'Beam up 3 Nordics (5th Dimension)',ev:'abduct',m:d=>d.emoji==='💙',g:3,r:600},
+  {id:'fremont',t:'Beam 2 riders off the Fremont Street zipline',ev:'abduct',m:d=>d.emoji==='🧗',g:2,r:500},
+  {id:'nellis',t:'Steal a fighter jet from Nellis Air Force Base',ev:'abduct',m:d=>d.emoji==='🛩️',g:1,r:800},
+  {id:'dambridge',t:'Fly under the bridge by Hoover Dam',ev:'dambridge',g:1,r:500},
   {id:'luxcar',t:'Beam up 3 luxury cars on the Las Vegas Strip',ev:'abduct',m:d=>d.emoji==='🏎️',g:3,r:600},
   {id:'jellyufo',t:'Catch a Jellyfish UFO (they show up in every world)',ev:'abduct',m:d=>d.emoji==='🌑',g:1,r:900},
   {id:'orbsall',t:'Catch 5 mystery orbs in any world',ev:'abduct',m:d=>d.emoji==='🔘',g:5,r:700},

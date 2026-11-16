@@ -95,3 +95,7 @@ Only the models for Neon City and your alien download when the game opens (about
 ## Visitors in every world
 
 Chrome mystery orbs and the dark Jellyfish UFO (dangling tentacles) drift, zip around and blink out to reappear somewhere else in every world. Beam them up for big points. The 5th Dimension also has Tall Whites and Nordics walking around.
+
+## Greater Las Vegas
+
+Las Vegas now reaches past the Strip: Fremont Street downtown (LED light-show canopy, old-school neon casinos, a zipline with riders to beam off, a waving neon cowboy), Nellis Air Force Base (runway, hangars, parked fighters to steal, an air-show team looping overhead, jets taking off), and Hoover Dam with Lake Mead, the canyon, cars crossing the dam, boats on the lake and the big arch bridge to fly under.
