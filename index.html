@@ -192,7 +192,7 @@ body.promo #hud,body.promo #controls,body.promo #keys,body.promo #mute,body.prom
   <div class="btn" id="bFire" data-k="fire">FIRE</div>
   <div class="btn" id="bLand">🛬<br><small>LAND</small></div>
 </div>
-<div id="keys">W/S fly · A/D turn · R/F up/down · SPACE or hold mouse = beam · X or right-click = fire · SHIFT boost · P/Esc pause</div>
+<div id="keys">W/S fly · A/D turn · R/F up/down · SPACE or hold mouse = beam · X or right-click = fire · SHIFT boost · <b>L = land / get out / back in ship</b> · P/Esc pause</div>
 <button id="mute">🔊</button><button id="pauseBtn" title="Pause (P / Esc)">⏸</button><div id="dBtns"><button id="dFire">FIRE</button><button id="dBeam">BEAM</button></div>
 <button id="promoBtn" title="Promo camera">🎬</button>
 <button id="musicBtn" title="Music">🎵</button>
@@ -221,7 +221,8 @@ body.promo #hud,body.promo #controls,body.promo #keys,body.promo #mute,body.prom
       <b>W / S</b> – fly forward / back<br>
       <b>A / D</b> – turn<br>
       <b>R / F</b> – go up / down<br>
-      <b>SPACE</b> – tractor beam · <b>SHIFT</b> – boost<br>
+      <b>SPACE</b> – tractor beam · <b>SHIFT</b> – boost · <b>X</b> – fire<br>
+      <b>L</b> – land and get out (fly low first) · L again to get back in<br>
       Tip: the beam only reaches when you're <b>below 70m</b>.
     </div>
     <p style="font-size:13px">🐄 Cow 10 · 🚗 Car 25 · 🚓 Police car 40 · 🚚 Army truck 40 · 🚁 Helicopter 60 · 💎 Space crystal 5</p>
@@ -2866,7 +2867,7 @@ function makeShowgirl(){
   const ZZ_TEX=(()=>{const c=document.createElement('canvas');c.width=128;c.height=64;const g=c.getContext('2d');g.font='900 44px system-ui,sans-serif';g.fillStyle='#cfe4ff';g.shadowColor='#7ab0ff';g.shadowBlur=8;g.fillText('Zzz',8,48);return new THREE.CanvasTexture(c);})();
   // 🏘️ regular Las Vegas suburbs on both sides of the Strip: stucco houses, tile roofs, block walls, backyard pools, palms
   {const objs=[],roofG=new THREE.ConeGeometry(1,1,4),RES=[];
-    const stucco=[0xd8c3a0,0xe2cfae,0xcdb48e,0xe8d6c0,0xd4b896,0xc9a882,0xe6c9a8],tile=[0xa0523a,0x8e4a34,0xb0644a,0x7a5a4a,0x9a6a50];
+    const stucco=[0x8a7c66,0x90846e,0x83735a,0x948878,0x87755f,0x806b53,0x92806a],tile=[0xa0523a,0x8e4a34,0xb0644a,0x7a5a4a,0x9a6a50];
     const add=m=>{objs.push(m);return m;};
     for(const side of[-1,1]){
       const xs=[250,355,460].map(v=>side*v);
@@ -4252,7 +4253,7 @@ renderShop();
 
 // ---------- ❓ first-time tutorial (5 quick cards) ----------
 (function(){const T=isTouch,S=[
-  ['🛸','FLY YOUR UFO',T?'Drag the <b>green stick</b> to fly and turn.<br>Use <b>▲ ▼</b> to go up and down.':'<b>W / S</b> fly forward / back · <b>A / D</b> turn<br><b>R / F</b> go up / down'],
+  ['🛸','FLY YOUR UFO',T?'Drag the <b>green stick</b> to fly and turn.<br>Use <b>▲ ▼</b> to go up and down.':'<b>W / S</b> fly forward / back · <b>A / D</b> turn<br><b>R / F</b> go up / down<br><b>L</b> land and get out (fly low first)'],
   ['🐄','BEAM THINGS UP',(T?'Hold the big <b>BEAM</b> button':'Hold <b>SPACE</b>')+' over cows, cars and people.<br>Fly <b>low</b>: the beam only reaches when the screen says <b style="color:#7dffb0">BEAM OK</b>.'],
   ['⭐','YOU ARE WANTED','Every abduction adds wanted stars. Helicopters and jets will chase you.<br>'+(T?'<b>BOOST</b>':'<b>SHIFT</b>')+' to escape · '+(T?'<b>FIRE</b>':'<b>X</b>')+' to shoot back.<br>Watch your <b>SHIELD</b> and <b>POWER</b> bars.'],
   ['🚀','EXPLORE 14 WORLDS','Fly <b>straight up</b> through the clouds to reach space, then fly into a <b>portal</b>.<br>Area 51, Las Vegas, the Ocean, the Moon and more.'],
