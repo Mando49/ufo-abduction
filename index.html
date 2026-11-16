@@ -3011,7 +3011,7 @@ beginTown('seas');
     const gr=new THREE.Mesh(new THREE.SphereGeometry(r*0.7,20,8,0,2*PI,0,PI/2),lam(0x3f8a3a));gr.scale.y=0.22;gr.position.set(x,0,z);root.add(gr);for(let k=0;k<5;k++)palmTree(x+rand(-r*0.5,r*0.5),z+rand(-r*0.5,r*0.5),rand(0.9,1.3));}
   // dive whirlpool: fly into it to go back under the sea
   const wp=new THREE.Mesh(new THREE.TorusGeometry(26,3,8,48),new THREE.MeshBasicMaterial({color:0x7ff4ff,transparent:true,opacity:0.7}));wp.rotation.x=PI/2;wp.position.set(0,1,0);root.add(wp);
-  const wpG=glowSprite(0x7ff4ff,0,4,0,70,0.5);sign('DIVE ▼ UNDER THE SEA','#7ff4ff',30,4,0,16,-30,0);
+  const wpG=glowSprite(0x7ff4ff,0,4,0,70,0.5);sign('HOLD ▼ AT THE WATER TO DIVE','#7ff4ff',34,4,0,16,-30,0);
   // big ships cruising (with white wakes)
   const ships=[],wakeM=new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:0.45,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-3,polygonOffsetUnits:-3});
   const addShip=(k,len,R,cx,cz,sp,ph)=>{const g=new THREE.Group();box(g,len,len*0.12,len*0.16,0x5a6470,0,len*0.06,0);root.add(g);useModel(k,g);
@@ -5053,7 +5053,7 @@ function enterSpace(sec){
   snapCam();
   pop('🚀 '+SECTORS[sec].name);pop(sec==='earth'?'Fly to the Moon 🌕 or Mars 🔴 · or find a portal':'Shoot alien hunters · find a portal','t');blip(200,900,0.8,'sine',0.15);
 }
-function enterSeas(){fadeIn();setTown('seas');mEvent('visit',{town:'seas'});pos.y=12;vy=6;snapCam();pop('🚢 THE OPEN SEA');pop('Fly low into a big wave to SURF it 🏄 · whirlpool = dive back under','t');blip(300,900,0.6,'sine',0.12);}
+function enterSeas(){fadeIn();setTown('seas');mEvent('visit',{town:'seas'});pos.y=12;vy=6;snapCam();pop('🚢 THE OPEN SEA');pop('Fly low into a big wave to SURF it 🏄 · hold ▼ at the water to dive back under','t');blip(300,900,0.6,'sine',0.12);}
 function diveSea(){fadeIn();setTown('ocean');pos.set(0,SURF-15,0);vy=-6;snapCam();pop('🌊 UNDER THE SEA');blip(900,200,0.6,'sine',0.12);}
 function enterHangar18(){clearEnemies();heat=0;fadeIn();setTown('sub51');pos.set(0,22,270);yaw=0;speed=Math.min(speed,22);vy=0;snapCam();
   pop('🛸 HANGAR 18');pop('Top-secret underground base · fly into the far elevator to leave','t');blip(300,90,0.8,'sawtooth',0.08);mEvent('h18');}
@@ -5253,7 +5253,8 @@ function loop(now){
       if(curTown==='desert'&&state==='play'&&!FLYP&&pos.z<-406&&pos.z>-440&&Math.abs(pos.x-420)<44&&pos.y<34)enterHangar18();
       collide();
       if(curTown==='sub51'){pos.y=Math.min(pos.y,60);pos.x=clamp(pos.x,-88,88);pos.z=clamp(pos.z,-300,292);if(pos.z<-282&&Math.abs(pos.x)<34&&pos.y<46)exitHangar18();}
-      if(curTown==='ocean'&&pos.y>SURF-3)enterSeas();else if(curTown==='seas'&&down&&pos.y<6&&Math.hypot(pos.x,pos.z)<30)diveSea();else if(pos.y>SPACE_Y)enterSpace();
+      if(curTown==='ocean'&&pos.y>SURF-3)enterSeas();else if(curTown==='seas'&&down&&pos.y<6&&!onDeck(pos.x,pos.z))diveSea();
+      if(curTown==='seas'&&onDeck(pos.x,pos.z)&&pos.y<carrierDeckY()+3){pos.y=carrierDeckY()+3;if(vy<0)vy=0;} // hover above the carrier deck instead of sinking into itelse if(pos.y>SPACE_Y)enterSpace();
       if(curTown==='city'&&state==='play'){const pdx=pos.x-VEGAS_PORTAL.x,pdy=pos.y-VEGAS_PORTAL.y,pdz=pos.z-VEGAS_PORTAL.z;if(Math.abs(pdz)<5&&Math.hypot(pdx,pdy)<VEGAS_PORTAL.R+3)enterWarp('vegas');}
     }else if(mode==='space'){spaceUpdate(dt);if(mode==='space')stationUpdate(dt);}else warpUpdate(dt,ix,(up?1:0)-(down?1:0));
     beamActive=beamBtn&&!lock&&mode==='ground'&&!FLYP;
@@ -5270,7 +5271,7 @@ function loop(now){
   // UFO visuals
   ufo.position.set(pos.x,pos.y+Math.sin(t*2.2)*0.25,pos.z);ufo.rotation.y=yaw;
   if(onFoot){ufo.position.set(shipPark.x,shipPark.y+Math.sin(t*2.2)*0.25,shipPark.z);ufo.rotation.y=shipYaw;}
-  document.body.classList.toggle('canland',state==='play'&&mode==='ground'&&!onFoot&&pos.y<14);
+  document.body.classList.toggle('canland',state==='play'&&mode==='ground'&&!onFoot&&(pos.y<14||(onDeck(pos.x,pos.z)&&pos.y<carrierDeckY()+16)));
   bank+=((state==='play'&&!onFoot?-ix*0.38:state==='promo'?-0.22:0)-bank)*(1-Math.exp(-5*dt));
   pitch+=(-(speed/80)*0.3-pitch)*(1-Math.exp(-4*dt));
   tilt.rotation.set(pitch,0,bank);
