@@ -1945,7 +1945,7 @@ beginTown('ice');
     planetAnim.push({town:'ice',f:t=>{crys.rotation.y=t;crys.position.y=118+Math.sin(t*1.5)*3;cgl.material.opacity=0.5+0.3*Math.sin(t*2);}});}
   // 🦕 prehistoric animals roaming the green land
   const beyond=[];for(let i=0;i<5;i++){const a=i/5*2*PI+0.9;beyond.push({x:Math.cos(a)*400,z:Math.sin(a)*400});}
-  for(let i=0;i<10;i++){const g=new THREE.Group();box(g,4,2.4,1.6,0x4aa84a,0,2.4,0);g.userData.emoji='🦕';g.userData.pts=140;root.add(g);useModel('dino',g);
+  for(let i=0;i<10;i++){const g=new THREE.Group();box(g,4,2.4,1.6,0x4aa84a,0,2.4,0);g.userData.emoji='🦕';g.userData.pts=i<3?260:180;g.scale.setScalar(i<3?4.6:rand(2.6,3.4));root.add(g);useModel('dino',g);
     const T={type:'critter',mesh:g,spawn:spawnCow,fl:beyond,rad:60};T.spawn(T);targets.push(T);}
   // crossing the wall (only by flying over it)
   let was=false;
