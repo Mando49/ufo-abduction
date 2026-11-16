@@ -1045,11 +1045,15 @@ const MODELS={cow:{file:'cow',len:3.0,rotY:PI/2,list:[]},car:{file:'car',len:4.4
   carrier:{file:'carrier',len:150,rotY:0,list:[]},destroyer:{file:'destroyer',len:70,rotY:0,list:[]},cargo:{file:'cargo',len:100,rotY:0,list:[]},cruise:{file:'cruise',len:90,rotY:0,list:[]},fishboat:{file:'fishboat',len:9,rotY:0,list:[]},sailboat:{file:'sailboat',len:8,rotY:0,list:[]},
   subE:{file:'sub',len:7,rotY:0,list:[],recolor:true},
   mustang:{file:'mustang',height:4.2,rotY:PI/4,list:[]},burro:{file:'burro',height:3,rotY:0,list:[]}};
-function useModel(type,g){const M=MODELS[type];if(M.proto)attachModel(M,g);else M.list.push(g);return g;}
+let MODELS_BOOTED=false;
+function useModel(type,g){const M=MODELS[type];if(M.proto)attachModel(M,g);else{M.list.push(g);if(MODELS_BOOTED&&!M.loading&&window.loadModel)loadModel(type);}return g;}
 barnGroups.forEach(b=>useModel('barn',b));TRAIN_CARS.forEach(c=>useModel(c.k===0||c.k===4?'trainF':'trainM',c.g));
 function attachModel(M,g){g.children.forEach(c=>{if(!c.isSprite&&!c.userData.keep)c.visible=false;});const m=M.proto.clone();if(M.yOff)m.position.y=M.yOff;g.add(m);if(g.userData.onAttach)g.userData.onAttach(M);}
-if(THREE.GLTFLoader){const ld=new THREE.GLTFLoader();
-  for(const k in MODELS){const M=MODELS[k];
+function glbLoad(file,onLoad){if(!THREE.GLTFLoader)return;const ld=new THREE.GLTFLoader(),D=window.MODEL_DATA&&window.MODEL_DATA[file];
+  if(D){try{const bin=atob(D),u=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)u[i]=bin.charCodeAt(i);ld.parse(u.buffer,'',onLoad,()=>{});}catch(e){}}
+  else ld.load('assets/models/'+file+'.glb',onLoad,undefined,()=>{});}
+// models download only when their world is first visited (keeps the first download small)
+function loadModel(k){const M=MODELS[k];if(!M||M.loading)return;M.loading=true;
     const onLoad=gl=>{
       const holder=new THREE.Group(),inner=gl.scene;inner.rotation.set(M.rotX||0,M.rotY,0,'YXZ');holder.add(inner);
       inner.traverse(o=>{if(o.isMesh&&M.recolor){o.material=new THREE.MeshStandardMaterial({color:0x3a4252,metalness:0.6,roughness:0.28,emissive:0x0c1018,normalMap:o.material.normalMap||null});return;}if(o.isMesh){const mt=o.material;if(mt&&mt.map){mt.emissive=new THREE.Color(0xffffff);mt.emissiveMap=mt.map;mt.emissiveIntensity=0.22;mt.needsUpdate=true;}}});
@@ -1059,9 +1063,7 @@ if(THREE.GLTFLoader){const ld=new THREE.GLTFLoader();
       const wrap=new THREE.Group();holder.position.set(-c.x,-b.min.y,-c.z);wrap.add(holder);
       M.size=new THREE.Box3().setFromObject(holder).getSize(new V3());{let n=0;wrap.traverse(o=>{if(o.isMesh)n++;});if(n>1)try{freezeStatic([wrap],wrap);}catch(e){}}M.proto=wrap;M.list.forEach(g=>attachModel(M,g));M.list.length=0;
     };
-    const D=window.MODEL_DATA&&window.MODEL_DATA[M.file];
-    if(D){try{const bin=atob(D),u=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)u[i]=bin.charCodeAt(i);ld.parse(u.buffer,'',onLoad,()=>{});}catch(e){}}
-    else ld.load('assets/models/'+M.file+'.glb',onLoad,undefined,()=>{});}}
+    glbLoad(M.file,onLoad);}
 // ---------- animated models (free assets, see CREDITS.md): they really walk, run and wave ----------
 const ANIM={alien:{file:'alien',height:2.3,rotY:PI/2,clips:{walk:0},list:[]},
   footballer:{file:'footballer',height:3.8,rotY:PI/2,clips:{walk:0},list:[]},
@@ -1070,7 +1072,7 @@ const ANIM={alien:{file:'alien',height:2.3,rotY:PI/2,clips:{walk:0},list:[]},
   fox:{file:'fox',len:3.4,axis:'z',rotY:PI/2,clips:{idle:'Survey',walk:'Walk',run:'Run'},list:[]},
   robot:{file:'robot',height:4.2,rotY:PI/2,clips:{idle:'Idle',walk:'Walking',run:'Running',wave:'Wave'},list:[]}};
 const animInst=[];
-function useAnim(type,g,town){const A=ANIM[type];g.userData.animType=type;g.userData.animTown=town;if(A.proto)attachAnim(A,g);else A.list.push(g);return g;}
+function useAnim(type,g,town){const A=ANIM[type];g.userData.animType=type;g.userData.animTown=town;if(A.proto)attachAnim(A,g);else{A.list.push(g);if(MODELS_BOOTED&&!A.loading&&window.loadAnim)loadAnim(type);}return g;}
 function attachAnim(A,g){if(!THREE.SkeletonUtils)return;g.children.forEach(c=>{if(!c.isSprite)c.visible=false;});
   const m=THREE.SkeletonUtils.clone(A.proto);g.add(m);const mixer=new THREE.AnimationMixer(m),acts={};
   for(const k in A.clips){const n=A.clips[k],c=typeof n==='number'?A.anims[n]:A.anims.find(a=>a.name===n);if(c)acts[k]=mixer.clipAction(c);}
@@ -1085,8 +1087,7 @@ function attachAnim(A,g){if(!THREE.SkeletonUtils)return;g.children.forEach(c=>{i
   const I={g,m,mixer,acts,cur:null,town:g.userData.animTown,last:new V3().copy(g.position)};
   const play=k=>{if(!acts[k]){const w=acts.walk;if(w&&I.cur==='walk'){w.timeScale=k==='run'||k==='wave'?1.8:k==='idle'?0.15:1;}return;}if(acts.walk&&k==='walk')acts.walk.timeScale=1;if(I.cur===k)return;const a=acts[k];a.reset().fadeIn(0.25).play();if(I.cur&&acts[I.cur])acts[I.cur].fadeOut(0.25);I.cur=k;};I.play=play;play('walk');
   mixer.update(Math.random()*2);animInst.push(I);}
-if(THREE.GLTFLoader){const ld=new THREE.GLTFLoader();
-  for(const k in ANIM){const A=ANIM[k];
+function loadAnim(k){const A=ANIM[k];if(!A||A.loading||!THREE.SkeletonUtils)return;A.loading=true;
     const onLoad=gl=>{const inner=gl.scene;inner.rotation.y=A.rotY;const holder=new THREE.Group();holder.add(inner);
       inner.traverse(o=>{if(o.isMesh){o.frustumCulled=false;if(o.material&&o.material.map)o.material.emissive=new THREE.Color(0x222222);}});
       const skinBox=()=>{holder.updateMatrixWorld(true);const b=new THREE.Box3(),v=new V3();let sk=false;
@@ -1096,9 +1097,15 @@ if(THREE.GLTFLoader){const ld=new THREE.GLTFLoader();
       const sc=A.height?A.height/Math.max(sz.y,0.001):A.len/Math.max(Math.max(sz.x,sz.z),0.001);holder.scale.setScalar(sc);holder.updateMatrixWorld(true);
       b=skinBox();const c=b.getCenter(new V3());holder.position.set(-c.x,-b.min.y,-c.z);
       const wrap=new THREE.Group();wrap.add(holder);A.proto=wrap;A.anims=gl.animations;A.list.forEach(g=>attachAnim(A,g));A.list.length=0;};
-    const D=window.MODEL_DATA&&window.MODEL_DATA[A.file];
-    if(D){try{const bin=atob(D),u=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)u[i]=bin.charCodeAt(i);ld.parse(u.buffer,'',onLoad,()=>{});}catch(e){}}
-    else ld.load('assets/models/'+A.file+'.glb',onLoad,undefined,()=>{});}}
+    glbLoad(A.file,onLoad);}
+// which world each model is waiting in; load the ones the start world (or every world) needs now, the rest on first visit
+const MODEL_NEED={};
+function groupTown(g){let o=g;while(o){if(o===tilt)return 'fly';for(const n in towns)if(towns[n].group===o)return n;o=o.parent;}return null;}
+function bootModels(){MODELS_BOOTED=true;
+  const plan=(tbl,fn)=>{for(const k in tbl){const L=tbl[k].list;if(!L.length)continue;const ts=new Set(L.map(groupTown));
+    if(ts.has(null)||ts.has('city'))fn(k);else ts.forEach(n=>{(n==='fly'?['desert','seas']:[n]).forEach(n=>(MODEL_NEED[n]=MODEL_NEED[n]||[]).push([fn,k]));});}};
+  plan(MODELS,loadModel);plan(ANIM,loadAnim);}
+function needModels(n){const L=MODEL_NEED[n];if(!L)return;delete MODEL_NEED[n];L.forEach(([fn,k])=>fn(k));}
 // soft round shadows under everything you can abduct (they fade as it's beamed up)
 const SHADOW_TEX=(()=>{const c=document.createElement('canvas');c.width=c.height=64;const g=c.getContext('2d');const gr=g.createRadialGradient(32,32,2,32,32,32);gr.addColorStop(0,'rgba(0,0,0,0.55)');gr.addColorStop(0.6,'rgba(0,0,0,0.25)');gr.addColorStop(1,'rgba(0,0,0,0)');g.fillStyle=gr;g.fillRect(0,0,64,64);return new THREE.CanvasTexture(c);})();
 const SHADOW_GEO=new THREE.PlaneGeometry(1,1).rotateX(-PI/2);
@@ -5043,7 +5050,7 @@ addEventListener('keydown',e=>{if(e.key==='Enter'&&state!=='play')startGame(free
 function fadeIn(){const f=$('fade');f.style.transition='none';f.style.opacity=1;requestAnimationFrame(()=>requestAnimationFrame(()=>{f.style.transition='opacity 1.1s';f.style.opacity=0;}));}
 function snapCam(){fwd.set(-Math.sin(yaw),0,-Math.cos(yaw));camera.position.copy(pos).addScaledVector(fwd,-25);camera.position.y+=8.5;}
 function setTown(n){
-  curTown=n;const T=towns[n];for(const k in towns)towns[k].group.visible=(k===n);
+  curTown=n;needModels(n);const T=towns[n];for(const k in towns)towns[k].group.visible=(k===n);
   colliders=T.colliders;fields=T.fields;targets=T.targets;torusCols=T.torusCols;
   scene.fog.near=T.fog[0];scene.fog.far=T.fog[1];cloudLayer.visible=!T.planet;skyRealm.visible=!T.planet;sky.children.forEach(c=>{if(c.isSprite)c.visible=!T.planet;if(c.isPoints)c.visible=n!=='ocean';});sky.material.color.setHex(T.skyTint||0xffffff);
 }
@@ -5457,7 +5464,7 @@ function loop(now){
   if(composer)composer.render();else renderer.render(scene,camera);
 }
 fwd.set(-Math.sin(yaw),0,-Math.cos(yaw));right.set(Math.cos(yaw),0,-Math.sin(yaw));
-setTown('city');camera.position.set(0,70,400);
+bootModels();setTown('city');camera.position.set(0,70,400);
 hud();drawRadar(0);
 try{__load(100,'Ready!');const L=document.getElementById('loader');setTimeout(()=>{L.style.opacity=0;setTimeout(()=>L.remove(),550);},150);}catch(e){}
 requestAnimationFrame(loop);

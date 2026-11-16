@@ -87,3 +87,7 @@ Built with three.js. No install needed: it's a single `index.html` file.
 - 🎰 **Las Vegas** — the neon Strip with flashing casinos, a black glass pyramid whose **Sky Beam** shoots you straight up to space, a sphinx, dancing fountains, a giant wheel, the Welcome sign, a Mando Window Tinting billboard, and a **giant slot machine** — fly to the red handle to spin for a jackpot. Look out for 🕺 Elvis impersonators (100 pts) and 💃 showgirls (80 pts) strolling the Strip, the giant Sphere screen (alien, eyeball, Earth…), and a 🚝 monorail gliding down the west side. Fly through the gold 🎰 VEGAS ring just outside Neon City (near where you start) to get here — and on foot, hunt the hidden 🔍 High-Roller Suite in the north-east corner.
 
 📻 **Radio:** tap 🎵 once to switch to the Radio (📻), again to turn music off, again for the normal game music. The Radio plays its own playlist — original songs: four takes of **"UFO Over the Block"** (made by Mando with Suno) mixed with the built-in beats 'Midnight Abduction' and 'Creeping Lights'. More songs can be added to `assets/music/`.
+
+## Fast loading
+
+Only the models for Neon City and your alien download when the game opens (about 5 MB). Each other world downloads its own models the first time you fly there. Every model was also slimmed down (smaller animations and files) without a visible difference.
