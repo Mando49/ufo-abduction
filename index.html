@@ -392,7 +392,7 @@ function freezeStatic(objs,parent,bake){if(!THREE.BufferGeometryUtils)return;par
     if(!g.attributes.normal)g.computeVertexNormals();
     g.applyMatrix4(new THREE.Matrix4().multiplyMatrices(inv,m.matrixWorld));
     let key=m.material;const M=m.material;
-    if(bake&&!M.map&&!M.transparent&&!M.vertexColors&&(M.isMeshLambertMaterial||M.isMeshBasicMaterial)){
+    if(bake&&!M.map&&!M.transparent&&!M.vertexColors&&!M.polygonOffset&&M.side===THREE.FrontSide&&M.fog!==false&&M.depthWrite!==false&&(M.isMeshLambertMaterial||M.isMeshBasicMaterial)){
       const c=M.color.clone();if(M.emissive)c.add(M.emissive.clone().multiplyScalar(0.5));const n=g.attributes.position.count,a=new Float32Array(n*3);for(let i=0;i<n;i++){a[i*3]=c.r;a[i*3+1]=c.g;a[i*3+2]=c.b;}
       g.setAttribute('color',new THREE.Float32BufferAttribute(a,3));key=M.isMeshBasicMaterial?BAKED.basic:BAKED.lam;}
     else if(g.attributes.color&&!M.vertexColors)g.deleteAttribute('color');
@@ -400,6 +400,23 @@ function freezeStatic(objs,parent,bake){if(!THREE.BufferGeometryUtils)return;par
   byMat.forEach((L,mat)=>{try{const mg=THREE.BufferGeometryUtils.mergeBufferGeometries(L.map(x=>x.g),false);if(!mg)return;parent.add(new THREE.Mesh(mg,mat));L.forEach(x=>{x.g.dispose();kill.push(x.m);});}catch(e){}});
   kill.forEach(m=>{if(m.parent)m.parent.remove(m);});}
 const PALMS=[];
+// ---------- auto speed-up: after a few seconds in a world, merge every still, unchanging decoration into a couple of meshes ----------
+const FREEZE={};
+function snapKey(m){const M=m.material,p=m.position,r=m.rotation,sc=m.scale;
+  return p.x+','+p.y+','+p.z+','+r.x+','+r.y+','+r.z+','+sc.x+','+sc.y+','+sc.z+','+m.visible+','+(M&&M.uuid)+','+(M&&M.color?M.color.getHex():'')+','+(M&&M.emissive?M.emissive.getHex():'')+','+(M&&M.opacity);}
+function freezeTick(dt){if(state!=='play'||mode!=='ground')return;const n=curTown,T=towns[n];if(!T)return;let F=FREEZE[n];
+  if(!F){const tg=new Set(T.targets.map(t=>t.mesh));F=FREEZE[n]={t:0,k:0,list:T.group.children.filter(o=>o.isMesh&&!o.isInstancedMesh&&!o.isSkinnedMesh&&!o.userData.keep&&!tg.has(o)&&!Array.isArray(o.material)&&o.geometry&&o.geometry.attributes.position).map(m=>({m,s:snapKey(m),dyn:false})),
+    spr:T.group.children.filter(o=>o.isSprite&&!o.userData.keep&&o.material.map===GLOW&&o.material.blending===THREE.AdditiveBlending&&Math.abs(o.scale.x-o.scale.y)<0.01).map(m=>({m,s:snapKey(m),dyn:false}))};}
+  if(F.done)return;F.t+=dt;if((F.k++)%2===0){F.list.forEach(c=>{if(!c.dyn&&snapKey(c.m)!==c.s)c.dyn=true;});F.spr.forEach(c=>{if(!c.dyn&&snapKey(c.m)!==c.s)c.dyn=true;});}
+  if(F.t>12){F.done=true;const st=F.list.filter(c=>!c.dyn).map(c=>c.m);if(st.length>8)try{freezeStatic(st,T.group,true);}catch(e){}
+    try{batchGlows(F.spr.filter(c=>!c.dyn&&c.m.visible).map(c=>c.m),T.group);}catch(e){}}}
+// many still glow sprites -> a few point clouds (each glow was its own draw call)
+function batchGlows(list,parent){if(list.length<6)return;const tn=Math.tan(camera.fov*PI/360),B=new Map();
+  list.forEach(sp=>{const S=sp.scale.x/tn,k=Math.round(Math.log(S)/Math.log(1.18));const L=B.get(k)||[];L.push(sp);B.set(k,L);});
+  B.forEach((L,k)=>{const P=[],C=[];L.forEach(sp=>{sp.updateWorldMatrix(true,false);const v=new V3().setFromMatrixPosition(sp.matrixWorld);parent.worldToLocal(v);P.push(v.x,v.y,v.z);const c=sp.material.color,o=sp.material.opacity;C.push(c.r*o,c.g*o,c.b*o);});
+    const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(P,3));g.setAttribute('color',new THREE.Float32BufferAttribute(C,3));
+    const pts=new THREE.Points(g,new THREE.PointsMaterial({map:GLOW,size:Math.pow(1.18,k),sizeAttenuation:true,vertexColors:true,transparent:true,depthWrite:false,blending:THREE.AdditiveBlending}));pts.frustumCulled=false;parent.add(pts);
+    L.forEach(sp=>{if(sp.parent)sp.parent.remove(sp);});});}
 // merge each part-group of a character into one mesh per color (moving pivots like legs/arms stay separate)
 function compactCritter(g,whole){if(whole){const B=g.userData.body||g;freezeStatic(B.children.slice(),B,true);return g;}
   const groups=[];g.traverse(o=>{if(o.isGroup||o===g)groups.push(o);});
@@ -1070,12 +1087,16 @@ if(THREE.GLTFLoader){const ld=new THREE.GLTFLoader();
 // soft round shadows under everything you can abduct (they fade as it's beamed up)
 const SHADOW_TEX=(()=>{const c=document.createElement('canvas');c.width=c.height=64;const g=c.getContext('2d');const gr=g.createRadialGradient(32,32,2,32,32,32);gr.addColorStop(0,'rgba(0,0,0,0.55)');gr.addColorStop(0.6,'rgba(0,0,0,0.25)');gr.addColorStop(1,'rgba(0,0,0,0)');g.fillStyle=gr;g.fillRect(0,0,64,64);return new THREE.CanvasTexture(c);})();
 const SHADOW_GEO=new THREE.PlaneGeometry(1,1).rotateX(-PI/2);
+const SHADOW_MAT=new THREE.MeshBasicMaterial({map:SHADOW_TEX,transparent:true,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-6,polygonOffsetUnits:-6});
 function shadowTick(dt){if(curTown==='ocean'||mode!=='ground')return;const Tn=towns[curTown];if(!Tn||!Tn.targets)return;
+  if(!Tn.shIM){Tn.shIM=new THREE.InstancedMesh(SHADOW_GEO,SHADOW_MAT,Tn.targets.length);Tn.shIM.renderOrder=1;Tn.shIM.frustumCulled=false;Tn.group.add(Tn.shIM);} // all soft shadows in ONE draw call
+  let n=0;const cx=camera.position.x,cz=camera.position.z;
   for(const T of Tn.targets){const m=T.mesh;
-    if(!T.shadow){T.shadow=new THREE.Mesh(SHADOW_GEO,new THREE.MeshBasicMaterial({map:SHADOW_TEX,transparent:true,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-6,polygonOffsetUnits:-6}));T.shadow.renderOrder=1;Tn.group.add(T.shadow);T.shAge=0;T.shR=0;}
-    T.shAge+=dt;if(!T.shR||(T.shAge>3&&!T.shFixed)){if(T.shAge>3)T.shFixed=true;const b=new THREE.Box3().setFromObject(m),sz=b.getSize(tmpV);T.shR=clamp(Math.max(sz.x,sz.z)*1.15,1.5,14);}
-    const sh=T.shadow,vis=m.visible&&T.state!=='gone';sh.visible=vis;if(!vis)continue;
-    const h=Math.max(0,m.position.y);sh.position.set(m.position.x,0.07,m.position.z);const k=clamp(1-h/30,0,1);sh.scale.setScalar(T.shR*(0.6+0.4*k));sh.material.opacity=k;}}
+    T.shAge=(T.shAge||0)+dt;if(!T.shR||(T.shAge>3&&!T.shFixed)){if(T.shAge>3)T.shFixed=true;const b=new THREE.Box3().setFromObject(m),sz=b.getSize(tmpV);T.shR=clamp(Math.max(sz.x,sz.z)*1.15,1.5,14);}
+    if(!m.visible||T.state==='gone')continue;const x=m.position.x,z=m.position.z;if((x-cx)*(x-cx)+(z-cz)*(z-cz)>260*260)continue;
+    const k=clamp(1-Math.max(0,m.position.y)/30,0,1);if(k<=0.02)continue;const sc=T.shR*(0.35+0.65*k);
+    m4.makeScale(sc,1,sc);m4.setPosition(x,0.07,z);Tn.shIM.setMatrixAt(n++,m4);}
+  Tn.shIM.count=n;Tn.shIM.instanceMatrix.needsUpdate=true;}
 function animTick(dt){for(const I of animInst){if(I.town!==curTown||!I.g.visible)continue;
   {const far=I.g.position.distanceToSquared(camera.position)>230*230;I.m.visible=!far;if(far){I.last.copy(I.g.position);continue;}} // skip far-away walkers (saves phone GPU)
   const p=I.g.position,v=Math.hypot(p.x-I.last.x,p.z-I.last.z)/Math.max(dt,1e-3);I.last.copy(p);
@@ -4189,7 +4210,7 @@ inTown('desert',()=>{
   const ring=new THREE.Mesh(new THREE.TorusGeometry(108,2.2,8,90),new THREE.MeshBasicMaterial({color:0xff3a5a}));ring.rotation.x=PI/2;ring.position.y=-4;g.add(ring);
   const lights=[];for(let i=0;i<36;i++){const a=i/36*2*PI;const L=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:i%2?0xff3a5a:0x7dffb0,transparent:true,blending:THREE.AdditiveBlending,depthWrite:false}));L.position.set(Math.cos(a)*112,-6,Math.sin(a)*112);L.scale.set(14,14,1);g.add(L);lights.push(L);}
   const beam=new THREE.Mesh(new THREE.CylinderGeometry(24,60,260,32,1,true),new THREE.MeshBasicMaterial({color:0x7dffb0,transparent:true,opacity:0.12,blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide}));beam.position.y=-150;g.add(beam);
-  const alarms=[];for(const [x,z] of[[-260,-200],[-120,-255],[420,-300],[-300,170],[230,-320],[40,118]]){const a=glowSprite(0xff2a2a,x,16,z,26,0);alarms.push(a);}
+  const alarms=[];for(const [x,z] of[[-260,-200],[-120,-255],[420,-300],[-300,170],[230,-320],[40,118]]){const a=glowSprite(0xff2a2a,x,16,z,26,0);a.userData.keep=true;alarms.push(a);}
   desertAnim.push((dt,t)=>{
     if(state==='play'&&mode==='ground'&&curTown==='desert'){
       if(!INV.on){INV.cd-=dt;if(INV.cd<=0){INV.on=true;INV.left=45;INV.y=700;g.visible=true;pop('👾 MOTHERSHIP INVASION!');pop('DOUBLE POINTS for 45s — grab everything!','t');mEvent('invasion');}}
@@ -5207,7 +5228,7 @@ function loop(now){
   secretUpdate(t);
   missionTick();
   raceUpdate(dt,t);
-  animTick(dt);
+  animTick(dt);freezeTick(dt);
   shadowTick(dt);
   bossUpdate(dt*ES,t);
   {const ph=Math.floor(t*6)%2;policeLights.forEach(([r,b])=>{r.visible=!!ph;b.visible=!ph;});}
