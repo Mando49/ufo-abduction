@@ -2380,6 +2380,73 @@ beginTown('fifth');
       const T=tgtOf.get(D.g);if(!T||T.state==='ground')D.g.position.y+=(Math.sin(t*1.5+D.phase)*.5+2.2-D.g.position.y)*Math.min(1,dt*3); // don't fight the tractor beam
     });
   }});
+  // ===== MORE 5TH DIMENSION =====
+  const neon=c=>new THREE.MeshBasicMaterial({color:c,transparent:true,opacity:.85,blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide});
+  // THE MÖBIUS LOOP: a one-sided twisted ring you can fly through
+  const MOB={x:430,y:120,z:160,R:70};
+  {const seg=160,W=13,P=[],I=[],C=[];const ca=new THREE.Color(0x45eaff),cb=new THREE.Color(0xff3fd2),tc=new THREE.Color();
+    for(let i=0;i<=seg;i++){const u=i/seg*2*PI;for(const s of[-1,1]){const v=s*W,x=(MOB.R+v*Math.cos(u/2))*Math.cos(u),y=(MOB.R+v*Math.cos(u/2))*Math.sin(u),z=v*Math.sin(u/2);P.push(x,y,z);tc.copy(ca).lerp(cb,.5+.5*Math.sin(u*2));C.push(tc.r,tc.g,tc.b);}}
+    for(let i=0;i<seg;i++){const a=i*2;I.push(a,a+1,a+2,a+1,a+3,a+2);}
+    const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(P,3));g.setAttribute('color',new THREE.Float32BufferAttribute(C,3));g.setIndex(I);
+    const m=new THREE.Mesh(g,new THREE.MeshBasicMaterial({vertexColors:true,transparent:true,opacity:.5,side:THREE.DoubleSide,blending:THREE.AdditiveBlending,depthWrite:false}));
+    const wire=new THREE.Mesh(g,new THREE.MeshBasicMaterial({color:0xffffff,wireframe:true,transparent:true,opacity:.18,depthWrite:false}));
+    const holder=new THREE.Group();holder.position.set(MOB.x,MOB.y,MOB.z);holder.add(m,wire);root.add(holder);
+    const gl=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:0x9b4bff,transparent:true,opacity:.12,blending:THREE.AdditiveBlending,depthWrite:false}));gl.scale.set(200,200,1);holder.add(gl);
+    let msg=0;planetAnim.push({town:'fifth',f:(t,dt)=>{holder.rotation.z=t*.25;msg-=dt;
+      if(state==='play'&&!onFoot&&msg<=0&&Math.abs(pos.z-MOB.z)<7&&Math.hypot(pos.x-MOB.x,pos.y-MOB.y)<MOB.R-14){msg=4;score+=75;mEvent('mobius');pop('♾️ THROUGH THE MÖBIUS LOOP! +75');blip(600,2400,0.4,'sine',0.12);}}});}
+  // IMPOSSIBLE TRIANGLE (Penrose) slowly turning
+  {const g=new THREE.Group();g.position.set(-430,150,180);root.add(g);const L=120,T=14,cols=[0xff3fd2,0x45eaff,0xffd84a];
+    for(let k=0;k<3;k++){const a=k/3*2*PI+PI/2,b=a+2*PI/3,p1=new V3(Math.cos(a)*L*.58,Math.sin(a)*L*.58,0),p2=new V3(Math.cos(b)*L*.58,Math.sin(b)*L*.58,0);
+      const bar=new THREE.Mesh(new THREE.BoxGeometry(L+T,T,T),new THREE.MeshStandardMaterial({color:cols[k],emissive:cols[k],emissiveIntensity:.45,metalness:.3,roughness:.3}));
+      bar.position.copy(p1).add(p2).multiplyScalar(.5);bar.position.z=(k-1)*T*.5;bar.rotation.z=Math.atan2(p2.y-p1.y,p2.x-p1.x);g.add(bar);}
+    planetAnim.push({town:'fifth',f:t=>{g.rotation.y=t*.2;g.rotation.x=Math.sin(t*.3)*.3;}});}
+  // UPSIDE-DOWN WATERFALLS: light that pours upward from glowing pools
+  const falls=[];
+  for(let k=0;k<4;k++){const a=k/4*2*PI+.4,r=330,x=Math.cos(a)*r,z=Math.sin(a)*r,c=[0x45eaff,0xff3fd2,0x6dff7a,0xffd84a][k];
+    const pool=new THREE.Mesh(new THREE.CircleGeometry(22,32),neon(c));pool.rotation.x=-PI/2;pool.position.set(x,.3,z);root.add(pool);
+    const col=new THREE.Mesh(new THREE.CylinderGeometry(9,15,260,16,1,true),new THREE.MeshBasicMaterial({color:c,transparent:true,opacity:.13,blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide}));col.position.set(x,130,z);root.add(col);
+    const N=140,arr=new Float32Array(N*3),sd=[];for(let i=0;i<N;i++){sd.push([rand(0,2*PI),rand(2,13),rand(0,260),rand(30,70)]);}
+    const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.BufferAttribute(arr,3));
+    const pts=new THREE.Points(g,new THREE.PointsMaterial({map:GLOW,color:c,size:6,transparent:true,blending:THREE.AdditiveBlending,depthWrite:false}));pts.position.set(x,0,z);root.add(pts);falls.push({arr,sd,g});}
+  planetAnim.push({town:'fifth',f:(t,dt)=>{falls.forEach(F=>{F.sd.forEach((s,i)=>{s[2]=(s[2]+s[3]*dt)%260;const a=s[0]+s[2]*.03;F.arr[i*3]=Math.cos(a)*s[1];F.arr[i*3+1]=s[2];F.arr[i*3+2]=Math.sin(a)*s[1];});F.g.attributes.position.needsUpdate=true;});}});
+  // FRACTAL CRYSTAL TREES (branches split into smaller copies of themselves)
+  for(let k=0;k<6;k++){const P=[],a0=k/6*2*PI+.9,r=rand(200,450),c=pick([0x45eaff,0xff3fd2,0x9b4bff,0x6dff7a]);
+    const grow=(p,d,len,depth)=>{const q=p.clone().addScaledVector(d,len);P.push(p.x,p.y,p.z,q.x,q.y,q.z);if(depth<=0)return;
+      for(let b=0;b<3;b++){const nd=d.clone().applyAxisAngle(new V3(0,1,0),b/3*2*PI+depth).applyAxisAngle(new V3(1,0,0),.55).normalize();nd.y=Math.abs(nd.y)+.35;nd.normalize();grow(q,nd,len*.62,depth-1);}};
+    grow(new V3(0,0,0),new V3(0,1,0),34,5);
+    const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(P,3));
+    const tr=new THREE.LineSegments(g,new THREE.LineBasicMaterial({color:c,transparent:true,opacity:.9,blending:THREE.AdditiveBlending,depthWrite:false}));tr.position.set(Math.cos(a0)*r,0,Math.sin(a0)*r);root.add(tr);
+    const ph=rand(0,6);planetAnim.push({town:'fifth',f:t=>{tr.rotation.y=t*.08+ph;tr.material.opacity=.6+.35*Math.sin(t*1.3+ph);}});}
+  // RIFT PORTALS: fly into one, come out the other side of the dimension
+  const RIFTS=[{p:new V3(-250,70,380),c:0x45eaff},{p:new V3(260,70,-260),c:0xff3fd2}];
+  RIFTS.forEach(R=>{const g=new THREE.Group();g.position.copy(R.p);root.add(g);
+    const ring=new THREE.Mesh(new THREE.TorusGeometry(24,2.6,10,64),neon(R.c));g.add(ring);
+    const disc=new THREE.Mesh(new THREE.CircleGeometry(22,48),new THREE.MeshBasicMaterial({color:R.c,transparent:true,opacity:.28,side:THREE.DoubleSide,blending:THREE.AdditiveBlending,depthWrite:false}));g.add(disc);
+    const sw=new THREE.Mesh(new THREE.RingGeometry(4,21,48,1,0,PI*1.4),new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:.35,side:THREE.DoubleSide,blending:THREE.AdditiveBlending,depthWrite:false}));g.add(sw);
+    R.g=g;R.sw=sw;});
+  let riftCD=0;
+  planetAnim.push({town:'fifth',f:(t,dt)=>{riftCD-=dt;RIFTS.forEach((R,i)=>{R.g.lookAt(pos.x,R.p.y,pos.z);R.sw.rotation.z=-t*3;
+    if(riftCD<=0&&state==='play'&&!onFoot&&pos.distanceTo(R.p)<20){const O=RIFTS[1-i];riftCD=3;pos.set(O.p.x,O.p.y,O.p.z);pos.x+=Math.sign(-O.p.x)*30;pos.z+=Math.sign(-O.p.z)*30;score+=40;mEvent('rift');pop('🌀 RIFT JUMP! +40');blip(200,1800,0.5,'triangle',0.12);}});}});
+  // GLITCH JELLIES: see-through jellyfish drifting between dimensions (beam them up)
+  const jellies=[];
+  const mkJelly=()=>{const g=new THREE.Group(),c=pick([0xff3fd2,0x45eaff,0x6dff7a,0xffd84a]);
+    const bell=new THREE.Mesh(new THREE.SphereGeometry(2.4,16,10,0,2*PI,0,PI/2),new THREE.MeshBasicMaterial({color:c,transparent:true,opacity:.55,blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide}));bell.position.y=4;g.add(bell);
+    const inner=new THREE.Mesh(new THREE.SphereGeometry(1.2,10,8),new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:.7}));inner.position.y=4.3;g.add(inner);
+    const tents=[];for(let n=0;n<6;n++){const a=n/6*2*PI,tt=new THREE.Mesh(new THREE.CylinderGeometry(.08,.03,3.6,4),new THREE.MeshBasicMaterial({color:c,transparent:true,opacity:.8,blending:THREE.AdditiveBlending,depthWrite:false}));tt.position.set(Math.cos(a)*1.5,2.2,Math.sin(a)*1.5);g.add(tt);tents.push(tt);}
+    const au=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:c,transparent:true,opacity:.4,blending:THREE.AdditiveBlending,depthWrite:false}));au.position.y=3.5;au.scale.set(9,9,1);g.add(au);
+    g.userData.emoji='🪼';g.userData.pts=65;g.userData.heat=0.2;root.add(g);jellies.push({g,bell,tents,ph:rand(0,6)});return g;};
+  addTargets(mkJelly,14);
+  const jT=new Map();targets.forEach(T=>{if(T.mesh.userData.emoji==='🪼')jT.set(T.mesh,T);});
+  planetAnim.push({town:'fifth',f:(t,dt)=>{jellies.forEach(J=>{const s=1+.15*Math.sin(t*3+J.ph);J.bell.scale.set(s,1/s,s);J.tents.forEach((tt,i)=>{tt.rotation.x=Math.sin(t*3+J.ph+i)*.35;});
+    J.g.visible=J.g.visible&&!(Math.sin(t*7+J.ph)>.985); // little dimensional glitch flicker
+    if(!J.g.visible&&Math.random()<.5)J.g.visible=true;
+    const T=jT.get(J.g);if(!T||T.state==='ground')J.g.position.y+=(6+Math.sin(t*.9+J.ph)*3-J.g.position.y)*Math.min(1,dt*2);});}});
+  // TIME ECHOES: ghost copies of your UFO follow a few seconds behind you
+  const trail=[],echoes=[];let echoT=0;
+  planetAnim.push({town:'fifth',f:(t,dt)=>{
+    if(!echoes.length){for(let k=0;k<3;k++){const e=ufo.clone(true);const kill=[];e.traverse(o=>{if(o.isLight)kill.push(o);if(o.isMesh||o.isSprite||o.isPoints){o.material=new THREE.MeshBasicMaterial({color:[0x45eaff,0xff3fd2,0x9b4bff][k],transparent:true,opacity:.45-k*.12,blending:THREE.AdditiveBlending,depthWrite:false});if(o.isSprite||o.isPoints)o.visible=false;}});kill.forEach(o=>o.parent.remove(o));e.visible=false;root.add(e);echoes.push(e);}}
+    echoT+=dt;if(echoT>.1){echoT=0;trail.push([pos.x,pos.y,pos.z,yaw]);if(trail.length>40)trail.shift();}
+    echoes.forEach((e,k)=>{const s=trail[trail.length-1-(k+1)*10];e.visible=!!s&&mode==='ground'&&!onFoot&&state==='play';if(s){e.position.set(s[0],s[1],s[2]);e.rotation.y=s[3];}});}});
 })();
 endTown('fifth',[250,1500]);Object.assign(towns.fifth,{planet:true,fogC:new THREE.Color(0x12002a),skyTint:0x000000,label:'✨ THE 5TH DIMENSION'});
 
@@ -4562,6 +4629,9 @@ const MISSIONS=[
   {id:'yeti',t:'Abduct a Yeti (Antarctica)',ev:'abduct',m:d=>d.emoji==='🦍',g:1,r:700},
   {id:'penguin',t:'Abduct 5 penguins',ev:'abduct',m:d=>d.emoji==='🐧',g:5,r:400},
   {id:'icearch',t:'Fly through the Frost Palace gate',ev:'icearch',g:1,r:300},
+  {id:'mobius',t:'Fly through the Möbius Loop (5th Dimension)',ev:'mobius',g:1,r:500},
+  {id:'rift',t:'Jump through a rift portal (5th Dimension)',ev:'rift',g:1,r:400},
+  {id:'jelly',t:'Beam up 5 glitch jellies (5th Dimension)',ev:'abduct',m:d=>d.emoji==='🪼',g:5,r:600},
   {id:'opensea',t:'Fly up out of the Ocean to the Open Sea',ev:'visit',m:d=>d.town==='seas',g:1,r:400},
   {id:'carrier',t:'Take off from the aircraft carrier (Open Sea)',ev:'carrier',g:1,r:700},
   {id:'ride',t:'Ride a dolphin for 20 seconds (Open Sea)',ev:'ride20',g:1,r:700},
