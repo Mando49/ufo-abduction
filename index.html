@@ -4514,12 +4514,15 @@ const SOLAR=[];let sunHeatT=0,saturnSide=0,saturnCd=0;
     const lab=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(lc),transparent:true,depthWrite:false,fog:false}));lab.position.copy(S.p).add(new V3(0,S.r+(S.kind==='saturn'?140:70),0));lab.scale.set(190,48,1);D.add(lab);});
 })();
 function solarAnim(dt,t){SOLAR.forEach(S=>{if(S.sp)S.sp.rotation.y+=dt*(S.kind==='jupiter'?0.05:0.04);if(S.moons)S.moons.forEach(M=>{M.a+=M.w*dt;M.m.position.set(Math.cos(M.a)*M.r,Math.sin(M.a*0.7)*30,Math.sin(M.a)*M.r);});if(S.mat)S.mat.uniforms.t.value=t;});}
+let solarBump=0;
 function solarUpdate(dt){
   if(curSector!=='earth')return;
   saturnCd-=dt;let hot=false;
   for(const S of SOLAR){const d=pos.distanceTo(S.p);
     if(S.kind==='sun'&&d<S.r+260){hot=true;sunHeatT-=dt;if(sunHeatT<=0){sunHeatT=0.5;hurt(4);}}
-    if(d<S.r+10){pos.copy(S.p).addScaledVector(pos.clone().sub(S.p).normalize(),S.r+10);speed*=-0.3;hit();}
+    if(d<S.r+14){const n=pos.clone().sub(S.p).normalize();pos.copy(S.p).addScaledVector(n,S.r+14); // slide along the planet instead of sticking to it
+      if(fwd.dot(n)<0.25){const dv=-Math.cos(yaw)*n.x+Math.sin(yaw)*n.z;yaw+=(dv>=0?1:-1)*dt*2.6;vy+=n.y*60*dt;} // auto-steer away so you can never get stuck
+      if(S.kind==='sun')hit();else{solarBump-=dt;if(solarBump<=0){solarBump=4;pop('🪐 TOO CLOSE · steering around '+(S.name||'the planet'),'t');blip(300,160,0.2,'sine',0.08);}}}
     if(S.kind==='saturn'){const lp=S.g.worldToLocal(pos.clone()),n=new V3(0,0,1).applyQuaternion(S.ring.quaternion),side=Math.sign(lp.dot(n)),rad=Math.sqrt(Math.max(0,lp.lengthSq()-lp.dot(n)**2));
       if(saturnSide&&side!==saturnSide&&rad>250&&rad<470&&saturnCd<=0){saturnCd=3;mEvent('saturn');score+=50;timer+=10;pop('🪐 RING RUN! +50');pop('+10s','t');blip(400,1800,0.4,'triangle',0.14);}
       saturnSide=side;}}
