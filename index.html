@@ -232,6 +232,7 @@ body.promo #hud,body.promo #controls,body.promo #keys,body.promo #mute,body.prom
     <div><button class="hbtn" id="freeBtn" style="border-color:#7ffcff;color:#bff8ff;background:rgba(5,30,40,.6)">🌌 FREE EXPLORE <small style="font-size:11px;opacity:.8">· no timer</small></button></div>
     <div><button class="hbtn" id="promoBtn2" style="border-color:#ff4fd8;color:#ffb3ef;background:rgba(40,5,30,.6)">🎬 PROMO CAMERA</button></div>
     <div><button class="hbtn" id="shopBtn">🛠️ HANGAR</button></div>
+    <div><button class="hbtn" id="logBtn">📖 ABDUCTION LOG</button></div>
     <div class="best" id="bankMenu"></div>
     <div class="best" id="bestMenu"></div>
   </div>
@@ -242,6 +243,7 @@ body.promo #hud,body.promo #controls,body.promo #keys,body.promo #mute,body.prom
     <h1>⏸ PAUSED</h1>
     <p id="pauseInfo"></p>
     <button class="play" id="resumeBtn">▶ RESUME</button>
+    <div><button class="hbtn" id="logBtn3">📖 ABDUCTION LOG</button></div>
     <div><button class="hbtn" id="shopBtn3">🛠️ HANGAR · upgrades &amp; ships</button></div>
     <button class="play" id="quitBtn" style="background:linear-gradient(135deg,#5a6a8a,#3a4a6a)">🏠 QUIT TO MENU</button>
     <p style="opacity:.7;font-size:13px">Quitting keeps the credits you've earned this run.</p>
@@ -256,11 +258,26 @@ body.promo #hud,body.promo #controls,body.promo #keys,body.promo #mute,body.prom
     <p id="earned" style="color:#ffe08a;font-weight:800"></p>
     <button class="play" id="againBtn">PLAY AGAIN</button>
     <div><button class="hbtn" id="shopBtn2">🛠️ HANGAR</button></div>
+    <div><button class="hbtn" id="logBtn2">📖 ABDUCTION LOG</button></div>
     <div class="best" id="bestOver"></div>
     <a class="sponsor" href="https://lasvegaswindowtintnv.com" target="_blank" rel="noopener">Sponsored by <b>Mando Window Tinting</b><br>Window Tint &amp; PPF in Las Vegas →</a>
   </div>
 </div>
 
+<div id="logv" class="overlay hidden">
+  <div class="card shopcard">
+    <h1>📖 ABDUCTION LOG</h1>
+    <div id="logTop" class="bankline"></div>
+    <div id="logList"></div>
+    <button class="play" id="logBack">BACK</button>
+  </div>
+</div>
+<style>
+.lgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:8px;margin:6px 0 12px}
+.lcard{background:rgba(20,30,60,.7);border:1px solid rgba(120,200,255,.35);border-radius:12px;padding:8px 4px;text-align:center;font-size:11px;line-height:1.25}
+.lcard .le{font-size:30px;display:block}.lcard b{display:block;color:#eaf6ff}.lcard small{opacity:.75}
+.lcard.unk{opacity:.5;border-style:dashed}.lcard.unk .le{filter:grayscale(1) brightness(.35)}
+</style>
 <div id="shop" class="overlay hidden">
   <div class="card shopcard">
     <h1>🛠️ HANGAR</h1>
@@ -2993,7 +3010,7 @@ function makeShowgirl(){
     const arch=new THREE.Mesh(new THREE.TorusGeometry(110,4,8,40,PI),lam(0xbdb8ae));arch.rotation.y=PI/2;arch.position.set(BX,-12,DZ);arch.scale.y=0.95;root.add(arch);add(arch);
     freezeStatic(objs,root,true);
     // cars crossing the top of the dam, boats on Lake Mead
-    for(let i=0;i<5;i++){const g=makeCar(),dir=i%2?1:-1;const T={type:'critter',mesh:g,still:true,spawn:T=>{T.mesh.position.set(DX-1+dir*2.5,67,DZ+rand(-60,60));T.mesh.rotation.set(0,dir>0?-PI/2:PI/2,0);T.mesh.visible=true;T.state='ground';}};T.spawn(T);targets.push(T);T.dir=dir;
+    for(let i=0;i<5;i++){const g=makeCar(),dir=i%2?1:-1;g.userData.emoji='🚗';g.userData.police=false;const T={type:'critter',mesh:g,still:true,spawn:T=>{T.mesh.position.set(DX-1+dir*2.5,67,DZ+rand(-60,60));T.mesh.rotation.set(0,dir>0?-PI/2:PI/2,0);T.mesh.visible=true;T.state='ground';}};T.spawn(T);targets.push(T);T.dir=dir;
       planetAnim.push({town:'vegas',f:(t,dt)=>{if(T.state!=='ground')return;const m=T.mesh;m.position.y=67;m.rotation.set(0,T.dir>0?-PI/2:PI/2,0);m.position.z+=T.dir*9*dt;if(m.position.z>DZ+62)m.position.z=DZ-62;if(m.position.z<DZ-62)m.position.z=DZ+62;}});}
     for(let i=0;i<4;i++){const g=new THREE.Group();box(g,6,1.4,2.4,0xffffff,0,0.7,0);box(g,2,1,2,0x1a3a6a,0.5,1.8,0);const wk=glowSprite(0xffffff,0,0,0,4,0.5);g.add(wk);wk.position.set(-4,0.2,0);g.userData.emoji='🚤';g.userData.pts=90;g.userData.heat=0.3;root.add(g);
       const T={type:'critter',mesh:g,still:true,ph:rand(0,6),spawn:T=>{T.mesh.visible=true;T.state='ground';resetRot(T.mesh);}};T.state='ground';targets.push(T);
@@ -4006,6 +4023,29 @@ function openShop(from){initAudio();shopFrom=from;renderShop();$('menu').classLi
 $('shopBtn').addEventListener('click',()=>openShop('menu'));$('shopBtn2').addEventListener('click',()=>openShop('over'));$('shopBtn3').addEventListener('click',()=>openShop('pause'));
 $('shopBack').addEventListener('click',()=>{$('shop').classList.add('hidden');$(shopFrom).classList.remove('hidden');});
 renderShop();
+
+// ---------- 📖 Abduction Log: a collection book of everything ever beamed up ----------
+const LOG_NAMES={'🐄':'Cow','🚗':'Car','🚓':'Police Car','🚚':'Truck','😴':'Sleeper','🚶':'Walker','🚜':'Tractor','🦊':'Fox','🤖':'Robot','📣':'Cheerleader','🏈':'Football Player','🎈':'Balloon','🏎️':'Luxury / Race Car','📺':'News Van','🌮':'Taco Truck','🍔':'Diner Guest','🔘':'Mystery Orb','🌑':'Jellyfish UFO',
+  '👽':'Little Alien','🏃':'Area 51 Raider','🤳':'Streamer','🪖':'Soldier','🐎':'Mustang','🫏':'Burro','🔩':'Secret Tech','🕴️':'Man in Black','❄️':'Yeti','🐧':'Penguin','🦍':'Ice Ape','🦕':'Dinosaur','🦀':'Lava Crab','🦖':'T-Rex','🚙':'Moon Rover','🧊':'Hypercube','🪼':'Glitch Jelly','🤍':'Tall White','💙':'Nordic',
+  '🐪':'Camel','🧟':'Mummy','🐆':'Jaguar','🧗':'Climber / Zipliner','🛩️':'Fighter Jet','🚤':'Speedboat','🛫':'Airliner','🥾':'Hiker','🕺':'Elvis','💃':'Showgirl','🚢':'Submarine','🐟':'Fish','🐢':'Sea Turtle','🦈':'Shark','🐋':'Whale','🐬':'Dolphin','🐙':'Octopus','🎣':'Fishing Boat','⛵':'Sailboat','👾':'Alien Specimen','🥼':'Scientist'};
+let LOG={};try{LOG=JSON.parse(localStorage.getItem('ufoLog')||'{}');}catch(e){}
+const logKey=T=>{const u=T.mesh.userData;return u.emoji||(u.police?'🚓':{cow:'🐄',car:'🚗',truck:'🚚'}[T.type]);};
+let LOG_CAT=null;
+function logCatalog(){if(LOG_CAT)return LOG_CAT;const C={},order=['city','desert','sub51','vegas','egypt','maya','ice','ocean','seas','moon','mars','lava','jungle','fifth'];
+  order.forEach(n=>{if(!towns[n])return;const L=[];towns[n].targets.forEach(T=>{const k=logKey(T);if(k&&!C[k]){C[k]=n;L.push(k);}});});
+  LOG_CAT={byTown:order.map(n=>[n,Object.keys(C).filter(k=>C[k]===n)]).filter(x=>x[1].length),total:Object.keys(C).length};return LOG_CAT;}
+function logAbduct(T){const k=logKey(T);if(!k)return;const first=!LOG[k];LOG[k]=(LOG[k]||0)+1;
+  if(first){const C=logCatalog(),n=Object.keys(LOG).filter(e=>LOG_NAMES[e]||true).length;save.bank+=50;persist();pop(`📖 NEW: ${k} ${LOG_NAMES[k]||''} · 💰 +50`,'t');
+    if(n===C.total){save.bank+=5000;persist();pop('👑 ABDUCTION LOG COMPLETE! 💰 +5,000');}}
+  try{localStorage.setItem('ufoLog',JSON.stringify(LOG));}catch(e){}}
+function renderLog(){const C=logCatalog();let found=0,h='';
+  C.byTown.forEach(([n,L])=>{const f=L.filter(k=>LOG[k]).length;found+=f;h+=`<div class="sec">${TOWN_NAMES[n]} · ${f}/${L.length}${f===L.length?' ✅':''}</div><div class="lgrid">`;
+    L.forEach(k=>{h+=LOG[k]?`<div class="lcard"><span class="le">${k}</span><b>${LOG_NAMES[k]||'Specimen'}</b><small>×${fmt(LOG[k])}</small></div>`:`<div class="lcard unk"><span class="le">${k}</span><b>???</b><small>not found yet</small></div>`;});h+='</div>';});
+  $('logTop').textContent=`${found} / ${C.total} discovered · 💰 +50 for each new find · 👑 5,000 for all`;$('logList').innerHTML=h;}
+let logFrom='menu';
+function openLog(from){logFrom=from;renderLog();['menu','over','pause'].forEach(i=>$(i).classList.add('hidden'));$('logv').classList.remove('hidden');}
+$('logBtn').addEventListener('click',()=>openLog('menu'));$('logBtn2').addEventListener('click',()=>openLog('over'));$('logBtn3').addEventListener('click',()=>openLog('pause'));
+$('logBack').addEventListener('click',()=>{$('logv').classList.add('hidden');$(logFrom).classList.remove('hidden');});
 
 // ---------- lasers + space combat ----------
 const Y_AXIS=new V3(0,1,0);
@@ -5616,7 +5656,7 @@ function collide(){
 }
 function abduct(T){
   mEvent('abduct',{type:T.type,cop:!!(T.mesh&&T.mesh.userData.police),emoji:T.mesh&&T.mesh.userData.emoji});
-  T.state='gone';T.mesh.visible=false;T.rt=rand(5,9);doBurst(T.mesh.position);
+  T.state='gone';T.mesh.visible=false;T.rt=rand(5,9);doBurst(T.mesh.position);try{logAbduct(T);}catch(e){}
   if(curTown==='vegas'&&Math.hypot(T.mesh.position.x+260,T.mesh.position.z+520)<220){score+=40;mEvent('sphere');pop('🎆 THE SPHERE CROWD GOES WILD! +40');}
   const k=T.type,isCow=k==='cow',cop=!!T.mesh.userData.police,tb={cow:4,car:6,truck:7,critter:5}[k];let pts=T.mesh.userData.pts||{cow:10,car:cop?40:25,truck:40,critter:20}[k];
   if(T.mesh.userData.combo){const now=performance.now();COMBO.n=(now-COMBO.t<3500)?COMBO.n+1:1;COMBO.t=now;if(COMBO.n>1){pts*=Math.min(COMBO.n,6);pop(`🔥 COMBO x${Math.min(COMBO.n,6)}!`);}}
