@@ -823,9 +823,7 @@ const barnLights=[],farmVanes=[],barnGroups=[];
     // Parallel rows inside each fenced field, leaving a clear central tractor lane.
     for(let row=-5;row<=5;row++){
       const offset=row*7.2;
-      const x=field.x+Math.cos(angle+PI/2)*offset;
-      const z=field.z+Math.sin(angle+PI/2)*offset;
-      cropRows.push({x,z,ry:-angle});
+      cropRows.push({x:field.x+offset,z:field.z,ry:0}); // rows line up with the square fenced field
     }
     for(let n=0;n<5;n++){
       const along=rand(-34,34),across=rand(-32,32);
@@ -834,10 +832,10 @@ const barnLights=[],farmVanes=[],barnGroups=[];
       hayBales.push({x,z,ry:rand(0,PI)});
     }
   });
-  const rowGeo=new THREE.BoxGeometry(0.48,0.62,74);
-  rowGeo.translate(0,0.31,0);
-  const rowMat=lam(0x8cae3d);
-  inst(rowGeo,rowMat,cropRows,r=>compose(r.x,0.04,r.z,1,1,1,0,r.ry,0));
+  const rowGeo=new THREE.BoxGeometry(1.6,1.1,84);
+  rowGeo.translate(0,0.55,0);
+  const rowMat=lam(0x4f8a2a,0x0a1a05);
+  inst(rowGeo,rowMat,cropRows,r=>compose(r.x,0.15,r.z,1,1,1,0,r.ry,0));
   const baleGeo=new THREE.CylinderGeometry(1.25,1.25,2.3,10);
   baleGeo.rotateZ(PI/2);
   const baleMat=lam(0xb99a57);
@@ -4076,10 +4074,24 @@ function setupRelics(){
   relicFx=RELICS[n];relicFx.forEach(r=>{r.g.visible=!r.got;r.g.position.copy(r.p);});
 }
 function relicCount(){return relicFx.filter(r=>r.got).length;}
+// ✈️ fly the secret planes: walk up to one at Area 51 and tap SHIP
+const PLANE_SPOTS=[],PLANE_INFO={sr71:{name:'SR-71 Blackbird',spd:1.7},bop:{name:'Bird of Prey',spd:1.4},wing:{name:'B-2 Spirit',spd:1.25}},PILOT_G={};let FLYP=null,planeHint=0;
+['sr71','bop','wing'].forEach(k=>{const g=new THREE.Group(),inner=new THREE.Group();inner.rotation.y=PI/2;inner.scale.setScalar(k==='sr71'?0.55:0.8);g.add(inner);g.visible=false;tilt.add(g);useModel(k,inner);PILOT_G[k]=g;});
+function nearPlane(){return PLANE_SPOTS.find(P=>P.town===curTown&&P.g.visible&&Math.hypot(P.g.position.x-pos.x,P.g.position.z-pos.z)<16);}
+function boardPlane(P){FLYP=P;P.g.visible=false;P.col.h=0;
+  onFoot=false;walker.visible=false;document.body.classList.remove('walking');relicFx.forEach(r=>r.g.visible=false);crateFx.forEach(c=>c.g.visible=false);eyeBeams.forEach(m=>m.visible=false);eyeGlow.forEach(s=>s.visible=false);
+  for(const k in SHIPS)SHIPS[k].g.visible=false;PILOT_G[P.k].visible=true;M=Object.assign({},M,{spd:M.spd*PLANE_INFO[P.k].spd});
+  pos.set(P.g.position.x,8,P.g.position.z);yaw=P.g.rotation.y-PI/2;speed=20;vy=4;fadeIn();snapCam();
+  pop('✈️ FLYING THE '+PLANE_INFO[P.k].name.toUpperCase());pop('No tractor beam in planes · fly low and tap LAND to park it','t');blip(200,700,0.6,'sawtooth',0.08);mEvent('plane');lastHud='';}
+function parkPlane(){const P=FLYP;FLYP=null;P.g.position.set(pos.x,0,pos.z);P.g.rotation.y=yaw+PI/2;P.g.visible=true;
+  if(P.g.parent!==towns[curTown].group)towns[curTown].group.add(P.g);P.town=curTown;Object.assign(P.col,{x0:pos.x-12,x1:pos.x+12,z0:pos.z-12,z1:pos.z+12,h:5});if(!colliders.includes(P.col))colliders.push(P.col);
+  PILOT_G[P.k].visible=false;applyShip();}
 function landShip(){
   if(state!=='play'||mode!=='ground'||onFoot)return;
+  const wasPlane=!!FLYP;if(FLYP)parkPlane();
   onFoot=true;clearEnemies();heat=0;beamActive=false;speed=0;vy=0;
   shipPark.set(pos.x,4,pos.z);shipYaw=yaw;
+  if(wasPlane){shipPark.addScaledVector(right,-16);setTimeout(()=>pop('🛸 Your UFO flew over to pick you up','t'),900);}
   pos.copy(shipPark).addScaledVector(right,7);pos.y=0;wv=0;wJumps=0;
   walker.visible=true;document.body.classList.add('walking');setupRelics();setupCrates();
   pop('🚶 EXPLORE ON FOOT');pop(`Find 5 💠 relics${SECRETS[curTown]&&!SECRETS[curTown].foundThisRun?' · a 🔍 secret is hidden here':''}`,'t');blip(300,600,0.25,'sine',0.12);lastHud='';
@@ -4124,7 +4136,8 @@ function walkUpdate(dt,ix,iy,jumpBtn,run,shipBtn,t){
         setTimeout(()=>{pop(`🏅 ${TOWN_NAMES[curTown]} EXPLORED! +300`);pop(`Badges: ${Object.keys(badges).length}/12`,'t');},700);}}}
   // say hi to critters
   heartCd-=dt;if(heartCd<=0)for(const T of targets){if(T.state==='ground'&&T.mesh.position.distanceTo(pos)<3.5){heartCd=1.2;spawnFx(T.mesh.position.clone().add(new V3(0,3.5,0)),tmpV.set(0,2,0),1,2.5,1,0xff5ad8,true);pop('💖','t');break;}}
-  if(shipBtn&&!prevShip)boardShip();prevShip=shipBtn;
+  const NP=nearPlane();if(NP){planeHint-=dt;if(planeHint<=0){planeHint=5;pop('✈️ Tap SHIP to fly the '+PLANE_INFO[NP.k].name,'t');}}
+  if(shipBtn&&!prevShip){if(NP)boardPlane(NP);else boardShip();}prevShip=shipBtn;
   if(wGround)energy=Math.min(100,energy+15*dt);
   eyeLasers(dt,inp.fire||keys.x,t);
 }
@@ -4133,7 +4146,7 @@ function walkCam(dt){
   if(camera.position.y<1)camera.position.y=1;look.copy(pos).addScaledVector(fwd,8);look.y=pos.y+2;camera.lookAt(look);
 }
 $('bLand').addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();landShip();});
-addEventListener('keydown',e=>{if(e.key.toLowerCase()==='l'){if(onFoot)boardShip();else landShip();}});
+addEventListener('keydown',e=>{if(e.key.toLowerCase()==='l'){if(onFoot){const NP=nearPlane();if(NP)boardPlane(NP);else boardShip();}else landShip();}});
 
 // ---------- HIDDEN SECRETS (found on foot) ----------
 const SECRETS={
@@ -4255,7 +4268,7 @@ inTown('desert',()=>{
   // 🛩️ secret aircraft parked in front of the black-site hangar
   const parked=[[HX-62,HZ+40,'sr71',0.15],[HX+2,HZ+52,'wing',0],[HX+60,HZ+40,'bop',-0.2]];
   parked.forEach(([x,z,k,ry])=>{const g=new THREE.Group();g.position.set(x,0,z);g.rotation.y=-PI/2+ry;root.add(g);useModel(k,g);
-    colliders.push({x0:x-12,x1:x+12,z0:z-12,z1:z+12,h:5,y0:0});
+    const col={x0:x-12,x1:x+12,z0:z-12,z1:z+12,h:5,y0:0};colliders.push(col);PLANE_SPOTS.push({k,g,col,town:'desert'});
     for(const [dx,dz] of[[-14,-14],[14,-14],[-14,14],[14,14]]){box(root,0.4,2,0.4,0xff8a2a,x+dx,1,z+dz);}});
   sign('PROJECT: BLACK STAR','#ff4c9b',30,4,HX,8,HZ+82,0);
   // ✈️ test flights over the base
@@ -4409,6 +4422,7 @@ const MISSIONS=[
   {id:'bounce',t:'Bounce on a giant flower',ev:'bounce',g:1,r:250},
   {id:'sleeper',t:'Beam up 5 sleeping humans from their beds',ev:'abduct',m:d=>d.emoji==='😴',g:5,r:700},
   {id:'walker',t:'Abduct 5 people out walking',ev:'abduct',m:d=>d.emoji==='🚶',g:5,r:500},
+  {id:'plane',t:'Fly a secret plane at Area 51 (walk up to one)',ev:'plane',g:1,r:600},
   {id:'icewall',t:'Fly over the Ice Wall in Antarctica',ev:'icewall',g:1,r:600},
   {id:'lostcity',t:'Abduct 3 dinosaurs in green Antarctica',ev:'abduct',m:d=>d.emoji==='🦕',g:3,r:700},
   {id:'yeti',t:'Abduct a Yeti (Antarctica)',ev:'abduct',m:d=>d.emoji==='🦍',g:1,r:700},
@@ -4830,7 +4844,7 @@ const pos=new V3(0,60,400),fwd=new V3(),right=new V3(),desired=new V3(),look=new
 
 function pop(txt,cls){const d=document.createElement('div');d.className='pop '+(cls||'');d.textContent=txt;$('pops').appendChild(d);setTimeout(()=>d.remove(),1250);}
 let freeMode=false;
-function startGame(free){
+function startGame(free){if(FLYP){PILOT_G[FLYP.k].visible=false;FLYP.g.visible=true;FLYP.col.h=5;FLYP=null;applyShip();}
   initAudio();freeMode=free===true;document.body.classList.toggle('free',freeMode);
   score=0;timer=150;shield=100;energy=100;lock=false;cows=0;cars=0;
   yaw=0;speed=0;vy=0;pos.set(0,60,400);hitCd=0;
@@ -5103,13 +5117,14 @@ function loop(now){
       if(pos.y<3){pos.y=3;if(vy<0)vy=0;}
       const hd=Math.hypot(pos.x,pos.z),HL=curTown==='ice'?930:620;if(hd>HL){pos.x*=HL/hd;pos.z*=HL/hd;}
       if(curTown==='ice')iceWallBlock(3);
-      if(curTown==='desert'&&state==='play'&&pos.z<-406&&pos.z>-440&&Math.abs(pos.x-420)<44&&pos.y<34)enterHangar18();
+      if(FLYP&&pos.y>SPACE_Y-30){pos.y=SPACE_Y-30;if(vy>0)vy=0;}
+      if(curTown==='desert'&&state==='play'&&!FLYP&&pos.z<-406&&pos.z>-440&&Math.abs(pos.x-420)<44&&pos.y<34)enterHangar18();
       collide();
       if(curTown==='sub51'){pos.y=Math.min(pos.y,60);pos.x=clamp(pos.x,-88,88);pos.z=clamp(pos.z,-300,292);if(pos.z<-282&&Math.abs(pos.x)<34&&pos.y<46)exitHangar18();}
       if(pos.y>SPACE_Y||(curTown==='ocean'&&pos.y>SURF-3))enterSpace();
       if(curTown==='city'&&state==='play'){const pdx=pos.x-VEGAS_PORTAL.x,pdy=pos.y-VEGAS_PORTAL.y,pdz=pos.z-VEGAS_PORTAL.z;if(Math.abs(pdz)<5&&Math.hypot(pdx,pdy)<VEGAS_PORTAL.R+3)enterWarp('vegas');}
     }else if(mode==='space'){spaceUpdate(dt);if(mode==='space')stationUpdate(dt);}else warpUpdate(dt,ix,(up?1:0)-(down?1:0));
-    beamActive=beamBtn&&!lock&&mode==='ground';
+    beamActive=beamBtn&&!lock&&mode==='ground'&&!FLYP;
     if(beamActive)energy-=20*dt*M.pow;if(boosting)energy-=14*dt*M.pow;
     if(!beamActive&&!boosting)energy+=11*dt;energy=clamp(energy,0,100);
     hitCd-=dt;ringCd-=dt;if(!freeMode){timer-=dt;if(timer<=0){timer=0;endGame('time');}}

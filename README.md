@@ -28,7 +28,7 @@ A 3D browser game: fly a triangle UFO over a neon cyberpunk city and farmland, a
 
 📱 **Install it like an app:** open the link in Safari → Share → *Add to Home Screen* (Android: Chrome menu → *Install app*). It opens full screen with its own icon.
 
-🛸 **Area 51 crash site:** a crashed saucer smoking in a scorched crater, quarantine tape, hazmat tents, black SUVs, Men in Black guards and glowing wreckage to beam up. Tumbleweeds roll across the desert. Secret test planes are parked at the black-site hangar and fly overhead, a dropship hovers over the wreck, an etched chrome sphere sits on display, and mystery orbs zip around the sky (catch them!). Soldiers patrol the base, and herds of wild mustangs and burros roam the open desert.
+🛸 **Area 51 crash site:** a crashed saucer smoking in a scorched crater, quarantine tape, hazmat tents, black SUVs, Men in Black guards and glowing wreckage to beam up. Tumbleweeds roll across the desert. Secret test planes are parked at the black-site hangar and fly overhead, a dropship hovers over the wreck, an etched chrome sphere sits on display, and mystery orbs zip around the sky (catch them!). Walk up to a parked secret plane and tap SHIP to fly it (no beam — land anywhere and your UFO comes to pick you up). Soldiers patrol the base, and herds of wild mustangs and burros roam the open desert.
 
 👾 **Mothership Invasion (Area 51):** every few minutes a giant mothership blocks the sky, sirens wail and everything is worth DOUBLE for 45 seconds — then the jets scramble.
 
