@@ -1073,6 +1073,7 @@ const MODELS={cow:{file:'cow',len:3.0,rotY:PI/2,list:[]},car:{file:'car',len:4.4
   whale:{file:'whale',len:3.8,rotY:-PI/2,list:[]},octopus:{file:'octopus',height:1.6,rotY:0,list:[]},sub:{file:'sub',len:6.5,rotY:0,list:[]},dolphin:{file:'dolphin',len:3.6,rotY:PI/2,rotX:0.69,list:[]},
   carrier:{file:'carrier',len:150,rotY:0,list:[]},destroyer:{file:'destroyer',len:70,rotY:0,list:[]},cargo:{file:'cargo',len:100,rotY:0,list:[]},cruise:{file:'cruise',len:90,rotY:0,list:[]},fishboat:{file:'fishboat',len:9,rotY:0,list:[]},sailboat:{file:'sailboat',len:8,rotY:0,list:[]},
   subE:{file:'sub',len:7,rotY:0,list:[],recolor:true},
+  unicorn:{file:'unicorn',height:4.6,rotY:0,list:[]},
   mustang:{file:'mustang',height:4.2,rotY:PI/4,list:[]},burro:{file:'burro',height:3,rotY:0,list:[]}};
 let MODELS_BOOTED=false;
 function useModel(type,g){const M=MODELS[type];if(M.proto)attachModel(M,g);else{M.list.push(g);if(MODELS_BOOTED&&!M.loading&&window.loadModel)loadModel(type);}return g;}
@@ -1099,6 +1100,7 @@ const ANIM={alien:{file:'alien',height:2.3,rotY:PI/2,clips:{walk:0},list:[]},
   soldier:{file:'soldier',height:3.5,rotY:PI/2,clips:{walk:0},list:[]},
   person:{file:'person',height:3.4,rotY:PI/2,clips:{walk:0},tint:true,list:[]},mummy:{file:'mummy',height:3.7,rotY:PI/2,clips:{walk:0},list:[]},yeti:{file:'yeti',height:7.2,rotY:PI/2,clips:{walk:0},list:[]},
   fox:{file:'fox',len:3.4,axis:'z',rotY:PI/2,clips:{idle:'Survey',walk:'Walk',run:'Run'},list:[]},
+  bigfoot:{file:'bigfoot',height:3.9,rotY:PI/2,clips:{walk:0},list:[]},
   reptilian:{file:'reptilian',height:4.4,rotY:PI/2,clips:{walk:0},list:[]},mantis:{file:'mantis',height:5,rotY:PI/2,clips:{walk:0},list:[]},
   tallwhite:{file:'tallwhite',height:5.4,rotY:PI/2,clips:{walk:0},list:[]},nordic:{file:'nordic',height:4.5,rotY:PI/2,clips:{walk:0},list:[]},
   robot:{file:'robot',height:4.2,rotY:PI/2,clips:{idle:'Idle',walk:'Walking',run:'Running',wave:'Wave'},list:[]}};
@@ -4264,7 +4266,7 @@ renderShop();
 // ---------- 📖 Abduction Log: a collection book of everything ever beamed up ----------
 const LOG_NAMES={'🐄':'Cow','🚗':'Car','🚓':'Police Car','🚚':'Truck','😴':'Sleeper','🚶':'Walker','🚜':'Tractor','🦊':'Fox','🤖':'Robot','📣':'Cheerleader','🏈':'Football Player','🎈':'Balloon','🏎️':'Luxury / Race Car','📺':'News Van','🌮':'Taco Truck','🍔':'Diner Guest','🔘':'Mystery Orb','🌑':'Jellyfish UFO',
   '👽':'Little Alien','🏃':'Area 51 Raider','🤳':'Streamer','🪖':'Soldier','🐎':'Mustang','🫏':'Burro','🔩':'Secret Tech','🕴️':'Man in Black','❄️':'Yeti','🐧':'Penguin','🦍':'Ice Ape','🦕':'Dinosaur','🦀':'Lava Crab','🦖':'T-Rex','🚙':'Moon Rover','🧊':'Hypercube','🪼':'Glitch Jelly','🤍':'Tall White','💙':'Nordic',
-  '🐪':'Camel','🧟':'Mummy','🐆':'Jaguar','🧗':'Climber / Zipliner','🛩️':'Fighter Jet','🚤':'Speedboat','🛫':'Airliner','🥾':'Hiker','🕺':'Elvis','💃':'Showgirl','🚢':'Submarine','🐟':'Fish','🐢':'Sea Turtle','🦈':'Shark','🐋':'Whale','🐬':'Dolphin','🐙':'Octopus','🎣':'Fishing Boat','⛵':'Sailboat','👾':'Alien Specimen','🥼':'Scientist','🛞':'Mars Rover','🚁':'Mars Helicopter','💎':'Cave Crystal','🦇':'Cave Bat','👑':'Sleeping King','🎐':'Gas Floater','🛰️':'Lost Probe','🩶':'Grey','🦎':'Reptilian','🦗':'Mantis'};
+  '🐪':'Camel','🧟':'Mummy','🐆':'Jaguar','🧗':'Climber / Zipliner','🛩️':'Fighter Jet','🚤':'Speedboat','🛫':'Airliner','🥾':'Hiker','🕺':'Elvis','💃':'Showgirl','🚢':'Submarine','🐟':'Fish','🐢':'Sea Turtle','🦈':'Shark','🐋':'Whale','🐬':'Dolphin','🐙':'Octopus','🎣':'Fishing Boat','⛵':'Sailboat','👾':'Alien Specimen','🥼':'Scientist','🛞':'Mars Rover','🚁':'Mars Helicopter','💎':'Cave Crystal','🦇':'Cave Bat','👑':'Sleeping King','🦶':'Bigfoot','🦄':'Unicorn','🎐':'Gas Floater','🛰️':'Lost Probe','🩶':'Grey','🦎':'Reptilian','🦗':'Mantis'};
 let LOG={};try{LOG=JSON.parse(localStorage.getItem('ufoLog')||'{}');}catch(e){}
 const logKey=T=>{const u=T.mesh.userData;return u.emoji||(u.police?'🚓':{cow:'🐄',car:'🚗',truck:'🚚'}[T.type]);};
 let LOG_CAT=null;
@@ -5109,6 +5111,28 @@ const VISITORS=[];
     const spawnV=T=>{const m=T.mesh;m.position.set(rand(-420,420),rand(T.jelly?18:12,T.jelly?40:30),rand(-420,420));resetRot(m);m.visible=true;T.state='ground';T.to=m.position.clone();T.wait=rand(1,4);T.blink=rand(14,30);};
     for(let i=0;i<no+nj;i++){const jelly=i>=no,g=jelly?makeJellyUFO():makeVisitorOrb();towns[n].group.add(g);
       const T={type:'critter',mesh:g,still:true,jelly,spawn:spawnV,town:n};T.spawn(T);towns[n].targets.push(T);VISITORS.push(T);}}})();
+// 🦶 BIGFOOT in the pine woods at the edge of Neon City + 🦄 UNICORNS in the 5th Dimension
+(function(){const r0=root,c0=colliders;
+  root=towns.city.group;colliders=towns.city.colliders;
+  {const spots=[],C=towns.city.colliders,F=towns.city.fields||[];
+    for(let i=0;i<400&&spots.length<2;i++){const a=rand(0,2*PI),r=rand(520,600),x=Math.cos(a)*r,z=Math.sin(a)*r;
+      if(C.some(c=>x>c.x0-50&&x<c.x1+50&&z>c.z0-50&&z<c.z1+50)||F.some(f=>Math.hypot(f.x-x,f.z-z)<110)||spots.some(s=>Math.hypot(s.x-x,s.z-z)<400))continue;spots.push({x,z});}
+    const objs=[];spots.forEach(S=>{for(let i=0;i<34;i++){const a=rand(0,2*PI),r=rand(6,48),x=S.x+Math.cos(a)*r,z=S.z+Math.sin(a)*r,h=rand(9,17);
+        objs.push(box(root,0.9,h*0.35,0.9,0x4a3424,x,h*0.17,z));for(let k=0;k<3;k++){const c=new THREE.Mesh(new THREE.ConeGeometry((3.4-k*0.8)*h/13,h*0.42,7),lam(pick([0x1e4a2a,0x245a30,0x1a3e24])));c.position.set(x,h*(0.42+k*0.22),z);root.add(c);objs.push(c);}}
+      sign('⚠ BIGFOOT CROSSING','#ffd040',18,3,S.x*0.9,5,S.z*0.9,Math.atan2(-S.x,-S.z));});
+    freezeStatic(objs,root,true);
+    const BF=[];spots.forEach(S=>{const g=makeHuman(false);g.scale.setScalar(1.9);g.userData.emoji='🦶';g.userData.pts=300;g.userData.heat=0.4;
+      {const au=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:0xffb070,transparent:true,opacity:.3,blending:THREE.AdditiveBlending,depthWrite:false}));au.position.y=2.2;au.scale.set(6,7,1);g.add(au);}
+      const T={type:'critter',mesh:useAnim('bigfoot',g,'city'),spawn:spawnCow,fl:[S],rad:30};T.mesh.userData.T=T;T.spawn(T);towns.city.targets.push(T);BF.push({T,seen:0});});
+    cityAnim.push((t,dt)=>{if(state!=='play')return;BF.forEach(B=>{B.seen-=dt;const p=B.T.mesh.position;if(B.seen<=0&&B.T.state==='ground'&&Math.hypot(pos.x-p.x,pos.z-p.z)<70&&pos.y<90){B.seen=60;score+=50;mEvent('bigfootSeen');pop('📸 BIGFOOT SIGHTING! +50');blip(160,90,0.5,'sawtooth',0.1);}});});}
+  root=towns.fifth.group;colliders=towns.fifth.colliders;
+  {const U=[];for(let i=0;i<7;i++){const g=makeHorse(0xffffff,1.1);g.userData.emoji='🦄';g.userData.pts=140;g.userData.heat=0;
+      const T={type:'critter',mesh:useModel('unicorn',g),spawn:spawnCow,fl:[{x:-200,z:120},{x:180,z:-140},{x:60,z:300},{x:-260,z:-220}],rad:80};T.spawn(T);towns.fifth.targets.push(T);
+      const tr=[];for(let k=0;k<7;k++){const s=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:new THREE.Color().setHSL(k/7,1,.6),transparent:true,opacity:.55*(1-k/8),blending:THREE.AdditiveBlending,depthWrite:false}));s.scale.setScalar(5-k*0.4);s.userData.keep=true;root.add(s);tr.push(s);}
+      U.push({T,tr,h:[],t:0});}
+    planetAnim.push({town:'fifth',f:(t,dt)=>{U.forEach(u=>{const on=u.T.state==='ground',p=u.T.mesh.position;u.t+=dt;if(u.t>0.12){u.t=0;u.h.unshift([p.x,p.y+2.6,p.z]);if(u.h.length>8)u.h.pop();}
+      u.tr.forEach((s,k)=>{const q=u.h[k+1];s.visible=on&&!!q;if(q)s.position.set(q[0],q[1],q[2]);});});}});}
+  root=r0;colliders=c0;})();
 // 🤖 BOSS: MECH-51, the Area 51 battle robot. Sleeps in a pit; wakes when you're wanted (2+ stars) or fly too close.
 inTown('desert',()=>{
   let MX=-450,MZ=100;const g=new THREE.Group();g.position.set(MX,-46,MZ);root.add(g);
@@ -5345,6 +5369,8 @@ const MISSIONS=[
   {id:'marscave',t:'Find the hidden cave on Mars',ev:'marscave',g:1,r:600},
   {id:'king',t:'Beam up the Sleeping King (Mars cave)',ev:'abduct',m:d=>d.emoji==='👑',g:1,r:1200},
   {id:'rovers',t:'Beam up 2 Mars rovers',ev:'abduct',m:d=>d.emoji==='🛞',g:2,r:700},
+  {id:'bigfoot',t:'Beam up Bigfoot (pine woods at the edge of Neon City)',ev:'abduct',m:d=>d.emoji==='🦶',g:1,r:900},
+  {id:'unicorns',t:'Beam up 3 unicorns (5th Dimension)',ev:'abduct',m:d=>d.emoji==='🦄',g:3,r:600},
   {id:'darkside',t:'Find the 3 alien ships on the dark side of the Moon',ev:'darkship',g:3,r:900},
   {id:'moonbase',t:'Fly down the giant crater into the Moon',ev:'moonbase',g:1,r:600},
   {id:'reptile',t:'Beam up 3 Reptilians (inside the Moon)',ev:'abduct',m:d=>d.emoji==='🦎',g:3,r:700},
