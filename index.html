@@ -4227,7 +4227,7 @@ function makeBoss(){
   enemyGroup.add(g);return{g,lights,eye};
 }
 function spawnBoss(){const b=makeBoss(),a=rand(0,2*PI);boss=Object.assign(b,{p:new V3(pos.x+Math.cos(a)*300,pos.y+60,pos.z+Math.sin(a)*300),hp:120,max:120,cd:3,ang:a,minT:6});b.g.position.copy(boss.p);
-  $('bossbar').style.display='block';pop('⚠️ ALIEN MOTHERSHIP!');blip(80,40,1.5,'sawtooth',0.2);}
+  $('bossbar').querySelector('.lbl').textContent='ALIEN MOTHERSHIP';$('bossbar').style.display='block';pop('⚠️ ALIEN MOTHERSHIP!');blip(80,40,1.5,'sawtooth',0.2);}
 function bossUpdate(dt,t){
   if(!boss){if(mode==='space'&&state==='play'&&spaceKills>=bossNext)spawnBoss();return;}
   if(mode!=='space'){enemyGroup.remove(boss.g);boss=null;$('bossbar').style.display='none';return;}
@@ -4867,6 +4867,63 @@ const VISITORS=[];
     const spawnV=T=>{const m=T.mesh;m.position.set(rand(-420,420),rand(T.jelly?18:12,T.jelly?40:30),rand(-420,420));resetRot(m);m.visible=true;T.state='ground';T.to=m.position.clone();T.wait=rand(1,4);T.blink=rand(14,30);};
     for(let i=0;i<no+nj;i++){const jelly=i>=no,g=jelly?makeJellyUFO():makeVisitorOrb();towns[n].group.add(g);
       const T={type:'critter',mesh:g,still:true,jelly,spawn:spawnV,town:n};T.spawn(T);towns[n].targets.push(T);VISITORS.push(T);}}})();
+// 🤖 BOSS: MECH-51, the Area 51 battle robot. Sleeps in a pit; wakes when you're wanted (2+ stars) or fly too close.
+inTown('desert',()=>{
+  let MX=-450,MZ=100;const g=new THREE.Group();g.position.set(MX,-46,MZ);root.add(g);
+  const arm=new THREE.MeshPhongMaterial({color:0x4a5038,specular:0x99aa88,shininess:40}),drk=new THREE.MeshPhongMaterial({color:0x22261c,shininess:30}),red=new THREE.MeshBasicMaterial({color:0xff2a2a});
+  const mk=(par,w,h,d,m,x,y,z)=>{const b=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),m);b.position.set(x,y,z);par.add(b);return b;};
+  const hips=mk(g,14,5,8,drk,0,20,0),torso=new THREE.Group();torso.position.y=22;g.add(torso);
+  mk(torso,18,14,10,arm,0,8,0);mk(torso,10,4,11,drk,0,6,0);mk(torso,6,6,1,red,0,10,5.2).material=new THREE.MeshBasicMaterial({color:0xffa020});
+  const head=new THREE.Group();head.position.y=19;torso.add(head);const skull=mk(head,8,6,7,arm,0,0,0);const eye=mk(head,6,1.4,0.6,red,0,0.4,3.7);
+  const eyeGlow=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:0xff2a2a,transparent:true,blending:THREE.AdditiveBlending,depthWrite:false}));eyeGlow.scale.set(14,8,1);eyeGlow.position.set(0,0.4,4.2);head.add(eyeGlow);
+  mk(head,0.5,5,0.5,drk,3,5,-2);
+  const arms=[],legs=[];
+  for(const s of[-1,1]){const sh=new THREE.Group();sh.position.set(s*12,13,0);torso.add(sh);mk(sh,5,5,6,drk,0,0,0);mk(sh,3.6,12,3.6,arm,0,-7,0);
+    const pod=mk(sh,5,5,9,drk,0,-14,2);for(const dx of[-1.2,1.2])for(const dy of[-1.2,1.2])mk(sh,1.4,1.4,0.5,red,dx,-14+dy,6.6);arms.push(sh);
+    const hp=new THREE.Group();hp.position.set(s*5,18,0);g.add(hp);mk(hp,4.6,10,4.6,arm,0,-5,0);const kn=new THREE.Group();kn.position.y=-10;hp.add(kn);mk(kn,4,9,4,drk,0,-4.5,0);mk(kn,6,2.4,9,arm,0,-9,1.5);legs.push({hp,kn});}
+  g.traverse(o=>{if(o.isMesh)o.frustumCulled=false;});
+  // hatch it rises out of
+  const hatch=new THREE.Mesh(new THREE.CircleGeometry(26,8),new THREE.MeshLambertMaterial({color:0x2a2c26}));hatch.rotation.x=-PI/2;hatch.position.set(MX,0.15,MZ);root.add(hatch);
+  const hz=new THREE.Mesh(new THREE.RingGeometry(24,26,8),new THREE.MeshBasicMaterial({color:0xffc020,side:THREE.DoubleSide}));hz.rotation.x=-PI/2;hz.position.set(MX,0.2,MZ);root.add(hz);hatch.visible=hz.visible=false;
+  // laser beam + aim marker
+  const beam=new THREE.Mesh(new THREE.CylinderGeometry(0.5,0.5,1,8),new THREE.MeshBasicMaterial({color:0xff3030,transparent:true,opacity:.9,blending:THREE.AdditiveBlending,depthWrite:false}));beam.visible=false;beam.frustumCulled=false;root.add(beam);
+  const B={town:'desert',p:new V3(),r:9,hp:140,max:140,st:'sleep',cd:20,rise:0,mcd:4,lcd:7,lt:-1,aim:new V3(),lastHp:140,flash:0,touch:0,walk:0,
+    alive(){return this.st==='fight';},
+    onKill(){const p=this.p.clone();for(let i=0;i<7;i++)setTimeout(()=>explode(p.clone().add(new V3(rand(-10,10),rand(-30,4),rand(-10,10))),true),i*160);
+      this.st='dead';this.cd=120;beam.visible=false;$('bossbar').style.display='none';score+=800;timer+=15;shield=100;save.bank+=400;persist();heat=0;mEvent('mech');
+      pop('🤖 MECH-51 DESTROYED!');pop('+800 · +15s · 💰 +400 · shield restored','t');blip(90,40,1.4,'sawtooth',0.2);}};
+  EXTRA_TARGETS.push(B);window.MECH=B;
+  const eyeW=new V3(),up=new V3(0,1,0),d=new V3();
+  desertAnim.push((dt,t)=>{if(curTown!=='desert')return;const play=state==='play'&&mode==='ground'&&!onFoot;
+    if(B.st==='sleep'||B.st==='dead'){B.cd-=dt;if(B.st==='dead'){if(g.position.y<=-45)hatch.visible=hz.visible=false;g.position.y=Math.max(-46,g.position.y-dt*14);g.rotation.z=Math.min(0.5,g.rotation.z+dt*0.4);}
+      if(play&&B.cd<=0&&heat>=2&&pos.y<200){B.st='rise';B.rise=0;B.hp=B.max;B.lastHp=B.max;B.mcd=4.5;B.lcd=6;B.lt=-1;MX=clamp(pos.x+fwd.x*110,-560,560);MZ=clamp(pos.z+fwd.z*110,-560,560);hatch.position.set(MX,0.15,MZ);hz.position.set(MX,0.2,MZ);hatch.visible=hz.visible=true;g.position.set(MX,-46,MZ);g.rotation.set(0,0,0);
+        pop('⚠️ MECH-51 ACTIVATED!');pop('Shoot its HEAD with FIRE · dodge the red laser','t');shake=Math.max(shake,0.9);blip(60,30,1.6,'sawtooth',0.2);
+        $('bossbar').querySelector('.lbl').textContent='MECH-51';$('bossbar').style.display='block';}
+      return;}
+    if(B.st==='rise'){B.rise+=dt;g.position.y=-46+Math.min(1,B.rise/3)*46;shake=Math.max(shake,0.25);if(B.rise>=3)B.st='fight';}
+    // walk toward the UFO
+    const dx=pos.x-g.position.x,dz=pos.z-g.position.z,dist=Math.hypot(dx,dz),want=Math.atan2(dx,dz);let da=want-g.rotation.y;while(da>PI)da-=2*PI;while(da<-PI)da+=2*PI;g.rotation.y+=da*Math.min(1,dt*1.5);
+    if(B.st==='fight'&&dist>60&&B.lt<0){g.position.x+=Math.sin(g.rotation.y)*9*dt;g.position.z+=Math.cos(g.rotation.y)*9*dt;B.walk+=dt*2.2;
+      if(Math.sin(B.walk)*Math.sin(B.walk-dt*2.2)<0){shake=Math.max(shake,dist<200?0.35:0);blip(70,40,0.15,'sine',0.08);}}
+    legs.forEach((L,i)=>{const s=Math.sin(B.walk+i*PI);L.hp.rotation.x=s*0.45;L.kn.rotation.x=Math.max(0,-s)*0.7;});
+    torso.rotation.y=Math.sin(t*0.8)*0.12;arms.forEach((a,i)=>{a.rotation.x=-clamp(Math.atan2(pos.y-35,Math.max(20,dist)),-0.2,1.2)-0.3+Math.sin(t*2+i)*0.05;});
+    head.getWorldPosition(B.p);eye.getWorldPosition(eyeW);
+    if(B.hp<B.lastHp){B.flash=0.15;B.lastHp=B.hp;}B.flash-=dt;skull.material.emissive.setHex(B.flash>0?0xff4040:0x000000);
+    $('bossfill').style.width=(B.hp/B.max*100)+'%';eyeGlow.material.opacity=0.6+0.4*Math.sin(t*8);
+    if(B.st!=='fight'||!play){beam.visible=false;if(B.st==='fight'&&curTown!=='desert')$('bossbar').style.display='none';return;}
+    // missiles from the arm pods
+    B.mcd-=dt;if(B.mcd<=0&&dist<420){B.mcd=B.hp<B.max/2?2.6:4;const a=arms[(Math.random()*2)|0],w=new V3();a.getWorldPosition(w);w.y-=12;const d0=pos.clone().sub(w).normalize();
+      missiles.push({g:makeMissile(),p:w.clone().addScaledVector(d0,6),dir:d0,life:7,pt:0});blip(200,700,0.4,'sawtooth',0.07);}
+    // eye laser: locks on (thin beam), then fires (fat beam) where you WERE — keep moving
+    B.lcd-=dt;if(B.lt<0&&B.lcd<=0&&dist<360){B.lt=0;B.lcd=B.hp<B.max/2?5:7.5;pop('🔴 LASER LOCK · MOVE!','t');blip(900,1800,0.9,'sine',0.08);}
+    if(B.lt>=0){B.lt+=dt;if(B.lt<0.9)B.aim.copy(pos);const fire=B.lt>=1.25;d.copy(B.aim).sub(eyeW);const len=d.length()+(fire?40:0);d.normalize();
+      beam.visible=true;beam.position.copy(eyeW).addScaledVector(d,len/2);beam.quaternion.setFromUnitVectors(up,d);beam.scale.set(fire?3.2:0.35,len,fire?3.2:0.35);beam.material.opacity=fire?0.95:0.5;
+      if(fire){const v=tmpV.copy(pos).sub(eyeW),along=clamp(v.dot(d),0,len),off=v.addScaledVector(d,-along).length();if(off<5&&B.touch<=0){B.touch=0.6;hurt(18);pop('🔴 LASER HIT!','t');}}
+      if(B.lt>1.9){B.lt=-1;beam.visible=false;}}
+    B.touch-=dt;if(dist<14&&pos.y<46&&B.touch<=0){B.touch=0.8;hurt(10);pop('🤖 CRUSHED!','t');}
+    if(dist>700){B.st='sleep';B.cd=30;g.position.set(MX,-46,MZ);beam.visible=false;$('bossbar').style.display='none';pop('🤖 MECH-51 powers down…','t');}});
+  // (the pit closes after it sinks)
+});
 // 🛸 UNLOCKABLE SHIPS: Jellyfish UFO, Chrome Orb, Gold High Roller
 (function(){
   const jg=makeJellyUFO();jg.userData.body.position.y=0.5;jg.children.forEach(c=>{if(c.isSprite)c.position.y=0.5;});jg.scale.setScalar(1.15);jg.visible=false;tilt.add(jg);
@@ -5040,6 +5097,7 @@ const MISSIONS=[
   {id:'chest',t:'Open 5 sunken treasure chests',ev:'chest',g:5,r:600},
   {id:'current',t:'Ride an ocean current',ev:'current',g:1,r:300},
   {id:'whale',t:'Abduct a whale',ev:'abduct',m:d=>d.emoji==='🐋',g:1,r:600},
+  {id:'mech',t:'Destroy MECH-51, the Area 51 battle robot',ev:'mech',g:1,r:1500},
   {id:'worm',t:'Destroy the Fire Worm (Magmor)',ev:'worm',g:1,r:900},
   {id:'firegem',t:'Collect 5 fire gems (Magmor)',ev:'firegem',g:5,r:500},
   {id:'dino',t:'Abduct 3 dinos (Verdana)',ev:'abduct',m:d=>d.emoji==='🦖',g:3,r:600},
@@ -5493,7 +5551,7 @@ const pos=new V3(0,60,400),fwd=new V3(),right=new V3(),desired=new V3(),look=new
 
 function pop(txt,cls){const d=document.createElement('div');d.className='pop '+(cls||'');d.textContent=txt;$('pops').appendChild(d);setTimeout(()=>d.remove(),1250);}
 let freeMode=false;
-function startGame(free){if(RIDE){RIDE.state='ground';RIDE=null;}SWIM=false;if(FLYP){PILOT_G[FLYP.k].visible=false;FLYP.g.visible=true;FLYP.col.h=5;FLYP=null;applyShip();}
+function startGame(free){try{mechReset();if(window.MECH)MECH.cd=20;}catch(e){}if(RIDE){RIDE.state='ground';RIDE=null;}SWIM=false;if(FLYP){PILOT_G[FLYP.k].visible=false;FLYP.g.visible=true;FLYP.col.h=5;FLYP=null;applyShip();}
   initAudio();freeMode=free===true;document.body.classList.toggle('free',freeMode);
   score=0;timer=150;shield=100;energy=100;lock=false;cows=0;cars=0;
   yaw=0;speed=0;vy=0;pos.set(0,60,400);hitCd=0;
@@ -5555,12 +5613,13 @@ addEventListener('keydown',e=>{if(e.key==='Enter'&&state!=='play')startGame(free
 
 function fadeIn(){const f=$('fade');f.style.transition='none';f.style.opacity=1;requestAnimationFrame(()=>requestAnimationFrame(()=>{f.style.transition='opacity 1.1s';f.style.opacity=0;}));}
 function snapCam(){fwd.set(-Math.sin(yaw),0,-Math.cos(yaw));camera.position.copy(pos).addScaledVector(fwd,-25);camera.position.y+=8.5;}
+function mechReset(){const B=window.MECH;if(B&&(B.st==='fight'||B.st==='rise')){B.st='dead';B.cd=20;$('bossbar').style.display='none';}}
 function setTown(n){
-  curTown=n;needModels(n);const T=towns[n];for(const k in towns)towns[k].group.visible=(k===n);
+  if(n!=='desert')mechReset();curTown=n;needModels(n);const T=towns[n];for(const k in towns)towns[k].group.visible=(k===n);
   colliders=T.colliders;fields=T.fields;targets=T.targets;torusCols=T.torusCols;
   scene.fog.near=T.fog[0];scene.fog.far=T.fog[1];cloudLayer.visible=!T.planet;skyRealm.visible=!T.planet;sky.children.forEach(c=>{if(c.isSprite)c.visible=!T.planet;if(c.isPoints)c.visible=n!=='ocean';});sky.material.color.setHex(T.skyTint||0xffffff);
 }
-function enterSpace(sec){
+function enterSpace(sec){try{mechReset();}catch(e){}
   sec=sec||TOWN_SECTOR[curTown]||'earth';applySector(sec);
   clearEnemies();clearSpaceFoes();foeSpawnT=4;mode='space';fadeIn();
   for(const k in towns)towns[k].group.visible=false;

@@ -104,3 +104,7 @@ Also: Harry Reid Airport (jets landing/taking off, airliners at the gates), Red 
 ## Abduction Log
 
 A collection book (menu, pause and game-over screens) with a card for everything you have ever beamed up, grouped by world. Undiscovered entries show as ???. Each new find pays 50 credits; completing the log pays 5,000.
+
+## Bosses
+
+Alien Mothership (space), Kraken (Ocean), Fire Worm (Magmor) and MECH-51, the Area 51 battle robot: it climbs out of the sand when you reach 2 wanted stars in Area 51, fires homing missiles and a lock-on eye laser, and goes down when you shoot its head.
