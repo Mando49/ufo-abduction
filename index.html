@@ -694,22 +694,7 @@ const roofLights=[];
     const tip=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:0xff3a3a,transparent:true,depthWrite:false}));tip.position.set(Hh.x,Hh.h+spL+1,Hh.z);tip.scale.set(6,6,1);root.add(tip);roofLights.push(tip);
   });
 })();
-// glowing 🎰 VEGAS portal ring — fly through it to reach the Las Vegas Strip
 // giant neon ring arch (fly through it for bonus time)
-const VEGAS_PORTAL={x:95,y:58,z:305,R:26}; // out in the open between the city and the farms (was on top of the city's Crashed Saucer secret)
-(function(){
-  const cx=VEGAS_PORTAL.x,cy=VEGAS_PORTAL.y,cz=VEGAS_PORTAL.z,R=VEGAS_PORTAL.R;
-  const g=new THREE.Group();g.position.set(cx,cy,cz);
-  g.add(new THREE.Mesh(new THREE.TorusGeometry(R,2.4,14,120),new THREE.MeshStandardMaterial({color:0x3a2f1a,metalness:.55,roughness:.35})));
-  for(const off of[-1.9,1.9]){const n=new THREE.Mesh(new THREE.TorusGeometry(R,0.35,6,120),basic(0xffd84a));n.position.z=off;g.add(n);}
-  g.add(new THREE.Mesh(new THREE.TorusGeometry(R-2.3,0.3,6,120),basic(0xffd84a)));
-  g.add(new THREE.Mesh(new THREE.TorusGeometry(R+2.3,0.28,6,120),basic(0xff3fd2)));
-  const swirl=new THREE.Mesh(new THREE.CircleGeometry(R-2,48),new THREE.MeshBasicMaterial({color:0xffd84a,transparent:true,opacity:0.12,blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide}));g.add(swirl);
-  for(let i=0;i<12;i++){const a=i/12*2*PI;const s=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:0xff3fd2,transparent:true,depthWrite:false}));s.position.set(Math.cos(a)*(R+2.5),Math.sin(a)*(R+2.5),0);s.scale.set(4,4,1);g.add(s);}
-  root.add(g);
-  box(root,12,7,16,0x2a2f3c,cx,3.5,cz);box(root,12.4,0.5,16.4,basic(0xffd84a),cx,7,cz);
-  const lbl=neonText('🎰 VEGAS','#ffd84a',40,10);lbl.position.set(cx,cy+R+12,cz);root.add(lbl);
-})();
 
 (function(){
   const cx=-120,cy=40,cz=120,R=36;
@@ -6440,7 +6425,6 @@ function loop(now){
       if(curTown==='ocean'&&pos.y>SURF-3)enterSeas();else if(curTown==='seas'&&down&&pos.y<6&&!onDeck(pos.x,pos.z))diveSea();
       if(curTown==='seas'&&onDeck(pos.x,pos.z)&&pos.y<carrierDeckY()+3){pos.y=carrierDeckY()+3;if(vy<0)vy=0;} // hover above the carrier deck
       if(pos.y>SPACE_Y&&mode==='ground')enterSpace();
-      if(curTown==='city'&&state==='play'){const pdx=pos.x-VEGAS_PORTAL.x,pdy=pos.y-VEGAS_PORTAL.y,pdz=pos.z-VEGAS_PORTAL.z;if(Math.abs(pdz)<5&&Math.hypot(pdx,pdy)<VEGAS_PORTAL.R+3)enterWarp('vegas');}
     }else if(mode==='space'){spaceUpdate(dt);if(mode==='space')stationUpdate(dt);}else warpUpdate(dt,ix,(up?1:0)-(down?1:0));
     beamActive=beamBtn&&!lock&&mode==='ground'&&!FLYP;
     if(beamActive)energy-=20*dt*M.pow;if(boosting)energy-=14*dt*M.pow*(M.bpow||1);
