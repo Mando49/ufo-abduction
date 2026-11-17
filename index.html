@@ -1153,6 +1153,7 @@ const ANIM={alien:{file:'alien',height:2.3,rotY:PI/2,clips:{walk:0},list:[]},
   mech:{file:'mech',height:47,rotY:0,clips:{walk:0},list:[],lift:1.9},
   monkeyw:{file:'monkeyw',height:3.2,rotY:PI/2,clips:{walk:0},list:[],lift:1.6},
   aztec:{file:'aztec',height:4.3,rotY:PI/2,clips:{walk:0},list:[],lift:1.7},aztecw:{file:'aztecw',height:3.9,rotY:PI/2,clips:{walk:0},list:[],lift:1.7},
+  fhero:{file:'fhero',height:4.3,rotY:PI/2,clips:{walk:0},list:[],lift:1.5},fmonster:{file:'fmonster',height:4.8,rotY:PI/2,clips:{walk:0},list:[],lift:1.5},fstatue:{file:'fstatue',height:4.3,rotY:PI/2,clips:{walk:0},list:[],lift:1.5},
   pharaoh:{file:'pharaoh',height:4.4,rotY:PI/2,clips:{walk:0},list:[]},queen:{file:'queen',height:4,rotY:PI/2,clips:{walk:0},list:[]},
   bigfoot:{file:'bigfoot',height:3.9,rotY:PI/2,clips:{walk:0},list:[]},
   reptilian:{file:'reptilian',height:4.4,rotY:PI/2,clips:{walk:0},list:[]},mantis:{file:'mantis',height:5,rotY:PI/2,clips:{walk:0},list:[]},
@@ -4383,76 +4384,95 @@ function makeShowgirl(){
   // ===================== GREATER LAS VEGAS: Fremont Street, Nellis AFB, Hoover Dam =====================
   for(let i=0;i<40;i++){const a=rand(0,2*PI),r=rand(700,1250);flatPlane(rand(120,260),rand(120,260),pick([0x7a5a44,0x5e4636,0x846450,0x6e5242]),-1,Math.cos(a)*r,Math.sin(a)*r).rotation.z=rand(0,PI);}
   // 💡 FREMONT STREET (old downtown, north end of Las Vegas Blvd)
-  {const FZ=-860,objs=[],add=m=>{objs.push(m);return m;};
+  {const FZ=-860,FL=300,FW=32,objs=[],add=m=>{objs.push(m);return m;}; // Fremont: 600 long, 64 wide, open down the middle so the UFO can fly it end to end
     add(flatPlane(46,240,0x22232a,-2,0,-790)); // Las Vegas Blvd continues downtown
-    for(let z=-900;z<=-680;z+=40)add(palmTree(-27,z,1));
-    add(flatPlane(420,34,0x5a4a52,-2,0,FZ)); // pedestrian mall
-    for(let x=-200;x<=200;x+=12)add(flatPlane(1.2,30,0x7a6a72,-3,x,FZ));
-    const oldNames=['LUCKY HORSESHOE','GOLDEN GULCH','FOUR KINGS','SILVER SLIPPER','BIG BINION BAR','EL RANCHO','THE MINT','PIONEER CLUB'],oc=['#ffd040','#ff3fd2','#45eaff','#ff7a30','#6dff7a','#ff4040','#b46bff','#ffe9a0'];
-    let n=0;for(const sd of[-1,1])for(let k=0;k<4;k++){const x=-150+k*100,w=rand(70,88),h=rand(26,48),d=34,z=FZ+sd*(17+d/2),c=oc[n%8];
+    for(let z=-780;z<=-680;z+=33)add(palmTree(-27,z,1));
+    add(flatPlane(FL*2+20,FW*2,0x5a4a52,-2,0,FZ)); // pedestrian mall
+    for(let x=-FL;x<=FL;x+=12)add(flatPlane(1.2,FW*2-4,0x7a6a72,-3,x,FZ));
+    for(const sd of[-1,1])add(flatPlane(FL*2,1,0xffd040,-3,0,FZ+sd*21)); // gold lines marking the open fly-through lane
+    const oldNames=['LUCKY HORSESHOE','GOLDEN GULCH','FOUR KINGS','SILVER SLIPPER','BIG BINION BAR','EL RANCHO','THE MINT','PIONEER CLUB','COPPER NUGGET','DESERT ROSE','ACES HIGH','LAST CHANCE SALOON'],oc=['#ffd040','#ff3fd2','#45eaff','#ff7a30','#6dff7a','#ff4040','#b46bff','#ffe9a0'];
+    let n=0;for(const sd of[-1,1])for(let k=0;k<6;k++){const x=-250+k*100,w=rand(80,94),h=rand(32,50),d=34,z=FZ+sd*(FW+d/2),c=oc[n%8];
       add(box(root,w,h,d,pick([0x3a2a2a,0x2a2a3a,0x4a3a2a,0x2a3a3a]),x,h/2,z));
-      const fr=new THREE.Mesh(new THREE.PlaneGeometry(w-4,8),new THREE.MeshBasicMaterial({color:new THREE.Color(c)}));fr.position.set(x,9,z-sd*(d/2+0.1));fr.rotation.y=sd>0?PI:0;root.add(fr); // marquee
-      for(let bx=-w/2+3;bx<=w/2-3;bx+=3)add(box(root,0.6,0.6,0.6,basic(0xfff2c0),x+bx,13.6,z-sd*(d/2+0.3))); // bulbs
-      sign(oldNames[n%8],c,w*0.8,6,x,h+4,z-sd*(d/2-2),sd>0?PI:0);
-      sign(oldNames[n%8],c,w*0.8,6,x,h+4,z-sd*(d/2-2.6),sd>0?0:PI);
+      const fr=new THREE.Mesh(new THREE.PlaneGeometry(w-4,9),new THREE.MeshBasicMaterial({color:new THREE.Color(c)}));fr.position.set(x,10,z-sd*(d/2+0.1));fr.rotation.y=sd>0?PI:0;root.add(fr); // marquee
+      for(let bx=-w/2+3;bx<=w/2-3;bx+=3)add(box(root,0.6,0.6,0.6,basic(0xfff2c0),x+bx,15.2,z-sd*(d/2+0.3))); // bulbs
+      add(box(root,10,6.5,0.4,0x16161c,x,3.25,z-sd*(d/2+0.15)));add(box(root,8.6,5.4,0.3,basic(0xffe6a8),x,3,z-sd*(d/2+0.35))); // lit doorway
+      sign(oldNames[n%12],c,w*0.72,6.5,x,10,z-sd*(d/2+0.4),sd>0?PI:0);
+      sign(oldNames[n%12],c,w*0.8,6,x,h+4,z-sd*(d/2-5),sd>0?PI:0);
+      sign(oldNames[n%12],c,w*0.8,6,x,h+4,z-sd*(d/2-5.6),sd>0?0:PI);
       colliders.push({x0:x-w/2,x1:x+w/2,z0:z-d/2,z1:z+d/2,h,y0:0});n++;}
     // neon cowboy waving on top of one casino
-    const cb=new THREE.Group();cb.position.set(-50,48+20,FZ-34);root.add(cb);
+    const cb=new THREE.Group();cb.position.set(-50,50+20,FZ-FW-17);root.add(cb);
     const nm=c=>new THREE.MeshBasicMaterial({color:c});
     box(cb,4,10,1,nm(0x45eaff),0,0,0);box(cb,5,1.2,1,nm(0xffd040),0,6,0);box(cb,3,2.4,1,nm(0xffe0b0),0,6.5,0);const hat=box(cb,7,1,1.2,nm(0xffd040),0,8.2,0);box(cb,3.6,2,1.2,nm(0xffd040),0,9.2,0);
     box(cb,1.4,8,1,nm(0x45eaff),-1.2,-8,0);box(cb,1.4,8,1,nm(0x45eaff),1.2,-8,0);
     const arm=new THREE.Group();arm.position.set(2.4,4,0);cb.add(arm);box(arm,1.2,6,1,nm(0xffe0b0),0,3,0);
-    box(root,1,20,1,0x2a2a30,-50,58,FZ-34);
-    // the giant LED canopy over the street
+    box(root,1,24,1,0x2a2a30,-50,58,FZ-FW-17);
+    // the giant LED canopy, raised high and wide: fly under it, land on top of it
     const cv=document.createElement('canvas');cv.width=512;cv.height=64;const cg=cv.getContext('2d');const ctex=new THREE.CanvasTexture(cv);
-    const can=new THREE.Mesh(new THREE.CylinderGeometry(22,22,400,24,1,true,0,PI),new THREE.MeshBasicMaterial({map:ctex,side:THREE.DoubleSide}));
-    can.rotation.z=PI/2;can.position.set(0,12,FZ);root.add(can);
-    for(let x=-190;x<=190;x+=38){add(box(root,1.6,26,1.6,0x9aa0b0,x,13,FZ-16.5));add(box(root,1.6,26,1.6,0x9aa0b0,x,13,FZ+16.5));}
-    colliders.push({x0:-200,x1:200,z0:FZ-22,z1:FZ+22,h:35,y0:0});
+    const can=new THREE.Mesh(new THREE.CylinderGeometry(34,34,FL*2,28,1,true,0,PI),new THREE.MeshBasicMaterial({map:ctex,side:THREE.DoubleSide}));
+    can.rotation.z=PI/2;can.position.set(0,20,FZ);root.add(can);
+    for(let x=-FL;x<=FL;x+=50)for(const sd of[-1,1]){add(box(root,1.4,24,1.4,0x9aa0b0,x,12,FZ+sd*30.6));add(box(root,1,1,7,0x9aa0b0,x,23,FZ+sd*31));}
+    colliders.push({x0:-FL,x1:FL,z0:FZ-24,z1:FZ+24,h:55,y0:45}); // only the roof is solid
     let ct=0;const drawCanopy=t=>{const sc=Math.floor(t/8)%4;cg.fillStyle='#05030c';cg.fillRect(0,0,512,64);
       if(sc===0){for(let i=0;i<40;i++){cg.fillStyle=`hsl(${(t*60+i*20)%360},100%,60%)`;cg.fillRect(((i*31+t*80)%560)-40,(i*13)%64,24,6);}}
       else if(sc===1){for(let x=0;x<512;x+=16)for(let y=0;y<64;y+=16){cg.fillStyle=`hsl(${(x+y+t*120)%360},90%,${40+20*Math.sin(x*.05+t*3)}%)`;cg.fillRect(x+1,y+1,14,14);}}
       else if(sc===2){cg.fillStyle='#0a1430';cg.fillRect(0,0,512,64);for(let i=0;i<6;i++){const x=((t*90+i*95)%620)-60,y=20+Math.sin(t*2+i)*10;cg.fillStyle='#9affb0';cg.beginPath();cg.ellipse(x,y,22,6,0,0,2*PI);cg.fill();cg.fillStyle='#45eaff';cg.beginPath();cg.ellipse(x,y-5,9,6,0,PI,2*PI);cg.fill();cg.fillStyle='rgba(255,255,160,.35)';cg.beginPath();cg.moveTo(x-6,y+4);cg.lineTo(x+6,y+4);cg.lineTo(x+16,64);cg.lineTo(x-16,64);cg.fill();}}
       else{cg.font='900 40px system-ui';cg.fillStyle=`hsl(${(t*90)%360},100%,60%)`;const tx='★ FREMONT STREET ★ WELCOME EARTHLINGS ★ ';const w=cg.measureText(tx).width;const o=-(t*120)%w;for(let x=o;x<512;x+=w)cg.fillText(tx,x,48);}
       ctex.needsUpdate=true;};
-    // 🧗 zipline over the street (beam the riders off it!)
-    const Z0=new V3(-205,46,FZ+6),Z1=new V3(185,10,FZ+6);
-    add(box(root,8,48,8,0x3a3a44,-205,24,FZ+6));const zg=new THREE.BufferGeometry().setFromPoints([Z0,Z1]);root.add(new THREE.Line(zg,new THREE.LineBasicMaterial({color:0xd8d8e0})));
-    const riders=[];for(let i=0;i<4;i++){const g=makeHuman(false);g.userData.emoji='🧗';g.userData.pts=120;g.userData.heat=0.4;
-      const T={type:'critter',mesh:g,still:true,u:i/4,spawn:T=>{T.u=0;T.mesh.visible=true;T.state='ground';resetRot(T.mesh);}};T.state='ground';targets.push(T);riders.push(T);}
-    // pedestrian-level Fremont details: seating, desert planters, bollards and warm street lighting
+    // 🧗 zipline under the canopy (beam the riders off it!)
+    const Z0=new V3(-FL-24,38,FZ+26),Z1=new V3(FL-40,14,FZ+21);
+    add(box(root,8,40,8,0x3a3a44,-FL-26,20,FZ+38));add(box(root,3,1.2,14,0x3a3a44,-FL-25,38.6,FZ+31));const zg=new THREE.BufferGeometry().setFromPoints([Z0,Z1]);root.add(new THREE.Line(zg,new THREE.LineBasicMaterial({color:0xd8d8e0})));
+    colliders.push({x0:-FL-30,x1:-FL-22,z0:FZ+34,z1:FZ+42,h:40,y0:0});
+    const riders=[];for(let i=0;i<5;i++){const g=makeHuman(false);g.userData.emoji='🧗';g.userData.pts=120;g.userData.heat=0.4;
+      const T={type:'critter',mesh:g,still:true,u:i/5,spawn:T=>{T.u=0;T.mesh.visible=true;T.state='ground';resetRot(T.mesh);}};T.state='ground';targets.push(T);riders.push(T);}
+    // street furniture pushed to the edges so the middle stays clear
     const planterMat=lam(0x4a4d50),stoneMat=lam(0x8a8278),metalMat=lam(0x59616c);
     for(const sd of[-1,1]){
-      for(let k=0;k<8;k++){
-        const x=-175+k*50,z=FZ+sd*12; // pulled in: z±25 was inside the casino buildings
-        add(box(root,9,1.4,9,planterMat,x,0.7,z));
-        add(new THREE.Mesh(new THREE.CylinderGeometry(2.1,2.7,5.5,8),lam(pick([0x5b4938,0x6a523b,0x4a4638])))).position.set(x,4,z);
+      for(let k=0;k<12;k++){
+        const x=-275+k*50,z=FZ+sd*26.5;
+        add(box(root,7,1.4,7,planterMat,x,0.7,z));
+        add(new THREE.Mesh(new THREE.CylinderGeometry(1.8,2.3,5.5,8),lam(pick([0x5b4938,0x6a523b,0x4a4638])))).position.set(x,4,z);
         for(let j=0;j<5;j++){const a=j/5*2*PI,leaf=new THREE.Mesh(new THREE.ConeGeometry(0.8,5,5),lam(pick([0x315c3d,0x3c7048,0x557b45])));leaf.position.set(x+Math.cos(a)*1.3,7,z+Math.sin(a)*1.3);leaf.rotation.z=-Math.cos(a)*0.55;leaf.rotation.x=Math.sin(a)*0.55;add(leaf);}
       }
-      for(let k=0;k<7;k++){
-        const x=-150+k*50,z=FZ+sd*11.5;
+      for(let k=0;k<11;k++){
+        const x=-250+k*50,z=FZ+sd*24;
         add(box(root,7,0.55,2.2,stoneMat,x,1.3,z));
         for(const dx of[-2.5,2.5])add(box(root,0.35,1.6,0.35,metalMat,x+dx,0.8,z));
       }
-      for(let k=0;k<10;k++){
-        const x=-190+k*42,z=FZ+sd*15.2;
-        add(box(root,0.55,0.55,0.55,basic(0xffd98a),x,0.28,z));
-        const post=box(root,0.45,7,0.45,metalMat,x,3.5,z);
-        add(post);add(box(root,2.8,0.28,1.2,basic(0xffd98a),x,7,z));
-        const lamp=glowSprite(0xffc978,x,7.2,z,4,0.45);add(lamp);
+      for(let k=0;k<15;k++){
+        const x=-294+k*42,z=FZ+sd*29.3;
+        add(box(root,0.45,7,0.45,metalMat,x,3.5,z));add(box(root,2.8,0.28,1.2,basic(0xffd98a),x,7,z));
+        add(glowSprite(0xffc978,x,7.2,z,4,0.45));
       }
     }
-    // small illuminated wayfinding pylons at the pedestrian mall entrances
-    for(const x of[-205,205]){
-      add(box(root,2.8,7,2.8,lam(0x343b48),x,3.5,FZ));
-      add(box(root,2.2,3.6,0.18,basic(0x45eaff),x,4.2,FZ-1.5));
-      sign('FREMONT', '#ffe08a',2.1,0.45,x,6.3,FZ-1.62,0);
+    // souvenir + snack kiosks along the south edge
+    const kio=[['SOUVENIRS','#45eaff',0x2a6a8a],['HOT DOGS','#ffb030',0x9a3a2a],['SLUSHIES','#ff5ad8',0x7a2a8a],['ALIEN JERKY','#6dff7a',0x2a7a3a]];
+    kio.forEach(([nm2,c,bc],i)=>{const x=-225+i*150,z=FZ+25;add(box(root,9,4.4,5,bc,x,2.2,z));add(box(root,10.5,0.5,6.6,0xf0f0f0,x,5.2,z));add(box(root,9.2,1.2,0.3,basic(0xfff2c0),x,3.3,z-2.6));
+      sign(nm2,c,8.6,1.5,x,6.5,z-2.9,PI);colliders.push({x0:x-4.5,x1:x+4.5,z0:z-2.5,z1:z+2.5,h:5.4,y0:0});});
+    // 🎤 street-performer circles with a spotlight each
+    const SPOTS=[-210,-70,70,210];
+    SPOTS.forEach((x,i)=>{const c=[0x45eaff,0xff5ad8,0xffd040,0x6dff7a][i];const ring=new THREE.Mesh(new THREE.RingGeometry(8.4,9.2,32),flatMat(c,-4));ring.rotation.x=-PI/2;ring.position.set(x,0,FZ-6);root.add(ring);add(ring);
+      add(glowSprite(c,x,1.5,FZ-6,22,0.22));});
+    // welcome arches at both ends
+    for(const x of[-FL-4,FL+4]){
+      for(const sd of[-1,1])add(box(root,3,30,3,lam(0x343b48),x,15,FZ+sd*30));
+      add(box(root,2.4,7,63,lam(0x20222a),x,30,FZ));
+      sign('FREMONT STREET','#ffe08a',52,6,x-Math.sign(x)*1.3,30,FZ,x<0?PI/2:-PI/2);
+      sign('FREMONT STREET','#ff5ad8',52,6,x+Math.sign(x)*1.3,30,FZ,x<0?-PI/2:PI/2);
+      for(const sd of[-1,1])colliders.push({x0:x-1.5,x1:x+1.5,z0:FZ+sd*30-1.5,z1:FZ+sd*30+1.5,h:30,y0:0});
     }
     freezeStatic(objs,root,true);
-    // downtown crowd under the canopy
-    for(let i=0;i<14;i++){const T={type:'critter',mesh:useAnim('person',makeHuman(false),'vegas'),spawn:spawnCow,fl:[{x:-120,z:FZ},{x:0,z:FZ},{x:120,z:FZ}],rad:12};T.spawn(T);targets.push(T);}
+    // downtown crowd: tourists the whole length of the street
+    const FLD=[];for(let x=-250;x<=250;x+=100)FLD.push({x,z:FZ});
+    for(let i=0;i<40;i++){const g=makeHuman(false);g.userData.emoji='📸';g.userData.pts=60;const T={type:'critter',mesh:useAnim('person',g,'vegas'),spawn:spawnCow,fl:FLD,rad:23};T.mesh.userData.T=T;T.spawn(T);targets.push(T);}
+    // 🦸 made-up costumed street performers (beam them up for big points)
+    const PERF=[['fhero','🦸',250],['fmonster','👹',250],['fstatue','🤠',300]];
+    for(let i=0;i<10;i++){const [ty,em,pts]=PERF[i%3],sx=SPOTS[i%4],g=makeHuman(false);g.userData.emoji=em;g.userData.pts=pts;g.userData.heat=0.5;
+      const T={type:'critter',mesh:useAnim(ty,g,'vegas'),fl:[{x:sx,z:FZ-6}],rad:ty==='fstatue'?4:8,still:ty==='fstatue',
+        spawn:T=>{spawnCow(T);if(T.still){T.mesh.position.set(sx+rand(-4,4),0,FZ-6+rand(-4,4));T.mesh.rotation.set(0,rand(0,2*PI),0);}}};
+      T.mesh.userData.T=T;T.spawn(T);targets.push(T);}
     planetAnim.push({town:'vegas',f:(t,dt)=>{ct-=dt;if(ct<=0&&Math.abs(pos.z-FZ)<600){ct=0.08;drawCanopy(t);}arm.rotation.z=Math.sin(t*3)*0.6;
-      riders.forEach(T=>{if(T.state!=='ground')return;T.u+=dt*0.07;if(T.u>1)T.u=0;T.mesh.position.lerpVectors(Z0,Z1,T.u);T.mesh.position.y-=4.2;T.mesh.rotation.set(0,0,0);});}});
+      riders.forEach(T=>{if(T.state!=='ground')return;T.u+=dt*0.05;if(T.u>1)T.u=0;T.mesh.position.lerpVectors(Z0,Z1,T.u);T.mesh.position.y-=4.2;T.mesh.rotation.set(0,0,0);});}});
   }
   // ✈️ NELLIS AIR FORCE BASE (north-east)
   {const NX=640,NZ=-860,objs=[],add=m=>{objs.push(m);return m;};
@@ -5897,7 +5917,7 @@ renderShop();
 // ---------- 📖 Abduction Log: a collection book of everything ever beamed up ----------
 const LOG_NAMES={'🐄':'Cow','🚗':'Car','🚓':'Police Car','🚚':'Truck','😴':'Sleeper','🚶':'Walker','🚜':'Tractor','🦊':'Fox','🤖':'Robot','📣':'Cheerleader','🏈':'Football Player','🎈':'Balloon','🏎️':'Luxury / Race Car','📺':'News Van','🌮':'Taco Truck','🍔':'Diner Guest','🔘':'Mystery Orb','🌑':'Jellyfish UFO',
   '👽':'Little Alien','🏃':'Area 51 Raider','🤳':'Streamer','🪖':'Soldier','🐎':'Mustang','🫏':'Burro','🔩':'Secret Tech','🕴️':'Man in Black','❄️':'Yeti','🐧':'Penguin','🦍':'Ice Ape','🦕':'Dinosaur','🦀':'Lava Crab','🦖':'T-Rex','🚙':'Moon Rover','🧊':'Hypercube','🪼':'Glitch Jelly','🤍':'Tall White','💙':'Nordic',
-  '🐪':'Camel','🧟':'Mummy','🐆':'Jaguar','🧗':'Climber / Zipliner','🛩️':'Fighter Jet','🚤':'Speedboat','🛫':'Airliner','🥾':'Hiker','🕺':'Elvis','💃':'Showgirl','🚢':'Submarine','🐟':'Fish','🐢':'Sea Turtle','🦈':'Shark','🐋':'Whale','🐬':'Dolphin','🐙':'Octopus','🎣':'Fishing Boat','⛵':'Sailboat','👾':'Alien Specimen','🥼':'Scientist','🛞':'Mars Rover','🚁':'Mars Helicopter','💎':'Cave Crystal','🦇':'Cave Bat','👑':'Sleeping King','🛶':'Nile Boat','🦜':'Toucan / Macaw','🐒':'Spider Monkey','🦝':'Coati','🦎':'Iguana','🦃':'Wild Turkey','🪶':'Aztec Warrior','🌺':'Aztec Woman','💚':'Family & Friends','🪼':'Sky Jelly','🎤':'Zeta Live Band','🤴':'Pharaoh','👸':'Queen of the Nile','⚱️':'Golden Sarcophagus','⛏️':'Archaeologist','🐊':'Crocodile','👻':'Ghost Ship','🦌':'Reindeer','🎅':'Santa\'s Sleigh','🎁':'Present','🦶':'Bigfoot','🦄':'Unicorn','🎐':'Gas Floater','🛰️':'Lost Probe','🩶':'Grey','🦎':'Reptilian','🦗':'Mantis'};
+  '🐪':'Camel','🧟':'Mummy','🐆':'Jaguar','🧗':'Climber / Zipliner','🦸':'Captain Zap (street performer)','👹':'Fuzzy Monster Mascot','🤠':'Golden Cowboy Statue','📸':'Fremont Tourist','🛩️':'Fighter Jet','🚤':'Speedboat','🛫':'Airliner','🥾':'Hiker','🕺':'Elvis','💃':'Showgirl','🚢':'Submarine','🐟':'Fish','🐢':'Sea Turtle','🦈':'Shark','🐋':'Whale','🐬':'Dolphin','🐙':'Octopus','🎣':'Fishing Boat','⛵':'Sailboat','👾':'Alien Specimen','🥼':'Scientist','🛞':'Mars Rover','🚁':'Mars Helicopter','💎':'Cave Crystal','🦇':'Cave Bat','👑':'Sleeping King','🛶':'Nile Boat','🦜':'Toucan / Macaw','🐒':'Spider Monkey','🦝':'Coati','🦎':'Iguana','🦃':'Wild Turkey','🪶':'Aztec Warrior','🌺':'Aztec Woman','💚':'Family & Friends','🪼':'Sky Jelly','🎤':'Zeta Live Band','🤴':'Pharaoh','👸':'Queen of the Nile','⚱️':'Golden Sarcophagus','⛏️':'Archaeologist','🐊':'Crocodile','👻':'Ghost Ship','🦌':'Reindeer','🎅':'Santa\'s Sleigh','🎁':'Present','🦶':'Bigfoot','🦄':'Unicorn','🎐':'Gas Floater','🛰️':'Lost Probe','🩶':'Grey','🦎':'Reptilian','🦗':'Mantis'};
 let LOG={};try{LOG=JSON.parse(localStorage.getItem('ufoLog')||'{}');}catch(e){}
 const logKey=T=>{const u=T.mesh.userData;return u.emoji||(u.police?'🚓':{cow:'🐄',car:'🚗',truck:'🚚'}[T.type]);};
 let LOG_CAT=null;
@@ -7288,6 +7308,8 @@ const MISSIONS=[
   {id:'train25',t:'Surf the roof of the sky-train for 25 seconds (Neon City)',ev:'train25',g:1,r:500},
   {id:'drive30',t:'Joyride a desert 4x4 for 30 seconds (Egypt or Area 51)',ev:'drive30',g:1,r:500},
   {id:'mayazoo',t:'Beam up 5 jungle animals in the Yucatán (toucan, macaw, monkey, coati, iguana or turkey)',ev:'abduct',m:d=>['🦜','🐒','🦝','🦎','🦃'].includes(d.emoji),g:5,r:900},
+  {id:'fremont',t:'Beam up 3 costumed street performers on Fremont Street (Las Vegas)',ev:'abduct',m:d=>['🦸','👹','🤠'].includes(d.emoji),g:3,r:900},
+  {id:'tourists',t:'Beam up 8 tourists on Fremont Street (Las Vegas)',ev:'abduct',m:d=>d.emoji==='📸',g:8,r:600},
   {id:'aztec',t:'Beam up 2 Aztec warriors and 2 Aztec women (Yucatán)',ev:'abduct',m:d=>d.emoji==='🪶'||d.emoji==='🌺',g:4,r:800},
   {id:'pharaoh',t:'Beam up the Pharaoh and the Queen (Egypt)',ev:'abduct',m:d=>d.emoji==='🤴'||d.emoji==='👸',g:2,r:900},
   {id:'sarco',t:'Steal the golden sarcophagus (Valley of the Kings, Egypt)',ev:'abduct',m:d=>d.emoji==='⚱️',g:1,r:900},

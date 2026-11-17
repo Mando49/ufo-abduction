@@ -136,3 +136,6 @@ Egypt hot-air balloons: fly next to one and press L (phone: LAND) to ride in the
 Going home: in Earth orbit fly through the 🏠 GO HOME wormhole (or press H). A long warp (star streaks, two wormholes, past the Milky Way) drops you in the Zeta Nebula, where you can land on the alien homeworld, Zeta Prime.
 
 Red Rock Grand Prix (Las Vegas): land at Red Rock Canyon, get in a race car (L / SHIP) and a 2-lap race against three rivals starts on the scenic loop.
+
+
+Fremont Street (Las Vegas): now 600 long and 64 wide with a tall LED canopy you can fly the UFO under end to end. 40 tourists, kiosks, a zipline and made-up costumed street performers (Captain Zap, a fuzzy monster mascot, a golden cowboy statue) to beam up.
