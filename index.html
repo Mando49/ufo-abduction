@@ -3362,6 +3362,63 @@ beginTown('maya');
   for(let i=0;i<20;i++){const w=i%2===0,g=makeHuman(false);g.userData.emoji=w?'🪶':'🌺';g.userData.pts=120;g.userData.heat=0.4;
     const T={type:'critter',mesh:useAnim(w?'aztec':'aztecw',g,'maya'),spawn:spawnCow,fl:[{x:0,z:-200},{x:-200,z:-110},{x:230,z:-60},{x:100,z:-250},{x:-60,z:-120},{x:60,z:-130}],rad:26};T.mesh.userData.T=T;T.spawn(T);targets.push(T);}
 })();
+// 🌿 Yucatán atmosphere pass: mossy weathered ruins, a living cenote, jungle light and mist
+(function(){
+  const PX=0,PZ=-300,LV=9,LH=6,BASE=110,CX=-260,CZ=-110,K=m=>{m.userData.keep=true;return m;};
+  const add=(m)=>{root.add(m);return m;};
+  // --- 1) weathering on the great pyramid: moss on the step tops and faces, dark cracks, stains
+  const moss=[],crack=[],stain=[];
+  for(let i=0;i<LV;i++){const s=BASE*(1-i/(LV+2)),h=s/2,y=LH*(i+1);
+    for(let k=0;k<Math.round(64-i*5);k++){const side=(Math.random()*4)|0,t=rand(-h+2,h-2),o=h-rand(0.6,3.2);const [x,z]=side===0?[t,o]:side===1?[t,-o]:side===2?[o,t]:[-o,t];
+      if(Math.abs(t)<7)continue; // keep the stairways clear
+      moss.push({x:PX+x,y:y+0.12,z:PZ+z,sx:rand(3,9),sz:rand(1.6,3.4),ry:side<2?0:PI/2,c:pick([0x5a9a3a,0x6aa844,0x4a8a34,0x7aa04a])});}
+    for(let k=0;k<16;k++){const side=(Math.random()*4)|0,t=rand(-h+3,h-3);if(Math.abs(t)<7)continue;const o=h+0.08,[x,z]=side===0?[t,o]:side===1?[t,-o]:side===2?[o,t]:[-o,t];
+      (k%3?stain:crack).push({x:PX+x,y:y-LH/2+rand(-1,1),z:PZ+z,ry:side<2?0:PI/2,h:rand(2.5,5.4),w:k%3?rand(1.4,3.4):rand(0.16,0.3),rz:rand(-0.25,0.25),c:k%3?pick([0x8a8468,0x6a7a4a,0x9a927a]):0x3a3a30});}}
+  inst(new THREE.BoxGeometry(1,0.22,1),lam(0xffffff),moss,M=>compose(M.x,M.y,M.z,M.sx,1,M.sz,0,M.ry,0));
+  inst(new THREE.BoxGeometry(1,1,0.12),lam(0xffffff),crack.concat(stain),M=>compose(M.x,M.y,M.z,M.w,M.h,1,0,M.ry,M.rz));
+  // hanging vines down the pyramid faces + a strangler-fig root system on one corner
+  const vineM=lam(0x3a7a30),rootM=lam(0x5a4630);
+  {const vines=[];for(let k=0;k<34;k++){const i=(Math.random()*(LV-1))|0,s=BASE*(1-i/(LV+2)),h=s/2+0.25,side=(Math.random()*4)|0,t=rand(-h+3,h-3);if(Math.abs(t)<7)continue;const [x,z]=side===0?[t,h]:side===1?[t,-h]:side===2?[h,t]:[-h,t],L=rand(3,LH*1.6);vines.push({x:PX+x,y:LH*(i+1)-L/2,z:PZ+z,L});}
+    inst(new THREE.CylinderGeometry(0.16,0.1,1,4),vineM,vines,V=>compose(V.x,V.y,V.z,1,V.L,1,0,0,rand(-0.06,0.06)));}
+  {const cx=PX+BASE/2-2,cz=PZ+BASE/2-2;for(let k=0;k<9;k++){const a=rand(-0.2,PI/2+0.2),L=rand(16,40),r=add(new THREE.Mesh(new THREE.CylinderGeometry(0.35,1.1,L,5),rootM));r.position.set(cx+Math.cos(a)*L*0.32,L*0.3,cz+Math.sin(a)*L*0.32);r.rotation.set(Math.sin(a)*0.75,0,-Math.cos(a)*0.75);}
+    const tk=add(new THREE.Mesh(new THREE.CylinderGeometry(2.2,3.6,30,7),rootM));tk.position.set(cx-6,24,cz-6);tk.rotation.z=0.12;const cp=add(new THREE.Mesh(new THREE.IcosahedronGeometry(15,0),new THREE.MeshLambertMaterial({color:0x2f7a2a,emissive:0x0a1a08,flatShading:true})));cp.position.set(cx-7,44,cz-6);cp.scale.y=0.7;}
+  // --- 2) lost ruins in the jungle: broken walls, fallen columns, a mossy stone head, root-wrapped doorway
+  const stone=new THREE.MeshLambertMaterial({color:0xa8a290,emissive:0x100e0c,flatShading:true}),stone2=lam(0x8e8a76),mossM=lam(0x4a7a34);
+  for(const [rx,rz,ry] of[[-120,-430,0.3],[140,-150,-0.5],[-330,-300,1.1],[330,-200,0.2],[-60,40,-0.2],[420,-420,0.8]]){const g=new THREE.Group();g.position.set(rx,0,rz);g.rotation.y=ry;root.add(g);
+    for(let k=0;k<5;k++){const h=rand(3,11),w=rand(5,9);box(g,w,h,2.6,stone,-16+k*8,h/2,0);if(Math.random()<0.7)box(g,w*0.8,0.3,2.8,mossM,-16+k*8,h+0.1,0);}
+    box(g,7,12,3,stone2,-22,6,7);box(g,7,12,3,stone2,-10,6,7);box(g,19,3,3.4,stone,-16,13.4,7);box(g,6,10,0.4,basic(0x14160f),-16,5,6.2); // doorway
+    for(let k=0;k<3;k++){const c=new THREE.Mesh(new THREE.CylinderGeometry(1.5,1.5,rand(8,14),8),stone2);c.rotation.z=PI/2;c.rotation.y=rand(-0.5,0.5);c.position.set(rand(-6,16),1.5,rand(8,20));g.add(c);}
+    for(let k=0;k<3;k++){const c=new THREE.Mesh(new THREE.CylinderGeometry(1.5,1.7,rand(5,13),8),stone2);c.position.set(6+k*6,c.geometry.parameters.height/2,10);g.add(c);}
+    for(let k=0;k<9;k++){const b=box(g,rand(1.5,3.4),rand(1,2.4),rand(1.5,3),pick([stone,stone2]),rand(-24,22),0.8,rand(-8,22));b.rotation.set(rand(-.3,.3),rand(0,3),rand(-.3,.3));}
+    for(let k=0;k<4;k++){const L=rand(10,18),r=new THREE.Mesh(new THREE.CylinderGeometry(0.25,0.7,L,5),rootM);r.position.set(-16+rand(-7,7),L*0.42,7.6+rand(0,1));r.rotation.z=rand(-0.5,0.5);g.add(r);}
+    freezeStatic(g.children.slice(),g,true);}
+  {const g=new THREE.Group();g.position.set(70,0,-120);g.rotation.y=-0.4;root.add(g);const hd=new THREE.Mesh(new THREE.SphereGeometry(7,10,8),stone);hd.scale.set(1,1.15,0.95);hd.position.y=7;g.add(hd);box(g,10,3,9,stone2,0,13.4,0);box(g,5,1,1.4,basic(0x2a2a22),0,5,6.4);for(const e of[-2.6,2.6]){box(g,2.4,1,1,basic(0x2a2a22),e,9,6.2);box(g,2,5,2.4,stone2,e*2.9,7,0);}box(g,2.2,3,2.4,stone2,0,7.2,6.6);box(g,6,0.3,5,mossM,1,15,0);freezeStatic(g.children.slice(),g,true);colliders.push({x0:62,x1:78,z0:-128,z1:-112,h:15,y0:0});} // giant stone head
+  // --- 3) the cenote comes alive: deep centre, ripples, sparkle, waterfall, lily pads, light shafts
+  {const deep=K(new THREE.Mesh(new THREE.CircleGeometry(20,32),new THREE.MeshBasicMaterial({color:0x063a52,transparent:true,opacity:.55,polygonOffset:true,polygonOffsetFactor:-6,polygonOffsetUnits:-6})));deep.rotation.x=-PI/2;deep.position.set(CX,0.2,CZ);root.add(deep);
+    const shall=K(new THREE.Mesh(new THREE.RingGeometry(26,34,40),new THREE.MeshBasicMaterial({color:0x7ffff0,transparent:true,opacity:.28,side:THREE.DoubleSide,polygonOffset:true,polygonOffsetFactor:-6,polygonOffsetUnits:-6})));shall.rotation.x=-PI/2;shall.position.set(CX,0.22,CZ);root.add(shall);
+    const rip=[];for(let k=0;k<7;k++){const r=K(new THREE.Mesh(new THREE.RingGeometry(0.92,1,40),new THREE.MeshBasicMaterial({color:0xe8ffff,transparent:true,opacity:0,side:THREE.DoubleSide,depthWrite:false,blending:THREE.AdditiveBlending})));r.rotation.x=-PI/2;root.add(r);rip.push({r,x:0,z:0,t:rand(0,3),L:rand(2.4,4)});}
+    const spark=[];for(let k=0;k<18;k++){const s=K(new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:0xffffff,transparent:true,opacity:0,blending:THREE.AdditiveBlending,depthWrite:false})));const a=rand(0,2*PI),d=rand(2,31);s.position.set(CX+Math.cos(a)*d,0.5,CZ+Math.sin(a)*d);s.scale.set(1.6,1.6,1);root.add(s);spark.push({s,ph:rand(0,6),sp:rand(2,5)});}
+    for(let k=0;k<12;k++){const a=rand(0,2*PI),d=rand(14,31),p=add(new THREE.Mesh(new THREE.CircleGeometry(rand(1.2,2.2),8),new THREE.MeshLambertMaterial({color:0x3a8a3a,polygonOffset:true,polygonOffsetFactor:-8,polygonOffsetUnits:-8})));p.rotation.x=-PI/2;p.position.set(CX+Math.cos(a)*d,0.26,CZ+Math.sin(a)*d);if(k%3===0){const f=add(new THREE.Mesh(new THREE.SphereGeometry(0.6,6,5),basic(0xffb0d8)));f.position.set(p.position.x,0.6,p.position.z);}}
+    // rock ledge + waterfall on the north side
+    const wx=CX-6,wz=CZ-41;for(const [dx,dy,dz,sz] of[[0,7,0,13],[-10,5,3,9],[10,5,3,9],[0,13,-3,9]]){const rk=add(new THREE.Mesh(new THREE.IcosahedronGeometry(sz,0),new THREE.MeshLambertMaterial({color:0x8a8270,flatShading:true})));rk.position.set(wx+dx,dy,wz+dz);rk.scale.y=0.8;}
+    const fallT=texCanvas(64,256,g=>{g.fillStyle='rgba(180,240,255,.55)';g.fillRect(0,0,64,256);for(let i=0;i<60;i++){g.fillStyle=`rgba(255,255,255,${rand(.3,.9).toFixed(2)})`;g.fillRect(rand(0,64),rand(0,256),rand(1,4),rand(14,60));}});fallT.wrapT=THREE.RepeatWrapping;
+    const fall=K(new THREE.Mesh(new THREE.PlaneGeometry(9,17),new THREE.MeshBasicMaterial({map:fallT,transparent:true,opacity:.85,depthWrite:false,side:THREE.DoubleSide})));fall.position.set(wx,9,wz+9.5);fall.rotation.x=-0.12;root.add(fall);
+    const mist=K(new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:0xdffcff,transparent:true,opacity:.5,blending:THREE.AdditiveBlending,depthWrite:false})));mist.position.set(wx,2.5,wz+12);mist.scale.set(20,10,1);root.add(mist);
+    const shafts=[];for(let k=0;k<4;k++){const c=K(new THREE.Mesh(new THREE.ConeGeometry(9,80,10,1,true),new THREE.MeshBasicMaterial({color:0xfff6c8,transparent:true,opacity:.09,blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide})));c.position.set(CX-14+k*9,38,CZ-6+k*5);c.rotation.z=-0.35;root.add(c);shafts.push(c);}
+    planetAnim.push({town:'maya',f:(t,dt)=>{fallT.offset.y=t*0.9;mist.material.opacity=0.35+0.15*Math.sin(t*3);mist.scale.x=20+Math.sin(t*2.2)*3;
+      rip.forEach(R=>{R.t+=dt;if(R.t>R.L){R.t=0;R.L=rand(2.4,4);const a=rand(0,2*PI),d=rand(0,24);R.x=CX+Math.cos(a)*d;R.z=CZ+Math.sin(a)*d;if(Math.random()<0.4){R.x=wx;R.z=wz+13;}}const k=R.t/R.L,s=1+k*9;R.r.position.set(R.x,0.3,R.z);R.r.scale.set(s,s,1);R.r.material.opacity=(1-k)*0.5;});
+      spark.forEach(S=>{S.s.material.opacity=Math.max(0,Math.sin(t*S.sp+S.ph))**6*0.9;});shafts.forEach((c,i)=>{c.material.opacity=0.06+0.04*Math.sin(t*0.7+i*1.4);});}});}
+  // --- 4) atmosphere: drifting ground mist, sun shafts through the canopy, fireflies/pollen near you, parrots
+  const fog=[];for(let k=0;k<26;k++){const s=K(new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:0xdff5e0,transparent:true,opacity:.12,depthWrite:false})));const x=rand(-520,520),z=rand(-560,400);s.position.set(x,rand(2,6),z);s.scale.set(rand(90,170),rand(14,26),1);root.add(s);fog.push({s,x,ph:rand(0,6),sp:rand(1.5,4)});}
+  const rays=[];for(let k=0;k<12;k++){const a=rand(0,2*PI),d=rand(110,460),c=K(new THREE.Mesh(new THREE.ConeGeometry(rand(7,13),70,8,1,true),new THREE.MeshBasicMaterial({color:0xfff2b8,transparent:true,opacity:.07,blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide})));c.position.set(PX+Math.cos(a)*d,33,PZ+140+Math.sin(a)*d*0.8);c.rotation.z=-0.4;c.rotation.y=0.6;root.add(c);rays.push(c);}
+  const FN=70,fp=new Float32Array(FN*3),fd=[];for(let i=0;i<FN;i++)fd.push({ox:rand(-70,70),oy:rand(2,26),oz:rand(-70,70),ph:rand(0,6),sp:rand(0.3,1)});
+  const fg=new THREE.BufferGeometry();fg.setAttribute('position',new THREE.BufferAttribute(fp,3));const flies=K(new THREE.Points(fg,new THREE.PointsMaterial({color:0xeaff9a,size:1.1,map:GLOW,transparent:true,opacity:.85,blending:THREE.AdditiveBlending,depthWrite:false})));flies.frustumCulled=false;root.add(flies);
+  const birds=[];for(let k=0;k<8;k++){const g=new THREE.Group(),c=pick([0xe83a3a,0x2a8ae8,0x3ac060,0xf0c040]);const b=new THREE.Mesh(new THREE.ConeGeometry(0.5,2.2,5),lam(c));b.rotation.z=-PI/2;g.add(b);const w1=new THREE.Mesh(new THREE.BoxGeometry(1,0.08,2.4),lam(c)),w2=w1.clone();w1.geometry=w1.geometry.clone();w1.geometry.translate(0,0,1.2);w2.geometry=w2.geometry.clone();w2.geometry.translate(0,0,-1.2);g.add(w1);g.add(w2);g.traverse(o=>{o.userData.keep=true;});root.add(g);birds.push({g,w1,w2,r:rand(60,240),y:rand(26,60),sp:rand(.15,.3)*(k%2?1:-1),ph:rand(0,6),cx:rand(-200,200),cz:rand(-380,-80)});}
+  planetAnim.push({town:'maya',f:(t,dt)=>{
+    fog.forEach(F=>{F.s.position.x=F.x+Math.sin(t*0.05*F.sp+F.ph)*40;F.s.material.opacity=0.08+0.06*Math.sin(t*0.3+F.ph);});rays.forEach((c,i)=>{c.material.opacity=0.05+0.035*Math.sin(t*0.5+i);});
+    for(let i=0;i<FN;i++){const F=fd[i];fp[i*3]=pos.x+((F.ox+Math.sin(t*F.sp+F.ph)*6-pos.x*0)%140);fp[i*3+1]=F.oy+Math.sin(t*F.sp*1.7+F.ph)*2;fp[i*3+2]=pos.z+F.oz+Math.cos(t*F.sp*0.8+F.ph)*6;}fg.attributes.position.needsUpdate=true;flies.material.opacity=0.5+0.35*Math.sin(t*2.3);
+    birds.forEach(B=>{const a=t*B.sp+B.ph;B.g.position.set(B.cx+Math.cos(a)*B.r,B.y+Math.sin(a*3)*3,B.cz+Math.sin(a)*B.r);B.g.rotation.y=-a+(B.sp>0?-PI/2:PI/2);const fl=Math.sin(t*9+B.ph)*0.8;B.w1.rotation.x=-fl;B.w2.rotation.x=fl;});}});
+})();
 endTown('maya',[180,1000]);Object.assign(towns.maya,{planet:true,fogC:new THREE.Color(0x8ab890),skyTint:0xa8e0b0,label:'🌴 YUCATÁN, MEXICO',bloom:0.4});
 
 // 🎰 LAS VEGAS — the neon Strip, a glass pyramid with a sky beam, fountains, a giant slot machine
