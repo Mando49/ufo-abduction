@@ -1099,6 +1099,7 @@ const ANIM={alien:{file:'alien',height:2.3,rotY:PI/2,clips:{walk:0},list:[]},
   person:{file:'person',height:3.4,rotY:PI/2,clips:{walk:0},tint:true,list:[]},mummy:{file:'mummy',height:3.7,rotY:PI/2,clips:{walk:0},list:[]},yeti:{file:'yeti',height:7.2,rotY:PI/2,clips:{walk:0},list:[]},
   fox:{file:'fox',len:3.4,axis:'z',rotY:PI/2,clips:{idle:'Survey',walk:'Walk',run:'Run'},list:[]},
   mech:{file:'mech',height:47,rotY:0,clips:{walk:0},list:[],lift:1.9},
+  aztec:{file:'aztec',height:4.3,rotY:PI/2,clips:{walk:0},list:[],lift:1.7},aztecw:{file:'aztecw',height:3.9,rotY:PI/2,clips:{walk:0},list:[],lift:1.7},
   pharaoh:{file:'pharaoh',height:4.4,rotY:PI/2,clips:{walk:0},list:[]},queen:{file:'queen',height:4,rotY:PI/2,clips:{walk:0},list:[]},
   bigfoot:{file:'bigfoot',height:3.9,rotY:PI/2,clips:{walk:0},list:[]},
   reptilian:{file:'reptilian',height:4.4,rotY:PI/2,clips:{walk:0},list:[]},mantis:{file:'mantis',height:5,rotY:PI/2,clips:{walk:0},list:[]},
@@ -2945,6 +2946,9 @@ beginTown('maya');
   }});
   for(let i=0;i<10;i++){const T={type:'critter',mesh:makeJaguar(),spawn:spawnCow,fl:fields};T.spawn(T);targets.push(T);}
   for(let i=0;i<16;i++){const T={type:'critter',mesh:useAnim('person',makeHuman(false),'maya'),spawn:spawnCow,fl:[{x:0,z:-200},{x:-200,z:-110},{x:230,z:-60},{x:100,z:-250}],rad:30};T.spawn(T);targets.push(T);}
+  // 🪶 Aztec warriors and women walking around the temples, plaza and ball court
+  for(let i=0;i<20;i++){const w=i%2===0,g=makeHuman(false);g.userData.emoji=w?'🪶':'🌺';g.userData.pts=120;g.userData.heat=0.4;
+    const T={type:'critter',mesh:useAnim(w?'aztec':'aztecw',g,'maya'),spawn:spawnCow,fl:[{x:0,z:-200},{x:-200,z:-110},{x:230,z:-60},{x:100,z:-250},{x:-60,z:-120},{x:60,z:-130}],rad:26};T.mesh.userData.T=T;T.spawn(T);targets.push(T);}
 })();
 endTown('maya',[180,1000]);Object.assign(towns.maya,{planet:true,fogC:new THREE.Color(0x8ab890),skyTint:0xa8e0b0,label:'🌴 YUCATÁN, MEXICO',bloom:0.4});
 
@@ -4547,7 +4551,7 @@ renderShop();
 // ---------- 📖 Abduction Log: a collection book of everything ever beamed up ----------
 const LOG_NAMES={'🐄':'Cow','🚗':'Car','🚓':'Police Car','🚚':'Truck','😴':'Sleeper','🚶':'Walker','🚜':'Tractor','🦊':'Fox','🤖':'Robot','📣':'Cheerleader','🏈':'Football Player','🎈':'Balloon','🏎️':'Luxury / Race Car','📺':'News Van','🌮':'Taco Truck','🍔':'Diner Guest','🔘':'Mystery Orb','🌑':'Jellyfish UFO',
   '👽':'Little Alien','🏃':'Area 51 Raider','🤳':'Streamer','🪖':'Soldier','🐎':'Mustang','🫏':'Burro','🔩':'Secret Tech','🕴️':'Man in Black','❄️':'Yeti','🐧':'Penguin','🦍':'Ice Ape','🦕':'Dinosaur','🦀':'Lava Crab','🦖':'T-Rex','🚙':'Moon Rover','🧊':'Hypercube','🪼':'Glitch Jelly','🤍':'Tall White','💙':'Nordic',
-  '🐪':'Camel','🧟':'Mummy','🐆':'Jaguar','🧗':'Climber / Zipliner','🛩️':'Fighter Jet','🚤':'Speedboat','🛫':'Airliner','🥾':'Hiker','🕺':'Elvis','💃':'Showgirl','🚢':'Submarine','🐟':'Fish','🐢':'Sea Turtle','🦈':'Shark','🐋':'Whale','🐬':'Dolphin','🐙':'Octopus','🎣':'Fishing Boat','⛵':'Sailboat','👾':'Alien Specimen','🥼':'Scientist','🛞':'Mars Rover','🚁':'Mars Helicopter','💎':'Cave Crystal','🦇':'Cave Bat','👑':'Sleeping King','🛶':'Nile Boat','🤴':'Pharaoh','👸':'Queen of the Nile','⚱️':'Golden Sarcophagus','⛏️':'Archaeologist','🐊':'Crocodile','👻':'Ghost Ship','🦌':'Reindeer','🎅':'Santa\'s Sleigh','🎁':'Present','🦶':'Bigfoot','🦄':'Unicorn','🎐':'Gas Floater','🛰️':'Lost Probe','🩶':'Grey','🦎':'Reptilian','🦗':'Mantis'};
+  '🐪':'Camel','🧟':'Mummy','🐆':'Jaguar','🧗':'Climber / Zipliner','🛩️':'Fighter Jet','🚤':'Speedboat','🛫':'Airliner','🥾':'Hiker','🕺':'Elvis','💃':'Showgirl','🚢':'Submarine','🐟':'Fish','🐢':'Sea Turtle','🦈':'Shark','🐋':'Whale','🐬':'Dolphin','🐙':'Octopus','🎣':'Fishing Boat','⛵':'Sailboat','👾':'Alien Specimen','🥼':'Scientist','🛞':'Mars Rover','🚁':'Mars Helicopter','💎':'Cave Crystal','🦇':'Cave Bat','👑':'Sleeping King','🛶':'Nile Boat','🪶':'Aztec Warrior','🌺':'Aztec Woman','🤴':'Pharaoh','👸':'Queen of the Nile','⚱️':'Golden Sarcophagus','⛏️':'Archaeologist','🐊':'Crocodile','👻':'Ghost Ship','🦌':'Reindeer','🎅':'Santa\'s Sleigh','🎁':'Present','🦶':'Bigfoot','🦄':'Unicorn','🎐':'Gas Floater','🛰️':'Lost Probe','🩶':'Grey','🦎':'Reptilian','🦗':'Mantis'};
 let LOG={};try{LOG=JSON.parse(localStorage.getItem('ufoLog')||'{}');}catch(e){}
 const logKey=T=>{const u=T.mesh.userData;return u.emoji||(u.police?'🚓':{cow:'🐄',car:'🚗',truck:'🚚'}[T.type]);};
 let LOG_CAT=null;
@@ -5848,6 +5852,7 @@ const MISSIONS=[
   {id:'balloon30',t:'Ride a hot-air balloon for 30 seconds (Egypt)',ev:'balloon30',g:1,r:600},
   {id:'train25',t:'Surf the roof of the sky-train for 25 seconds (Neon City)',ev:'train25',g:1,r:500},
   {id:'drive30',t:'Joyride a desert 4x4 for 30 seconds (Egypt or Area 51)',ev:'drive30',g:1,r:500},
+  {id:'aztec',t:'Beam up 2 Aztec warriors and 2 Aztec women (Yucatán)',ev:'abduct',m:d=>d.emoji==='🪶'||d.emoji==='🌺',g:4,r:800},
   {id:'pharaoh',t:'Beam up the Pharaoh and the Queen (Egypt)',ev:'abduct',m:d=>d.emoji==='🤴'||d.emoji==='👸',g:2,r:900},
   {id:'sarco',t:'Steal the golden sarcophagus (Valley of the Kings, Egypt)',ev:'abduct',m:d=>d.emoji==='⚱️',g:1,r:900},
   {id:'crocs',t:'Beam up 3 Nile crocodiles (Egypt)',ev:'abduct',m:d=>d.emoji==='🐊',g:3,r:500},
