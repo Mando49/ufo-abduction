@@ -1155,7 +1155,7 @@ const ANIM={alien:{file:'alien',height:2.3,rotY:PI/2,clips:{walk:0},list:[]},
   aztec:{file:'aztec',height:4.3,rotY:PI/2,clips:{walk:0},list:[],lift:1.7},aztecw:{file:'aztecw',height:3.9,rotY:PI/2,clips:{walk:0},list:[],lift:1.7},
   fhero:{file:'fhero',height:4.3,rotY:PI/2,clips:{walk:0},list:[],lift:1.5},fmonster:{file:'fmonster',height:4.8,rotY:PI/2,clips:{walk:0},list:[],lift:1.5},fstatue:{file:'fstatue',height:4.3,rotY:PI/2,clips:{walk:0},list:[],lift:1.5},
   pharaoh:{file:'pharaoh',height:4.4,rotY:PI/2,clips:{walk:0},list:[]},queen:{file:'queen',height:4,rotY:PI/2,clips:{walk:0},list:[]},
-  bigfoot:{file:'bigfoot',height:3.9,rotY:PI/2,clips:{walk:0},list:[]},
+  bigfoot:{file:'bigfoot',height:3.9,rotY:PI/2,clips:{walk:0},list:[]},whitefoot:{file:'whitefoot',height:4.1,rotY:PI/2,clips:{walk:0},list:[],lift:1.3},rex:{file:'rex',height:4.4,rotY:PI/2,clips:{walk:0},list:[],lift:1.3},
   reptilian:{file:'reptilian',height:4.4,rotY:PI/2,clips:{walk:0},list:[]},mantis:{file:'mantis',height:5,rotY:PI/2,clips:{walk:0},list:[]},
   tallwhite:{file:'tallwhite',height:5.4,rotY:PI/2,clips:{walk:0},list:[]},nordic:{file:'nordic',height:4.5,rotY:PI/2,clips:{walk:0},list:[]},
   robot:{file:'robot',height:4.2,rotY:PI/2,clips:{idle:'Idle',walk:'Walking',run:'Running',wave:'Wave'},list:[]}};
@@ -2152,8 +2152,70 @@ beginTown('ice');
     planetAnim.push({town:'ice',f:t=>{crys.rotation.y=t;crys.position.y=118+Math.sin(t*1.5)*3;cgl.material.opacity=0.5+0.3*Math.sin(t*2);}});}
   // 🦕 prehistoric animals roaming the green land
   const beyond=[];for(let i=0;i<5;i++){const a=i/5*2*PI+0.9;beyond.push({x:Math.cos(a)*400,z:Math.sin(a)*400});}
-  for(let i=0;i<10;i++){const g=new THREE.Group();box(g,4,2.4,1.6,0x4aa84a,0,2.4,0);g.userData.emoji='🦕';g.userData.pts=i<3?260:180;g.scale.setScalar(i<3?4.6:rand(2.6,3.4));root.add(g);useModel('dino',g);
-    const T={type:'critter',mesh:g,spawn:spawnCow,fl:beyond,rad:60};T.spawn(T);targets.push(T);}
+  const oldDinos=[];for(let i=0;i<10;i++){const g=new THREE.Group(),inn=new THREE.Group();g.add(inn);box(inn,4,2.4,1.6,0x4aa84a,0,2.4,0);g.userData.emoji='🦕';g.userData.pts=i<3?260:180;g.scale.setScalar(i<3?4.6:rand(2.6,3.4));root.add(g);useModel('dino',inn);
+    const T={type:'critter',mesh:g,spawn:spawnCow,fl:beyond,rad:60};T.spawn(T);targets.push(T);oldDinos.push({T,inn,ph:rand(0,6)});}
+  planetAnim.push({town:'ice',f:t=>{for(const D of oldDinos){if(D.T.state!=='ground')continue;const k=D.T.sp>0.1?1:0.15,s=t*3.2+D.ph;D.inn.position.y=Math.abs(Math.sin(s))*0.22*k;D.inn.rotation.set(Math.sin(s*2)*0.04*k,Math.sin(s)*0.1*k,Math.sin(s)*0.07*k);}}});
+  // ================= GREEN ANTARCTICA UPGRADE: nicer Lost City, Bigfoot + Whitefoot, walking dinosaurs, birds =================
+  {const X=0,Z=-300,objs=[],add=m=>{objs.push(m);return m;},gold=new THREE.MeshPhongMaterial({color:0xffd060,emissive:0x5a3a00,shininess:120,specular:0xfff0c0}),wht=lam(0xf4f0e6),stone=lam(0xd8cdb4);
+    const disc=(r,c,off,y,x,z,r0)=>{const m=new THREE.Mesh(r0?new THREE.RingGeometry(r0,r,64):new THREE.CircleGeometry(r,64),flatMat(c,off));m.rotation.x=-PI/2;m.position.set(x,y,z);root.add(m);return m;};
+    disc(107,0xe6dcc4,-6,0.14,X,Z);disc(64,0xffd060,-7,0.16,X,Z,61);disc(100,0xc9b88e,-7,0.16,X,Z,97);
+    for(let i=0;i<16;i++){const a=i/16*2*PI,m=add(flatPlane(1.2,34,0xc9b88e,-7,X+Math.cos(a)*80,Z+Math.sin(a)*80));m.position.y=0.16;m.rotation.z=a+PI/2;}
+    // city wall with domed watch-towers and a golden gate on the south side
+    const NS=28;for(let i=0;i<NS;i++){const a=(i+0.5)/NS*2*PI;if(Math.sin(a)>0.96)continue;const w=add(box(root,24.6,9,3,wht,X+Math.cos(a)*108,4.5,Z+Math.sin(a)*108));w.rotation.y=-a-PI/2;
+      const t=add(box(root,24.6,1.2,3.6,gold,X+Math.cos(a)*108,9.4,Z+Math.sin(a)*108));t.rotation.y=-a-PI/2;}
+    for(let i=0;i<NS;i+=2){const a=i/NS*2*PI;if(Math.sin(a)>0.96)continue;const x=X+Math.cos(a)*108,z=Z+Math.sin(a)*108;
+      add(new THREE.Mesh(new THREE.CylinderGeometry(3.2,3.8,15,10),wht)).position.set(x,7.5,z);root.add(objs[objs.length-1]);
+      const d=add(new THREE.Mesh(new THREE.SphereGeometry(3.6,14,8,0,2*PI,0,PI/2),gold));d.position.set(x,15,z);root.add(d);colliders.push({x0:x-3.5,x1:x+3.5,z0:z-3.5,z1:z+3.5,h:18,y0:0});}
+    for(const sx of[-1,1]){const x=X+sx*13,z=Z+107;add(box(root,6,26,6,wht,x,13,z));add(box(root,7,2,7,gold,x,27,z));const o=add(new THREE.Mesh(new THREE.OctahedronGeometry(2.4),basic(0x7ffcff)));o.position.set(x,31.5,z);o.scale.y=1.8;root.add(o);
+      add(glowSprite(0x7ffcff,x,31.5,z,11,0.35));colliders.push({x0:x-3,x1:x+3,z0:z-3,z1:z+3,h:28,y0:0});}
+    add(box(root,34,4,5,gold,X,25,Z+107));sign('THE LOST CITY','#ffd84a',26,4.5,X,25,Z+110,0);
+    // avenue of columns from the gate to the plaza, crystal lamps on top
+    for(let k=0;k<5;k++)for(const sx of[-1,1]){const x=X+sx*11,z=Z+98-k*11;add(new THREE.Mesh(new THREE.CylinderGeometry(1.1,1.3,13,10),wht)).position.set(x,6.5,z);root.add(objs[objs.length-1]);
+      add(box(root,3.2,1,3.2,gold,x,13.5,z));add(glowSprite(pick([0x7ffcff,0xffd84a]),x,15.4,z,4.5,0.45));}
+    // two fountains
+    const jets=[];for(const sx of[-1,1]){const x=X+sx*36,z=Z+72;disc(11,0x2a8ad0,-8,0.2,x,z);disc(12.4,0xf4f0e6,-8,0.18,x,z,11);add(new THREE.Mesh(new THREE.CylinderGeometry(1.2,2,5,10),wht)).position.set(x,2.5,z);root.add(objs[objs.length-1]);
+      add(new THREE.Mesh(new THREE.CylinderGeometry(4,1,1.2,14),gold)).position.set(x,5.4,z);root.add(objs[objs.length-1]);
+      for(let j=0;j<5;j++){const s=glowSprite(0xcfefff,x,6,z,2.6,0.4);s.userData.keep=true;jets.push({s,x,z,ph:j/5});}}
+    // golden step-pyramid temple at the back
+    {const TZ=Z-72,sz=[46,36,27,19,12];sz.forEach((w,k)=>{add(box(root,w,5,w,k%2?stone:wht,X,2.5+k*5,TZ));add(box(root,w+0.6,0.7,w+0.6,gold,X,5+k*5,TZ));colliders.push({x0:X-w/2,x1:X+w/2,z0:TZ-w/2,z1:TZ+w/2,h:5+k*5,y0:0});});
+      for(let k=0;k<25;k++)add(box(root,7,1,1.1,stone,X,k+0.5,TZ+23.5-k*0.92+0.5)); // front stairs
+      for(const sx of[-1,1])for(const sz2 of[-1,1])add(box(root,1,7,1,gold,X+sx*4,28.5,TZ+sz2*4));add(box(root,11,1.4,11,gold,X,32.6,TZ));
+      const cr=new THREE.Mesh(new THREE.OctahedronGeometry(2.6),basic(0xff7ae0));cr.position.set(X,29,TZ);cr.scale.y=1.6;root.add(cr);const gl=glowSprite(0xff7ae0,X,29,TZ,26,0.6);
+      planetAnim.push({town:'ice',f:t=>{cr.rotation.y=t*1.4;gl.material.opacity=0.45+0.25*Math.sin(t*2.4);}});}
+    // houses with coloured roofs between the towers and the wall
+    for(const dg of[18,52,128,162,200,236,304,340]){const a=dg*PI/180,x=X+Math.cos(a)*84,z=Z+Math.sin(a)*84,w=rand(11,15),h=rand(9,15),rc=pick([0xc8553a,0x2a9a9a,0xd89a2a,0x7a5ac8]);
+      add(box(root,w,h,w,wht,x,h/2,z));const rf=add(new THREE.Mesh(new THREE.ConeGeometry(w*0.82,6,4),lam(rc)));rf.position.set(x,h+3,z);rf.rotation.y=PI/4;root.add(rf);
+      const dx=-Math.cos(a),dz=-Math.sin(a);add(box(root,Math.abs(dz)>0.7?3:0.4,5,Math.abs(dz)>0.7?0.4:3,basic(0xffe6a8),x+(Math.abs(dz)>0.7?0:Math.sign(dx)*(w/2+0.1)),2.5,z+(Math.abs(dz)>0.7?Math.sign(dz)*(w/2+0.1):0)));
+      for(let k=0;k<2;k++)add(box(root,w+0.3,0.5,w+0.3,gold,x,h*(0.45+k*0.5),z));colliders.push({x0:x-w/2,x1:x+w/2,z0:z-w/2,z1:z+w/2,h:h+5,y0:0});}
+    // little gardens and flower beds on the plaza
+    for(let i=0;i<14;i++){const a=i/14*2*PI+0.22;if(Math.sin(a)>0.9||Math.sin(a)<-0.8)continue;const x=X+Math.cos(a)*70,z=Z+Math.sin(a)*70;add(box(root,6,1.2,6,stone,x,0.6,z));
+      const b=add(new THREE.Mesh(new THREE.IcosahedronGeometry(3,0),lam(pick([0x3c8a40,0x4aa04a]))));b.position.set(x,3.6,z);root.add(b);for(let k=0;k<4;k++)add(box(root,0.7,0.7,0.7,basic(pick([0xff6ad5,0xffe14a,0xffffff])),x+rand(-2,2),rand(3.5,6),z+rand(-2,2)));}
+    freezeStatic(objs,root,true);
+    planetAnim.push({town:'ice',f:t=>{jets.forEach(J=>{const u=(t*0.7+J.ph)%1;J.s.position.set(J.x+Math.cos(J.ph*6.28)*u*4,6+u*5-u*u*9,J.z+Math.sin(J.ph*6.28)*u*4);J.s.material.opacity=0.4*(1-u);});}});
+    // people of the Lost City
+    for(let i=0;i<14;i++){const g=makeHuman(false);g.userData.emoji='🧙';g.userData.pts=90;const T={type:'critter',mesh:useAnim('person',g,'ice'),spawn:spawnCow,fl:[{x:X,z:Z+70},{x:X-45,z:Z+35},{x:X+45,z:Z+35},{x:X,z:Z+35}],rad:20};T.mesh.userData.T=T;T.spawn(T);targets.push(T);}
+  }
+  // 🦶 Bigfoot in the woods + 🐾 Whitefoot (his snowy cousin) near the Ice Wall
+  {const mkF=(ty,em,pts,S,rad)=>{const g=makeHuman(false);g.scale.setScalar(1.9);g.userData.emoji=em;g.userData.pts=pts;g.userData.heat=0.4;
+      const T={type:'critter',mesh:useAnim(ty,g,'ice'),spawn:spawnCow,fl:[S],rad};T.mesh.userData.T=T;T.spawn(T);targets.push(T);};
+    for(const [x,z] of[[-330,110],[310,190],[-140,430]])mkF('bigfoot','🦶',300,{x,z},45);
+    for(const a of[0.5,1.9,3.5,5.3])for(let k=0;k<(a<1?2:1);k++)mkF('whitefoot','🐾',350,{x:Math.cos(a)*505,z:Math.sin(a)*505},40);}
+  // 🦖 dinosaurs that really walk
+  for(let i=0;i<6;i++){const g=makeHuman(false);g.scale.setScalar(2.7);g.userData.emoji='🦕';g.userData.pts=300;g.userData.heat=0.3;
+    const T={type:'critter',mesh:useAnim('rex',g,'ice'),spawn:spawnCow,fl:beyond,rad:70,spMul:1.6};T.mesh.userData.T=T;T.spawn(T);targets.push(T);}
+  // 🕊️ birds: white snow petrels wheeling over the green land + 🦅 pterodactyls gliding round the city tower (beam them!)
+  {const wg=new THREE.BufferGeometry();wg.setAttribute('position',new THREE.Float32BufferAttribute([0,0,-0.5, 0,0,0.6, 3.2,0,0.5],3));wg.computeVertexNormals();
+    const bg=new THREE.ConeGeometry(0.42,2.4,5);bg.rotateX(-PI/2);
+    const mkBird=(bc,wc,s)=>{const g=new THREE.Group(),bm=new THREE.MeshLambertMaterial({color:bc,emissive:bc,emissiveIntensity:0.25}),wm=new THREE.MeshLambertMaterial({color:wc,emissive:wc,emissiveIntensity:0.25,side:THREE.DoubleSide});
+      g.add(new THREE.Mesh(bg,bm));const L=new THREE.Mesh(wg,wm),R=new THREE.Mesh(wg,wm);R.scale.x=-1;g.add(L);g.add(R);g.scale.setScalar(s);g.userData.keep=true;g.userData.wings=[L,R];root.add(g);return g;};
+    const birds=[];for(let i=0;i<18;i++){const g=mkBird(0xf6f8ff,0xdfe6f2,rand(0.9,1.4)),f=i%3;
+      birds.push({g,cx:[0,-260,280][f]+rand(-40,40),cz:[-300,160,120][f]+rand(-40,40),r:rand(40,130),y:rand(30,90),w:rand(0.12,0.3)*(i%2?1:-1),a:rand(0,7),fl:rand(7,10)});}
+    const pt=[];for(let i=0;i<5;i++){const g=mkBird(0xb8743a,0xd89a50,3.2);const hd=new THREE.Mesh(new THREE.ConeGeometry(0.3,1.6,4),new THREE.MeshLambertMaterial({color:0xe8b060}));hd.rotation.x=PI/2+0.5;hd.position.set(0,0.5,-1.3);g.add(hd);
+      g.userData.emoji='🦅';g.userData.pts=220;g.userData.heat=0.2;
+      const B={g,cx:0,cz:-300,r:70+i*22,y:30+i*5,w:(0.16+i*0.02)*(i%2?1:-1),a:i*1.3,fl:3.2};
+      const T={type:'critter',mesh:g,still:true,spawn:T=>{T.mesh.visible=true;T.state='ground';resetRot(T.mesh);}};T.state='ground';g.userData.T=T;targets.push(T);B.T=T;pt.push(B);birds.push(B);}
+    planetAnim.push({town:'ice',f:(t,dt)=>{for(const B of birds){if(B.T&&B.T.state!=='ground')continue;const g=B.g;B.a+=B.w*dt*(B.T&&!onFoot&&Math.hypot(pos.x-g.position.x,pos.z-g.position.z)<45?0.08:1);g.position.set(B.cx+Math.cos(B.a)*B.r,B.y+Math.sin(t*0.5+B.r)*6,B.cz+Math.sin(B.a)*B.r);
+        g.rotation.set(0,-B.a-(B.w>0?PI:0),B.w>0?-0.25:0.25);const fz=Math.sin(t*B.fl+B.r)*(B.T?0.45:0.7);g.userData.wings[0].rotation.z=fz;g.userData.wings[1].rotation.z=-fz;}}});}
   // crossing the wall (only by flying over it)
   let was=false;
   planetAnim.push({town:'ice',f:(t,dt)=>{const r=Math.hypot(pos.x,pos.z),out=r>RW+16;if(out&&!was&&state==='play'){pop('❄️ BEYOND THE ICE WALL…');pop('…it\'s all frozen! Yetis, penguins & the Frost Palace','t');mEvent('icewall');}was=out;
@@ -5917,7 +5979,7 @@ renderShop();
 // ---------- 📖 Abduction Log: a collection book of everything ever beamed up ----------
 const LOG_NAMES={'🐄':'Cow','🚗':'Car','🚓':'Police Car','🚚':'Truck','😴':'Sleeper','🚶':'Walker','🚜':'Tractor','🦊':'Fox','🤖':'Robot','📣':'Cheerleader','🏈':'Football Player','🎈':'Balloon','🏎️':'Luxury / Race Car','📺':'News Van','🌮':'Taco Truck','🍔':'Diner Guest','🔘':'Mystery Orb','🌑':'Jellyfish UFO',
   '👽':'Little Alien','🏃':'Area 51 Raider','🤳':'Streamer','🪖':'Soldier','🐎':'Mustang','🫏':'Burro','🔩':'Secret Tech','🕴️':'Man in Black','❄️':'Yeti','🐧':'Penguin','🦍':'Ice Ape','🦕':'Dinosaur','🦀':'Lava Crab','🦖':'T-Rex','🚙':'Moon Rover','🧊':'Hypercube','🪼':'Glitch Jelly','🤍':'Tall White','💙':'Nordic',
-  '🐪':'Camel','🧟':'Mummy','🐆':'Jaguar','🧗':'Climber / Zipliner','🦸':'Captain Zap (street performer)','👹':'Fuzzy Monster Mascot','🤠':'Golden Cowboy Statue','📸':'Fremont Tourist','🛩️':'Fighter Jet','🚤':'Speedboat','🛫':'Airliner','🥾':'Hiker','🕺':'Elvis','💃':'Showgirl','🚢':'Submarine','🐟':'Fish','🐢':'Sea Turtle','🦈':'Shark','🐋':'Whale','🐬':'Dolphin','🐙':'Octopus','🎣':'Fishing Boat','⛵':'Sailboat','👾':'Alien Specimen','🥼':'Scientist','🛞':'Mars Rover','🚁':'Mars Helicopter','💎':'Cave Crystal','🦇':'Cave Bat','👑':'Sleeping King','🛶':'Nile Boat','🦜':'Toucan / Macaw','🐒':'Spider Monkey','🦝':'Coati','🦎':'Iguana','🦃':'Wild Turkey','🪶':'Aztec Warrior','🌺':'Aztec Woman','💚':'Family & Friends','🪼':'Sky Jelly','🎤':'Zeta Live Band','🤴':'Pharaoh','👸':'Queen of the Nile','⚱️':'Golden Sarcophagus','⛏️':'Archaeologist','🐊':'Crocodile','👻':'Ghost Ship','🦌':'Reindeer','🎅':'Santa\'s Sleigh','🎁':'Present','🦶':'Bigfoot','🦄':'Unicorn','🎐':'Gas Floater','🛰️':'Lost Probe','🩶':'Grey','🦎':'Reptilian','🦗':'Mantis'};
+  '🐪':'Camel','🧟':'Mummy','🐆':'Jaguar','🧗':'Climber / Zipliner','🐾':'Whitefoot','🧙':'Lost City Citizen','🦅':'Pterodactyl','🦸':'Captain Zap (street performer)','👹':'Fuzzy Monster Mascot','🤠':'Golden Cowboy Statue','📸':'Fremont Tourist','🛩️':'Fighter Jet','🚤':'Speedboat','🛫':'Airliner','🥾':'Hiker','🕺':'Elvis','💃':'Showgirl','🚢':'Submarine','🐟':'Fish','🐢':'Sea Turtle','🦈':'Shark','🐋':'Whale','🐬':'Dolphin','🐙':'Octopus','🎣':'Fishing Boat','⛵':'Sailboat','👾':'Alien Specimen','🥼':'Scientist','🛞':'Mars Rover','🚁':'Mars Helicopter','💎':'Cave Crystal','🦇':'Cave Bat','👑':'Sleeping King','🛶':'Nile Boat','🦜':'Toucan / Macaw','🐒':'Spider Monkey','🦝':'Coati','🦎':'Iguana','🦃':'Wild Turkey','🪶':'Aztec Warrior','🌺':'Aztec Woman','💚':'Family & Friends','🪼':'Sky Jelly','🎤':'Zeta Live Band','🤴':'Pharaoh','👸':'Queen of the Nile','⚱️':'Golden Sarcophagus','⛏️':'Archaeologist','🐊':'Crocodile','👻':'Ghost Ship','🦌':'Reindeer','🎅':'Santa\'s Sleigh','🎁':'Present','🦶':'Bigfoot','🦄':'Unicorn','🎐':'Gas Floater','🛰️':'Lost Probe','🩶':'Grey','🦎':'Reptilian','🦗':'Mantis'};
 let LOG={};try{LOG=JSON.parse(localStorage.getItem('ufoLog')||'{}');}catch(e){}
 const logKey=T=>{const u=T.mesh.userData;return u.emoji||(u.police?'🚓':{cow:'🐄',car:'🚗',truck:'🚚'}[T.type]);};
 let LOG_CAT=null;
@@ -7398,6 +7460,8 @@ const MISSIONS=[
   {id:'plane',t:'Fly a secret plane at Area 51 (walk up to one)',ev:'plane',g:1,r:600},
   {id:'icewall',t:'Fly over the Ice Wall in Antarctica',ev:'icewall',g:1,r:600},
   {id:'lostcity',t:'Abduct 3 dinosaurs in green Antarctica',ev:'abduct',m:d=>d.emoji==='🦕',g:3,r:700},
+  {id:'whitefoot',t:'Beam up a Whitefoot near the Ice Wall (green Antarctica)',ev:'abduct',m:d=>d.emoji==='🐾',g:1,r:900},
+  {id:'ptero',t:'Beam up 2 pterodactyls circling the Lost City (Antarctica)',ev:'abduct',m:d=>d.emoji==='🦅',g:2,r:800},
   {id:'yeti',t:'Abduct a Yeti (Antarctica)',ev:'abduct',m:d=>d.emoji==='🦍',g:1,r:700},
   {id:'penguin',t:'Abduct 5 penguins',ev:'abduct',m:d=>d.emoji==='🐧',g:5,r:400},
   {id:'icearch',t:'Fly through the Frost Palace gate',ev:'icearch',g:1,r:300},
