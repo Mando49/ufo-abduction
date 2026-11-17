@@ -18,7 +18,7 @@ A 3D browser game: fly a triangle UFO over a neon cyberpunk city and farmland, a
 
 👽 **Area 51 expansion:** a giant USAF Research Division hangar with sliding blast doors and runway lights, and a crash-recovery site where a captured saucer hovers over an examination platform, guarded by circling security drones. Plus a security checkpoint with raising gate arms, four guard towers with sweeping searchlights, and **Sublevel 9** — an alien containment lab with glass cells, floating specimens, an escaped alien and scientists (look down into the walled court from above).
 
-🏁 **Sky Race:** fly up above the clouds over the city to the checkered 🏁 SKY RACE ring. Touch 20 rings in order — each one makes the ship faster (up to x3 speed). Halfway around, dive into the 🕳️ black hole shortcut to skip ahead at max speed. Or hop on the 🎢 **Air Coaster** — a glowing wind roller coaster with pink rails that runs through every ring in order: big drops that skim the clouds, camel-back hills (with the chain-lift clicking on the way up), banked S-turns and corkscrews that barrel-roll your ship. Hold ▲ or ▼ to jump off. Follow the floating arrow, beat your best time, and earn bonus score + credits.
+🏁 **Sky Race:** fly up above the clouds over the city to the checkered 🏁 SKY RACE ring. Touch 20 rings in order — each one makes the ship faster (up to x3 speed). Halfway around, dive into the 🕳️ black hole shortcut to skip ahead at max speed. Or hop on the 🌬️ **Air Current** — a glowing stream of wind above the clouds that carries you smoothly through every ring in order. Hold ▲ or ▼ to leave it. Follow the floating arrow, beat your best time, and earn bonus score + credits.
 
 🕳️ **The Black Hole:** in Earth Orbit, fly toward the giant black hole (past Mars). Its gravity pulls you in — boost away, or let it take you: the ship spirals and stretches, the screen goes dark, you ride through the inside, and get spat out on a random planet or town (+250).
 
@@ -139,3 +139,5 @@ Red Rock Grand Prix (Las Vegas): land at Red Rock Canyon, get in a race car (L /
 
 
 Fremont Street (Las Vegas): now 600 long and 64 wide with a tall LED canopy you can fly the UFO under end to end. 40 tourists, kiosks, a zipline and made-up costumed street performers (Captain Zap, a fuzzy monster mascot, a golden cowboy statue) to beam up.
+
+Earth from orbit: the planet below now shows North America (centered on Las Vegas) with coasts, deserts, forests, mountains, the Great Lakes and slowly drifting clouds.

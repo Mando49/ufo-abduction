@@ -5494,7 +5494,7 @@ function skyAnim(dt,t){
 
 // ---------- SPACE ----------
 const spaceGroup=new THREE.Group();spaceGroup.visible=false;scene.add(spaceGroup);
-const asteroids=[],crystals=[],portals=[];let planet;
+const asteroids=[],crystals=[],portals=[];let planet,earthClouds;
 function placeCrystal(C){C.m.position.set(rand(-380,380),rand(-90,150),rand(-520,140));C.m.visible=true;}
 (function(){
   const c=document.createElement('canvas');c.width=1024;c.height=512;const g=c.getContext('2d');
@@ -5553,7 +5553,7 @@ function spaceAnim(dt,t){
   planet.rotation.y+=dt*0.01;
   asteroids.forEach(A=>{A.m.rotation.x+=A.sx*dt;A.m.rotation.y+=A.sy*dt;});
   crystals.forEach(C=>{C.m.rotation.y+=dt*2;C.m.rotation.x+=dt;});
-  portals.forEach(P=>{P.swirl.rotation.z+=dt*1.6;});space2Anim(dt,t);if(curSector==='earth')solarAnim(dt,t);
+  portals.forEach(P=>{P.swirl.rotation.z+=dt*1.6;});space2Anim(dt,t);if(curSector==='earth'){solarAnim(dt,t);if(earthClouds)earthClouds.rotation.y+=dt*0.004;}
 }
 
 
@@ -6215,6 +6215,68 @@ const sectorDecor={};
   g=mk('jungle');for(let i=0;i<7;i++){const s=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:pick([0x3aff8a,0x8a3aff,0x3affd8]),transparent:true,opacity:.35,blending:THREE.AdditiveBlending,depthWrite:false,fog:false}));s.position.set(rand(-2500,2500),rand(200,1100),rand(-2800,-1400));s.scale.set(rand(900,1700),rand(500,1000),1);g.add(s);}
   for(const [x,y,z,r,c] of[[1300,500,-1800,110,0x8a5aff],[-1100,350,-1600,70,0x5affb0]]){const m=new THREE.Mesh(new THREE.SphereGeometry(r,28,18),new THREE.MeshLambertMaterial({color:c,emissive:c,emissiveIntensity:0.25}));m.position.set(x,y,z);g.add(m);}
   g=mk('earth');
+  // 🌎 detailed Earth below you: North America drawn around Las Vegas, with drifting clouds
+  {const S=2048,TH=50*PI/180,C0=[36.2,-115.1],D=PI/180;
+    const pj=(lon,lat)=>{const p1=C0[0]*D,l0=C0[1]*D,p=lat*D,l=lon*D,cc=Math.acos(clamp(Math.sin(p1)*Math.sin(p)+Math.cos(p1)*Math.cos(p)*Math.cos(l-l0),-1,1));
+      const b=Math.atan2(Math.sin(l-l0)*Math.cos(p),Math.cos(p1)*Math.sin(p)-Math.sin(p1)*Math.cos(p)*Math.cos(l-l0)),r=cc/TH*S/2;return [S/2+r*Math.sin(b),S/2-r*Math.cos(b)];};
+    const NA=[-168,65.6,-164,66.5,-162,67,-166,68.3,-163,69,-157,71.3,-150,70.5,-141,69.6,-135,69.3,-128,70,-125,69.5,-120,69.5,-115,68,-110,67.8,-105,68,-98,68,-95,69,-94,71.5,-92,69.5,-88,68.5,-85,69.5,-82,69,-81,67,-86,66,-87,64.5,-91,63.5,-94,61,-94.5,58.7,-92.5,57,-88,56.5,-85,55.3,-82.3,55,-82,53,-80.5,51.5,-79,52,-79,54.5,-77,56,-78,58.5,-77.5,60.5,-78,62.3,-74,62.3,-70,61,-69.5,59,-66,58.5,-64.5,60.3,-62,57.5,-60,55.5,-57,53.5,-55.7,52,-60,50.2,-66,50.2,-69,48.5,-65,49.2,-64.5,47.5,-61,45.5,-64.5,44,-66,43.5,-67,45,-70,43.7,-70.8,42.5,-70,41.7,-73.5,40.8,-74,39.5,-75.5,38,-76,37,-75.6,35.3,-78,33.9,-81,31.5,-81.3,29.5,-80.2,27,-80.2,25.3,-81.5,25.2,-82.7,27.8,-83.5,29.8,-86,30.3,-89,30.2,-89.5,29.2,-91.5,29.5,-94,29.5,-97,27.8,-97.5,25,-97.8,22.3,-96,19.2,-94.5,18.2,-92,18.6,-90.5,20.8,-87.5,21.4,-87,20.5,-88,18.5,-88.5,16,-86,15.9,-83.5,15.2,-83.5,12.5,-83.5,10.9,-82,9,-79.5,9.5,-77.5,8.7,-76.5,8.5,-75,10.8,-72,12,-70,11.8,-66,10.5,-62,10.6,-60,8.5,-57,6,-52,4.5,-50,0,-50,-10,-78,-10,-81,-5,-80,1,-78,2.5,-77.5,7,-78.5,8.5,-80,7.5,-81.5,8,-83,8.3,-85,10,-86,11.5,-87.5,13,-90,13.8,-92.5,14.8,-94.5,16.2,-96.5,15.7,-100,17,-104,19,-105.5,20.5,-105.5,22.5,-107.5,24.5,-109.5,26.5,-111,28,-112.8,30,-113.5,31.5,-114.8,31.8,-114.5,30.5,-112.8,28.5,-111.5,26.5,-110.5,24.5,-109.5,23.2,-110,22.9,-112,24.8,-114,27,-115,28.5,-115.8,30.3,-117.1,32.5,-118.5,34,-120.6,34.5,-121.9,36.6,-122.5,37.8,-123.8,39.5,-124.3,40.4,-124.2,43,-124,46.2,-124.7,48.4,-123,48.5,-122.5,47.5,-122.8,49,-124.5,50,-127.5,51.5,-128.5,53.5,-130.3,54.7,-132,56.5,-134.5,58.3,-137,58.5,-140,59.8,-144,60,-148,60.5,-151.5,59.5,-152,61,-154,59,-156.5,57.5,-160,55.8,-163,55,-161,56.5,-158,58.6,-162,59.5,-165,61.5,-164,63.2,-161,64.5,-166,64.5];
+    const ISL=[[-128.3,50.8,-125.3,50.2,-123.5,48.4,-125.5,48.9],[-85,21.9,-82,23.2,-77,21.5,-74.2,20.2,-77.5,19.9,-81,22],[-74.4,18.5,-72,19.9,-68.5,18.8,-71,17.8],[-78.3,18.4,-76.3,18.3,-77,17.8],[-67.2,18.4,-65.7,18.4,-66.4,17.9],[-59.3,47.8,-56,51.5,-53,48.5,-53.5,46.7,-56,47],
+      [-80,73.5,-72,71.5,-62,66.5,-64,63,-70,62.5,-78,65,-73,68,-85,70,-88,73],[-117,71,-108,73,-102,69.5,-112,68.5,-116,69.5],[-125,72,-120,74.3,-116,73,-122,71.2],[-73,78,-60,82,-30,83,-20,75,-25,70,-40,65,-43,60,-50,62,-54,68,-58,75],[-90,76.5,-80,76,-62,82.5,-80,83,-95,80],
+      [-156,19,-155,19.6,-155.6,20.2],[-156.6,20.6,-156,20.9,-156.4,21],[-158.2,21.3,-157.7,21.6,-157.8,21.2],[-159.7,22,-159.4,22.2,-159.4,21.9],[-170,63.3,-168.8,63.7,-169.5,63],[180,65,190,66.2,187,64.3,183,62.3,178,62.5,172,61,165,60,160,61,165,68,175,70]];
+    const LAKES=[[-92,46.8,-88,48.8,-84.5,46.8,-87,46.5],[-87.8,41.7,-88,45,-85,46,-86,42],[-84.5,46,-80,45.5,-81,43,-83.5,43.5],[-83.4,41.7,-79,42.9,-80,42.2],[-79.8,43.3,-76.3,44.2,-76.5,43.4],[-98.5,53.8,-97,53.5,-96.5,50.5,-98,51],[-117,61,-111,62.8,-109.5,62.2,-114,61],[-124,66,-118,66.8,-119,65,-123,65.2],[-112.9,41.6,-112.1,41.6,-112.3,40.7]];
+    const path=(q,a)=>{q.beginPath();for(let i=0;i<a.length;i+=2){const [x,y]=pj(a[i],a[i+1]);i?q.lineTo(x,y):q.moveTo(x,y);}q.closePath();};
+    const landPath=q=>{q.beginPath();for(const a of[NA,...ISL]){for(let i=0;i<a.length;i+=2){const [x,y]=pj(a[i],a[i+1]);i?q.lineTo(x,y):q.moveTo(x,y);}q.closePath();}};
+    const tex=texCanvas(S,S,q=>{
+      const og=q.createRadialGradient(S/2,S/2,0,S/2,S/2,S/2);og.addColorStop(0,'#1f6fc4');og.addColorStop(.6,'#175aa8');og.addColorStop(1,'#0f3f86');q.fillStyle=og;q.fillRect(0,0,S,S);
+      for(let i=0;i<500;i++){q.fillStyle=`rgba(${pick(['40,130,220','10,50,120','60,150,230'])},${rand(.04,.1).toFixed(2)})`;q.beginPath();q.ellipse(rand(0,S),rand(0,S),rand(20,120),rand(8,40),rand(0,3),0,7);q.fill();}
+      // shallow water along every coast
+      q.lineJoin='round';landPath(q);q.strokeStyle='rgba(90,200,235,.22)';q.lineWidth=34;q.stroke();q.strokeStyle='rgba(130,225,240,.3)';q.lineWidth=14;q.stroke();
+      {const [x,y]=pj(-77,24);const gg=q.createRadialGradient(x,y,0,x,y,60);gg.addColorStop(0,'rgba(110,230,235,.55)');gg.addColorStop(1,'rgba(110,230,235,0)');q.fillStyle=gg;q.fillRect(x-60,y-60,120,120);} // Bahamas shallows
+      q.save();landPath(q);q.fillStyle='#4f8a40';q.fill();q.clip();
+      const blob=(lon,lat,r,c,a)=>{const [x,y]=pj(lon,lat);const gg=q.createRadialGradient(x,y,0,x,y,r);gg.addColorStop(0,`rgba(${c},${a})`);gg.addColorStop(1,`rgba(${c},0)`);q.fillStyle=gg;q.fillRect(x-r,y-r,2*r,2*r);};
+      const zone=(l0,l1,p0,p1,n,r0,r1,cs,a)=>{for(let i=0;i<n;i++)blob(rand(l0,l1),rand(p0,p1),rand(r0,r1),pick(cs),a);};
+      zone(-165,-55,50,66,260,30,90,['38,92,52','46,104,58','58,110,60'],.5); // boreal forest
+      zone(-170,-20,66,84,260,30,110,['236,242,250','210,224,236','190,200,196'],.7); // arctic tundra + ice
+      zone(-50,-22,62,82,120,60,140,['246,250,255'],.9); // Greenland ice sheet
+      zone(-106,-95,31,52,160,30,80,['176,170,96','158,166,90','190,178,110'],.5); // great plains
+      zone(-95,-70,30,48,160,25,70,['50,120,62','62,134,66','44,108,60'],.45); // eastern forests
+      zone(-120,-103,24,41,220,25,80,['206,170,96','218,186,112','188,146,78','200,160,90'],.62); // desert south-west + northern Mexico
+      zone(-116,-109,22,32,40,16,40,['212,180,106'],.6); // Baja
+      zone(-105,-76,7,22,150,20,60,['36,116,58','46,130,60','30,100,56'],.55); // tropical Mexico + Central America
+      zone(-80,-50,-10,11,120,40,100,['30,108,54','40,122,58'],.6); // Amazon edge
+      zone(-125,-119,37,49,60,14,36,['40,100,56','52,112,58'],.6); // Pacific north-west
+      const chain=(a,w,n)=>{for(let i=0;i<a.length-2;i+=2)for(let k=0;k<n;k++){const u=Math.random(),lon=a[i]+(a[i+2]-a[i])*u+rand(-w,w),lat=a[i+1]+(a[i+3]-a[i+1])*u+rand(-w,w)*0.7;
+        blob(lon,lat,rand(5,11),pick(['104,84,58','122,100,70','92,76,54']),.7);if(Math.random()<0.22)blob(lon+0.1,lat+0.1,rand(2,4),'244,246,250',.8);}};
+      chain([-150,63,-138,61,-128,56,-118,51,-113,46,-109,41,-106,36,-105,32],1.6,34); // Rockies
+      chain([-122,48.5,-121.5,44,-120.5,39.5,-118.3,36],0.5,16); // Cascades + Sierra Nevada
+      chain([-108.5,30,-106,26,-104,22,-100,19.5,-97,18],0.9,18); // Sierra Madre
+      chain([-84.5,34.5,-80.5,37.5,-77,41,-72,44.5],0.7,12); // Appalachians
+      chain([-78,2,-76,6,-73,9],0.8,10);
+      for(let i=0;i<2600;i++){q.fillStyle=`rgba(${pick(['20,50,30','240,240,220','90,70,50'])},${rand(.03,.09).toFixed(2)})`;q.fillRect(rand(0,S),rand(0,S),rand(2,7),rand(2,7));}
+      q.restore();
+      // lakes + the Mississippi
+      for(const a of LAKES){path(q,a);q.fillStyle='#1c66b8';q.fill();q.strokeStyle='rgba(120,215,235,.35)';q.lineWidth=3;q.stroke();}
+      q.strokeStyle='rgba(60,130,200,.8)';q.lineWidth=2.5;q.beginPath();[[-95,47.2],[-91.2,43.5],[-90.2,38.7],[-89.6,36],[-91,32.5],[-90,29.6]].forEach(([a,b],i)=>{const [x,y]=pj(a,b);i?q.lineTo(x,y):q.moveTo(x,y);});q.stroke();
+      q.beginPath();[[-112,45],[-104,47.5],[-97,42],[-90.2,38.7]].forEach(([a,b],i)=>{const [x,y]=pj(a,b);i?q.lineTo(x,y):q.moveTo(x,y);});q.lineWidth=1.6;q.stroke();
+      landPath(q);q.strokeStyle='rgba(232,220,180,.5)';q.lineWidth=2.2;q.stroke(); // beaches
+      // Las Vegas: one bright dot in the desert
+      {const [x,y]=pj(-115.1,36.2);for(const [r,c] of[[26,'rgba(255,214,120,.5)'],[9,'rgba(255,246,210,.95)']]){const gg=q.createRadialGradient(x,y,0,x,y,r);gg.addColorStop(0,c);gg.addColorStop(1,'rgba(255,214,120,0)');q.fillStyle=gg;q.fillRect(x-r,y-r,2*r,2*r);}}
+      // fade the edge into the globe underneath
+      q.globalCompositeOperation='destination-in';const fg=q.createRadialGradient(S/2,S/2,S*0.36,S/2,S/2,S*0.5);fg.addColorStop(0,'rgba(0,0,0,1)');fg.addColorStop(1,'rgba(0,0,0,0)');q.fillStyle=fg;q.fillRect(0,0,S,S);q.globalCompositeOperation='source-over';
+    });
+    tex.anisotropy=8;
+    const capGeo=R=>{const ge=new THREE.SphereGeometry(R,96,36,0,2*PI,0,TH),p=ge.attributes.position,uv=ge.attributes.uv;
+      for(let i=0;i<p.count;i++){const x=p.getX(i),y=p.getY(i),z=p.getZ(i),th=Math.acos(clamp(y/R,-1,1)),h=Math.hypot(x,z)||1,r=th/TH*0.5;uv.setXY(i,0.5+r*x/h,0.5-r*z/h);}return ge;};
+    const cap=new THREE.Mesh(capGeo(2403),new THREE.MeshPhongMaterial({map:tex,transparent:true,shininess:14,emissive:0x05091a,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-2}));
+    cap.position.copy(planet.position);cap.renderOrder=1;g.add(cap);
+    // clouds: swirls, fronts and one big Pacific storm, slowly turning
+    const ctex=texCanvas(1024,1024,q=>{const puff=(x,y,r,a)=>{const gg=q.createRadialGradient(x,y,0,x,y,r);gg.addColorStop(0,`rgba(255,255,255,${a})`);gg.addColorStop(1,'rgba(255,255,255,0)');q.fillStyle=gg;q.fillRect(x-r,y-r,2*r,2*r);};
+      for(let i=0;i<26;i++){let x=rand(120,900),y=rand(120,900);if(Math.hypot(x-512,y-512)<190){i--;continue;}const a0=rand(0,7),L=rand(60,200);for(let k=0;k<40;k++){const u=k/40;puff(x+Math.cos(a0+u*1.2)*L*u+rand(-8,8),y+Math.sin(a0+u*1.2)*L*u+rand(-8,8),rand(8,20),rand(.05,.14));}}
+      for(const [cx,cy,R] of[[250,560,110],[760,300,70],[690,760,80]])for(let k=0;k<260;k++){const u=k/260,a=u*11+((k%2)*PI),r=8+u*R;puff(cx+Math.cos(a)*r,cy+Math.sin(a)*r,rand(7,15)*(0.6+u),.2*(1-u*0.5));}
+      for(let i=0;i<500;i++)puff(rand(60,964),rand(60,964),rand(5,14),rand(.04,.12));
+      q.globalCompositeOperation='destination-in';const fg=q.createRadialGradient(512,512,330,512,512,512);fg.addColorStop(0,'rgba(0,0,0,1)');fg.addColorStop(1,'rgba(0,0,0,0)');q.fillStyle=fg;q.fillRect(0,0,1024,1024);});
+    const cl=new THREE.Mesh(capGeo(2424),new THREE.MeshLambertMaterial({map:ctex,transparent:true,opacity:.8,depthWrite:false,emissive:0x12161e}));
+    cl.position.copy(planet.position);cl.renderOrder=2;g.add(cl);earthClouds=cl;}
   // home: pink/violet/teal nebula clouds, twin suns and a ringed giant
   g=mk('home');for(let i=0;i<12;i++){const s=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:pick([0xff5ad8,0x7a4dff,0x45eaff,0xffb060]),transparent:true,opacity:.38,blending:THREE.AdditiveBlending,depthWrite:false,fog:false}));s.position.set(rand(-2800,2800),rand(100,1300),rand(-3000,-1300));s.scale.set(rand(1000,1900),rand(600,1100),1);g.add(s);}
   for(const [x,y,z,sz,c] of[[-1500,800,-2600,900,0xffe0a0],[-1150,620,-2500,420,0xff8ad8]]){const s=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:c,fog:false,depthWrite:false,transparent:true}));s.position.set(x,y,z);s.scale.set(sz,sz,1);g.add(s);}
@@ -7463,7 +7525,7 @@ const raceGroup=new THREE.Group();skyRealm.add(raceGroup);
     raceGroup.add(g);race.rings.push({g,tor,disc,gl,beam,p,dir,side:0,k});}
 })();
 // black hole shortcut on the race course (between ring 9 and 10)
-// 🎢 AIR CURRENT ROLLER COASTER: a glowing wind track through every ring — drops, hills, corkscrews and banked turns
+// 🌬️ AIR CURRENT: a glowing stream of wind above the clouds that carries you through every ring
 const airCur=(function(){
   const ringPts=[];race.rings.forEach(R=>{if(!ringPts.some(q=>q.distanceTo(R.p)<5))ringPts.push(R.p.clone());});
   const LOW=CLOUD_Y+9,HIGH=338,UP=new V3(0,1,0),pts=[],screws=[];
@@ -7471,16 +7533,7 @@ const airCur=(function(){
   for(let i=0;i<nR;i++){const a=ringPts[i],b=ringPts[(i+1)%nR],d=b.clone().sub(a),L=d.length(),f=d.clone().normalize();
     const side=new V3().crossVectors(f,UP).normalize(),up=new V3().crossVectors(side,f).normalize();
     pts.push(a.clone());const at=u=>a.clone().addScaledVector(d,u);const type=i%4;
-    if(type===0){ // big drop: crest then dive to skim the clouds
-      const c=at(0.22);c.y=Math.min(HIGH,Math.max(a.y,b.y)+30);pts.push(c);const m=at(0.55);m.y=LOW;pts.push(m);const n=at(0.8);n.y=(LOW+b.y)/2;pts.push(n);}
-    else if(type===1){ // corkscrew: spiral around the line between rings
-      const ax0=at(0.12);pts.push(ax0);const K=7;for(let k=1;k<K;k++){const u=0.12+0.76*k/K,ang=k/K*2*PI,r=18*Math.sin(Math.PI*k/K)+6;
-        pts.push(at(u).addScaledVector(side,Math.cos(ang-PI/2)*r).addScaledVector(up,Math.sin(ang-PI/2)*r+r));}
-      pts.push(at(0.88));screws.push({a:at(0.12),b:at(0.88),f,side,up});}
-    else if(type===2){ // camel-back hill
-      const m=at(0.5);m.y=Math.min(HIGH,Math.max(a.y,b.y)+50);pts.push(at(0.2).setY(a.y+12));pts.push(m);pts.push(at(0.8).setY(b.y+12));}
-    else{ // banked S-turn with a dip
-      pts.push(at(0.3).addScaledVector(side,34).setY((a.y+b.y)/2-25));pts.push(at(0.7).addScaledVector(side,-34).setY((a.y+b.y)/2-10));}
+    pts.push(at(0.5).addScaledVector(side,(i%2?1:-1)*14).setY((a.y+b.y)/2+(i%2?10:-6))); // gentle drift between rings
   }
   pts.forEach(p=>{p.y=clamp(p.y,LOW,HIGH);});
   const curve=new THREE.CatmullRomCurve3(pts,true,'centripetal');
@@ -7503,13 +7556,6 @@ const airCur=(function(){
     vertexShader:'varying vec2 vUv;void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}',
     fragmentShader:'uniform float t,boost;varying vec2 vUv;void main(){float s=fract(vUv.x*420.0-t*(2.0+boost*3.0)+sin(vUv.y*12.566)*0.15);float streak=smoothstep(0.55,1.0,s)*(0.5+0.5*sin(vUv.y*37.7));float rim=0.35+0.65*abs(sin(vUv.y*3.1416));vec3 c=mix(vec3(0.55,0.85,1.0),vec3(1.0),streak);gl_FragColor=vec4(c,(0.05+streak*0.28)*rim);}'});
   const tube=new THREE.Mesh(new THREE.TubeGeometry(curve,1400,7,12,true),mat);raceGroup.add(tube);
-  // glowing coaster rails + cross ties under the wind
-  const railPts=[[],[]];for(let k=0;k<N;k+=4){const P=samp[k],F=frames[k],c=P.clone().addScaledVector(F.up,-4.2);railPts[0].push(c.clone().addScaledVector(F.side,2.4));railPts[1].push(c.clone().addScaledVector(F.side,-2.4));}
-  const railM=new THREE.MeshBasicMaterial({color:0xff4fd8});
-  railPts.forEach(rp=>raceGroup.add(new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(rp,true),N/2,0.35,6,true),railM)));
-  const nT=Math.floor(N/6),ties=new THREE.InstancedMesh(new THREE.BoxGeometry(6,0.35,0.9),new THREE.MeshBasicMaterial({color:0x6a3cff}),nT),dm=new THREE.Object3D(),M4=new THREE.Matrix4();
-  for(let i=0;i<nT;i++){const k=i*6,F=frames[k],T=tan[k];M4.makeBasis(F.side,F.up,T.clone().negate());dm.quaternion.setFromRotationMatrix(M4);dm.position.copy(samp[k]).addScaledVector(F.up,-4.4);dm.updateMatrix();ties.setMatrixAt(i,dm.matrix);}
-  ties.frustumCulled=false;raceGroup.add(ties);
   const puffs=[];for(let k=0;k<90;k++){const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:0xeaf8ff,transparent:true,opacity:.35,blending:THREE.AdditiveBlending,depthWrite:false}));sp.scale.setScalar(rand(1.4,3));raceGroup.add(sp);puffs.push({sp,u:k/90,o:new V3(rand(-4,4),rand(-4,4),rand(-4,4))});}
   return {curve,samp,tan,roll,kind,N,mat,puffs,riding:false,msg:0,idx:0,LOW,HIGH,kick:0,click:0,wheeCd:0,screwCd:0,free:0,exitHold:0};})();
 function airCurrentUpdate(dt,t,can){
@@ -7521,24 +7567,20 @@ function airCurrentUpdate(dt,t,can){
   if(A.riding){for(let j=-60;j<=60;j++){const k=((A.idx+j)%A.N+A.N)%A.N,d=A.samp[k].distanceToSquared(pos);if(d<bd){bd=d;bi=k;}}}
   else for(let k=0;k<A.N;k+=3){const d=A.samp[k].distanceToSquared(pos);if(d<bd){bd=d;bi=k;}}
   if(bi<0){A.riding=false;return;}
-  // hold UP or DOWN to jump off the coaster
+  // hold UP or DOWN to leave the current
   const up=inp.up||keys.r||keys.e,down=inp.down||keys.f||keys.q;
-  if(A.riding&&(up||down)){A.exitHold+=dt;if(A.exitHold>0.5){A.riding=false;A.free=2;A.exitHold=0;pop('🪂 Jumped off!','t');return;}}else A.exitHold=0;
-  if(!A.riding&&A.msg<=0){pop('🎢 AIR COASTER!');pop('Hold ▲ or ▼ to jump off','t');mEvent('aircurrent');A.msg=8;blip(300,1200,0.4,'sine',0.1);}
+  if(A.riding&&(up||down)){A.exitHold+=dt;if(A.exitHold>0.5){A.riding=false;A.free=2;A.exitHold=0;pop('🪂 Left the current','t');return;}}else A.exitHold=0;
+  if(!A.riding&&A.msg<=0){pop('🌬️ AIR CURRENT!');pop('Hold ▲ or ▼ to jump off','t');mEvent('aircurrent');A.msg=8;blip(300,1200,0.4,'sine',0.1);}
   A.riding=true;A.idx=bi;if(race.on)race.usedCur=true;
   const T=A.tan[bi],P=A.samp[bi];
-  // coaster physics: slow on the climb, fast at the bottom of a drop
-  const hk=clamp((A.HIGH-P.y)/(A.HIGH-A.LOW),0,1),sp=(42+78*hk)*(race.on?(1+(race.mult-1)*0.3):1);
+  // steady wind speed along the stream
+  const sp=72*(race.on?(1+(race.mult-1)*0.3):1);
   pos.addScaledVector(T,sp*dt);pos.lerp(tmpV2.copy(P).addScaledVector(T,5),Math.min(1,dt*5));
   const want=Math.atan2(-T.x,-T.z);let dy=want-yaw;dy=Math.atan2(Math.sin(dy),Math.cos(dy));yaw+=dy*Math.min(1,dt*6);
   speed=Math.max(speed,30);
   // lean the ship with the track (banks, corkscrew barrel-rolls, nose up/down on hills)
-  tilt.rotation.set(Math.asin(clamp(T.y,-1,1))*0.9,0,A.roll[bi]);bank=A.roll[bi];
+  tilt.rotation.set(Math.asin(clamp(T.y,-1,1))*0.6,0,A.roll[bi]*0.6);bank=A.roll[bi]*0.6;
   // sounds + feel
-  if(T.y>0.22){A.click-=dt;if(A.click<=0){A.click=0.1;blip(2200,2000,0.02,'square',0.035);}}
-  if(T.y<-0.3){A.kick=Math.max(A.kick,clamp(-T.y,0,1));shake=Math.max(shake,0.25);
-    if(A.wheeCd<=0){A.wheeCd=4;pop(pick(['🎢 WHEEE!','😱 DROP!','🎢 HOLD ON!']));blip(700,90,0.9,'sawtooth',0.08);}}
-  if(A.kind[bi]&&A.screwCd<=0){A.screwCd=5;pop('🌀 CORKSCREW!');blip(400,1600,0.6,'sine',0.08);}
   if(Math.random()<0.7)spawnFx(tmpV.copy(pos).add(tmpV2.set(rand(-6,6),rand(-4,4),rand(-6,6))),tmpV2.copy(T).multiplyScalar(-30),0.4,rand(0.6,1.4),1,0xffffff,true);
 }
 const raceBH=(function(){const a=race.rings[9].p,b=race.rings[10].p,c=a.clone().add(b).multiplyScalar(0.5).add(new V3(0,32,0));
