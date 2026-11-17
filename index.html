@@ -5484,13 +5484,17 @@ beginTown('seas');
   const heli=new THREE.Group();box(heli,6,2.4,2.4,0x4a5260,0,1,0);root.add(heli);useModel('heli',heli);
   planetAnim.push({town:'seas',f:(t,dt)=>{wt.offset.set(t*0.004,t*0.006);sea.position.set(Math.round(pos.x/100)*100,0,Math.round(pos.z/100)*100);
     wp.rotation.z=t*1.5;wpG.material.opacity=0.35+0.2*Math.sin(t*3);
-    ships.forEach(S=>{if(S.sp===0){S.g.position.set(S.cx,0,S.cz);S.g.rotation.set(0,0,0);return;}const a=t*S.sp+S.ph,x=S.cx+Math.cos(a)*S.R,z=S.cz+Math.sin(a)*S.R,ry=-a-Math.sign(S.sp)*PI/2;S.g.position.set(x,Math.sin(t*0.8+S.ph)*0.4,z);S.g.rotation.set(0,ry,Math.sin(t*0.6+S.ph)*0.015);
+    ships.forEach(S=>{if(S.sp===0){S.g.position.set(S.cx,0,S.cz);S.g.rotation.set(0,0,0);return;}const a=t*S.sp+S.ph,x=S.cx+Math.cos(a)*S.R,z=S.cz+Math.sin(a)*S.R,ry=-a-Math.sign(S.sp)*PI/2;const wv=waveAt(x,z),wh=wv[0],ws=clamp(wv[1],-1.2,1.2);S.wy=(S.wy||0)+(wh*0.3-(S.wy||0))*0.08;S.g.position.set(x,Math.sin(t*0.8+S.ph)*0.4+S.wy,z);S.g.rotation.set(-ws*0.05*Math.sin(ry),ry,Math.sin(t*0.6+S.ph)*0.015+ws*0.05*Math.cos(ry));
+      if(wh>7&&Math.random()<0.5)spawnFx(tmpV2.set(x+rand(-S.len*0.4,S.len*0.4),3,z+rand(-6,6)),tmpV.set(rand(-3,3),rand(8,16),rand(2,8)),0.9,2.5,5,0xffffff,false);
       const bx=-Math.cos(ry),bz=Math.sin(ry);S.wk.position.set(x+bx*S.len*1.05,0.3,z+bz*S.len*1.05);S.wk.rotation.z=ry;});
     const ha=t*0.12;heli.position.set(Math.cos(ha)*180,60,Math.sin(ha)*180);heli.rotation.set(0.1,-ha-PI/2,0);}});
   // small boats you can beam up
   const boat=(k,emoji,pts,n,rMin,rMax)=>{for(let i=0;i<n;i++){const g=new THREE.Group();box(g,k==='fishboat'?8:7,2,3,0xffffff,0,1,0);g.userData.emoji=emoji;g.userData.pts=pts;g.userData.heat=0.5;root.add(g);useModel(k,g);
     const T={type:'critter',mesh:g,still:true,R:rand(rMin,rMax),ph:rand(0,6),sp:rand(0.03,0.07)*(Math.random()<0.5?-1:1),cx:rand(-150,150),cz:rand(-150,150),spawn:T=>{T.mesh.visible=true;T.state='ground';resetRot(T.mesh);}};T.spawn(T);targets.push(T);
-    planetAnim.push({town:'seas',f:t=>{if(T.state!=='ground')return;const a=t*T.sp+T.ph;g.position.set(T.cx+Math.cos(a)*T.R,Math.sin(t*1.3+T.ph)*0.3,T.cz+Math.sin(a)*T.R);g.rotation.set(Math.sin(t*1.1+T.ph)*0.05,-a-Math.sign(T.sp)*PI/2,Math.sin(t*1.4+T.ph)*0.06);}});}};
+    planetAnim.push({town:'seas',f:t=>{if(T.state!=='ground')return;const a=t*T.sp+T.ph;const x=T.cx+Math.cos(a)*T.R,z=T.cz+Math.sin(a)*T.R,ry=-a-Math.sign(T.sp)*PI/2,wv=waveAt(x,z),wh=wv[0],ws=clamp(wv[1],-1.6,1.6);T.wy=(T.wy||0)+(wh-(T.wy||0))*0.25;
+      g.position.set(x,Math.sin(t*1.3+T.ph)*0.3+T.wy,z);g.rotation.set(Math.sin(t*1.1+T.ph)*0.05-ws*0.42*Math.sin(ry),ry,Math.sin(t*1.4+T.ph)*0.06+ws*0.42*Math.cos(ry));
+      if(wh>4&&!T.inW){T.inW=true;for(let i=0;i<10;i++)spawnFx(tmpV2.set(x+rand(-3,3),wh+1,z+rand(-2,4)),tmpV.set(rand(-6,6),rand(6,16),rand(4,12)),0.9,2,4.5,0xffffff,false);if(Math.hypot(pos.x-x,pos.z-z)<140)blip(500,180,0.25,'sine',0.04);}
+      else if(wh<1.5&&T.inW){T.inW=false;for(let i=0;i<7;i++)spawnFx(tmpV2.set(x+rand(-3,3),0.6,z+rand(-3,3)),tmpV.set(rand(-7,7),rand(3,9),rand(-7,7)),0.7,2,4,0xdff6ff,false);}}});}};
   boat('fishboat','🎣',60,9,120,560);boat('sailboat','⛵',50,9,140,580);
   // 🐬 dolphins leaping out of the waves
   for(let i=0;i<8;i++){const g=new THREE.Group();box(g,3,1,1,0x8a9aaa,0,0,0);g.scale.setScalar(2);g.userData.emoji='🐬';g.userData.pts=60;root.add(g);useModel('dolphin',g);
@@ -5502,18 +5506,29 @@ beginTown('seas');
   planetAnim.push({town:'seas',f:()=>{const d=carrierDeckY();PLANE_SPOTS.forEach(P=>{if(P.town==='seas'&&P.deck!=null&&P.g.visible)P.g.position.y=d;});}});
   // 🏄 SURF THE WAVES: big swells roll across the sea — fly low into one and ride it
   const WL=440,waves=[],waveM=new THREE.MeshPhongMaterial({color:0x13608f,emissive:0x062a40,shininess:40,specular:0x4a90b8});
-  const wg=new THREE.CylinderGeometry(1,1,1,24,1);wg.rotateZ(PI/2);
+  const wProf=dz=>13*(dz<0?Math.exp(-(dz/11)*(dz/11)):Math.exp(-(dz/5.5)*(dz/5.5))),wTaper=u=>Math.pow(Math.max(0,Math.sin(PI*clamp(u,0,1))),0.35);
+  const wg=(()=>{const NS=30,NP=18,P=[],C=[],I=[],c0=new THREE.Color(0x0b4a7c),c1=new THREE.Color(0x1f9ab8),c2=new THREE.Color(0xe2f5fb),c=new THREE.Color();
+    for(let i=0;i<=NS;i++){const u=i/NS,s=wTaper(u);for(let k=0;k<=NP;k++){const dz=-26+k*(42/NP),h=wProf(dz),f=h/13;P.push((u-0.5)*WL,h*s-0.3,dz+2.4*f*f*f*s);
+        if(f<0.84)c.copy(c0).lerp(c1,f/0.84);else c.copy(c1).lerp(c2,Math.min(1,(f-0.84)/0.13));C.push(c.r,c.g,c.b);}}
+    for(let i=0;i<NS;i++)for(let k=0;k<NP;k++){const a=i*(NP+1)+k,b=a+NP+1;I.push(a,b,a+1,a+1,b,b+1);}
+    const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(P,3));g.setAttribute('color',new THREE.Float32BufferAttribute(C,3));g.setIndex(I);g.computeVertexNormals();return g;})();
+  const waveM2=new THREE.MeshPhongMaterial({vertexColors:true,emissive:0x062436,shininess:60,specular:0x4a7a90,side:THREE.DoubleSide,transparent:true,opacity:0.94});
+  const trailT=texCanvas(256,64,q=>{for(let i=0;i<220;i++){const y=rand(0,64);q.fillStyle=`rgba(255,255,255,${(rand(.1,.5)*(1-y/64)).toFixed(2)})`;q.fillRect(rand(0,256),y,rand(6,30),rand(1,2.4));}});trailT.wrapS=THREE.RepeatWrapping;trailT.repeat.x=6;
+  const trailM=new THREE.MeshBasicMaterial({map:trailT,transparent:true,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-2});
   const ringG=new THREE.TorusGeometry(3.2,0.45,8,24),ringM=new THREE.MeshBasicMaterial({color:0xffe14a});
   for(let i=0;i<4;i++){const g=new THREE.Group();root.add(g);
-    const body=new THREE.Mesh(wg,waveM);body.scale.set(WL,13,20);g.add(body);
-    const foam=box(g,WL,1.6,6,0xf4fbff,0,12.6,-3);box(g,WL,0.8,3,0xbfe8ff,0,11.2,4);const foamG=[];for(let k=0;k<8;k++){const f=glowSprite(0xffffff,-WL/2+k*WL/7,13.5,-3,16,0.5);g.add(f);foamG.push(f);}
+    const body=new THREE.Mesh(wg,waveM2);g.add(body);const tr=new THREE.Mesh(new THREE.PlaneGeometry(WL*0.9,46),trailM);tr.rotation.x=-PI/2;tr.position.set(0,0.35,-38);g.add(tr);
+    const foamG=[];for(let k=0;k<9;k++){const f=glowSprite(0xffffff,-WL*0.4+k*WL*0.1,13.2*wTaper(0.1+k*0.1),2.5,12,0.4);g.add(f);foamG.push(f);}
     const rings=[];for(let k=0;k<3;k++){const r=new THREE.Mesh(ringG,ringM);r.rotation.y=PI/2;g.add(r);rings.push({m:r,x:rand(-WL/2+20,WL/2-20),got:false});}
     waves.push({g,x:rand(-200,200),z:-600+i*300,sp:rand(16,22),rings,foamG});}
+  const waveAt=(x,z)=>{let h=0,sl=0;for(const W of waves){const dz=z-W.z;if(dz<-30||dz>18)continue;const u=(x-W.x)/WL+0.5;if(u<=0||u>=1)continue;const k=wProf(dz)*wTaper(u);if(k>h){h=k;sl=(wProf(dz+1)-wProf(dz-1))*0.5*wTaper(u);}}WAVE_OUT[0]=h;WAVE_OUT[1]=sl;return WAVE_OUT;},WAVE_OUT=[0,0];window.SEA_WAVE=waveAt;
   const SURF={W:null,t:0,cd:0,best:0,tick:0,did30:false};
   planetAnim.push({town:'seas',f:(t,dt)=>{
     waves.forEach(W=>{W.z+=W.sp*dt;if(W.z>640){W.z=-640;W.x=rand(-250,250);W.rings.forEach(r=>{r.got=false;r.x=rand(-WL/2+20,WL/2-20);});}
       W.g.position.set(W.x,Math.sin(t*0.9+W.x)*0.6,W.z);W.rings.forEach((r,k)=>{r.m.visible=!r.got;r.m.position.set(r.x,18+Math.sin(t*3+k)*0.6,0);r.m.rotation.x=t*2;});
-      W.foamG.forEach((f,k)=>{f.material.opacity=0.35+0.25*Math.sin(t*4+k);});});
+      W.foamG.forEach((f,k)=>{f.material.opacity=0.3+0.2*Math.sin(t*4+k);});
+      if(Math.abs(W.z-pos.z)<420)for(let k=0;k<2;k++){const u=rand(0.08,0.92);spawnFx(tmpV2.set(W.x+(u-0.5)*WL,13*wTaper(u)+0.5,W.z+3),tmpV.set(rand(-2,2),rand(1,5),W.sp+rand(2,8)),0.7,1.6,3.6,0xffffff,false);}});
+    trailT.offset.x=t*0.03;
     SURF.cd-=dt;const playing=state==='play'&&mode==='ground'&&!onFoot&&curTown==='seas';
     if(!SURF.W){if(!playing||SURF.cd>0||pos.y>22)return;
       const W=waves.find(W=>Math.abs(pos.z-W.z)<14&&Math.abs(pos.x-W.x)<WL/2-5);
@@ -5599,7 +5614,7 @@ beginTown('seas');
     arms.forEach(A=>{A.segs.forEach((g,j)=>{g.rotation.z=Math.sin(t*0.9+A.ph+j*0.55)*0.26+(j>3?0.12:0);g.rotation.x=Math.cos(t*0.7+A.ph+j*0.4)*0.12;});});
     if(kT.state==='ground'){kT.mesh.position.set(KX+18,Math.sin(t*0.6)*2.2-1.5,KZ+26);kT.mesh.rotation.set(0,Math.sin(t*0.3)*0.4,0);}
     if(gT.state==='ground'){const a=t*0.2;ghost.position.set(BX+Math.cos(a)*72,Math.sin(t)*0.6,BZ+Math.sin(a)*72);ghost.rotation.set(0,-a-PI/2,0);ghost.children.forEach(c=>{});}
-    buoys.forEach(B=>{B.g.position.y=Math.sin(t*1.4+B.ph)*0.5;B.g.rotation.z=Math.sin(t*1.1+B.ph)*0.12;B.l.material.opacity=((t+B.ph)%2)<0.3?1:0.08;});
+    buoys.forEach(B=>{const wv=window.SEA_WAVE(B.g.position.x,B.g.position.z);B.g.position.y=Math.sin(t*1.4+B.ph)*0.5+wv[0];B.g.rotation.z=Math.sin(t*1.1+B.ph)*0.12;B.g.rotation.x=-wv[1]*0.4;B.l.material.opacity=((t+B.ph)%2)<0.3?1:0.08;});
     whales.forEach(W=>{if(W.T.state!=='ground'){W.sp.material.opacity=0;return;}const a=t*W.w+W.ph,j=(t*0.22+W.ph)%1,up=j<0.3?Math.sin(j/0.3*PI):0;W.g.position.set(W.cx+Math.cos(a)*70,-3.2+up*9,W.cz+Math.sin(a)*70);W.g.rotation.set(0,-a-Math.sign(W.w)*PI/2+PI/2,0);W.g.children[0].rotation.z=j<0.3?(0.15-j)*3.2:0;
       const so=j>0.3&&j<0.5?(1-(j-0.3)/0.2):0;W.sp.position.set(W.g.position.x,3+(1-so)*9,W.g.position.z);W.sp.material.opacity=so*0.7;W.sp.scale.setScalar(5+(1-so)*9);});
     fins.forEach(F=>{const a=t*F.w+F.ph;F.m.position.set(KX+Math.cos(a)*F.r,-0.6+Math.sin(t*1.3+F.ph)*0.3,KZ+Math.sin(a)*F.r);F.m.rotation.y=-a+(F.w>0?-PI/2:PI/2);});
