@@ -3071,7 +3071,7 @@ function pyramidMat(){if(!PYR_TEX){PYR_TEX=texCanvas(512,512,g=>{g.fillStyle='#d
     PYR_TEX.wrapS=PYR_TEX.wrapT=THREE.RepeatWrapping;PYR_TEX.anisotropy=4;}
   const t=PYR_TEX.clone();t.needsUpdate=true;return t;}
 function bigPyramid(x,z,base,h,mat,capC,tomb){const r=base/Math.SQRT2;let m;
-  if(h>40){ // real-looking: stepped stone courses, weathered blocks, smooth casing near the top, entrance, rubble
+  if(h>40&&!mat.isMeshPhongMaterial){ // real-looking: stepped stone courses (glass pyramids keep their own material), weathered blocks, smooth casing near the top, entrance, rubble
     const tex=pyramidMat();tex.repeat.set(Math.round(base/9),Math.round(h/26*10)/10);const levels=Math.round(h/3.2),g=new THREE.CylinderGeometry(r*0.02,r,h,4,levels,false);
     {const p=g.attributes.position,n=p.count;for(let i=0;i<n;i++){const y=p.getY(i)+h/2,k=Math.round(y/h*levels);if(k>0&&k<levels){const j=((k*7919)%13)/13-0.5;p.setX(i,p.getX(i)*(1+j*0.012));p.setZ(i,p.getZ(i)*(1+j*0.012));}}g.computeVertexNormals();}
     m=new THREE.Mesh(g,new THREE.MeshLambertMaterial({map:tex,color:0xf0e0c0,emissive:0x2a1a08}));m.rotation.y=PI/4;m.position.set(x,h/2,z);m.userData.keep=true;root.add(m);
@@ -3929,7 +3929,7 @@ function makeShowgirl(){
   // casinos with neon outlines and signs
   const neonC=[0xff3fd2,0x45eaff,0xffd040,0x6dff7a,0xff7a30,0xb46bff],names=['LUCKY 7','NEON OASIS','COSMIC CASINO','GOLDEN SAUCER','ALIEN ACES','STARLIGHT','DESERT ROSE','ROYAL FLUSH'];
   const casinos=[];let ni=0;
-  for(const side of[-1,1])for(let k=0;k<5;k++){const z=-560+k*270+(side>0?120:0);if(side<0&&k===1)continue; // leave space for the pyramid
+  for(const side of[-1,1])for(let k=0;k<5;k++){const z=-560+k*270+(side>0?120:0);if(side<0&&k===4)continue;if(side>0&&k===0)continue; // leave space for the pyramid (south-west) and the Sphere (north-east)
     const x=SX+side*rand(85,110),w=rand(50,70),d=rand(40,60),h=rand(70,170),c=neonC[(ni)%neonC.length];
     const tw=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),lam(pick([0x2a2a3a,0x3a2a3a,0x2a3a4a,0xd8c8b0]),0x0a0a14));tw.position.set(x,h/2,z);root.add(tw);
     const ed=new THREE.LineSegments(new THREE.EdgesGeometry(tw.geometry),new THREE.LineBasicMaterial({color:c}));ed.position.copy(tw.position);root.add(ed);
@@ -3955,10 +3955,14 @@ function makeShowgirl(){
     sign(names[ni%names.length],'#'+new THREE.Color(c).getHexString(),d*0.9,d*0.22,x-side*(w/2+0.6),h*0.55,z,side<0?PI/2:-PI/2);
     colliders.push({x0:x-w/2,x1:x+w/2,z0:z-d/2,z1:z+d/2,h,y0:0});ni++;}
   // 🔺 the black glass pyramid casino + Sky Beam (fly into the beam = express elevator to space)
-  const PX=SX-140,PZ=-290;
-  const glass=new THREE.MeshPhongMaterial({color:0x101018,emissive:0x05050a,specular:0x8aa8ff,shininess:140,flatShading:true});
+  const PX=SX-140,PZ=560; // south-west end of the Strip, the opposite end from Fremont Street
+  const glass=new THREE.MeshPhongMaterial({color:0x06060a,emissive:0x020204,specular:0xcfe0ff,shininess:260,flatShading:true});
   bigPyramid(PX,PZ,170,120,glass);
   const edges=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.ConeGeometry(170/Math.SQRT2,120,4,1)),new THREE.LineBasicMaterial({color:0xffd040}));edges.rotation.y=PI/4;edges.position.set(PX,60,PZ);root.add(edges);
+  {const pts=[];for(let k=1;k<12;k++){const y=k*10,hb=85*(1-y/120)+0.15;for(const [x0,z0,x1,z1] of[[-hb,-hb,hb,-hb],[hb,-hb,hb,hb],[hb,hb,-hb,hb],[-hb,hb,-hb,-hb]])pts.push(PX+x0,y,PZ+z0,PX+x1,y,PZ+z1);}
+    const lg=new THREE.BufferGeometry();lg.setAttribute('position',new THREE.Float32BufferAttribute(pts,3));const ln=new THREE.LineSegments(lg,new THREE.LineBasicMaterial({color:0x3a6ad8,transparent:true,opacity:.55}));ln.userData.keep=true;root.add(ln); // glass panel seams
+    const glint=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:0xdfeaff,transparent:true,opacity:.5,blending:THREE.AdditiveBlending,depthWrite:false}));glint.scale.set(26,26,1);glint.userData.keep=true;root.add(glint);
+    planetAnim.push({town:'vegas',f:t=>{const u=(t*0.12)%1,y=10+u*100,hb=85*(1-y/120)+1.5;glint.position.set(PX+hb,y,PZ+hb*Math.sin(t*0.7));glint.material.opacity=0.25+0.3*Math.sin(u*PI);}});} // a highlight sliding up the glass
   const skyBeam=new THREE.Mesh(new THREE.CylinderGeometry(4,4,900,16,1,true),new THREE.MeshBasicMaterial({color:0xfaf6ff,transparent:true,opacity:.55,blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide}));skyBeam.position.set(PX,120+450,PZ);root.add(skyBeam);
   const beamGlow=glowSprite(0xffffff,PX,122,PZ,40,0.9);
   sign("PHARAOH'S PYRAMID",'#ffd040',70,14,PX+90,40,PZ,PI/2);
@@ -3996,6 +4000,17 @@ function makeShowgirl(){
       for(const dx of[-1.8,1.8])box(root,0.35,1.1,0.35,lam(0x343b47),x+dx,0.55,z);
     }
   }
+  // 🗼 SKY SPIRE: tall observation tower at the north end of the Strip, on the way to Fremont Street
+  {const TX=-78,TZ=-705,H=250,conc=lam(0xd8d4cc),dark=lam(0x2a2c36),K=m=>{m.userData.keep=true;return m;};
+    for(let k=0;k<3;k++){const a=k/3*2*PI+0.5,leg=new THREE.Mesh(new THREE.CylinderGeometry(3.2,6.5,H*0.8,8),conc);leg.position.set(TX+Math.cos(a)*13,H*0.4,TZ+Math.sin(a)*13);leg.rotation.set(Math.sin(a)*0.085,0,-Math.cos(a)*0.085);root.add(leg);}
+    const core=new THREE.Mesh(new THREE.CylinderGeometry(4,5,H*0.82,10),conc);core.position.set(TX,H*0.41,TZ);root.add(core);
+    for(const [y,r1,r2,hh,m] of[[H*0.8,10,17,7,conc],[H*0.8+6.5,21,17,6,dark],[H*0.8+12,22,21,5,conc],[H*0.8+17,15,22,5,dark],[H*0.8+22,9,15,5,conc]]){const p=new THREE.Mesh(new THREE.CylinderGeometry(r2,r1,hh,24),m);p.position.set(TX,y,TZ);root.add(p);}
+    for(const [y,r,c] of[[H*0.8+6.5,21.4,0xffd040],[H*0.8+12,22.6,0x45eaff],[H*0.8+17,19,0xff3fd2]]){const t=K(new THREE.Mesh(new THREE.TorusGeometry(r,0.5,6,48),basic(c)));t.rotation.x=PI/2;t.position.set(TX,y,TZ);root.add(t);}
+    const mast=new THREE.Mesh(new THREE.CylinderGeometry(0.5,2.4,70,8),lam(0xc02a2a));mast.position.set(TX,H*0.8+59,TZ);root.add(mast);const tip=K(glowSprite(0xff3030,TX,H*0.8+96,TZ,16,0.9));
+    box(root,60,10,44,0x3a2a3a,TX,5,TZ);box(root,62,1.5,46,basic(0xffd040),TX,10.6,TZ);sign('SKY SPIRE','#ffd040',40,9,TX+32,24,TZ,PI/2);
+    const ride=K(new THREE.Mesh(new THREE.TorusGeometry(26,0.8,6,40),basic(0x6dff7a)));ride.rotation.x=PI/2;ride.position.set(TX,H*0.8+24.5,TZ);root.add(ride);const pods=[];for(let k=0;k<6;k++){const c=K(new THREE.Mesh(new THREE.SphereGeometry(1.6,8,6),basic(neonC[k%neonC.length])));root.add(c);pods.push(c);} // spinning thrill ride on top
+    colliders.push({x0:TX-30,x1:TX+30,z0:TZ-22,z1:TZ+22,h:11,y0:0},{x0:TX-16,x1:TX+16,z0:TZ-16,z1:TZ+16,h:H*0.8,y0:0},{x0:TX-22,x1:TX+22,z0:TZ-22,z1:TZ+22,h:H*0.8+26,y0:H*0.8-4},{x0:TX-2,x1:TX+2,z0:TZ-2,z1:TZ+2,h:H*0.8+94,y0:0});
+    planetAnim.push({town:'vegas',f:t=>{pods.forEach((c,k)=>{const a=t*1.4+k/6*2*PI;c.position.set(TX+Math.cos(a)*26,H*0.8+24.5+Math.sin(t*2+k)*1.2,TZ+Math.sin(a)*26);});tip.material.opacity=0.4+0.5*Math.abs(Math.sin(t*2));}});}
   // 🎡 big wheel
   const wheel=new THREE.Group();wheel.position.set(SX+140,95,-260);root.add(wheel);
   wheel.add(new THREE.Mesh(new THREE.TorusGeometry(80,1.4,8,80),basic(0xff3fd2)));wheel.add(new THREE.Mesh(new THREE.TorusGeometry(76,0.6,6,80),basic(0x45eaff)));
@@ -4014,7 +4029,7 @@ function makeShowgirl(){
   const lever=new THREE.Group();lever.position.set(MX+27,30,MZ);root.add(lever);const stick=new THREE.Mesh(new THREE.CylinderGeometry(0.6,0.6,16,8),lam(0xd8d8e8));stick.position.y=8;lever.add(stick);const knob=new THREE.Mesh(new THREE.SphereGeometry(3,12,8),basic(0xff2a4a));knob.position.y=16;lever.add(knob);
   const knobGlow=glowSprite(0xff2a4a,MX+27,46,MZ,22,0.7);box(root,7,3,3,0xd8d8e8,MX+23,30,MZ);
   const slot={spin:0,cd:0,res:[0,0,0]};
-  // 🌐 the Sphere — giant glowing orb at the north-west end of the Strip
+  // 🌐 the Sphere — giant glowing orb on the east side of the Strip, north of the big wheel
   // "Welcome to Las Vegas" diamond sign at the south end of the Strip
   // the Sphere is a giant LED screen: it cycles through big pictures
   const sphC=document.createElement('canvas');sphC.width=1024;sphC.height=512;const sphG=sphC.getContext('2d');const sphTex=new THREE.CanvasTexture(sphC);
@@ -4049,10 +4064,10 @@ function makeShowgirl(){
   const sphEye={u:256,v:256};
 
   const sphereMat=new THREE.MeshBasicMaterial({map:sphTex,color:0xb8b8b8});
-  const sphere=new THREE.Mesh(new THREE.SphereGeometry(42,48,32),sphereMat);sphere.position.set(-260,44,-520);root.add(sphere);
-  (function(){const rb=new THREE.Mesh(new THREE.TorusGeometry(43,1.5,8,64),basic(0xffd84a));rb.rotation.x=PI/2;rb.position.set(-260,2,-520);root.add(rb);})();
-  colliders.push({x0:-260-42,x1:-260+42,z0:-520-42,z1:-520+42,h:88,y0:0});
-  {const sx=-260,sz=-520,sr=42,K=m=>{m.userData.keep=true;return m;};
+  const sphere=new THREE.Mesh(new THREE.SphereGeometry(42,48,32),sphereMat);sphere.position.set(150,44,-440);root.add(sphere);
+  (function(){const rb=new THREE.Mesh(new THREE.TorusGeometry(43,1.5,8,64),basic(0xffd84a));rb.rotation.x=PI/2;rb.position.set(150,2,-440);root.add(rb);})();
+  colliders.push({x0:150-42,x1:150+42,z0:-440-42,z1:-440+42,h:88,y0:0});
+  {const sx=150,sz=-440,sr=42,K=m=>{m.userData.keep=true;return m;};
     for(let i=0;i<6;i++){const a=i/6*PI,rib=new THREE.Mesh(new THREE.TorusGeometry(sr+0.2,0.16,5,48),lam(0x536477));rib.position.set(sx,44,sz);rib.rotation.y=a;root.add(rib);}
     const base=new THREE.Mesh(new THREE.CylinderGeometry(30,36,7,32),lam(0x303746));base.position.set(sx,3.5,sz);root.add(base);
     const lowerRing=K(new THREE.Mesh(new THREE.TorusGeometry(sr+2,0.9,8,96),basic(0x42eaff)));lowerRing.rotation.x=PI/2;lowerRing.position.set(sx,44,sz);root.add(lowerRing);
