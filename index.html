@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<!-- UFO Abduction · Copyright (c) 2026 Mando (Mando49). All rights reserved. See LICENSE. Do not copy, re-host or re-upload without written permission. -->
 <html lang="en">
 <head>
 <meta charset="utf-8">
@@ -6,6 +7,8 @@
 <title>UFO Abduction</title>
 <meta name="description" content="Fly a neon UFO, abduct cows, explore the Moon, Mars and alien planets. Free to play in your browser.">
 <meta name="theme-color" content="#0a0c2a">
+<meta name="author" content="Mando (Mando49)">
+<meta name="copyright" content="© 2026 Mando (Mando49). All rights reserved.">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -243,6 +246,7 @@ body.promo #hud,body.promo #controls,body.promo #keys,body.promo #mute,body.prom
     <div><button class="hbtn" id="logBtn">📖 ABDUCTION LOG</button></div>
     <div class="best" id="bankMenu"></div>
     <div class="best" id="bestMenu"></div>
+    <p style="font-size:11px;opacity:.6;margin:10px 0 0">© 2026 Mando · All rights reserved</p>
   </div>
 </div>
 
@@ -8510,7 +8514,7 @@ setInterval(()=>{if(!COACH.on||state!=='play')return;const C=COACH,T=isTouch;C.t
   else if(C.step===3&&(C.t>10||mode!=='ground')){C.step=4;C.on=false;coachSay('');try{localStorage.setItem('ufoCoach','1');}catch(e){}}
   else if(C.step===1&&C.t>40){C.t=0;coachSay('🚗 Tip: drop down with <b style="color:#7dffb0">'+(T?'▼':'F')+'</b> until the panel says BEAM OK, then hold '+(T?'BEAM':'SPACE')+' over a car');}
 },400);
-function startGame(free){coachStart();missionPeek(8);try{mechReset();if(window.MECH)MECH.cd=20;}catch(e){}try{rrReset();RR.cd=0;}catch(e){}TRIDE=null;if(BRIDE){BRIDE.ride=false;BRIDE.T.state='ground';BRIDE=null;}if(DRIVE){try{endDrive();}catch(e){DRIVE=null;}}TOMB.got=false;TOMB.in=false;JEEPS.forEach(J=>{J.g.position.set(J.x0,0,J.z0);J.g.rotation.set(0,J.y0,0);J.did=false;});if(RIDE){RIDE.state='ground';RIDE=null;}SWIM=false;if(FLYP){PILOT_G[FLYP.k].visible=false;FLYP.g.visible=true;FLYP.col.h=5;FLYP=null;applyShip();}
+function startGame(free){if(window.__LOCKED)return;coachStart();missionPeek(8);try{mechReset();if(window.MECH)MECH.cd=20;}catch(e){}try{rrReset();RR.cd=0;}catch(e){}TRIDE=null;if(BRIDE){BRIDE.ride=false;BRIDE.T.state='ground';BRIDE=null;}if(DRIVE){try{endDrive();}catch(e){DRIVE=null;}}TOMB.got=false;TOMB.in=false;JEEPS.forEach(J=>{J.g.position.set(J.x0,0,J.z0);J.g.rotation.set(0,J.y0,0);J.did=false;});if(RIDE){RIDE.state='ground';RIDE=null;}SWIM=false;if(FLYP){PILOT_G[FLYP.k].visible=false;FLYP.g.visible=true;FLYP.col.h=5;FLYP=null;applyShip();}
   initAudio();freeMode=free===true;document.body.classList.toggle('free',freeMode);
   score=0;timer=150;shield=100;energy=100;lock=false;cows=0;cars=0;
   yaw=0;speed=0;vy=0;pos.set(0,60,400);hitCd=0;
@@ -9003,5 +9007,14 @@ requestAnimationFrame(loop);
 },0)),30);
 </script>
 <script>try{if('serviceWorker' in navigator&&location.hostname.endsWith('github.io'))navigator.serviceWorker.register('sw.js').catch(()=>{});}catch(e){}</script>
+<script>
+// Site lock: the game only runs on addresses its owner has approved. A copy hosted anywhere else shows a link to the real game.
+(function(){try{var A=atob('bWFuZG80OS5naXRodWIuaW98bG9jYWxob3N0fDEyNy4wLjAuMXxpdGNoLmlvfGl0Y2guem9uZXxod2Nkbi5uZXR8Y3JhenlnYW1lcy5jb218cG9raS5jb218cG9raS1nZG4uY29tfGxhc3ZlZ2Fzd2luZG93dGludG52LmNvbQ==').split('|'),h=location.hostname.toLowerCase(),p=location.protocol;
+  var ok=window.__NOLOCK===1||!/^https?:$/.test(p)?p!=='file:'||window.__NOLOCK===1:A.some(function(d){return h===d||h.slice(-d.length-1)==='.'+d;});
+  if(ok)return;window.__LOCKED=1;var d=document.createElement('div');d.id='sitelock';
+  d.style.cssText='position:fixed;inset:0;z-index:99999;background:#070920;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px;font-family:system-ui,sans-serif';
+  d.innerHTML='<div style="font-size:54px">🛸</div><h2 style="margin:10px 0">UFO ABDUCTION</h2><p style="max-width:420px;line-height:1.5">This copy is not authorized.<br>Play the real game, free:</p><a href="https://mando49.github.io/ufo-abduction/" style="color:#7dffb0;font-size:20px;font-weight:800">mando49.github.io/ufo-abduction</a><p style="font-size:12px;opacity:.6;margin-top:18px">© 2026 Mando · All rights reserved</p>';
+  document.body.appendChild(d);}catch(e){}})();
+</script>
 </body>
 </html>

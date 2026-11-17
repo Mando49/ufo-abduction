@@ -168,3 +168,8 @@ Speed pass: small props, lamps and glows far from the camera are skipped (distan
 Missions: 166 total. Fixed two pairs of missions that shared an id (one of each pair could never be completed), fixed the Sphere mission (it still pointed at the Sphere's old spot), added 22 missions for the new things to beam and find, and new players now get simple nearby missions first.
 
 First five minutes: the menu now leads with PLAY (controls are folded away), a first-game coach gives four short hints, and on phones the mission list sits at the top instead of under the joystick.
+
+## License
+© 2026 Mando (Mando49). All rights reserved. See [LICENSE](LICENSE). Third-party parts are listed in [CREDITS.md](CREDITS.md).
+
+The game is site-locked: it only runs on approved addresses (this GitHub Pages site, itch.io, the game portals, and localhost for testing). To approve a new address, add it to the list in the site-lock script at the bottom of `index.html`.
