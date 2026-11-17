@@ -1104,9 +1104,9 @@ const farmBirds=[],fireflies=[];
 // ---------- targets ----------
 const W=0xf2f2f2,B=0x1a1a1a,PK=0xf0a0a0;
 // ---------- real 3D models (made with Higgsfield / Tripo) ----------
-const MODELS={cow:{file:'cow',len:3.0,rotY:PI/2,list:[]},car:{file:'car',len:4.4,rotY:0,list:[]},heli:{file:'heli',len:12,rotY:0,list:[],lift:2},whale:{file:'whale',len:24,rotY:0,list:[],lift:1.4},jet:{file:'jet',len:12,rotY:0,list:[],lift:2},truck:{file:'truck',len:7,rotY:0,list:[]},police:{file:'police',len:4.6,rotY:0,list:[]},shadow:{file:'shadow',len:12.5,rotY:PI,list:[],yOff:-0.35,recolor:true},
+const MODELS={cow:{file:'cow',len:3.0,rotY:PI/2,list:[]},car:{file:'car',len:4.4,rotY:0,list:[]},heli:{file:'heli',len:12,rotY:0,list:[],lift:2},humpback:{file:'humpback',len:3.8,rotY:-PI/2,list:[],lift:1.4},jet:{file:'jet',len:12,rotY:0,list:[],lift:2},truck:{file:'truck',len:7,rotY:0,list:[]},police:{file:'police',len:4.6,rotY:0,list:[]},shadow:{file:'shadow',len:12.5,rotY:PI,list:[],yOff:-0.35,recolor:true},
   camel:{file:'camel',height:4.6,rotY:PI/2,list:[]},penguin:{file:'penguin',height:2.8,rotY:0,list:[]},dino:{file:'dino',height:4.6,rotY:PI/2,list:[]},
-  jaguar:{file:'jaguar',height:2.4,rotY:0,list:[]},shark:{file:'shark',len:3.8,rotY:PI/2,list:[]},tractor:{file:'tractor',height:3.6,rotY:0,list:[]},
+  jaguar:{file:'jaguar',height:2.4,rotY:0,list:[]},shark:{file:'shark',len:3.8,rotY:PI/2,list:[]},turtle:{file:'turtle',len:3,rotY:PI,list:[],lift:1.3},tractor:{file:'tractor',height:3.6,rotY:0,list:[]},
   barn:{file:'barn',height:14,rotY:-PI/2,list:[]},chest:{file:'chest',height:2.6,rotY:0,list:[]},
   sr71:{file:'sr71',len:34,rotY:0,list:[],lift:2.6},bop:{file:'bop',len:15,rotY:PI/2,list:[],lift:2.6},dropship:{file:'dropship',len:22,rotY:0,list:[]},wing:{file:'wing',len:22,rotY:-PI/2,list:[],lift:2.6},
   trainF:{file:'trainF',len:13.5,rotY:PI/2,list:[]},trainM:{file:'trainM',len:12.5,rotY:PI/2,list:[]},
@@ -5181,7 +5181,7 @@ function fishMesh(kind){
     const fin=new THREE.Mesh(new THREE.ConeGeometry(0.35,kind==='shark'?1.2:0.6,4),mat);fin.position.set(0,0.75,0);fin.scale.z=0.3;g.add(fin);
     for(const z of[-0.4,0.4]){const e=new THREE.Mesh(new THREE.SphereGeometry(0.12,8,6),basic(0x050505));e.position.set(1.25,0.15,z);g.add(e);}
     if(kind==='whale'){const sp=new THREE.Mesh(new THREE.SphereGeometry(1,16,10),new THREE.MeshLambertMaterial({color:0xd8e0e8}));sp.scale.set(1.4,0.35,0.5);sp.position.y=-0.4;g.add(sp);}}
-  if(kind!=='fish'&&kind!=='turtle'){g.userData.tail=null;useModel(kind,g);}
+  if(kind!=='fish'){g.userData.tail=null;useModel(kind,g);}
   g.scale.setScalar(S);g.userData.emoji={fish:'🐟',shark:'🦈',turtle:'🐢',whale:'🐋',dolphin:'🐬',octopus:'🐙'}[kind];g.userData.pts={fish:15,shark:40,turtle:25,whale:150,dolphin:60,octopus:90}[kind];
   root.add(g);return g;
 }
@@ -5456,7 +5456,65 @@ beginTown('ocean');
   [['fish',40],['turtle',10],['shark',10],['whale',4],['dolphin',10],['octopus',8]].forEach(([k,n])=>{for(let i=0;i<n;i++){const T={type:'critter',mesh:fishMesh(k),spawn:spawnSwim,fl:fields};T.spawn(T);targets.push(T);}});
   planetAnim.push({town:'ocean',f:t=>{targets.forEach(T=>{if(T.state==='ground'){T.mesh.position.y=T.swimY+Math.sin(t*1.5+T.mesh.id)*0.8;if(T.mesh.userData.tail)T.mesh.userData.tail.rotation.y=Math.sin(t*8+T.mesh.id)*0.4;}});}});
 })();
-endTown('ocean',[20,280]);Object.assign(towns.ocean,{planet:true,fogC:new THREE.Color(0x0a5a7a),skyTint:0x0a3a5a,label:'🌊 THE OCEAN'});
+// 🌊 THE OCEAN, part 2: moving light on the sea floor, a living reef floor, the Lost Galleon, a sunken plane, a whale skeleton, the giant clam + pearl, humpbacks passing overhead
+(function(){
+  const objs=[],add=m=>{objs.push(m);return m;},wood=new THREE.MeshLambertMaterial({color:0x5a4028,flatShading:true}),woodD=lam(0x3a2a1a);
+  const clearAt=(x0,z0,R)=>{for(let k=0;k<70;k++){const a=k*2.4,d=k*7,x=x0+Math.cos(a)*d,z=z0+Math.sin(a)*d;if(Math.hypot(x,z)<580&&!colliders.some(c=>x+R>c.x0&&x-R<c.x1&&z+R>c.z0&&z-R<c.z1)&&!fields.some(f=>Math.abs(f.x-x)<50+R&&Math.abs(f.z-z)<50+R))return [x,z];}return [x0,z0];};
+  // --- caustics: rippling sunlight on the sand, follows you around
+  const ct=texCanvas(256,256,q=>{q.fillStyle='#000';q.fillRect(0,0,256,256);q.lineCap='round';for(let i=0;i<230;i++){const x=rand(0,256),y=rand(0,256),r=rand(6,17);q.strokeStyle=`rgba(190,255,250,${rand(.18,.5).toFixed(2)})`;q.lineWidth=rand(0.8,1.8);
+      for(const [ox,oy] of[[0,0],[256,0],[-256,0],[0,256],[0,-256]]){q.beginPath();q.ellipse(x+ox,y+oy,r,r*rand(0.45,0.9),rand(0,3),rand(0,2),rand(3.4,6.2));q.stroke();}}});
+  ct.wrapS=ct.wrapT=THREE.RepeatWrapping;ct.repeat.set(7,7);const ct2=ct.clone();ct2.needsUpdate=true;ct2.repeat.set(4.5,4.5);
+  const cau=[ct,ct2].map((tx,i)=>{const m=new THREE.Mesh(new THREE.PlaneGeometry(700,700),new THREE.MeshBasicMaterial({map:tx,transparent:true,opacity:i?0.15:0.2,blending:THREE.AdditiveBlending,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-2-i,polygonOffsetUnits:-2-i}));m.rotation.x=-PI/2;m.position.y=0.15+i*0.05;m.userData.keep=true;root.add(m);return m;});
+  // --- a living sea floor everywhere (instanced: a handful of draw calls)
+  const sc=(n,f)=>{const a=[];n*=2;for(let i=0;i<n;i++){const x=rand(-500,500),z=rand(-500,500);a.push(f(x,z));}return a;};
+  {const g=new THREE.ConeGeometry(0.22,1,4);g.translate(0,0.5,0);const gr=[];for(let i=0;i<620;i++){const x=rand(-500,500),z=rand(-500,500),n=3+(Math.random()*4|0);for(let k=0;k<n;k++)gr.push({x:x+rand(-1.6,1.6),z:z+rand(-1.6,1.6),h:rand(2,6)});}
+    inst(g,new THREE.MeshLambertMaterial({color:0x4ab85a,emissive:0x0c3a14}),gr,d=>compose(d.x,0,d.z,1,d.h,1,rand(-.3,.3),0,rand(-.3,.3)));
+    const fan=new THREE.CircleGeometry(1,9,0,PI);const fans=sc(150,(x,z)=>({x,z,s:rand(2,5),c:pick([0xff5a8a,0xb46bff,0xff8a3d,0xffd84a])}));
+    const fm=inst(fan,new THREE.MeshLambertMaterial({color:0xffffff,emissive:0x2a1020,side:THREE.DoubleSide}),fans,d=>compose(d.x,0,d.z,d.s,d.s*1.2,d.s,0,rand(0,3),0));
+    const col=new THREE.Color();if(fm&&fm.setColorAt){fans.forEach((d,i)=>{col.setHex(d.c);fm.setColorAt(i,col);});if(fm.instanceColor)fm.instanceColor.needsUpdate=true;}
+    const tg=new THREE.CylinderGeometry(0.5,0.38,1,7);tg.translate(0,0.5,0);const tubes=[];sc(70,(x,z)=>{const n=3+(Math.random()*4|0);for(let k=0;k<n;k++)tubes.push({x:x+rand(-1.5,1.5),z:z+rand(-1.5,1.5),h:rand(1.5,5),s:rand(0.6,1.2)});});
+    inst(tg,new THREE.MeshLambertMaterial({color:0xf0c030,emissive:0x4a3000}),tubes,d=>compose(d.x,0,d.z,d.s,d.h,d.s,rand(-.2,.2),0,rand(-.2,.2)));
+    const tb=new THREE.CylinderGeometry(1,0.25,0.5,10);tb.translate(0,1.4,0);inst(tb,new THREE.MeshLambertMaterial({color:0x3ac8b8,emissive:0x083a34}),sc(80,(x,z)=>({x,z,s:rand(1.6,4.2)})),d=>compose(d.x,0,d.z,d.s,d.s*0.8,d.s));
+    const st=new THREE.CylinderGeometry(1,1,0.25,5);inst(st,new THREE.MeshLambertMaterial({color:0xff7a3a,emissive:0x4a1800}),sc(140,(x,z)=>({x,z,s:rand(0.6,1.4)})),d=>compose(d.x,0.15,d.z,d.s,1,d.s,0,rand(0,3),0));
+    const ur=new THREE.IcosahedronGeometry(0.7,0);inst(ur,new THREE.MeshLambertMaterial({color:0x2a1a3a,emissive:0x140a22,flatShading:true}),sc(110,(x,z)=>({x,z,s:rand(0.6,1.3)})),d=>compose(d.x,d.s*0.4,d.z,d.s,d.s*0.8,d.s,0,rand(0,3),0));
+    const sh=new THREE.SphereGeometry(0.6,7,4,0,2*PI,0,PI/2);inst(sh,new THREE.MeshLambertMaterial({color:0xf4e0d0,emissive:0x3a2a20}),sc(160,(x,z)=>({x,z,s:rand(0.5,1.2)})),d=>compose(d.x,0,d.z,d.s,d.s*0.6,d.s*1.3,0,rand(0,3),0));}
+  // --- ⚓ THE LOST GALLEON
+  const [GX,GZ]=clearAt(-240,-200,45);window.__oc={G:[GX,GZ]};{const G=new THREE.Group();G.position.set(GX,0,GZ);G.rotation.set(0.1,0.7,0.34);
+    const hull=new THREE.Mesh(new THREE.CylinderGeometry(9,6,52,10,1,false,0,PI),wood);hull.rotation.z=PI/2;hull.rotation.y=PI/2;hull.position.y=7;hull.scale.set(1,1,1.25);G.add(hull);
+    box(G,50,1,15,woodD,0,7.2,0);box(G,14,8,14,wood,-19,11,0);box(G,10,5,13,wood,20,9.5,0);box(G,15,0.8,15,woodD,-19,15.2,0);
+    for(const [x,h,rz] of[[-6,34,0.1],[10,22,-0.5]]){const m=new THREE.Mesh(new THREE.CylinderGeometry(0.7,0.9,h,7),woodD);m.position.set(x,7+h/2,0);m.rotation.z=rz;G.add(m);const y=box(G,0.6,0.6,16,woodD,x+Math.sin(-rz)*h*0.3,7+h*0.62,0);y.rotation.z=rz;}
+    for(let k=0;k<5;k++)for(const s of[-1,1]){const c=new THREE.Mesh(new THREE.CylinderGeometry(0.5,0.6,3.4,7),lam(0x22262c));c.rotation.x=PI/2;c.position.set(-12+k*6,8.6,s*8);G.add(c);}
+    const sail=box(G,0.15,12,13,new THREE.MeshLambertMaterial({color:0xb8b098,transparent:true,opacity:0.7,side:THREE.DoubleSide}),-6,26,0);sail.rotation.z=0.1;
+    for(let k=0;k<26;k++){const kp=box(G,0.5,rand(3,9),0.14,lam(0x2a7a3a),rand(-24,24),10,rand(-7,7));kp.rotation.set(rand(-.3,.3),rand(0,3),rand(-.3,.3));}
+    G.traverse(o=>{if(o.isMesh)objs.push(o);});root.add(G);colliders.push({x0:GX-20,x1:GX+20,z0:GZ-20,z1:GZ+20,h:14,y0:0});
+    for(let k=0;k<5;k++)add(box(root,rand(2,4),rand(2,3),rand(2,4),wood,GX+rand(-34,34),1,GZ+rand(-34,34))).rotation.y=rand(0,3);}
+  const gG=glowSprite(0xffd060,GX,7,GZ,34,0.4);sign('THE LOST GALLEON','#ffd060',22,3.2,GX,44,GZ,0);
+  // --- ✈️ a sunken plane, overgrown
+  const [PX,PZ]=clearAt(260,-260,30);window.__oc.P=[PX,PZ];{const P=new THREE.Group(),al=new THREE.MeshLambertMaterial({color:0x7a9a9a,flatShading:true});P.position.set(PX,2.2,PZ);P.rotation.set(0.12,2.2,-0.2);
+    const f=new THREE.Mesh(new THREE.CylinderGeometry(2.4,1.2,30,10),al);f.rotation.z=PI/2;P.add(f);const n=new THREE.Mesh(new THREE.SphereGeometry(2.4,10,8),al);n.position.x=-15;n.scale.x=1.4;P.add(n);
+    box(P,7,0.5,40,al,-3,0.2,0);box(P,4,0.4,14,al,13,0.6,0);box(P,4.5,6,0.4,al,13.5,3.4,0);for(const s of[-1,1]){const e=new THREE.Mesh(new THREE.CylinderGeometry(1.3,1.3,5,8),lam(0x3a4a4a));e.rotation.z=PI/2;e.position.set(-5,-0.4,s*10);P.add(e);box(P,0.3,7,0.6,lam(0x22262c),-7.8,-0.4,s*10);}
+    box(P,5,1.4,3.2,basic(0x1a3a44),-9,1.8,0);P.traverse(o=>{if(o.isMesh)objs.push(o);});root.add(P);colliders.push({x0:PX-14,x1:PX+14,z0:PZ-14,z1:PZ+14,h:7,y0:0});}
+  sign('THE LOST PLANE','#9fe8ff',18,2.8,PX,26,PZ,0);
+  // --- 🦴 whale skeleton
+  const [WX,WZ]=clearAt(120,250,34);window.__oc.W=[WX,WZ];{const bone=new THREE.MeshLambertMaterial({color:0xe8e0cc,flatShading:true});for(let k=0;k<11;k++){const r=7-Math.abs(k-4)*0.55,rb=add(new THREE.Mesh(new THREE.TorusGeometry(r,0.5,5,12,PI),bone));rb.position.set(WX-22+k*4.4,0,WZ);rb.rotation.y=PI/2;root.add(rb);}
+    const sp=add(new THREE.Mesh(new THREE.CylinderGeometry(0.8,0.5,62,6),bone));sp.rotation.z=PI/2;sp.position.set(WX+4,6.6,WZ);root.add(sp);const sk=add(new THREE.Mesh(new THREE.ConeGeometry(5,16,6),bone));sk.rotation.z=PI/2;sk.scale.z=0.8;sk.position.set(WX-33,4,WZ);root.add(sk);
+    for(const s of[-1,1])add(box(root,14,0.7,1.6,bone,WX-34,1.4,WZ+s*3.4)).rotation.y=s*0.14;}
+  // --- 🦪 the giant clam and its pearl
+  const [CX,CZ]=clearAt(-60,330,18);window.__oc.C=[CX,CZ];const lid=new THREE.Group();{const sm=new THREE.MeshLambertMaterial({color:0xb48ad8,emissive:0x2a1040,flatShading:true,side:THREE.DoubleSide}),half=()=>{const m=new THREE.Mesh(new THREE.SphereGeometry(8,12,6,0,2*PI,0,PI/2),sm);m.scale.set(1,0.45,0.8);return m;};
+    const bot=half();bot.rotation.x=PI;bot.position.set(CX,3.6,CZ);root.add(bot);add(bot);const top=half();top.position.z=6.4;lid.add(top);lid.position.set(CX,3.8,CZ-6.4);lid.traverse(o=>o.userData.keep=true);root.add(lid);colliders.push({x0:CX-7,x1:CX+7,z0:CZ-6,z1:CZ+6,h:4,y0:0});}
+  const pearl=new THREE.Mesh(new THREE.SphereGeometry(1.7,14,10),new THREE.MeshPhongMaterial({color:0xfff4fa,emissive:0x8a6a90,shininess:200,specular:0xffffff}));pearl.userData.emoji='🦪';pearl.userData.pts=350;pearl.userData.heat=0;pearl.userData.keep=true;root.add(pearl);
+  const pT={type:'critter',mesh:pearl,still:true,swimY:5.2,spawn:T=>{T.mesh.position.set(CX,5,CZ);resetRot(T.mesh);T.mesh.visible=true;T.state='ground';}};pT.spawn(pT);pearl.userData.T=pT;targets.push(pT);const pG=glowSprite(0xffd0f4,CX,5.4,CZ,14,0.6);
+  freezeStatic(objs,root,true);
+  // --- 🐋 humpbacks gliding far overhead
+  const hb=[];for(let i=0;i<2;i++){const g=new THREE.Group(),inn=new THREE.Group();inn.scale.setScalar(11);g.add(inn);g.userData.keep=true;root.add(g);useModel('humpback',inn);hb.push({g,ph:i*3.1,R:230+i*130,y:78+i*14,w:i?0.03:-0.036});}
+  let seen={},song=20;
+  planetAnim.push({town:'ocean',f:(t,dt)=>{cau[0].position.set(Math.round(pos.x/100)*100,0.15,Math.round(pos.z/100)*100);cau[1].position.set(Math.round(pos.x/155.5556)*155.5556,0.2,Math.round(pos.z/155.5556)*155.5556);ct.offset.set(t*0.012,t*0.008);ct2.offset.set(-t*0.009,t*0.011);cau[0].material.opacity=0.18+0.06*Math.sin(t*1.3);
+    gG.material.opacity=0.3+0.14*Math.sin(t*1.6);lid.rotation.x=-0.5-0.32*(0.5+0.5*Math.sin(t*0.7));pG.material.opacity=pT.state==='ground'?0.45+0.25*Math.sin(t*2.4):0;
+    hb.forEach(H=>{const a=t*H.w+H.ph;H.g.position.set(Math.cos(a)*H.R,H.y+Math.sin(t*0.3+H.ph)*5,Math.sin(a)*H.R);H.g.rotation.set(0,-a-Math.sign(H.w)*PI/2+PI/2,0);H.g.children[0].rotation.z=Math.sin(t*0.5+H.ph)*0.08;});
+    if(state!=='play'){seen={};return;}song-=dt;if(song<=0){song=rand(18,34);blip(180,90,1.6,'sine',0.05);setTimeout(()=>blip(120,260,1.4,'sine',0.045),900);}
+    for(const [k,x,z,msg] of[['g',GX,GZ,'⚓ THE LOST GALLEON! +150'],['p',PX,PZ,'✈️ THE LOST PLANE! +150'],['w',WX,WZ,'🦴 A WHALE SKELETON +80']]){if(!seen[k]&&Math.hypot(pos.x-x,pos.z-z)<42){seen[k]=1;score+=k==='w'?80:150;pop(msg);blip(400,1100,0.4,'triangle',0.09);}}}});
+})();
+endTown('ocean',[30,340]);Object.assign(towns.ocean,{planet:true,fogC:new THREE.Color(0x0a5a7a),skyTint:0x0a3a5a,label:'🌊 THE OCEAN'});
 const PLANE_SPOTS=[];const CARRIER={x:220,z:-170,deckY:16,g:null,measured:false,hx:72,hz:21};
 function carrierDeckY(){const C=CARRIER;if(!C.measured&&C.g&&MODELS.carrier.proto){C.measured=true;const rc=new THREE.Raycaster(),hs=[];C.g.updateMatrixWorld(true);
     for(let x=-60;x<=60;x+=10)for(const z of[-8,0,8]){rc.set(new V3(C.x+x,300,C.z+z),new V3(0,-1,0));const h=rc.intersectObject(C.g,true)[0];if(h)hs.push(h.point.y);}
@@ -5596,7 +5654,7 @@ beginTown('seas');
     const l=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:i%2?0xff4040:0x40ff70,transparent:true,blending:THREE.AdditiveBlending,depthWrite:false}));l.position.y=5.2;l.scale.set(4,4,1);g.add(l);g.traverse(o=>o.userData.keep=true);g.position.set(Math.cos(a)*d,0,Math.sin(a)*d);root.add(g);buoys.push({g,l,ph:rand(0,7)});}
   freezeStatic(objs,root,true);
   // --- 🐋 whales that breach and spout, 🦈 shark fins round the wreck, 🕊️ gulls
-  const whales=[];for(let i=0;i<4;i++){const g=new THREE.Group(),inn=new THREE.Group();g.add(inn);const b=new THREE.Mesh(new THREE.SphereGeometry(1,12,8),lam(0x3a4a5a));b.scale.set(11,3,3.4);inn.add(b);g.userData.emoji='🐋';g.userData.pts=300;g.userData.heat=0.2;inn.scale.setScalar(5);b.scale.set(2.2,0.6,0.7);root.add(g);useModel('whale',inn);
+  const whales=[];for(let i=0;i<4;i++){const g=new THREE.Group(),inn=new THREE.Group();g.add(inn);const b=new THREE.Mesh(new THREE.SphereGeometry(1,12,8),lam(0x3a4a5a));b.scale.set(11,3,3.4);inn.add(b);g.userData.emoji='🐋';g.userData.pts=300;g.userData.heat=0.2;inn.scale.setScalar(5);b.scale.set(2.2,0.6,0.7);root.add(g);useModel('humpback',inn);
     const sp=glowSprite(0xffffff,0,0,0,8,0);sp.userData.keep=true;const T={type:'critter',mesh:g,still:true,spawn:T=>{T.mesh.visible=true;T.state='ground';resetRot(T.mesh);}};T.state='ground';g.userData.T=T;targets.push(T);
     whales.push({T,g,sp,cx:[-260,330,-80,430][i],cz:[-120,-360,200,470][i],ph:i*2.3,w:i%2?0.07:-0.07});}
   const fg=new THREE.BufferGeometry();fg.setAttribute('position',new THREE.Float32BufferAttribute([-1.6,0,0, 1.4,0,0, 0.9,3.2,0],3));fg.computeVertexNormals();const finM=new THREE.MeshLambertMaterial({color:0x4a5560,side:THREE.DoubleSide});
@@ -6313,7 +6371,7 @@ renderShop();
 // ---------- 📖 Abduction Log: a collection book of everything ever beamed up ----------
 const LOG_NAMES={'🐄':'Cow','🚗':'Car','🚓':'Police Car','🚚':'Truck','😴':'Sleeper','🚶':'Walker','🚜':'Tractor','🦊':'Fox','🤖':'Robot','📣':'Cheerleader','🏈':'Football Player','🎈':'Balloon','🏎️':'Luxury / Race Car','📺':'News Van','🌮':'Taco Truck','🍔':'Diner Guest','🔘':'Mystery Orb','🌑':'Jellyfish UFO',
   '👽':'Little Alien','🏃':'Area 51 Raider','🤳':'Streamer','🪖':'Soldier','🐎':'Mustang','🫏':'Burro','🔩':'Secret Tech','🕴️':'Man in Black','❄️':'Yeti','🐧':'Penguin','🦍':'Ice Ape','🦕':'Dinosaur','🦀':'Lava Crab','🦖':'T-Rex','🚙':'Moon Rover','🧊':'Hypercube','🪼':'Glitch Jelly','🤍':'Tall White','💙':'Nordic',
-  '🐪':'Camel','🧟':'Mummy','🐆':'Jaguar','🧗':'Climber / Zipliner','💰':'Treasure Chest','🏝️':'Islander','🧑‍🚀':'Astronaut','🐾':'Whitefoot','🧙':'Lost City Citizen','🦅':'Pterodactyl','🦸':'Captain Zap (street performer)','👹':'Fuzzy Monster Mascot','🤠':'Golden Cowboy Statue','📸':'Fremont Tourist','🛩️':'Fighter Jet','🚤':'Speedboat','🛫':'Airliner','🥾':'Hiker','🕺':'Elvis','💃':'Showgirl','🚢':'Submarine','🐟':'Fish','🐢':'Sea Turtle','🦈':'Shark','🐋':'Whale','🐬':'Dolphin','🐙':'Octopus','🎣':'Fishing Boat','⛵':'Sailboat','👾':'Alien Specimen','🥼':'Scientist','🛞':'Mars Rover','🚁':'Mars Helicopter','💎':'Cave Crystal','🦇':'Cave Bat','👑':'Sleeping King','🛶':'Nile Boat','🦜':'Toucan / Macaw','🐒':'Spider Monkey','🦝':'Coati','🦎':'Iguana','🦃':'Wild Turkey','🪶':'Aztec Warrior','🌺':'Aztec Woman','💚':'Family & Friends','🪼':'Sky Jelly','🎤':'Zeta Live Band','🤴':'Pharaoh','👸':'Queen of the Nile','⚱️':'Golden Sarcophagus','⛏️':'Archaeologist','🐊':'Crocodile','👻':'Ghost Ship','🦌':'Reindeer','🎅':'Santa\'s Sleigh','🎁':'Present','🦶':'Bigfoot','🦄':'Unicorn','🎐':'Gas Floater','🛰️':'Lost Probe','🩶':'Grey','🦎':'Reptilian','🦗':'Mantis'};
+  '🐪':'Camel','🧟':'Mummy','🐆':'Jaguar','🧗':'Climber / Zipliner','🦪':'Giant Pearl','💰':'Treasure Chest','🏝️':'Islander','🧑‍🚀':'Astronaut','🐾':'Whitefoot','🧙':'Lost City Citizen','🦅':'Pterodactyl','🦸':'Captain Zap (street performer)','👹':'Fuzzy Monster Mascot','🤠':'Golden Cowboy Statue','📸':'Fremont Tourist','🛩️':'Fighter Jet','🚤':'Speedboat','🛫':'Airliner','🥾':'Hiker','🕺':'Elvis','💃':'Showgirl','🚢':'Submarine','🐟':'Fish','🐢':'Sea Turtle','🦈':'Shark','🐋':'Whale','🐬':'Dolphin','🐙':'Octopus','🎣':'Fishing Boat','⛵':'Sailboat','👾':'Alien Specimen','🥼':'Scientist','🛞':'Mars Rover','🚁':'Mars Helicopter','💎':'Cave Crystal','🦇':'Cave Bat','👑':'Sleeping King','🛶':'Nile Boat','🦜':'Toucan / Macaw','🐒':'Spider Monkey','🦝':'Coati','🦎':'Iguana','🦃':'Wild Turkey','🪶':'Aztec Warrior','🌺':'Aztec Woman','💚':'Family & Friends','🪼':'Sky Jelly','🎤':'Zeta Live Band','🤴':'Pharaoh','👸':'Queen of the Nile','⚱️':'Golden Sarcophagus','⛏️':'Archaeologist','🐊':'Crocodile','👻':'Ghost Ship','🦌':'Reindeer','🎅':'Santa\'s Sleigh','🎁':'Present','🦶':'Bigfoot','🦄':'Unicorn','🎐':'Gas Floater','🛰️':'Lost Probe','🩶':'Grey','🦎':'Reptilian','🦗':'Mantis'};
 let LOG={};try{LOG=JSON.parse(localStorage.getItem('ufoLog')||'{}');}catch(e){}
 const logKey=T=>{const u=T.mesh.userData;return u.emoji||(u.police?'🚓':{cow:'🐄',car:'🚗',truck:'🚚'}[T.type]);};
 let LOG_CAT=null;

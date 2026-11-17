@@ -155,3 +155,6 @@ The Moon: Luna Base One (connecting tubes, solar field, tracking dish, fuel tank
 Mars: Ares Colony (greenhouses, habitat modules, solar field, a rocket on the pad, colonists), the Face with three pyramids (+150), ancient ruins round a glowing obelisk (+150), the Great Rift canyon, polar ice in the north, 3D crater rims, dunes, a blue sunset and two drivable buggies.
 
 The Open Sea: a smoking volcano island, a beach village with a pier, a treasure chest under the X (400), a lighthouse with a sweeping beam, an oil rig with a gas flare, a shipwreck in the arms of a kraken (500), a ghost ship circling the Bermuda Triangle (350), sea stacks, breaching whales (300), shark fins, gulls, blinking buoys and a low sun with a glitter path. Moon and Mars crews are now real 3D astronauts.
+
+Open Sea waves now have a curled shape with foam and spray, and boats, ships and buoys ride up and over them with a splash.
+The Ocean (underwater): rippling sunlight on the sand, a much richer reef floor (sea grass, fan corals, tube sponges, table corals, starfish, urchins, shells), the Lost Galleon (+150), a sunken plane (+150), a whale skeleton (+80), a giant clam with a pearl to beam (350), humpbacks passing overhead with whale song, 3D sea turtles and slightly longer visibility.
