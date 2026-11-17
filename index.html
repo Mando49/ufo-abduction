@@ -3832,6 +3832,59 @@ function makeShowgirl(){
     add(box(root,0.5,2.2,44,basic(0xff3fd2),SX-1.4,10.2,SZ));
     sign('MANDO WINDOW TINTING','#45eaff',40,6,SX-1.6,16,SZ,-PI/2);sign('lasvegaswindowtintnv.com','#ffffff',30,3,SX-1.6,11.4,SZ+0.2,-PI/2);
     const pole=box(root,1,22,1,0x3a3a40,SX-28,11,SZ-48);sign('TINT & PPF','#ff3fd2',18,5,SX-28,24,SZ-48,-PI/2);
+    // 🏁 SHOP FRONTAGE: framed service bays, glass entry, canopy and branded service signage
+    const frame=lam(0x69717d),dark=lam(0x111722),warm=basic(0xffd28a),cyan=basic(0x45eaff);
+    // Deep bay interiors and clean epoxy floors
+    for(let k=0;k<3;k++){
+      const bz=SZ-22+k*22;
+      add(flatPlane(24,13,0x555a62,-1.85,SX+11,bz));
+      // Steel jambs and lintels frame each of the three service openings
+      for(const dz of[-7.2,7.2])add(box(root,0.75,8.8,0.75,frame,SX-1.1,4.35,bz+dz));
+      add(box(root,0.8,0.65,15.1,frame,SX-1.1,8.65,bz));
+      // Interior ceiling strip lights and rear work lights
+      add(box(root,0.8,0.18,9,warm,SX+8,10.7,bz));
+      add(box(root,0.35,3.2,0.35,cyan,SX+24,6,bz-5.8));
+      add(box(root,0.35,3.2,0.35,cyan,SX+24,6,bz+5.8));
+      // Low-profile wheel stops at the front of each bay
+      add(box(root,1.2,0.35,4.8,lam(0x252a32),SX-7,0.18,bz+9.2));
+    }
+    // Continuous architectural canopy above the bays, with a bright underside
+    add(box(root,3.8,0.65,52,lam(0x171c27),SX-2.2,10.1,SZ));
+    add(box(root,3.6,0.16,50,basic(0x45eaff),SX-2.3,9.72,SZ));
+    for(const z of[SZ-25,SZ+25])add(box(root,0.8,3.5,0.8,frame,SX-3.6,8.2,z));
+    // A glass customer entrance and reception window on the north end of the facade
+    add(box(root,0.45,7.6,7.5,glass,SX-1.25,4,SZ+27));
+    for(const z of[SZ+23.1,SZ+30.9])add(box(root,0.55,8,0.55,frame,SX-1.5,4,z));
+    add(box(root,0.55,8.2,8.1,frame,SX-1.5,4,SZ+27));
+    add(box(root,0.3,1.2,0.3,warm,SX-1.85,4,SZ+29.6));
+    sign('CUSTOMER LOUNGE','#ffe2a0',8,1.8,SX-1.7,9.1,SZ+27,-PI/2);
+    // A clear service menu and PPF identity panel on the shop's side wall
+    add(box(root,0.22,7,25,dark,SX+29.45,7,SZ-19));
+    sign('WINDOW TINT  ·  PPF','#45eaff',20,3.2,SX+29.6,9,SZ-19,PI/2);
+    sign('LLUMAR  ·  PAINT PROTECTION','#ffe2a0',20,2.2,SX+29.6,5.2,SZ-19,PI/2);
+    // Marked customer parking apron with wheel stops and protective bollards
+    for(let k=0;k<4;k++){
+      const z=SZ-45+k*24;
+      add(flatPlane(0.45,17,0xe7e2d2,-2.1,SX-20,z));
+      add(box(root,1.4,0.3,5.5,lam(0x252a32),SX-29,0.15,z));
+    }
+    for(const z of[SZ-53,SZ+53]){
+      add(box(root,0.85,1.4,0.85,lam(0x454c58),SX-5,0.7,z));
+      add(box(root,0.9,0.3,0.9,basic(0xffd28a),SX-5,1.35,z));
+    }
+    // Roof HVAC units and conduit make the low commercial building feel finished
+    for(const z of[SZ-23,SZ+20]){
+      add(box(root,8,2.2,7,lam(0x777d86),SX+17,13.9,z));
+      add(box(root,5.5,0.18,4.5,lam(0x343a44),SX+17,15.1,z));
+      for(let vent=0;vent<4;vent++)add(box(root,0.16,1.2,5.5,lam(0x454c55),SX+13.8+vent*2.1,14.2,z));
+    }
+    // Desert planters and warm wall sconces at the customer approach
+    for(const z of[SZ-40,SZ+40]){
+      add(box(root,3.8,1.1,3.8,lam(0x5c5147),SX-9,0.55,z));
+      const shrub=new THREE.Mesh(new THREE.SphereGeometry(1.7,8,6),lam(0x527344));shrub.position.set(SX-9,2.2,z);add(shrub);
+      add(box(root,0.35,2.8,0.35,frame,SX-1.8,8.4,z));
+      glowSprite(0xffc978,SX-2,10,z,5,0.45);
+    }
     colliders.push({x0:SX-1,x1:SX+29,z0:SZ-35,z1:SZ+35,h:14,y0:0});
     freezeStatic(objs,root,true);
     // cars getting tinted: windows slowly go dark, then drive off and a new one pulls in
