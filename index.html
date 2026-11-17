@@ -3362,6 +3362,117 @@ beginTown('maya');
   for(let i=0;i<20;i++){const w=i%2===0,g=makeHuman(false);g.userData.emoji=w?'🪶':'🌺';g.userData.pts=120;g.userData.heat=0.4;
     const T={type:'critter',mesh:useAnim(w?'aztec':'aztecw',g,'maya'),spawn:spawnCow,fl:[{x:0,z:-200},{x:-200,z:-110},{x:230,z:-60},{x:100,z:-250},{x:-60,z:-120},{x:60,z:-130}],rad:26};T.mesh.userData.T=T;T.spawn(T);targets.push(T);}
 })();
+// 🏘️ Yucatán village-life pass: small Maya hamlets, a market, wells and residents
+(function(){
+  const villageStone=lam(0xb8aa8c),plaster=[lam(0xcdbb91),lam(0xbda77e),lam(0xd5c7a5)],
+    thatch=[lam(0x80613a),lam(0x987345),lam(0x6f5837)],wood=lam(0x59402a),
+    dark=lam(0x241b13),clay=lam(0x9a5635),gold=basic(0xd8b66e);
+  const lanterns=[],fires=[];
+  function hut(x,z,angle,variant){
+    const g=new THREE.Group();g.position.set(x,0,z);g.rotation.y=angle;root.add(g);
+    const wall=plaster[variant%plaster.length],roof=thatch[variant%thatch.length];
+    const platform=new THREE.Mesh(new THREE.BoxGeometry(13,0.55,10.5),villageStone);platform.position.y=0.28;g.add(platform);
+    const body=new THREE.Mesh(new THREE.BoxGeometry(10.5,4.5,8.2),wall);body.position.y=2.7;g.add(body);
+    const door=new THREE.Mesh(new THREE.BoxGeometry(1.65,2.85,0.18),dark);door.position.set(0,1.72,4.19);g.add(door);
+    const lintel=new THREE.Mesh(new THREE.BoxGeometry(2.35,0.42,0.45),wood);lintel.position.set(0,3.28,4.22);g.add(lintel);
+    for(const sx of[-3.2,3.2]){
+      const win=new THREE.Mesh(new THREE.BoxGeometry(1.05,1.05,0.16),dark);win.position.set(sx,2.8,4.18);g.add(win);
+      const sill=new THREE.Mesh(new THREE.BoxGeometry(1.5,0.2,0.35),villageStone);sill.position.set(sx,2.18,4.25);g.add(sill);
+    }
+    const left=new THREE.Mesh(new THREE.BoxGeometry(7.2,0.38,9.1),roof);left.position.set(-1.8,5.0,0);left.rotation.z=-0.48;g.add(left);
+    const right=new THREE.Mesh(new THREE.BoxGeometry(7.2,0.38,9.1),roof);right.position.set(1.8,5.0,0);right.rotation.z=0.48;g.add(right);
+    const ridge=new THREE.Mesh(new THREE.BoxGeometry(0.55,0.55,9.5),wood);ridge.position.set(0,6.78,0);g.add(ridge);
+    const step=new THREE.Mesh(new THREE.BoxGeometry(2.5,0.35,1.1),villageStone);step.position.set(0,0.72,5.05);g.add(step);
+    // Small clay water jars beside the doorway
+    for(const sx of[-1,1]){
+      const jar=new THREE.Mesh(new THREE.CylinderGeometry(0.42,0.55,0.9,8),clay);jar.position.set(sx*4.5,0.95,3.2);g.add(jar);
+      const rim=new THREE.Mesh(new THREE.TorusGeometry(0.4,0.08,5,12),gold);rim.rotation.x=PI/2;rim.position.set(sx*4.5,1.42,3.2);g.add(rim);
+    }
+    const wx=x, wz=z;
+    colliders.push({x0:wx-7.5,x1:wx+7.5,z0:wz-6.5,z1:wz+6.5,h:7.2,y0:0});
+    return g;
+  }
+  function stall(x,z,angle){
+    const g=new THREE.Group();g.position.set(x,0,z);g.rotation.y=angle;root.add(g);
+    const counter=new THREE.Mesh(new THREE.BoxGeometry(7,1.5,3),wood);counter.position.y=0.85;g.add(counter);
+    for(const sx of[-3,3])for(const sz of[-1,1]){
+      const post=new THREE.Mesh(new THREE.CylinderGeometry(0.13,0.16,4.8,6),wood);post.position.set(sx,2.9,sz);g.add(post);
+    }
+    const canopy=new THREE.Mesh(new THREE.BoxGeometry(8.2,0.35,5),thatch[1]);canopy.position.y=5.35;g.add(canopy);
+    const trim=new THREE.Mesh(new THREE.BoxGeometry(8.3,0.3,0.35),clay);trim.position.set(0,5.1,2.35);g.add(trim);
+    for(let i=0;i<4;i++){
+      const basket=new THREE.Mesh(new THREE.CylinderGeometry(0.42,0.55,0.75,8),i%2?clay:lam(0x9a7a43));basket.position.set(-2.4+i*1.6,1.95,0.2);g.add(basket);
+      const produce=new THREE.Mesh(new THREE.SphereGeometry(0.32,7,5),lam([0x8b9b36,0xc78a36,0x9c4930,0xd6b34a][i]));produce.position.set(-2.4+i*1.6,2.45,0.2);g.add(produce);
+    }
+    colliders.push({x0:x-4.8,x1:x+4.8,z0:z-3.5,z1:z+3.5,h:5.8,y0:0});
+  }
+  const hamlets=[
+    {x:-455,z:-430,name:"NORTHWEST HAMLET"},
+    {x:455,z:-430,name:"NORTHEAST HAMLET"},
+    {x:0,z:515,name:"SOUTHERN HAMLET"}
+  ];
+  hamlets.forEach((H,hi)=>{
+    // A modest shared plaza with a worn stone path leading to each home
+    const plaza=new THREE.Mesh(new THREE.CircleGeometry(23,24),lam(0x9f967d));plaza.rotation.x=-PI/2;plaza.position.set(H.x,0.045,H.z);root.add(plaza);
+    for(let k=0;k<12;k++){
+      const a=k/12*2*PI,r=17+(k%2)*2;
+      const slab=new THREE.Mesh(new THREE.BoxGeometry(4.2,0.12,3.2),k%3?lam(0xb9ad92):villageStone);
+      slab.position.set(H.x+Math.cos(a)*r,0.12,H.z+Math.sin(a)*r);slab.rotation.y=-a;root.add(slab);
+    }
+    // Four family homes set around the shared courtyard
+    const homes=[[-31,-24],[31,-24],[-31,25],[31,25]];
+    homes.forEach(([dx,dz],i)=>hut(H.x+dx,H.z+dz,(hi*0.7+i*0.55),hi+i));
+    // Community well: stone curb, timber crossbar and a hanging bucket
+    const well=new THREE.Mesh(new THREE.CylinderGeometry(4.2,4.7,1.5,12),villageStone);well.position.set(H.x,0.8,H.z);root.add(well);
+    const water=new THREE.Mesh(new THREE.CircleGeometry(3.55,16),new THREE.MeshBasicMaterial({color:0x287e78}));water.rotation.x=-PI/2;water.position.set(H.x,1.58,H.z);root.add(water);
+    for(const sx of[-1,1]){
+      const post=new THREE.Mesh(new THREE.CylinderGeometry(0.22,0.28,5.4,6),wood);post.position.set(H.x+sx*4.2,3.1,H.z);root.add(post);
+    }
+    const beam=new THREE.Mesh(new THREE.CylinderGeometry(0.22,0.22,9.2,6),wood);beam.rotation.z=PI/2;beam.position.set(H.x,5.5,H.z);root.add(beam);
+    const bucket=new THREE.Mesh(new THREE.CylinderGeometry(0.42,0.32,0.75,7),clay);bucket.position.set(H.x+1.8,3.7,H.z);root.add(bucket);
+    // One shaded produce stall and a cooking hearth in each hamlet
+    stall(H.x+16,H.z+4,hi*0.45);
+    const hearth=new THREE.Mesh(new THREE.CylinderGeometry(2.2,2.6,0.55,9),dark);hearth.position.set(H.x-17,0.32,H.z+5);root.add(hearth);
+    for(let k=0;k<3;k++){
+      const log=new THREE.Mesh(new THREE.CylinderGeometry(0.22,0.22,3.4,5),wood);log.position.set(H.x-17,0.75,H.z+5);log.rotation.y=k*PI/3;log.rotation.z=PI/2;root.add(log);
+    }
+    const flame=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:0xff9b42,transparent:true,depthWrite:false,opacity:0.65}));
+    flame.position.set(H.x-17,2.2,H.z+5);flame.scale.set(5,5,1);root.add(flame);fires.push(flame);
+    const lamp=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:0xffd58a,transparent:true,depthWrite:false,opacity:0.45}));
+    lamp.position.set(H.x+16,6.8,H.z+4);lamp.scale.set(7,7,1);root.add(lamp);lanterns.push(lamp);
+    // Drying racks and small cultivated plots give the settlement a lived-in edge
+    for(let side=0;side<2;side++){
+      const rx=H.x+(side?42:-42),rz=H.z+side*9-4;
+      for(const sx of[-1,1]){
+        const leg=new THREE.Mesh(new THREE.CylinderGeometry(0.12,0.16,3.6,5),wood);leg.position.set(rx+sx*2,1.8,rz);root.add(leg);
+      }
+      const rail=new THREE.Mesh(new THREE.BoxGeometry(5.2,0.18,0.2),wood);rail.position.set(rx,3.1,rz);root.add(rail);
+      for(let c=0;c<5;c++){
+        const crop=new THREE.Mesh(new THREE.ConeGeometry(0.45,1.8,5),lam(c%2?0x66843a:0x8a9b43));crop.position.set(rx-1.6+c*0.8,2.25,rz+0.25);root.add(crop);
+      }
+    }
+    // Residents and market keepers use the existing pedestrian animation system
+    for(let i=0;i<4;i++){
+      const person=makeHuman(false);
+      const clothes=person.userData.body&&person.userData.body.children[0];
+      if(clothes)clothes.material=lam([0xb64d36,0xc5a24e,0x477b55,0x9b7047][(i+hi)%4]);
+      const resident={type:'critter',mesh:useAnim('person',person,'maya'),spawn:spawnCow,
+        fl:[{x:H.x+(i%2?10:-10),z:H.z+(i<2?-8:10)}],rad:13};
+      resident.mesh.userData.T=resident;resident.spawn(resident);targets.push(resident);
+    }
+  });
+  // A few low limestone markers and shade trees tie the hamlets into the old paths
+  for(const [x,z] of[[-350,-455],[350,-455],[-300,445],[300,445]]){
+    const plinth=new THREE.Mesh(new THREE.BoxGeometry(3.6,0.8,3.6),villageStone);plinth.position.set(x,0.4,z);root.add(plinth);
+    const marker=new THREE.Mesh(new THREE.BoxGeometry(1.5,4.5,0.7),lam(0x9f9278));marker.position.set(x,2.9,z);root.add(marker);
+    for(let k=0;k<3;k++){const glyph=new THREE.Mesh(new THREE.BoxGeometry(0.24,0.24,0.12),gold);glyph.position.set(x-0.4+k*0.4,3.2+k*0.55,z+0.42);root.add(glyph);}
+  }
+  planetAnim.push({town:'maya',f:(t)=>{
+    lanterns.forEach((L,i)=>{L.material.opacity=0.34+0.18*(0.5+0.5*Math.sin(t*2.1+i));});
+    fires.forEach((F,i)=>{F.material.opacity=0.5+0.22*(0.5+0.5*Math.sin(t*7+i*1.7));F.scale.set(4.5+0.5*Math.sin(t*8+i),5.2+0.6*Math.sin(t*6+i),1);});
+  }});
+})(); 
+
 endTown('maya',[180,1000]);Object.assign(towns.maya,{planet:true,fogC:new THREE.Color(0x8ab890),skyTint:0xa8e0b0,label:'🌴 YUCATÁN, MEXICO',bloom:0.4});
 
 // 🎰 LAS VEGAS — the neon Strip, a glass pyramid with a sky beam, fountains, a giant slot machine
