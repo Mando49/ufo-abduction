@@ -2258,6 +2258,55 @@ beginTown('jungle');
     for(let i=0;i<12;i++){const T={type:'critter',mesh:mkDino(),spawn:spawnCow,fl:fields};T.spawn(T);targets.push(T);}}
 })();
 endTown('jungle',[140,850]);Object.assign(towns.jungle,{planet:true,fogC:new THREE.Color(0x2a2048),skyTint:0xc09cff,label:'🍄 VERDANA'});
+// 🏠 ZETA PRIME — the alien homeworld (reached by the long warp home from Earth orbit)
+beginTown('home');
+(function(){
+  flatPlane(3000,3000,0x2a1a52,0,0,0);
+  for(let i=0;i<40;i++)flatPlane(rand(60,180),rand(50,150),pick([0x3a2470,0x221646,0x2a3a7a,0x45206a]),-1,rand(-620,620),rand(-620,620)).rotation.z=rand(0,PI);
+  const glowM=c=>new THREE.MeshLambertMaterial({color:c,emissive:c,emissiveIntensity:0.55,flatShading:true});
+  // glowing energy roads in a star pattern + central plaza
+  for(let k=0;k<6;k++){const a=k/6*PI,r=flatPlane(1100,7,0x3ad8ff,-2,0,0);r.rotation.z=a;}
+  flatPlane(150,150,0x3a2a80,-3,0,0).rotation.z=PI/4;{const ring=new THREE.Mesh(new THREE.RingGeometry(70,74,48),new THREE.MeshBasicMaterial({color:0xff7ae0,side:THREE.DoubleSide}));ring.rotation.x=-PI/2;ring.position.y=0.3;root.add(ring);}
+  // crystal spires
+  for(let i=0;i<46;i++){const a=rand(0,2*PI),d=rand(150,600),x=Math.cos(a)*d,z=Math.sin(a)*d,h=rand(18,60),r=rand(4,10),c=pick([0xff5ad8,0x45eaff,0x9a6aff,0x6dffb0]);
+    const m=new THREE.Mesh(new THREE.ConeGeometry(r,h,5),glowM(c));m.position.set(x,h/2,z);m.rotation.set(rand(-.15,.15),rand(0,3),rand(-.15,.15));root.add(m);
+    for(let k=0;k<2;k++){const hh=h*rand(.3,.6),s=new THREE.Mesh(new THREE.ConeGeometry(r*0.5,hh,5),glowM(c));s.position.set(x+rand(-r,r)*1.3,hh/2,z+rand(-r,r)*1.3);s.rotation.set(rand(-.4,.4),0,rand(-.4,.4));root.add(s);}
+    colliders.push({x0:x-r*0.7,x1:x+r*0.7,z0:z-r*0.7,z1:z+r*0.7,h:h*0.8,y0:0});if(i%4===0)glowSprite(c,x,h,z,r*5,0.35);}
+  // dome homes with glowing rings + doors
+  const pearl=new THREE.MeshLambertMaterial({color:0xd8d0f4,emissive:0x2a2452});
+  const dome=(x,z,r,c)=>{const m=new THREE.Mesh(new THREE.SphereGeometry(r,18,10,0,2*PI,0,PI/2),pearl);m.position.set(x,0,z);root.add(m);const t=new THREE.Mesh(new THREE.TorusGeometry(r*1.01,r*0.06,6,28),new THREE.MeshBasicMaterial({color:c}));t.rotation.x=PI/2;t.position.set(x,r*0.35,z);root.add(t);
+    const a=Math.atan2(-x,-z);box(root,r*0.5,r*0.7,0.6,basic(c),x+Math.sin(a)*r*0.96,r*0.35,z+Math.cos(a)*r*0.96).rotation.y=a;const tp=new THREE.Mesh(new THREE.SphereGeometry(r*0.18,8,6),new THREE.MeshBasicMaterial({color:c}));tp.position.set(x,r,z);root.add(tp);
+    colliders.push({x0:x-r*0.75,x1:x+r*0.75,z0:z-r*0.75,z1:z+r*0.75,h:r*0.9,y0:0});};
+  for(let ring=0;ring<3;ring++){const n=8+ring*5,R=120+ring*75;for(let k=0;k<n;k++){const a=k/n*2*PI+ring*0.3;dome(Math.cos(a)*R,Math.sin(a)*R,rand(9,15),pick([0x45eaff,0xff7ae0,0x6dffb0,0xffd84a]));}}
+  // saucer-topped towers
+  for(const [x,z,h] of[[-95,-95,70],[95,-95,90],[95,95,60],[-95,95,80],[0,-250,110],[260,40,95],[-270,-30,100],[30,280,85]]){const st=new THREE.Mesh(new THREE.CylinderGeometry(3,6,h,10),pearl);st.position.set(x,h/2,z);root.add(st);
+    const d=new THREE.Mesh(new THREE.SphereGeometry(16,20,10),new THREE.MeshLambertMaterial({color:0xb8c0d8,emissive:0x1c2038}));d.scale.y=0.28;d.position.set(x,h,z);root.add(d);const cp=new THREE.Mesh(new THREE.SphereGeometry(6,14,8,0,2*PI,0,PI/2),new THREE.MeshLambertMaterial({color:0x6dffd8,emissive:0x2a8a70}));cp.position.set(x,h+3,z);root.add(cp);
+    const rg=new THREE.Mesh(new THREE.TorusGeometry(16,0.5,6,32),new THREE.MeshBasicMaterial({color:0x45eaff}));rg.rotation.x=PI/2;rg.position.set(x,h,z);root.add(rg);glowSprite(0x45eaff,x,h-5,z,26,0.4);
+    colliders.push({x0:x-5,x1:x+5,z0:z-5,z1:z+5,h:h,y0:0},{x0:x-13,x1:x+13,z0:z-13,z1:z+13,h:h+6,y0:h-5});}
+  // welcome monument: giant hologram saucer over the plaza + sign
+  const holo=new THREE.Group();holo.position.set(0,34,0);{const d=new THREE.Mesh(new THREE.SphereGeometry(22,24,10),new THREE.MeshBasicMaterial({color:0x45eaff,wireframe:true,transparent:true,opacity:.5}));d.scale.y=0.25;holo.add(d);const c=new THREE.Mesh(new THREE.SphereGeometry(8,14,8),new THREE.MeshBasicMaterial({color:0xff7ae0,wireframe:true,transparent:true,opacity:.6}));c.position.y=4;holo.add(c);}holo.traverse(o=>{o.userData.keep=true;});root.add(holo);
+  const hb=new THREE.Mesh(new THREE.CylinderGeometry(3,14,30,16,1,true),new THREE.MeshBasicMaterial({color:0x45eaff,transparent:true,opacity:.14,blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide}));hb.position.set(0,16,0);hb.userData.keep=true;root.add(hb);
+  box(root,16,2,16,0x1a1038,0,1,0);colliders.push({x0:-8,x1:8,z0:-8,z1:8,h:2,y0:0});
+  for(const [rz,ry] of[[-78,PI],[78,0]]){const s=neonText('WELCOME HOME','#7ffcff',60,9);s.position.set(0,24,rz);s.rotation.y=ry;root.add(s);for(const sx of[-28,28])box(root,1,24,1,0x5a4a8a,sx,12,rz);}
+  // landing pads with parked saucers
+  const saucers=[];for(const [x,z] of[[190,-170],[-200,-160],[-190,190],[200,180],[0,330],[330,-10]]){flatPlane(44,44,0x1a1038,-3,x,z);const rg=new THREE.Mesh(new THREE.RingGeometry(19,21,32),new THREE.MeshBasicMaterial({color:0xffd84a,side:THREE.DoubleSide}));rg.rotation.x=-PI/2;rg.position.set(x,0.35,z);root.add(rg);
+    const g=new THREE.Group();const d=new THREE.Mesh(new THREE.SphereGeometry(11,20,10),new THREE.MeshLambertMaterial({color:0xaab2c8,emissive:0x181c30}));d.scale.y=0.26;g.add(d);const c=new THREE.Mesh(new THREE.SphereGeometry(4.4,14,8,0,2*PI,0,PI/2),new THREE.MeshLambertMaterial({color:0x7ffcff,emissive:0x2a7a8a}));c.position.y=1.6;g.add(c);
+    for(let k=0;k<8;k++){const a=k/8*2*PI,l=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:[0xff5ad8,0x45eaff,0xffd84a][k%3],transparent:true,depthWrite:false}));l.position.set(Math.cos(a)*9.6,-0.6,Math.sin(a)*9.6);l.scale.set(2.6,2.6,1);g.add(l);}
+    g.position.set(x,5,z);root.add(g);saucers.push({g,ph:rand(0,6)});colliders.push({x0:x-9,x1:x+9,z0:z-9,z1:z+9,h:8,y0:2});}
+  // the mothership parked in the sky + two moons and a ringed giant
+  const ms=new THREE.Group();ms.position.set(-180,210,-320);{const d=new THREE.Mesh(new THREE.SphereGeometry(130,36,14),new THREE.MeshLambertMaterial({color:0x8a92b0,emissive:0x14182c}));d.scale.y=0.2;ms.add(d);const c=new THREE.Mesh(new THREE.SphereGeometry(46,20,10,0,2*PI,0,PI/2),new THREE.MeshLambertMaterial({color:0x45eaff,emissive:0x1a6a8a}));c.position.y=14;ms.add(c);
+    for(let k=0;k<20;k++){const a=k/20*2*PI,l=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:k%2?0xff5ad8:0x7ffcff,transparent:true,depthWrite:false,fog:false}));l.position.set(Math.cos(a)*118,-8,Math.sin(a)*118);l.scale.set(18,18,1);ms.add(l);}}ms.traverse(o=>{o.userData.keep=true;if(o.material)o.material.fog=false;});root.add(ms);
+  for(const [x,y,z,r,c] of[[900,520,-1300,150,0xff9ad8],[-1200,640,-900,90,0x9affd8],[300,900,1500,260,0xffc880]]){const m=new THREE.Mesh(new THREE.SphereGeometry(r,24,16),new THREE.MeshBasicMaterial({color:c,fog:false}));m.position.set(x,y,z);m.userData.keep=true;root.add(m);
+    if(r>200){const rg=new THREE.Mesh(new THREE.RingGeometry(r*1.3,r*2,48),new THREE.MeshBasicMaterial({color:0xffe6b0,transparent:true,opacity:.55,side:THREE.DoubleSide,fog:false}));rg.rotation.x=1.2;rg.position.copy(m.position);rg.userData.keep=true;root.add(rg);}}
+  // family and friends: greys, tall whites, nordics, elders
+  for(let i=0;i<26;i++){const g=makeHuman(false);g.userData.emoji='💚';g.userData.pts=25;g.userData.heat=0;g.scale.setScalar(1.5);
+    const T={type:'critter',mesh:useAnim('alien',g,'home'),spawn:spawnCow,fl:[{x:0,z:60},{x:-70,z:-40},{x:80,z:-30},{x:150,z:120},{x:-160,z:110},{x:20,z:-170}],rad:38};T.mesh.userData.T=T;T.spawn(T);targets.push(T);}
+  for(let i=0;i<10;i++){const g=makeHuman(false);g.userData.emoji=i%2?'🧝':'🤍';g.userData.pts=40;g.userData.heat=0;
+    const T={type:'critter',mesh:useAnim(i%2?'nordic':'tallwhite',g,'home'),spawn:spawnCow,fl:[{x:0,z:-50},{x:60,z:60},{x:-60,z:70}],rad:30};T.mesh.userData.T=T;T.spawn(T);targets.push(T);}
+  let fw=0;planetAnim.push({town:'home',f:(t,dt)=>{holo.rotation.y=t*0.5;holo.position.y=34+Math.sin(t)*2;ms.rotation.y=t*0.05;saucers.forEach(S=>{S.g.position.y=5+Math.sin(t*1.2+S.ph)*0.8;S.g.rotation.y=t*0.4+S.ph;});
+    fw-=dt;if(fw<=0){fw=rand(0.5,1.4);const c=pick([0xff5ad8,0x45eaff,0xffd84a,0x6dffb0]),p=tmpV2.set(rand(-160,160),rand(60,130),rand(-160,160));for(let i=0;i<18;i++)spawnFx(p,tmpV.set(rand(-1,1),rand(-1,1),rand(-1,1)).normalize().multiplyScalar(rand(12,26)),0.9,1.6,2.4,c,true);}}});
+})();
+endTown('home',[300,1900]);Object.assign(towns.home,{planet:true,fogC:new THREE.Color(0x1a0a3a),skyTint:0xb07aff,label:'🏠 ZETA PRIME · HOME',bloom:0.7});
 // 🌕 THE MOON
 function texCanvas(w,h,fn){const c=document.createElement('canvas');c.width=w;c.height=h;fn(c.getContext('2d'));return new THREE.CanvasTexture(c);}
 const MOON_TEX=texCanvas(512,256,g=>{g.fillStyle='#9a9ca4';g.fillRect(0,0,512,256);for(let i=0;i<140;i++){const x=rand(0,512),y=rand(0,256),r=rand(3,26);g.fillStyle=`rgba(${pick(['60,62,70','120,122,130','170,172,180'])},${rand(.3,.7).toFixed(2)})`;g.beginPath();g.arc(x,y,r,0,2*PI);g.fill();g.strokeStyle='rgba(200,202,210,.4)';g.lineWidth=1.5;g.stroke();}});
@@ -4551,11 +4600,11 @@ renderShop();
 // ---------- 📖 Abduction Log: a collection book of everything ever beamed up ----------
 const LOG_NAMES={'🐄':'Cow','🚗':'Car','🚓':'Police Car','🚚':'Truck','😴':'Sleeper','🚶':'Walker','🚜':'Tractor','🦊':'Fox','🤖':'Robot','📣':'Cheerleader','🏈':'Football Player','🎈':'Balloon','🏎️':'Luxury / Race Car','📺':'News Van','🌮':'Taco Truck','🍔':'Diner Guest','🔘':'Mystery Orb','🌑':'Jellyfish UFO',
   '👽':'Little Alien','🏃':'Area 51 Raider','🤳':'Streamer','🪖':'Soldier','🐎':'Mustang','🫏':'Burro','🔩':'Secret Tech','🕴️':'Man in Black','❄️':'Yeti','🐧':'Penguin','🦍':'Ice Ape','🦕':'Dinosaur','🦀':'Lava Crab','🦖':'T-Rex','🚙':'Moon Rover','🧊':'Hypercube','🪼':'Glitch Jelly','🤍':'Tall White','💙':'Nordic',
-  '🐪':'Camel','🧟':'Mummy','🐆':'Jaguar','🧗':'Climber / Zipliner','🛩️':'Fighter Jet','🚤':'Speedboat','🛫':'Airliner','🥾':'Hiker','🕺':'Elvis','💃':'Showgirl','🚢':'Submarine','🐟':'Fish','🐢':'Sea Turtle','🦈':'Shark','🐋':'Whale','🐬':'Dolphin','🐙':'Octopus','🎣':'Fishing Boat','⛵':'Sailboat','👾':'Alien Specimen','🥼':'Scientist','🛞':'Mars Rover','🚁':'Mars Helicopter','💎':'Cave Crystal','🦇':'Cave Bat','👑':'Sleeping King','🛶':'Nile Boat','🪶':'Aztec Warrior','🌺':'Aztec Woman','🤴':'Pharaoh','👸':'Queen of the Nile','⚱️':'Golden Sarcophagus','⛏️':'Archaeologist','🐊':'Crocodile','👻':'Ghost Ship','🦌':'Reindeer','🎅':'Santa\'s Sleigh','🎁':'Present','🦶':'Bigfoot','🦄':'Unicorn','🎐':'Gas Floater','🛰️':'Lost Probe','🩶':'Grey','🦎':'Reptilian','🦗':'Mantis'};
+  '🐪':'Camel','🧟':'Mummy','🐆':'Jaguar','🧗':'Climber / Zipliner','🛩️':'Fighter Jet','🚤':'Speedboat','🛫':'Airliner','🥾':'Hiker','🕺':'Elvis','💃':'Showgirl','🚢':'Submarine','🐟':'Fish','🐢':'Sea Turtle','🦈':'Shark','🐋':'Whale','🐬':'Dolphin','🐙':'Octopus','🎣':'Fishing Boat','⛵':'Sailboat','👾':'Alien Specimen','🥼':'Scientist','🛞':'Mars Rover','🚁':'Mars Helicopter','💎':'Cave Crystal','🦇':'Cave Bat','👑':'Sleeping King','🛶':'Nile Boat','🪶':'Aztec Warrior','🌺':'Aztec Woman','💚':'Family & Friends','🤴':'Pharaoh','👸':'Queen of the Nile','⚱️':'Golden Sarcophagus','⛏️':'Archaeologist','🐊':'Crocodile','👻':'Ghost Ship','🦌':'Reindeer','🎅':'Santa\'s Sleigh','🎁':'Present','🦶':'Bigfoot','🦄':'Unicorn','🎐':'Gas Floater','🛰️':'Lost Probe','🩶':'Grey','🦎':'Reptilian','🦗':'Mantis'};
 let LOG={};try{LOG=JSON.parse(localStorage.getItem('ufoLog')||'{}');}catch(e){}
 const logKey=T=>{const u=T.mesh.userData;return u.emoji||(u.police?'🚓':{cow:'🐄',car:'🚗',truck:'🚚'}[T.type]);};
 let LOG_CAT=null;
-function logCatalog(){if(LOG_CAT)return LOG_CAT;const C={},order=['city','desert','sub51','vegas','egypt','maya','ice','ocean','seas','moon','moonbase','mars','marscave','jupiter','lava','jungle','fifth'];
+function logCatalog(){if(LOG_CAT)return LOG_CAT;const C={},order=['city','desert','sub51','vegas','egypt','maya','ice','ocean','seas','moon','moonbase','mars','marscave','jupiter','lava','jungle','fifth','home'];
   order.forEach(n=>{if(!towns[n])return;const L=[];towns[n].targets.forEach(T=>{const k=logKey(T);if(k&&!C[k]){C[k]=n;L.push(k);}});});
   LOG_CAT={byTown:order.map(n=>[n,Object.keys(C).filter(k=>C[k]===n)]).filter(x=>x[1].length),total:Object.keys(C).length};return LOG_CAT;}
 function logAbduct(T){const k=logKey(T);if(!k)return;const first=!LOG[k];LOG[k]=(LOG[k]||0)+1;
@@ -4676,7 +4725,45 @@ const warpMat=new THREE.ShaderMaterial({uniforms:{t:{value:0},c1:{value:new THRE
 const warpOrbs=[];
 for(let i=0;i<14;i++){const s=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:0xffe080,transparent:true,depthWrite:false}));s.scale.set(5,5,1);warpGroup.add(s);warpOrbs.push(s);}
 let warpT=0,warpTo='city',warpOff=new V3(),warpBH=false;
+// 🚀 THE LONG WARP HOME: star-streak hyperspace → wormhole → past the Milky Way → wormhole → the home nebula
+let warpHome=false,homeStage=-1;const HOME_C=new THREE.Color();
+const homeFx=new THREE.Group();homeFx.visible=false;scene.add(homeFx);
+const HOME_N=520,homeStars=[],homePos=new Float32Array(HOME_N*6),homeCol=new Float32Array(HOME_N*6);
+for(let i=0;i<HOME_N;i++){const a=rand(0,2*PI),r=rand(10,240);homeStars.push({x:Math.cos(a)*r,y:Math.sin(a)*r*0.75,z:rand(-760,40)});const c=pick([[1,1,1],[0.7,0.85,1],[1,0.8,0.95],[0.75,1,0.95]]);homeCol.set(c,i*6);homeCol.set([c[0]*0.05,c[1]*0.08,c[2]*0.2],i*6+3);}
+const homeLines=new THREE.LineSegments(new THREE.BufferGeometry(),new THREE.LineBasicMaterial({vertexColors:true,transparent:true,blending:THREE.AdditiveBlending,depthWrite:false,fog:false}));
+homeLines.geometry.setAttribute('position',new THREE.BufferAttribute(homePos,3));homeLines.geometry.setAttribute('color',new THREE.BufferAttribute(homeCol,3));homeLines.frustumCulled=false;homeFx.add(homeLines);
+const homeGalaxy=new THREE.Mesh(new THREE.PlaneGeometry(900,900),new THREE.MeshBasicMaterial({map:texCanvas(512,512,g=>{g.fillStyle='#000';g.fillRect(0,0,512,512);
+  for(let arm=0;arm<4;arm++)for(let i=0;i<1500;i++){const tt=Math.random(),a=arm*PI/2+tt*5.2,r=14+tt*230+rand(-1,1)*(8+tt*26);g.fillStyle=`rgba(${pick(['190,215,255','255,235,200','255,180,230','160,200,255'])},${(0.75-tt*0.5).toFixed(2)})`;const s=rand(0.6,2.4);g.fillRect(256+Math.cos(a)*r,256+Math.sin(a)*r,s,s);}
+  const gr=g.createRadialGradient(256,256,0,256,256,90);gr.addColorStop(0,'rgba(255,244,214,1)');gr.addColorStop(0.3,'rgba(255,220,160,.7)');gr.addColorStop(1,'rgba(255,200,140,0)');g.fillStyle=gr;g.fillRect(0,0,512,512);}),transparent:true,blending:THREE.AdditiveBlending,depthWrite:false,fog:false,side:THREE.DoubleSide}));
+homeGalaxy.rotation.set(-1.05,0.3,0.2);homeFx.add(homeGalaxy);
+const homeNeb=[];for(let i=0;i<9;i++){const s=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:pick([0xff5ad8,0x7a4dff,0x45eaff,0xffb060]),transparent:true,opacity:0,blending:THREE.AdditiveBlending,depthWrite:false,fog:false}));s.position.set(rand(-380,380),rand(-200,220),rand(-900,-500));s.scale.set(rand(380,700),rand(260,460),1);homeFx.add(s);homeNeb.push(s);}
+const HOME_ST=[[0,4.5],[4.5,7.7],[7.7,11.4],[11.4,14.6],[14.6,17.4]];
+function startHomeTrip(){mEvent('warp');clearSpaceFoes();mode='warp';warpHome=true;homeStage=-1;warpT=0;warpTo='sector:home';warpBH=false;warpOff.set(0,0,0);fadeIn();
+  spaceGroup.visible=false;warpGroup.visible=false;homeFx.visible=true;homeGalaxy.visible=false;homeNeb.forEach(s=>s.material.opacity=0);
+  scene.background.set(0x01020a);scene.fog.color.set(0x01020a);scene.fog.near=200;scene.fog.far=900;yaw=0;pos.copy(WARP_O);snapCam();}
+function homeTripUpdate(dt,ix,updn){warpT+=dt;timer+=dt;yaw=0;speed=0;vy=0;
+  warpOff.x+=ix*34*dt;warpOff.y+=updn*34*dt;const r=warpOff.length();if(r>15)warpOff.multiplyScalar(15/r);
+  let st=HOME_ST.findIndex(([a,b])=>warpT>=a&&warpT<b);if(st<0)st=5;
+  if(st!==homeStage){homeStage=st;
+    if(st===0){pop('🚀 SETTING COURSE FOR HOME');pop('Engaging warp drive…','t');blip(80,900,2.4,'sawtooth',0.1);}
+    if(st===1||st===3){const wc=st===1?[0x3de1ff,0xb44dff]:[0xffd060,0xff3fd2];warpMat.uniforms.c1.value.setHex(wc[0]);warpMat.uniforms.c2.value.setHex(wc[1]);warpOrbs.forEach((s,i)=>{const a=rand(0,2*PI),rr=rand(0,13);s.position.set(WARP_O.x+Math.cos(a)*rr,WARP_O.y+Math.sin(a)*rr,WARP_O.z-120-i*(WARP_LEN-200)/14);s.visible=true;});
+      pop(st===1?'🌀 WORMHOLE 1 OF 2':'🌀 WORMHOLE 2 OF 2');pop(st===1?'Leaving the solar system':'Almost home…','t');blip(150,1200,1.2,'sawtooth',0.1);fadeIn();}
+    if(st===2){pop('🌌 LEAVING THE MILKY WAY');pop('100,000 light-years in a blink','t');blip(400,200,1.5,'sine',0.08);fadeIn();}
+    if(st===4){pop('🏠 THE ZETA NEBULA');pop('Dropping out of warp','t');blip(1200,200,1.6,'sine',0.1);fadeIn();}}
+  if(st>=5){warpHome=false;homeFx.visible=false;warpGroup.visible=false;enterSpace('home');setTimeout(()=>{pop('🏠 HOME SWEET HOME');pop('Fly down to land on Zeta Prime','t');},500);score+=500;return;}
+  const [a,b]=HOME_ST[st],p=(warpT-a)/(b-a),tun=st===1||st===3;
+  warpGroup.visible=tun;homeFx.visible=!tun;shake=Math.max(shake,tun?0.18:st===0?0.05+p*0.2:0.06);
+  if(tun){pos.set(WARP_O.x+warpOff.x,WARP_O.y+warpOff.y,WARP_O.z-p*WARP_LEN);scene.background.set(0x05020c);scene.fog.color.set(0x05020c);
+    for(const s of warpOrbs){if(s.visible&&s.position.distanceTo(pos)<6){s.visible=false;score+=5;energy=Math.min(100,energy+8);pop('+5 ✨');blip(1000,2000,0.1,'triangle',0.1);}}return;}
+  pos.set(WARP_O.x+warpOff.x,WARP_O.y+warpOff.y,WARP_O.z);homeFx.position.set(WARP_O.x,WARP_O.y,WARP_O.z);
+  const w=st===0?Math.min(1,p*p*1.6):st===2?0.55:Math.max(0.03,1-p*1.15); // warp factor: ramp up, cruise past the galaxy, slow into the nebula
+  const v=40+w*1500,len=1.2+w*95;for(let i=0;i<HOME_N;i++){const S=homeStars[i];S.z+=v*dt;if(S.z>50){S.z-=800;const aa=rand(0,2*PI),rr=rand(10,240);S.x=Math.cos(aa)*rr;S.y=Math.sin(aa)*rr*0.75;}
+    homePos[i*6]=S.x;homePos[i*6+1]=S.y;homePos[i*6+2]=S.z;homePos[i*6+3]=S.x;homePos[i*6+4]=S.y;homePos[i*6+5]=S.z-len;}
+  homeLines.geometry.attributes.position.needsUpdate=true;
+  homeGalaxy.visible=st===2;if(st===2){homeGalaxy.position.set(170-p*70,-110+p*30,-1000+p*1150);homeGalaxy.rotation.z=0.2+p*0.5;}
+  const nb=st===4?p:0;homeNeb.forEach(s=>s.material.opacity=nb*0.4);if(st===4){const c=HOME_C;c.setRGB(0.004+nb*0.07,0.008+nb*0.02,0.04+nb*0.12);scene.background.copy(c);scene.fog.color.copy(c);}else{scene.background.set(0x01020a);scene.fog.color.set(0x01020a);}}
 function enterWarp(dest,bhole){
+  if(dest==='sector:home'&&curSector==='earth'){startHomeTrip();return;}
   mEvent('warp');
   clearSpaceFoes();mode='warp';warpTo=dest;warpT=0;warpOff.set(0,0,0);fadeIn();
   spaceGroup.visible=false;warpGroup.visible=true;
@@ -4687,6 +4774,7 @@ function enterWarp(dest,bhole){
   if(bhole){pop('🕳️ INSIDE THE BLACK HOLE!');pop('+250 · where will you come out?','t');}else{pop('🌀 WORMHOLE!');pop('Steer to grab energy orbs','t');}blip(150,1200,1.4,'sawtooth',0.12);
 }
 function warpUpdate(dt,ix,updn){
+  if(warpHome){homeTripUpdate(dt,ix,updn);return;}
   warpT+=dt;timer+=dt;yaw=0;speed=0;vy=0;
   warpOff.x+=ix*34*dt;warpOff.y+=updn*34*dt;const r=warpOff.length();if(r>15)warpOff.multiplyScalar(15/r);
   const prog=warpT/WARP_TIME;
@@ -4772,7 +4860,7 @@ portals.forEach(P=>{P.disc.material=vortexMat(P.c,0xffffff);vortexMats.push(P.di
 // ---------- SPACE SECTORS (each with a planet you can land on) ----------
 function planetTex(kind){
   const c=document.createElement('canvas');c.width=1024;c.height=512;const g=c.getContext('2d');
-  const P={ice:['#cfe6ff','#ffffff','#9fc8ef','#7ab0e0'],lava:['#1a0c0a','#2a1410','#ff5a1a','#ffa040'],jungle:['#2a1a4a','#3a7a4a','#7a3aaa','#6dff7a']}[kind];
+  const P={ice:['#cfe6ff','#ffffff','#9fc8ef','#7ab0e0'],lava:['#1a0c0a','#2a1410','#ff5a1a','#ffa040'],jungle:['#2a1a4a','#3a7a4a','#7a3aaa','#6dff7a'],home:['#2a1a5a','#6a3ab0','#2ad8c8','#ff7ae0']}[kind];
   g.fillStyle=P[0];g.fillRect(0,0,1024,512);
   for(let i=0;i<70;i++){g.fillStyle=pick(P.slice(1,3));g.globalAlpha=rand(0.4,0.9);g.beginPath();g.ellipse(rand(0,1024),rand(30,480),rand(20,110),rand(10,50),rand(0,3),0,2*PI);g.fill();}
   g.globalAlpha=1;g.strokeStyle=P[3];g.lineWidth=kind==='lava'?3:2;
@@ -4781,15 +4869,17 @@ function planetTex(kind){
 }
 const SECTORS={
   earth:{name:'EARTH ORBIT',tex:planet.material.map,atm:[0.35,0.7,1],emis:0x0a1430,rock:[0x6a6058,0x5a5048],bg:0x02030a,home:'city',
-    portals:[{dest:'city',c:0x45eaff,label:'NEON CITY'},{dest:'sector:ice',c:0xd8f4ff,label:'FROST SECTOR ➜'},{dest:'desert',c:0xffa040,label:'AREA 51 DESERT'},{dest:'ocean',c:0x2ad8ff,label:'🌊 THE OCEAN'},{dest:'egypt',c:0xffc850,label:'🇪🇬 GIZA, EGYPT'},{dest:'maya',c:0x6dffb0,label:'🌴 YUCATÁN, MEXICO'},{dest:'vegas',c:0xff3fd2,label:'🎰 LAS VEGAS'}]},
+    portals:[{dest:'city',c:0x45eaff,label:'NEON CITY'},{dest:'sector:ice',c:0xd8f4ff,label:'FROST SECTOR ➜'},{dest:'desert',c:0xffa040,label:'AREA 51 DESERT'},{dest:'ocean',c:0x2ad8ff,label:'🌊 THE OCEAN'},{dest:'egypt',c:0xffc850,label:'🇪🇬 GIZA, EGYPT'},{dest:'maya',c:0x6dffb0,label:'🌴 YUCATÁN, MEXICO'},{dest:'vegas',c:0xff3fd2,label:'🎰 LAS VEGAS'},{dest:'sector:home',c:0xb07aff,label:'🏠 GO HOME · ZETA NEBULA ➜'}]},
   ice:{name:'FROST SECTOR',tex:planetTex('ice'),atm:[0.7,0.9,1],emis:0x1a2a40,rock:[0xbfe6ff,0x9fc8ef],bg:0x020a14,home:'ice',
     portals:[{dest:'ice',c:0x9fe8ff,label:'LAND: ANTARCTICA'},{dest:'sector:lava',c:0xff7a30,label:'INFERNO SECTOR ➜'},{dest:'sector:earth',c:0x45eaff,label:'⟲ EARTH ORBIT'}]},
   lava:{name:'INFERNO SECTOR',tex:planetTex('lava'),atm:[1,0.4,0.15],emis:0x2a0800,rock:[0x2a1a1a,0x5a2010],bg:0x0a0202,home:'lava',
     portals:[{dest:'lava',c:0xff5a1a,label:'LAND: MAGMOR'},{dest:'sector:jungle',c:0x6dff7a,label:'JUNGLE NEBULA ➜'},{dest:'sector:earth',c:0x45eaff,label:'⟲ EARTH ORBIT'}]},
   jungle:{name:'JUNGLE NEBULA',tex:planetTex('jungle'),atm:[0.5,1,0.5],emis:0x10200a,rock:[0x3a2a4a,0x2a4a3a],bg:0x050210,home:'jungle',
-    portals:[{dest:'jungle',c:0x6dff7a,label:'LAND: VERDANA'},{dest:'sector:earth',c:0x45eaff,label:'EARTH ORBIT ➜'},{dest:'sector:ice',c:0xd8f4ff,label:'⟲ FROST SECTOR'}]}
+    portals:[{dest:'jungle',c:0x6dff7a,label:'LAND: VERDANA'},{dest:'sector:earth',c:0x45eaff,label:'EARTH ORBIT ➜'},{dest:'sector:ice',c:0xd8f4ff,label:'⟲ FROST SECTOR'}]},
+  home:{name:'ZETA NEBULA · HOME',tex:planetTex('home'),atm:[0.8,0.5,1],emis:0x180a30,rock:[0x5a3a8a,0x3a5a9a],bg:0x0a0418,home:'home',
+    portals:[{dest:'home',c:0xb07aff,label:'🏠 LAND: ZETA PRIME'},{dest:'sector:earth',c:0x45eaff,label:'⟲ BACK TO EARTH'}]}
 };
-const TOWN_SECTOR={city:'earth',desert:'earth',ice:'ice',lava:'lava',jungle:'jungle'};
+const TOWN_SECTOR={city:'earth',desert:'earth',ice:'ice',lava:'lava',jungle:'jungle',home:'home'};
 let curSector='earth';
 const atmMat=spaceGroup.children.find(o=>o.material&&o.material.isShaderMaterial&&o.geometry.parameters&&o.geometry.parameters.radius===2480).material;
 atmMat.fragmentShader='uniform vec3 ac;varying vec3 vN;varying vec3 vV;void main(){float f=pow(1.0-abs(dot(vN,vV)),2.5);gl_FragColor=vec4(ac,f*0.9);}';
@@ -4808,6 +4898,10 @@ const sectorDecor={};
   g=mk('jungle');for(let i=0;i<7;i++){const s=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:pick([0x3aff8a,0x8a3aff,0x3affd8]),transparent:true,opacity:.35,blending:THREE.AdditiveBlending,depthWrite:false,fog:false}));s.position.set(rand(-2500,2500),rand(200,1100),rand(-2800,-1400));s.scale.set(rand(900,1700),rand(500,1000),1);g.add(s);}
   for(const [x,y,z,r,c] of[[1300,500,-1800,110,0x8a5aff],[-1100,350,-1600,70,0x5affb0]]){const m=new THREE.Mesh(new THREE.SphereGeometry(r,28,18),new THREE.MeshLambertMaterial({color:c,emissive:c,emissiveIntensity:0.25}));m.position.set(x,y,z);g.add(m);}
   g=mk('earth');
+  // home: pink/violet/teal nebula clouds, twin suns and a ringed giant
+  g=mk('home');for(let i=0;i<12;i++){const s=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:pick([0xff5ad8,0x7a4dff,0x45eaff,0xffb060]),transparent:true,opacity:.38,blending:THREE.AdditiveBlending,depthWrite:false,fog:false}));s.position.set(rand(-2800,2800),rand(100,1300),rand(-3000,-1300));s.scale.set(rand(1000,1900),rand(600,1100),1);g.add(s);}
+  for(const [x,y,z,sz,c] of[[-1500,800,-2600,900,0xffe0a0],[-1150,620,-2500,420,0xff8ad8]]){const s=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:c,fog:false,depthWrite:false,transparent:true}));s.position.set(x,y,z);s.scale.set(sz,sz,1);g.add(s);}
+  {const m=new THREE.Mesh(new THREE.SphereGeometry(190,32,20),new THREE.MeshLambertMaterial({color:0xffc880,emissive:0xa06030,emissiveIntensity:0.4,fog:false}));m.position.set(1400,420,-1900);g.add(m);const rg=new THREE.Mesh(new THREE.RingGeometry(250,400,64),new THREE.MeshBasicMaterial({color:0xffe6b0,transparent:true,opacity:.55,side:THREE.DoubleSide,fog:false}));rg.rotation.x=1.25;rg.position.copy(m.position);g.add(rg);}
 })();
 function buildPortals(sec){
   portals.forEach(P=>spaceGroup.remove(P.g));portals.length=0;
@@ -4838,7 +4932,7 @@ function applySector(sec){
   station.g.visible=(sec==='earth');
   buildPortals(sec);
 }
-const WARPC={egypt:[0xffc850,0xff7a30],maya:[0x6dffb0,0x2ab88a],vegas:[0xff3fd2,0xffd040],ocean:[0x2ad8ff,0x2a6aff],city:[0x3de1ff,0xb44dff],desert:[0xffa040,0xff3fd2],ice:[0xbfefff,0x5ad8ff],lava:[0xff3a1a,0xffa040],jungle:[0x6dff7a,0xb46bff]};
+const WARPC={home:[0xb07aff,0xff5ad8],egypt:[0xffc850,0xff7a30],maya:[0x6dffb0,0x2ab88a],vegas:[0xff3fd2,0xffd040],ocean:[0x2ad8ff,0x2a6aff],city:[0x3de1ff,0xb44dff],desert:[0xffa040,0xff3fd2],ice:[0xbfefff,0x5ad8ff],lava:[0xff3a1a,0xffa040],jungle:[0x6dff7a,0xb46bff]};
 function homeTown(sec){return sec==='earth'?((curTown==='city'||curTown==='desert')?curTown:'city'):SECTORS[sec].home;}
 
 spaceGroup.children.filter(o=>o.isGroup&&Math.abs(o.position.z+300)<1&&Math.abs(Math.abs(o.position.x)-110)<1&&!portals.some(P=>P.g===o)).forEach(o=>spaceGroup.remove(o));
@@ -5138,7 +5232,7 @@ function pilotPlay(k){if(!PILOT.mixer)return;if(!PILOT.acts[k])k=PILOT.acts.walk
 // relics
 const RELICS={};let relicFx=[];
 let badges={};try{badges=JSON.parse(localStorage.getItem('ufoBadges')||'{}');}catch(e){}
-const TOWN_NAMES={jupiter:'Jupiter',marscave:'Mars: Hidden Cave',moonbase:'Moon: Inner World',seas:'The Open Sea',sub51:'Hangar 18',egypt:'Giza, Egypt',maya:'Yucatán, Mexico',vegas:'Las Vegas',fifth:'The 5th Dimension',ocean:'The Ocean',city:'Neon City',desert:'Area 51',ice:'Antarctica',lava:'Magmor',jungle:'Verdana',moon:'The Moon',mars:'Mars'};
+const TOWN_NAMES={home:'Zeta Prime (Home)',jupiter:'Jupiter',marscave:'Mars: Hidden Cave',moonbase:'Moon: Inner World',seas:'The Open Sea',sub51:'Hangar 18',egypt:'Giza, Egypt',maya:'Yucatán, Mexico',vegas:'Las Vegas',fifth:'The 5th Dimension',ocean:'The Ocean',city:'Neon City',desert:'Area 51',ice:'Antarctica',lava:'Magmor',jungle:'Verdana',moon:'The Moon',mars:'Mars'};
 function makeRelic(){const g=new THREE.Group();const c=new THREE.Mesh(new THREE.OctahedronGeometry(0.9),new THREE.MeshBasicMaterial({color:0xc58bff}));c.scale.y=1.5;g.add(c);
   const gl=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:0xb46bff,transparent:true,depthWrite:false}));gl.scale.set(6,6,1);g.add(gl);
   const pil=new THREE.Mesh(new THREE.CylinderGeometry(0.25,0.25,60,6,1,true),new THREE.MeshBasicMaterial({color:0xc58bff,transparent:true,opacity:.22,blending:THREE.AdditiveBlending,depthWrite:false}));pil.position.y=30;g.add(pil);
@@ -5320,7 +5414,7 @@ function walkCam(dt){
   if(camera.position.y<1)camera.position.y=1;look.copy(pos).addScaledVector(fwd,8);look.y=pos.y+2;camera.lookAt(look);
 }
 $('bLand').addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();landShip();});
-addEventListener('keydown',e=>{if(e.key.toLowerCase()==='l'){if(onFoot){if(BRIDE)endBalloonRide();else if(TRIDE)endTrainRide();else if(DRIVE)endDrive();else if(RIDE)endRide();else{const ND=nearDolphin(),NP=nearPlane(),NJ=nearJeep(),NT=nearTrain(12),NB=nearBalloon(12);if(NT)startTrainRide(NT);else if(NB)startBalloonRide(NB);else if(ND&&!NP)startRide(ND);else if(NP)boardPlane(NP);else if(NJ)startDrive(NJ);else boardShip();}}else landShip();}});
+addEventListener('keydown',e=>{if(e.key.toLowerCase()==='h'&&state==='play'&&mode==='space'&&curSector==='earth'){startHomeTrip();return;}if(e.key.toLowerCase()==='l'){if(onFoot){if(BRIDE)endBalloonRide();else if(TRIDE)endTrainRide();else if(DRIVE)endDrive();else if(RIDE)endRide();else{const ND=nearDolphin(),NP=nearPlane(),NJ=nearJeep(),NT=nearTrain(12),NB=nearBalloon(12);if(NT)startTrainRide(NT);else if(NB)startBalloonRide(NB);else if(ND&&!NP)startRide(ND);else if(NP)boardPlane(NP);else if(NJ)startDrive(NJ);else boardShip();}}else landShip();}});
 
 // ---------- HIDDEN SECRETS (found on foot) ----------
 const SECRETS={
@@ -5895,6 +5989,7 @@ const MISSIONS=[
   {id:'sharks',t:'Abduct 3 sharks',ev:'abduct',m:d=>d.emoji==='🦈',g:3,r:500},
   {id:'aliens',t:'Rescue 3 lost aliens at Area 51',ev:'abduct',m:d=>d.emoji==='👽',g:3,r:700},
   {id:'tractor',t:'Abduct 2 farm tractors',ev:'abduct',m:d=>d.emoji==='🚜',g:2,r:400},
+  {id:'home',t:'Go home: fly through the 🏠 GO HOME wormhole in Earth orbit (or press H in space)',ev:'visit',m:d=>d.town==='home',g:1,r:2000},
   {id:'jungle',t:'Visit the jungle planet Verdana',ev:'visit',m:d=>d.town==='jungle',g:1,r:700},
   {id:'warps',t:'Ride 3 wormholes',ev:'warp',g:3,r:300},
   {id:'relics',t:'Find 5 relics on foot',ev:'relic',g:5,r:400},
@@ -6275,6 +6370,7 @@ function wantTrack(){
   if(mode==='space')return 'space';
   if(heat>=3&&state==='play'&&!towns[curTown].planet)return 'boss';
   if(curTown==='sub51')return 'desert';
+  if(curTown==='home')return TRACKS.fifth?'fifth':'jungle';
   if(INTERIOR[curTown])return INTERIOR[curTown].from;
   if(curTown==='seas')return 'ocean';
   if(curTown==='jupiter')return 'lava';

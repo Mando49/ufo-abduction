@@ -132,3 +132,5 @@ Off-road: Egypt has two dune fields and stone jump ramps (air-time bonus), the 4
 Neon City sky-train: fly next to a train and press L (phone: LAND) to jump on the roof and ride the loop; L / SHIP hops off.
 
 Egypt hot-air balloons: fly next to one and press L (phone: LAND) to ride in the basket. Hold R (phone: JUMP) for the burner, steer with the stick, L / SHIP to jump out.
+
+Going home: in Earth orbit fly through the 🏠 GO HOME wormhole (or press H). A long warp (star streaks, two wormholes, past the Milky Way) drops you in the Zeta Nebula, where you can land on the alien homeworld, Zeta Prime.
