@@ -1052,11 +1052,11 @@ const farmBirds=[],fireflies=[];
 // ---------- targets ----------
 const W=0xf2f2f2,B=0x1a1a1a,PK=0xf0a0a0;
 // ---------- real 3D models (made with Higgsfield / Tripo) ----------
-const MODELS={cow:{file:'cow',len:3.0,rotY:PI/2,list:[]},car:{file:'car',len:4.4,rotY:0,list:[]},heli:{file:'heli',len:12,rotY:0,list:[]},jet:{file:'jet',len:12,rotY:0,list:[]},truck:{file:'truck',len:7,rotY:0,list:[]},police:{file:'police',len:4.6,rotY:0,list:[]},shadow:{file:'shadow',len:12.5,rotY:PI,list:[],yOff:-0.35,recolor:true},
+const MODELS={cow:{file:'cow',len:3.0,rotY:PI/2,list:[]},car:{file:'car',len:4.4,rotY:0,list:[]},heli:{file:'heli',len:12,rotY:0,list:[],lift:2},jet:{file:'jet',len:12,rotY:0,list:[],lift:2},truck:{file:'truck',len:7,rotY:0,list:[]},police:{file:'police',len:4.6,rotY:0,list:[]},shadow:{file:'shadow',len:12.5,rotY:PI,list:[],yOff:-0.35,recolor:true},
   camel:{file:'camel',height:4.6,rotY:PI/2,list:[]},penguin:{file:'penguin',height:2.8,rotY:0,list:[]},dino:{file:'dino',height:4.6,rotY:PI/2,list:[]},
   jaguar:{file:'jaguar',height:2.4,rotY:0,list:[]},shark:{file:'shark',len:3.8,rotY:PI/2,list:[]},tractor:{file:'tractor',height:3.6,rotY:0,list:[]},
   barn:{file:'barn',height:14,rotY:-PI/2,list:[]},chest:{file:'chest',height:2.6,rotY:0,list:[]},
-  sr71:{file:'sr71',len:34,rotY:0,list:[]},bop:{file:'bop',len:15,rotY:PI/2,list:[]},dropship:{file:'dropship',len:22,rotY:0,list:[]},wing:{file:'wing',len:22,rotY:-PI/2,list:[]},
+  sr71:{file:'sr71',len:34,rotY:0,list:[],lift:2.6},bop:{file:'bop',len:15,rotY:PI/2,list:[],lift:2.6},dropship:{file:'dropship',len:22,rotY:0,list:[]},wing:{file:'wing',len:22,rotY:-PI/2,list:[],lift:2.6},
   trainF:{file:'trainF',len:13.5,rotY:PI/2,list:[]},trainM:{file:'trainM',len:12.5,rotY:PI/2,list:[]},
   whale:{file:'whale',len:3.8,rotY:-PI/2,list:[]},octopus:{file:'octopus',height:1.6,rotY:0,list:[]},sub:{file:'sub',len:6.5,rotY:0,list:[]},dolphin:{file:'dolphin',len:3.6,rotY:PI/2,rotX:0.69,list:[]},
   carrier:{file:'carrier',len:150,rotY:0,list:[]},destroyer:{file:'destroyer',len:70,rotY:0,list:[]},cargo:{file:'cargo',len:100,rotY:0,list:[]},cruise:{file:'cruise',len:90,rotY:0,list:[]},fishboat:{file:'fishboat',len:9,rotY:0,list:[]},sailboat:{file:'sailboat',len:8,rotY:0,list:[]},
@@ -1071,10 +1071,20 @@ function glbLoad(file,onLoad){if(!THREE.GLTFLoader)return;const ld=new THREE.GLT
   if(D){try{const bin=atob(D),u=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)u[i]=bin.charCodeAt(i);ld.parse(u.buffer,'',onLoad,()=>{});}catch(e){}}
   else ld.load('assets/models/'+file+'.glb',onLoad,undefined,()=>{});}
 // models download only when their world is first visited (keeps the first download small)
+// 🔥 rocket fire for jets: flickering additive flame cones + glow
+const FLAMES=[];
+function rocketFire(len,w,c){const g=new THREE.Group();g.userData.keep=true;
+  const mk=(col,r,l,op)=>{const m=new THREE.Mesh(new THREE.ConeGeometry(r,l,10,1,true),new THREE.MeshBasicMaterial({color:col,transparent:true,opacity:op,blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide,fog:false}));m.rotation.z=PI/2;m.position.x=-l/2;m.userData.keep=true;g.add(m);};
+  mk(c||0xff6a1a,w,len,0.6);mk(0xffd070,w*0.62,len*0.7,0.7);mk(0xd8f0ff,w*0.34,len*0.42,0.95);
+  for(const [x,s,col,op] of[[0,w*5,0xffa040,0.9],[-len*0.45,w*3.4,0xff5a1a,0.55]]){const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:col,transparent:true,opacity:op,blending:THREE.AdditiveBlending,depthWrite:false,fog:false}));sp.position.x=x;sp.scale.set(s,s,1);g.add(sp);}
+  g.userData.ph=FLAMES.length*1.7;FLAMES.push(g);return g;}
+function engines(parent,k,sc){const E={sr71:[[-15.5,1.6,5.2],[-15.5,1.6,-5.2]],wing:[[-4.5,1.5,2.6],[-4.5,1.5,-2.6]],bop:[[-7,1.1,0]],jet:[[-5.6,0.9,0.7],[-5.6,0.9,-0.7]]}[k]||[[-6,1,0]];
+  const L={sr71:13,wing:8,bop:7,jet:6}[k]||6,W={sr71:1.1,wing:0.8,bop:0.8,jet:0.5}[k]||0.6;return E.map(([x,y,z])=>{const f=rocketFire(L,W);f.position.set(x,y,z);parent.add(f);return f;});}
+function flameTick(t){for(const g of FLAMES){if(!g.parent||!g.parent.visible)continue;const p=g.userData.ph;g.scale.set(0.85+0.28*Math.abs(Math.sin(t*31+p))+0.1*Math.sin(t*67+p*2),0.92+0.12*Math.sin(t*43+p),0.92+0.12*Math.sin(t*53+p));}}
 function loadModel(k){const M=MODELS[k];if(!M||M.loading)return;M.loading=true;
     const onLoad=gl=>{
       const holder=new THREE.Group(),inner=gl.scene;inner.rotation.set(M.rotX||0,M.rotY,0,'YXZ');holder.add(inner);
-      inner.traverse(o=>{if(o.isMesh&&M.recolor){o.material=new THREE.MeshStandardMaterial({color:0x3a4252,metalness:0.6,roughness:0.28,emissive:0x0c1018,normalMap:o.material.normalMap||null});return;}if(o.isMesh){const mt=o.material;if(mt&&mt.map){mt.emissive=new THREE.Color(0xffffff);mt.emissiveMap=mt.map;mt.emissiveIntensity=0.22;mt.needsUpdate=true;}}});
+      inner.traverse(o=>{if(o.isMesh&&M.recolor){o.material=new THREE.MeshStandardMaterial({color:0x3a4252,metalness:0.6,roughness:0.28,emissive:0x0c1018,normalMap:o.material.normalMap||null});return;}if(o.isMesh&&M.lift){const mt=o.material=o.material.clone();mt.color.multiplyScalar(M.lift);if(mt.metalness!==undefined){mt.metalness=Math.min(mt.metalness,0.2);mt.roughness=Math.max(mt.roughness,0.55);}mt.emissive=new THREE.Color(0x2a303c);mt.emissiveMap=null;mt.emissiveIntensity=1;mt.needsUpdate=true;return;}if(o.isMesh){const mt=o.material;if(mt&&mt.map){mt.emissive=new THREE.Color(0xffffff);mt.emissiveMap=mt.map;mt.emissiveIntensity=0.22;mt.needsUpdate=true;}}});
       holder.updateMatrixWorld(true);let b=new THREE.Box3().setFromObject(holder),sz=b.getSize(new V3());
       const sc=M.height?M.height/Math.max(sz.y,0.001):M.len/Math.max(sz.x,0.001);holder.scale.setScalar(sc);holder.updateMatrixWorld(true);
       b=new THREE.Box3().setFromObject(holder);const c=b.getCenter(new V3());
@@ -3238,9 +3248,9 @@ function makeShowgirl(){
     // airmen on the flight line
     for(let i=0;i<8;i++){const g=makeHuman(false);g.userData.emoji='🪖';g.userData.pts=70;g.userData.heat=1.2;const T={type:'critter',mesh:useAnim('soldier',g,'vegas'),spawn:spawnCow,fl:[{x:NX-60,z:NZ+60},{x:NX+80,z:NZ+60}],rad:40};T.spawn(T);targets.push(T);}
     // air show: 4 jets in diamond formation looping overhead with smoke trails + one jet taking off every so often
-    const show=new THREE.Group();root.add(show);const four=[[0,0],[-14,-10],[-14,10],[-28,0]].map(([dx,dz])=>{const g=new THREE.Group();g.position.set(dx,0,dz);show.add(g);useModel('jet',g);
+    const show=new THREE.Group();root.add(show);const four=[[0,0],[-14,-10],[-14,10],[-28,0]].map(([dx,dz])=>{const g=new THREE.Group();g.position.set(dx,0,dz);show.add(g);useModel('jet',g);engines(g,'jet');
       const tr=[];for(let k=0;k<10;k++){const s=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:0xffffff,transparent:true,opacity:.35*(1-k/10),depthWrite:false}));s.scale.setScalar(5+k*1.6);root.add(s);tr.push(s);}return {g,tr,hist:[]};});
-    const tko=new THREE.Group();root.add(tko);useModel('jet',tko);const burner=glowSprite(0xff8a3a,0,0,0,8,0.9);tko.add(burner);burner.position.set(-7,0,0);
+    const tko=new THREE.Group();root.add(tko);useModel('jet',tko);engines(tko,'jet');const burner=glowSprite(0xff8a3a,0,0,0,8,0.9);tko.add(burner);burner.position.set(-7,0,0);
     planetAnim.push({town:'vegas',f:(t,dt)=>{
       const a=t*0.22,lp=Math.sin(t*0.5);show.position.set(NX+Math.cos(a)*260,150+lp*45,NZ-40+Math.sin(a)*170);show.rotation.set(0,-a-PI/2,0);show.rotateZ(lp*0.25);show.updateMatrixWorld(true);
       four.forEach(F=>{const w=new V3();F.g.getWorldPosition(w);F.hist.unshift(w);if(F.hist.length>30)F.hist.pop();F.tr.forEach((s,k)=>{const h=F.hist[Math.min(F.hist.length-1,k*3)];s.position.copy(h);});});
@@ -4250,7 +4260,7 @@ function makeJet(){
   box(g,1.6,0.12,3.8,m,-3.9,0,0);box(g,1.8,2.1,0.15,m,-3.6,1.1,0);
   const burner=navSprite(0xff8a30,3.4);burner.position.set(-5,0,0);g.add(burner);
   const r=navSprite(0xff3030,1.5);r.position.set(-3,0.1,5.2);g.add(r);const gr=navSprite(0x30ff60,1.5);gr.position.set(-3,0.1,-5.2);g.add(gr);
-  enemyGroup.add(g);useModel('jet',g);return{g,burner};
+  engines(g,'jet');enemyGroup.add(g);useModel('jet',g);return{g,burner};
 }
 function makeMissile(){
   const g=new THREE.Group();
@@ -5124,7 +5134,7 @@ function setupRelics(){
 function relicCount(){return relicFx.filter(r=>r.got).length;}
 // ✈️ fly the secret planes: walk up to one at Area 51 and tap SHIP
 const PLANE_INFO={sr71:{name:'SR-71 Blackbird',spd:1.7},bop:{name:'Bird of Prey',spd:1.4},wing:{name:'B-2 Spirit',spd:1.25}},PILOT_G={};let FLYP=null,planeHint=0;
-['sr71','bop','wing'].forEach(k=>{const g=new THREE.Group(),inner=new THREE.Group();inner.rotation.y=PI/2;inner.scale.setScalar(k==='sr71'?0.55:0.8);g.add(inner);g.visible=false;tilt.add(g);useModel(k,inner);PILOT_G[k]=g;});
+['sr71','bop','wing'].forEach(k=>{const g=new THREE.Group(),inner=new THREE.Group();inner.rotation.y=PI/2;inner.scale.setScalar(k==='sr71'?0.55:0.8);g.add(inner);g.visible=false;tilt.add(g);useModel(k,inner);engines(inner,k);PILOT_G[k]=g;});
 function nearPlane(){return PLANE_SPOTS.find(P=>P.town===curTown&&P.g.visible&&Math.hypot(P.g.position.x-pos.x,P.g.position.z-pos.z)<16);}
 function boardPlane(P){FLYP=P;P.g.visible=false;P.col.h=0;
   onFoot=false;walker.visible=false;document.body.classList.remove('walking');relicFx.forEach(r=>r.g.visible=false);crateFx.forEach(c=>c.g.visible=false);eyeBeams.forEach(m=>m.visible=false);eyeGlow.forEach(s=>s.visible=false);
@@ -5613,7 +5623,7 @@ inTown('desert',()=>{
   sign('PROJECT: BLACK STAR','#ff4c9b',30,4,HX,8,HZ+82,0);
   // ✈️ test flights over the base
   const flyers=[];
-  const fly=(k,r,y,sp,cx,cz,bank)=>{const g=new THREE.Group();root.add(g);useModel(k,g);const tr=glowSprite(0xff9a4a,0,0,0,6,0.8);g.add(tr);tr.position.set(-({sr71:17,wing:9,bop:7.5}[k]||8),0,0);flyers.push({g,r,y,sp,cx,cz,bank,ph:rand(0,6),tr});};
+  const fly=(k,r,y,sp,cx,cz,bank)=>{const g=new THREE.Group();root.add(g);useModel(k,g);const tr=glowSprite(0xff9a4a,0,0,0,6,0.8);g.add(tr);tr.position.set(-({sr71:17,wing:9,bop:7.5}[k]||8),0,0);tr.visible=false;engines(g,k);flyers.push({g,r,y,sp,cx,cz,bank,ph:rand(0,6),tr});};
   fly('sr71',520,190,0.32,0,0,0.35);fly('wing',380,140,-0.12,-100,-80,0.2);fly('bop',160,55,0.55,230,-320,0.6);fly('bop',220,75,-0.42,-260,-260,0.55);
   // 🚁 dropship hovering up and down by the crash site
   const ds=new THREE.Group();ds.position.set(140,0,-250);root.add(ds);useModel('dropship',ds);
@@ -6662,6 +6672,7 @@ function loop(now){
   bossUpdate(dt*ES,t);
   {const ph=Math.floor(t*6)%2;policeLights.forEach(([r,b])=>{r.visible=!!ph;b.visible=!ph;});}
   if(TRACK&&curTown==='city'&&mode==='ground'&&!onFoot&&state==='play'){trainHint-=dt;if(trainHint<=0&&nearTrain(40)){trainHint=25;pop(isTouch?'🚝 Tap LAND next to the sky-train to ride it':'🚝 Press L next to the sky-train to ride it','t');}}
+  flameTick(t);
   if(TRACK)trains.forEach(T=>{const L=TRACK.L;
     if(T.wait>0)T.wait-=dt;else{T.d=(T.d+30*dt)%L;const u=T.d/L;TRACK.stations.forEach((su,i)=>{if(T.lastSt!==i&&Math.abs(u-su)<0.004){T.wait=4;T.lastSt=i;}});}
     T.cars.forEach((g,k)=>{const dd=((T.d-k*13.5)%L+L)%L,u=dd/L,p=TRACK.C.getPointAt(u),tg=TRACK.C.getTangentAt(u);g.position.set(p.x,TRACK.H+0.9,p.z);g.rotation.set(0,Math.atan2(-tg.z,tg.x)+(k===4?PI:0),0);});});
