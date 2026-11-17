@@ -160,3 +160,5 @@ Open Sea waves now have a curled shape with foam and spray, and boats, ships and
 The Ocean (underwater): rippling sunlight on the sand, a much richer reef floor (sea grass, fan corals, tube sponges, table corals, starfish, urchins, shells), the Lost Galleon (+150), a sunken plane (+150), a whale skeleton (+80), a giant clam with a pearl to beam (350), humpbacks passing overhead with whale song, 3D sea turtles and slightly longer visibility.
 
 Magmor: glowing cracked ground, a lava lake with a lava-fall, obsidian and fire-crystal fields, the Forge village, walking lava golems (260), ash lightning. Verdana: glowing streams and a lily pond, four colossal trees with a tree-house village and rope bridges, giant flowers, ferns, butterflies and floating lantern-jellies. Both planets now also have a direct portal in Earth orbit.
+
+Area 51 desert: a dry-lake test runway with chasing lights and a parked black triangle, a saucer crash site with a power core to beam (300) and guards, a three-dish listening array, a Saucer Springs water tower, joshua trees, dunes, rock arches and rolling tumbleweeds.
