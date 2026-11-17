@@ -3678,6 +3678,75 @@ beginTown('maya');
     const offering=new THREE.Mesh(new THREE.CylinderGeometry(1.1,1.4,0.55,8),turquoise);
     offering.position.set(-245,0.32,-54);root.add(offering);
   })();
+  // 🌳 Yucatán canopy polish: ceiba trees, palms, understory plants and water glints
+  (function(){
+    const bark=lam(0x654a32),rootBark=lam(0x806044),
+      canopy=[lam(0x315f2e),lam(0x3f7134),lam(0x527f3a),lam(0x668743)],
+      vine=lam(0x426d36),water=lam(0x2c8880);
+    const swaying=[],waterGlints=[];
+    function ceiba(x,z,size,seed){
+      const g=new THREE.Group();g.position.set(x,0,z);g.scale.setScalar(size);root.add(g);
+      const trunk=new THREE.Mesh(new THREE.CylinderGeometry(0.9,1.25,13,8),bark);trunk.position.y=6.5;g.add(trunk);
+      // Flared buttress roots characteristic of large tropical forest trees
+      for(let i=0;i<5;i++){
+        const a=i/5*2*PI+seed,rootMesh=new THREE.Mesh(new THREE.ConeGeometry(0.9,6,5),rootBark);
+        rootMesh.position.set(Math.cos(a)*2.1,1.5,Math.sin(a)*2.1);
+        rootMesh.rotation.z=Math.cos(a)*0.55;rootMesh.rotation.x=-Math.sin(a)*0.55;g.add(rootMesh);
+      }
+      const crown=new THREE.Group();crown.position.y=12;g.add(crown);
+      for(let i=0;i<7;i++){
+        const a=i/7*2*PI,clump=new THREE.Mesh(new THREE.SphereGeometry(rand(3.8,5.2),8,6),canopy[(i+seed)%canopy.length]);
+        clump.scale.set(1.25,0.72,1);clump.position.set(Math.cos(a)*3.2,rand(-0.2,1.8),Math.sin(a)*3.2);crown.add(clump);
+      }
+      // Hanging lianas and small epiphyte clusters
+      for(let i=0;i<4;i++){
+        const a=i/4*2*PI+seed,v=new THREE.Mesh(new THREE.CylinderGeometry(0.045,0.07,rand(4,7),5),vine);
+        v.position.set(Math.cos(a)*4.2,rand(6,8),Math.sin(a)*4.2);v.rotation.z=Math.sin(a)*0.12;v.rotation.x=Math.cos(a)*0.12;g.add(v);
+      }
+      swaying.push({crown,phase:seed,speed:0.35+seed*0.03});
+    }
+    function palm(x,z,size,seed){
+      const g=new THREE.Group();g.position.set(x,0,z);g.scale.setScalar(size);root.add(g);
+      const trunk=new THREE.Mesh(new THREE.CylinderGeometry(0.32,0.52,11,7),lam(0x795638));trunk.position.y=5.5;g.add(trunk);
+      const crown=new THREE.Group();crown.position.y=11;g.add(crown);
+      for(let i=0;i<8;i++){
+        const a=i/8*2*PI+seed,leafMesh=new THREE.Mesh(new THREE.BoxGeometry(0.55,0.18,7.5),canopy[i%canopy.length]);
+        leafMesh.position.set(Math.cos(a)*2.5,-0.9,Math.sin(a)*2.5);leafMesh.rotation.y=-a;leafMesh.rotation.z=-0.28; crown.add(leafMesh);
+      }
+      swaying.push({crown,phase:seed+2,speed:0.55});
+    }
+    // Place canopy groups in forest gaps, away from village courtyards and central monuments
+    [[-610,-520],[-610,-300],[-610,20],[-610,500],[610,-520],[610,-300],[610,20],[610,500],
+     [-360,-560],[360,-560],[-360,600],[360,600],[-520,570],[520,570]].forEach((p,i)=>ceiba(p[0],p[1],0.72+(i%3)*0.12,i*0.7));
+    [[-575,-470],[-575,180],[575,-470],[575,180],[-250,610],[250,610]].forEach((p,i)=>palm(p[0],p[1],0.8,i*0.8));
+    // Ferns and broad-leaf understory soften the hard edges of fields and paths
+    for(let i=0;i<54;i++){
+      const x=rand(-600,600),z=rand(-600,600);
+      if(Math.abs(x)<95&&z>430)continue;
+      const g=new THREE.Group();g.position.set(x,0,z);root.add(g);
+      for(let k=0;k<5;k++){
+        const a=k/5*2*PI,frond=new THREE.Mesh(new THREE.ConeGeometry(0.52,2.8,5),canopy[(i+k)%canopy.length]);
+        frond.position.set(Math.cos(a)*0.8,1.1,Math.sin(a)*0.8);frond.rotation.z=Math.cos(a)*0.6;frond.rotation.x=-Math.sin(a)*0.6;g.add(frond);
+      }
+    }
+    // A shallow turquoise rainwater runnel beside the southern causeway
+    const runnel=new THREE.Group();runnel.position.set(175,0,540);runnel.rotation.y=-0.16;root.add(runnel);
+    for(let i=0;i<9;i++){
+      const pool=new THREE.Mesh(new THREE.CylinderGeometry(3.2,3.8,0.18,12),water);
+      pool.scale.set(1.4,1,0.75);pool.position.set(i*7,0.12,Math.sin(i*0.8)*2.2);runnel.add(pool);
+      const stone=new THREE.Mesh(new THREE.BoxGeometry(3.2,0.65,2.2),lam(0x938b75));
+      stone.position.set(i*7,0.28,Math.sin(i*0.8)*2.2+3.8);runnel.add(stone);
+    }
+    const glintMat=new THREE.SpriteMaterial({map:GLOW,color:0x9bfff0,transparent:true,opacity:0.45,depthWrite:false,blending:THREE.AdditiveBlending});
+    for(let i=0;i<18;i++){
+      const glint=new THREE.Sprite(glintMat.clone());glint.position.set(175+rand(-8,70),0.55+rand(0,0.2),540+rand(-4,5));glint.scale.set(rand(1.5,3.2),rand(0.6,1.2),1);root.add(glint);
+      waterGlints.push({glint,phase:i*0.7});
+    }
+    planetAnim.push({town:'maya',f:(t)=>{
+      swaying.forEach((S)=>{S.crown.rotation.z=Math.sin(t*S.speed+S.phase)*0.035;S.crown.rotation.x=Math.cos(t*S.speed*0.8+S.phase)*0.025;});
+      waterGlints.forEach(W=>{W.glint.material.opacity=0.18+0.5*(0.5+0.5*Math.sin(t*2.4+W.phase));});
+    }});
+  })();
   // A few low limestone markers and shade trees tie the hamlets into the old paths
   for(const [x,z] of[[-350,-455],[350,-455],[-300,445],[300,445]]){
     const plinth=new THREE.Mesh(new THREE.BoxGeometry(3.6,0.8,3.6),villageStone);plinth.position.set(x,0.4,z);root.add(plinth);
