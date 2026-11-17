@@ -8552,7 +8552,7 @@ function endGame(why){
   setTimeout(()=>$('over').classList.remove('hidden'),700);
 }
 // ---------- 🏆 online leaderboard (Firebase Firestore over plain web requests; switched off when LB_CFG is empty or the host blocks it) ----------
-const LB_CFG={projectId:'',apiKey:''}; // paste the two values from the Firebase web config here
+const LB_CFG={projectId:'ufo-abduction-1ae83',apiKey:'AIzaSyCNPT90-Slm119ubtUgztfvbae-AdHIiHE'}; // Firebase web config (public by design; the Firestore rules do the protecting)
 const LB={on:!!(LB_CFG.projectId&&LB_CFG.apiKey)&&window.__NOLB!==1,sent:false,from:'menu',cache:null,cacheT:0,
   url:k=>`https://firestore.googleapis.com/v1/projects/${LB_CFG.projectId}/databases/(default)/documents${k}?key=${LB_CFG.apiKey}`};
 const LB_BAD=/(fuck|fuk|fck|shit|sht|bitch|btch|cunt|nigg|niga|fag|dick|cock|pussy|whore|slut|rape|nazi|hitler|penis|vagin|porn|sex|ass$|^ass|kkk)/i;
