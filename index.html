@@ -3568,6 +3568,74 @@ beginTown('maya');
     // Traditional log hives for stingless bees, placed at the grove edges
     beeHive(-118,548);beeHive(118,548);beeHive(-128,620);beeHive(128,620);
   })();
+  // 🦜 Yucatán jungle wildlife: toucans, macaws, monkeys, coatis and iguanas
+  (function(){
+    const wildlife=[],darkFeather=lam(0x202832),brightFeather=lam(0x176b55),
+      wingFeather=lam(0x245b48),beakMat=lam(0xf0a52e),skin=lam(0x8a6548),
+      fur=lam(0x76533a),belly=lam(0xc6a77b),scale=lam(0x548b48);
+    function bird(x,z,kind,phase){
+      const g=new THREE.Group(),bodyMat=kind==='macaw'?brightFeather:darkFeather;
+      const body=new THREE.Mesh(new THREE.SphereGeometry(1.25,9,7),bodyMat);
+      body.scale.set(1.45,0.78,0.72);g.add(body);
+      const head=new THREE.Mesh(new THREE.SphereGeometry(0.62,8,6),bodyMat);head.position.set(1.35,0.45,0);g.add(head);
+      const beak=new THREE.Mesh(new THREE.ConeGeometry(0.42,1.25,6),kind==='toucan'?beakMat:lam(0xd6a34b));
+      beak.rotation.z=-PI/2;beak.position.set(2.12,0.32,0);g.add(beak);
+      const wingL=new THREE.Group(),wingR=new THREE.Group();
+      for(const [w,side] of[[wingL,-1],[wingR,1]]){
+        const feather=new THREE.Mesh(new THREE.BoxGeometry(1.9,0.16,0.78),kind==='macaw'?lam(0xd84c32):wingFeather);
+        feather.position.x=side*0.85;w.add(feather);w.position.set(0,0,side*0.48);g.add(w);
+      }
+      const tail=new THREE.Mesh(new THREE.ConeGeometry(0.36,2.8,5),kind==='macaw'?lam(0xd84c32):brightFeather);
+      tail.rotation.z=PI/2;tail.position.set(-2,0,0);g.add(tail);
+      root.add(g);wildlife.push({kind,g,wingL,wingR,phase,radius:rand(12,26),speed:rand(0.18,0.34),x,z,height:rand(28,43)});
+    }
+    for(let i=0;i<5;i++)bird(-570+i*34,-80+(i%2)*42,'toucan',i*1.7);
+    for(let i=0;i<5;i++)bird(570-i*32,100-(i%2)*38,'macaw',i*1.4);
+    function monkey(x,z,phase){
+      const g=new THREE.Group();
+      const torso=new THREE.Mesh(new THREE.SphereGeometry(0.9,8,7),fur);torso.scale.set(0.72,1.25,0.62);torso.position.y=2.1;g.add(torso);
+      const head=new THREE.Mesh(new THREE.SphereGeometry(0.62,8,7),skin);head.position.set(0,3.25,0);g.add(head);
+      for(const side of[-1,1]){
+        const arm=new THREE.Mesh(new THREE.CylinderGeometry(0.16,0.2,1.8,6),fur);arm.position.set(side*0.72,2.7,0);arm.rotation.z=side*0.35;g.add(arm);
+        const leg=new THREE.Mesh(new THREE.CylinderGeometry(0.18,0.2,1.35,6),fur);leg.position.set(side*0.48,0.85,0);g.add(leg);
+      }
+      const tail=new THREE.Mesh(new THREE.TorusGeometry(1.25,0.13,5,12,PI*1.6),fur);tail.position.set(-0.7,1.35,0);tail.rotation.z=PI/2;g.add(tail);
+      root.add(g);wildlife.push({kind:'monkey',g,phase,x,z,radius:5,speed:0.7,height:0});
+    }
+    monkey(-585,-360,0.2);monkey(590,-360,2.1);monkey(-590,360,4.2);
+    function groundCritter(x,z,kind){
+      const g=new THREE.Group(),m=kind==='iguana'?scale:fur;
+      const body=new THREE.Mesh(new THREE.SphereGeometry(1,8,6),m);body.scale.set(1.55,0.55,0.68);body.position.y=0.8;g.add(body);
+      const head=new THREE.Mesh(new THREE.SphereGeometry(0.48,7,6),m);head.position.set(1.35,0.9,0);g.add(head);
+      const tail=new THREE.Mesh(new THREE.ConeGeometry(0.35,2.3,6),m);tail.rotation.z=-PI/2;tail.position.set(-2.1,0.62,0);g.add(tail);
+      for(const side of[-1,1])for(const along of[-1,1]){
+        const leg=new THREE.Mesh(new THREE.CylinderGeometry(0.1,0.13,0.65,5),m);leg.position.set(along*0.8,0.35,side*0.48);leg.rotation.z=along*0.25;g.add(leg);
+      }
+      if(kind==='coati'){const mask=new THREE.Mesh(new THREE.SphereGeometry(0.22,6,5),belly);mask.position.set(1.62,1.05,0);g.add(mask);}
+      else for(let i=0;i<5;i++){const spike=new THREE.Mesh(new THREE.ConeGeometry(0.16,0.55,4),lam(0x426b3b));spike.position.set(-0.6+i*0.42,1.35,0);g.add(spike);}
+      g.position.set(x,0,z);root.add(g);wildlife.push({kind,g,x,z,phase:rand(0,6),radius:rand(3,9),speed:rand(0.12,0.24),height:0});
+    }
+    groundCritter(-500,-250,'coati');groundCritter(500,-250,'coati');
+    groundCritter(-500,330,'iguana');groundCritter(500,330,'iguana');
+    planetAnim.push({town:'maya',f:(t)=>{
+      wildlife.forEach(W=>{
+        const a=t*W.speed+W.phase;
+        if(W.kind==='monkey'){
+          W.g.position.set(W.x+Math.sin(a)*W.radius,6+Math.sin(a*2)*1.4,W.z+Math.cos(a)*W.radius);
+          W.g.rotation.y=-a;
+        }else if(W.kind==='coati'||W.kind==='iguana'){
+          W.g.position.x=W.x+Math.sin(a)*W.radius;
+          W.g.position.z=W.z+Math.cos(a)*W.radius;
+          W.g.rotation.y=-a;
+        }else{
+          W.g.position.set(W.x+Math.cos(a)*W.radius,W.height+Math.sin(a*2)*2.2,W.z+Math.sin(a)*W.radius);
+          W.g.rotation.y=-a+PI/2;
+          const flap=Math.sin(t*9+W.phase)*0.48;
+          W.wingL.rotation.z=flap;W.wingR.rotation.z=-flap;
+        }
+      });
+    }});
+  })();
   // A few low limestone markers and shade trees tie the hamlets into the old paths
   for(const [x,z] of[[-350,-455],[350,-455],[-300,445],[300,445]]){
     const plinth=new THREE.Mesh(new THREE.BoxGeometry(3.6,0.8,3.6),villageStone);plinth.position.set(x,0.4,z);root.add(plinth);
