@@ -3636,6 +3636,48 @@ beginTown('maya');
       });
     }});
   })();
+  // 🏛️ Everyday ceremonial landmarks: a temazcal, carved stelae and a cenote landing
+  (function(){
+    const limestone=lam(0xb8ad94),shadow=lam(0x756d5c),timber=lam(0x59402a),
+      turquoise=lam(0x277f79),ochre=lam(0xb68a48);
+    // Small domed temazcal beside the southern homes
+    const bath=new THREE.Group();bath.position.set(-92,0,485);root.add(bath);
+    const mound=new THREE.Mesh(new THREE.SphereGeometry(13,12,8,0,2*PI,0,PI/2),limestone);
+    mound.scale.set(1.25,0.78,1);mound.position.y=0.2;bath.add(mound);
+    const doorway=new THREE.Mesh(new THREE.BoxGeometry(4.2,5.4,1),shadow);doorway.position.set(0,2.1,12.3);bath.add(doorway);
+    const entry=new THREE.Mesh(new THREE.BoxGeometry(2.5,4.2,0.35),lam(0x211a13));entry.position.set(0,2.1,12.9);bath.add(entry);
+    const vent=new THREE.Mesh(new THREE.CylinderGeometry(0.8,1.1,1.4,8),limestone);vent.position.set(0,10.1,0);bath.add(vent);
+    // Three carved stelae with simple raised glyph marks at the edge of the plaza
+    for(const [x,z,turn] of[[-32,545,0],[32,545,0],[0,590,PI/2]]){
+      const base=new THREE.Mesh(new THREE.BoxGeometry(5,1,4),shadow);base.position.set(x,0.5,z);root.add(base);
+      const slab=new THREE.Mesh(new THREE.BoxGeometry(2.7,7.5,0.85),limestone);slab.position.set(x,4.7,z);slab.rotation.y=turn;root.add(slab);
+      for(let row=0;row<3;row++)for(let col=0;col<2;col++){
+        const glyph=new THREE.Mesh(new THREE.BoxGeometry(0.42,0.42,0.18),ochre);
+        glyph.position.set(x+(col-0.5)*0.8,3.2+row*1.45,z+0.52);glyph.rotation.y=turn;root.add(glyph);
+      }
+    }
+    // A modest canoe landing on the near side of the existing sacred cenote
+    const dock=new THREE.Group();dock.position.set(-260,0,-68);dock.rotation.y=0.22;root.add(dock);
+    for(let i=0;i<5;i++){
+      const plank=new THREE.Mesh(new THREE.BoxGeometry(3.2,0.32,17),timber);
+      plank.position.set((i-2)*3.1,0.55,0);dock.add(plank);
+    }
+    for(const z of[-7,7])for(const x of[-6.2,6.2]){
+      const post=new THREE.Mesh(new THREE.CylinderGeometry(0.22,0.28,2.8,6),timber);
+      post.position.set(x,0.25,z);dock.add(post);
+    }
+    // Two narrow dugout canoes pulled up beside the landing
+    for(const x of[-8,8]){
+      const canoe=new THREE.Group();canoe.position.set(x,0.8,12+(x>0?4:0));dock.add(canoe);
+      const hull=new THREE.Mesh(new THREE.BoxGeometry(2.4,0.65,11),timber);hull.scale.set(0.72,1,1);canoe.add(hull);
+      const bow=new THREE.Mesh(new THREE.ConeGeometry(1.15,3,5),timber);bow.rotation.x=PI/2;bow.position.z=-6;canoe.add(bow);
+      const stern=bow.clone();stern.position.z=6;stern.rotation.x=-PI/2;canoe.add(stern);
+      const seat=new THREE.Mesh(new THREE.BoxGeometry(1.3,0.2,0.55),ochre);seat.position.y=0.42;canoe.add(seat);
+    }
+    // Subtle turquoise water glint and a small offering bowl near the landing
+    const offering=new THREE.Mesh(new THREE.CylinderGeometry(1.1,1.4,0.55,8),turquoise);
+    offering.position.set(-245,0.32,-54);root.add(offering);
+  })();
   // A few low limestone markers and shade trees tie the hamlets into the old paths
   for(const [x,z] of[[-350,-455],[350,-455],[-300,445],[300,445]]){
     const plinth=new THREE.Mesh(new THREE.BoxGeometry(3.6,0.8,3.6),villageStone);plinth.position.set(x,0.4,z);root.add(plinth);
