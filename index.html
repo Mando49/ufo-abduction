@@ -974,6 +974,29 @@ function makeHuman(sleeper){
       const bed=new THREE.Mesh(new THREE.PlaneGeometry(2.6,2.2),winOn);bed.userData.keep=true;bed.position.set(2.8,4.7,5.52);h.add(bed); // bedroom window (lit while someone sleeps)
       const w2=new THREE.Mesh(new THREE.PlaneGeometry(2.4,2),winOff);w2.position.set(-3,4.8,5.52);h.add(w2);
       const mb=new THREE.Mesh(new THREE.BoxGeometry(0.6,0.6,1),lam(0x3a5aa8));mb.position.set(4,1.4,9.5);h.add(mb);const mp=new THREE.Mesh(new THREE.BoxGeometry(0.15,1.1,0.15),lam(0x5a4a3a));mp.position.set(4,0.55,9.5);h.add(mp);
+      // facade trim, framed windows, porch steps and lived-in exterior details
+      const trim=lam(0xe9dfc9),frame=lam(0x4a3a30),glass=basic(0x28475a),roofEdge=lam(0x40352f);
+      const fascia=new THREE.Mesh(new THREE.BoxGeometry(13.35,0.38,11.3),trim);fascia.position.set(0,6.75,0);h.add(fascia);
+      const eave=new THREE.Mesh(new THREE.BoxGeometry(13.5,0.42,11.5),roofEdge);eave.position.set(0,7.2,0);h.add(eave);
+      for(const wx of[-3,2.8]){
+        const pane=new THREE.Mesh(new THREE.PlaneGeometry(2.55,2.15),glass);pane.position.set(wx,4.7,5.59);h.add(pane);
+        for(const [dx,dy,wid,hei] of[[0,1.15,2.9,0.16],[0,-1.15,2.9,0.16],[-1.37,0,0.16,2.45],[1.37,0,0.16,2.45],[0,0,0.12,2.1],[0,0,2.7,0.12]]){
+          const bar=new THREE.Mesh(new THREE.BoxGeometry(wid,hei,0.22),frame);bar.position.set(wx+dx,4.7+dy,5.68);h.add(bar);
+        }
+      }
+      const canopy=new THREE.Mesh(new THREE.BoxGeometry(6.8,0.35,2.8),lam(0x6d5038));canopy.position.set(-2.4,4.1,6.8);h.add(canopy);
+      for(const px of[-5.3,0.5]){const post=new THREE.Mesh(new THREE.BoxGeometry(0.28,3.8,0.28),trim);post.position.set(px,2.1,7.8);h.add(post);}
+      const step=new THREE.Mesh(new THREE.BoxGeometry(3.4,0.35,1.2),lam(0x8a8a88));step.position.set(-3,0.2,8.1);h.add(step);
+      const porchLight=glowSprite(0xffd58a,-3,3.6,5.85,2.2,0.55);h.add(porchLight);
+      for(let p=0;p<3;p++){
+        const panel=new THREE.Mesh(new THREE.BoxGeometry(2.25,0.16,2.0),lam(0x142c43));panel.position.set(-4.4+p*2.3,9.35,-1.3);panel.rotation.z=-0.48;h.add(panel);
+        for(let q=0;q<2;q++){const line=new THREE.Mesh(new THREE.BoxGeometry(0.045,0.025,1.8),basic(0x6fc7e8));line.position.set(-5.05+p*2.3+q*0.65,9.47,-1.3);line.rotation.z=-0.48;h.add(line);}
+      }
+      const ac=new THREE.Mesh(new THREE.BoxGeometry(1.8,1.2,1.0),lam(0x9aa1a8));ac.position.set(6.8,2.1,-1.5);h.add(ac);
+      const fan=new THREE.Mesh(new THREE.TorusGeometry(0.38,0.07,5,16),lam(0x59616c));fan.position.set(6.8,2.1,-0.94);h.add(fan);
+      for(let fx=-10;fx<=10;fx+=2.5){if(Math.abs(fx)<4)continue;const fp=new THREE.Mesh(new THREE.BoxGeometry(0.18,1.35,0.18),trim);fp.position.set(fx,0.68,11);h.add(fp);}
+      const fenceRail=new THREE.Mesh(new THREE.BoxGeometry(22,0.16,0.18),trim);fenceRail.position.set(0,0.9,11);h.add(fenceRail);
+      for(let st=0;st<5;st++){const stone=new THREE.Mesh(new THREE.BoxGeometry(1.8,0.18,1.5),lam(0xb6b1a7));stone.position.set(-3,0.22,10-st*1.9);h.add(stone);}
       if(Math.random()<0.5){const car=new THREE.Mesh(new THREE.BoxGeometry(2.4,1.4,4.4),lam(pick([0xc83a3a,0x3a6ac8,0xd8d8d8,0x2a2a2a])));car.position.set(-8.5,0.9,3);h.add(car);const cab=new THREE.Mesh(new THREE.BoxGeometry(2.2,1,2.4),lam(0x1a2a3a));cab.position.set(-8.5,2,2.6);h.add(cab);}
       const wp=toW(hx,hz);colliders.push({x0:wp.x-7.5,x1:wp.x+7.5,z0:wp.z-7.5,z1:wp.z+7.5,h:12.5,y0:0});
       // the sleeper inside, and floating Zzz above the roof
@@ -996,6 +1019,18 @@ function makeHuman(sleeper){
     const walls=new THREE.Mesh(new THREE.BoxGeometry(12,7,10),lam(0xf2efe6));walls.position.y=3.5;h.add(walls);
     const roof=new THREE.Mesh(roofG,lam(0x5a3020));roof.position.y=7;roof.scale.set(0.9,1,0.95);h.add(roof);
     const porch=new THREE.Mesh(new THREE.BoxGeometry(12,0.4,3),lam(0x8a6a4a));porch.position.set(0,0.4,6.5);h.add(porch);
+    // farmhouse trim, porch railing, warm windows and a stone path
+    const farmTrim=lam(0xfaf4e8),farmGlass=basic(0x29465a);
+    const farmFascia=new THREE.Mesh(new THREE.BoxGeometry(12.4,0.35,10.4),farmTrim);farmFascia.position.set(0,6.7,0);h.add(farmFascia);
+    for(const wx of[-3.2,3.2]){
+      const pane=new THREE.Mesh(new THREE.PlaneGeometry(2.2,2.0),farmGlass);pane.position.set(wx,4.6,5.08);h.add(pane);
+      for(const [dx,dy,wid,hei] of[[0,1.05,2.5,0.16],[0,-1.05,2.5,0.16],[-1.2,0,0.16,2.2],[1.2,0,0.16,2.2],[0,0,0.12,2.0]]){
+        const bar=new THREE.Mesh(new THREE.BoxGeometry(wid,hei,0.2),farmTrim);bar.position.set(wx+dx,4.6+dy,5.18);h.add(bar);
+      }
+    }
+    for(const px of[-5,5]){const post=new THREE.Mesh(new THREE.BoxGeometry(0.22,3.2,0.22),farmTrim);post.position.set(px,2,7.6);h.add(post);}
+    for(let st=0;st<3;st++){const step=new THREE.Mesh(new THREE.BoxGeometry(4,0.22,1.0),lam(0xaaa49a));step.position.set(0,0.18,8+st*0.9);h.add(step);}
+    const farmLamp=glowSprite(0xffd58a,0,3.3,5.25,2.2,0.55);h.add(farmLamp);
     const bed=new THREE.Mesh(new THREE.PlaneGeometry(2.4,2),winOn);bed.userData.keep=true;bed.position.set(2.6,4.7,5.02);h.add(bed);freezeStatic([h],h);
     colliders.push({x0:hx-7,x1:hx+7,z0:hz-7,z1:hz+7,h:12.5,y0:0});
     const zc=document.createElement('canvas');zc.width=128;zc.height=64;const zg=zc.getContext('2d');zg.font='900 44px system-ui,sans-serif';zg.fillStyle='#cfe4ff';zg.fillText('Zzz',8,48);
@@ -3316,6 +3351,24 @@ function makeShowgirl(){
     const x=SX+side*rand(85,110),w=rand(50,70),d=rand(40,60),h=rand(70,170),c=neonC[(ni)%neonC.length];
     const tw=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),lam(pick([0x2a2a3a,0x3a2a3a,0x2a3a4a,0xd8c8b0]),0x0a0a14));tw.position.set(x,h/2,z);root.add(tw);
     const ed=new THREE.LineSegments(new THREE.EdgesGeometry(tw.geometry),new THREE.LineBasicMaterial({color:c}));ed.position.copy(tw.position);root.add(ed);
+    // Detailed casino frontage: illuminated window bays, vertical fins and a grand street entrance
+    const faceX=x-side*(w/2+0.22),faceRot=side<0?-PI/2:PI/2;
+    for(let fy=15;fy<h-8;fy+=12){
+      for(let fz=-d/2+7;fz<d/2-4;fz+=10){
+        const win=new THREE.Mesh(new THREE.PlaneGeometry(7,7.2),new THREE.MeshBasicMaterial({color:pick([0x29445c,0x38536b,0x72523e,0x263b55]),transparent:true,opacity:0.78}));
+        win.position.set(faceX,fy,z+fz);win.rotation.y=faceRot;root.add(win);
+        for(const dy of[-3.8,3.8]){const rail=box(root,0.38,0.35,7.5,lam(0x777d88),faceX,fy+dy,z+fz);rail.rotation.y=0;}
+      }
+    }
+    for(let fin=-d/2+5;fin<=d/2-3;fin+=12){
+      box(root,0.7,h-8,0.7,lam(0x858995),faceX-side*0.18,h/2,z+fin);
+    }
+    const entZ=z+d/2+1.8;
+    box(root,18,1.2,5,basic(c),x,h*0.22,entZ);
+    box(root,15,7,0.55,lam(0x171c27),x,h*0.22-4,entZ+2.4);
+    for(const dx of[-5,0,5])box(root,0.22,6.4,0.22,basic(0x9adfff),x+dx,h*0.22-4,entZ+2.72);
+    for(const dx of[-10,10])box(root,0.65,10,0.65,lam(0xb4a58c),x+dx,h*0.22-4,entZ+2);
+    sign('HOTEL  ·  CASINO','#fff0c0',15,2.6,x,h*0.22+4,entZ+2.8,0);
     for(let y=12;y<h-6;y+=14){const strip=new THREE.Mesh(new THREE.BoxGeometry(w+0.4,0.6,d+0.4),basic(c));strip.position.set(x,y,z);root.add(strip);casinos.push(strip);}
     sign(names[ni%names.length],'#'+new THREE.Color(c).getHexString(),d*0.9,d*0.22,x-side*(w/2+0.6),h*0.55,z,side<0?PI/2:-PI/2);
     colliders.push({x0:x-w/2,x1:x+w/2,z0:z-d/2,z1:z+d/2,h,y0:0});ni++;}
@@ -3522,6 +3575,62 @@ function makeShowgirl(){
     freezeStatic(objs,root,true);
     // 🏡 locals out walking the dog / checking the mail (beam them up)
     for(let i=0;i<16;i++){const T={type:'critter',mesh:useAnim('person',makeHuman(false),'vegas'),spawn:spawnCow,fl:RES,rad:30};T.spawn(T);targets.push(T);}}
+  // 🌆 LAS VEGAS STREET LIFE: neighborhood sidewalks, crosswalks, bus shelters and utility details
+  {const objs=[],add=m=>{objs.push(m);return m;},curb=lam(0xb8ad98),walk=lam(0x77777a),metal=lam(0x454b55),glass=lam(0x6e9ca8,0x10202a),yellow=basic(0xf3c84b);
+    // Raised sidewalks and curb edges along the main neighborhood streets
+    for(const side of[-1,1]){
+      const xs=[250,355,460].map(v=>side*v),zMax=side<0?296:465;
+      for(const X of xs)for(const edge of[-1,1]){
+        const ex=X+edge*8.5;
+        add(flatPlane(2.2,zMax+420,0x77777a,-1.2,ex,(zMax-420)/2));
+        for(let z=-410;z<zMax-12;z+=42)add(box(root,2.5,0.22,0.22,curb,ex,0.12,z));
+      }
+      // Zebra crossings at three prominent intersections on each side of the Strip
+      for(const Z of[-190,50,290]){
+        if(side<0&&Z>280)continue;
+        for(const X of xs)for(let stripe=-3;stripe<=3;stripe++){
+          add(flatPlane(1.1,8,0xe6e3d8,-1.35,X+stripe*1.65,Z-8));
+        }
+        // Painted stop bars and a small traffic-control cabinet
+        add(flatPlane(0.65,16,0xf0d45a,-1.3,side*355,Z-13));
+        add(box(root,1.2,1.8,0.9,metal,side*355+19,0.9,Z+9));
+      }
+      // Covered RTC-style neighborhood bus stops, spaced along the arterial
+      for(const Z of[-300,130,390]){
+        if(side<0&&Z>280)continue;
+        const bx=side*355+side*11,bz=Z;
+        add(box(root,12,0.35,4.2,curb,bx,0.18,bz));
+        for(const dx of[-5.4,5.4])add(box(root,0.22,3.2,0.22,metal,bx+dx,1.6,bz));
+        add(box(root,12,0.22,4.4,lam(0x3b414b),bx,3.25,bz));
+        add(box(root,0.12,2.2,3.5,glass,bx-side*5.35,1.65,bz));
+        add(box(root,0.12,2.2,3.5,glass,bx+side*5.35,1.65,bz));
+        add(box(root,5.8,0.45,1.1,lam(0x59616a),bx,1.05,bz+1.15));
+        sign('BUS STOP','#ffe08a',3.2,0.55,bx,2.65,bz-2.3,side>0?PI:0);
+        add(box(root,0.65,1.1,0.65,lam(0x77716a),bx+side*8,0.55,bz+1));
+      }
+      // Utility poles and restrained overhead service wires on the outer blocks
+      for(const Z of[-360,-80,200,420]){
+        if(side<0&&Z>280)continue;
+        const px=side*490;
+        add(box(root,0.65,13,0.65,lam(0x66503c),px,6.5,Z));
+        add(box(root,5.2,0.35,0.35,lam(0x66503c),px,11.4,Z));
+        for(const dx of[-1.8,0,1.8])add(box(root,0.18,0.7,0.18,metal,px+dx,12,Z));
+        glowSprite(0xffd18a,px-side*2.5,12.2,Z,3.2,0.22);
+      }
+    }
+    // Desert-landscape medians with low shrubs on the long cross streets
+    for(const Z of[-190,50,290]){
+      for(const side of[-1,1]){
+        const mx=side*355;
+        add(flatPlane(5.2,42,0x8a806f,-1.1,mx,Z));
+        for(let k=0;k<5;k++){
+          const sh=new THREE.Mesh(new THREE.SphereGeometry(1.35,7,5),lam(pick([0x536b3c,0x687846,0x7a7545])));
+          sh.scale.set(1.7,0.7,1.1);sh.position.set(mx+rand(-1.2,1.2),0.9,Z-18+k*9);add(sh);
+        }
+      }
+    }
+    freezeStatic(objs,root,true);
+  }
   // 🏟️ DESERT DOME: a sleek black stadium with a glowing see-through roof and a giant flame torch (south-west of the Strip)
   {const DX=-360,DZ=392,RX=80,RZ=60,objs=[],add=m=>{objs.push(m);return m;};
     add(flatPlane(250,190,0x2e2f36,-1,DX,DZ));for(let x=-115;x<=115;x+=8)for(const z of[-80,80])add(flatPlane(.4,9,0xe8e8e8,-3,DX+x,DZ+z)); // parking lot
@@ -3616,6 +3725,34 @@ function makeShowgirl(){
     add(box(root,8,48,8,0x3a3a44,-205,24,FZ+6));const zg=new THREE.BufferGeometry().setFromPoints([Z0,Z1]);root.add(new THREE.Line(zg,new THREE.LineBasicMaterial({color:0xd8d8e0})));
     const riders=[];for(let i=0;i<4;i++){const g=makeHuman(false);g.userData.emoji='🧗';g.userData.pts=120;g.userData.heat=0.4;
       const T={type:'critter',mesh:g,still:true,u:i/4,spawn:T=>{T.u=0;T.mesh.visible=true;T.state='ground';resetRot(T.mesh);}};T.state='ground';targets.push(T);riders.push(T);}
+    // pedestrian-level Fremont details: seating, desert planters, bollards and warm street lighting
+    const planterMat=lam(0x4a4d50),stoneMat=lam(0x8a8278),metalMat=lam(0x59616c);
+    for(const sd of[-1,1]){
+      for(let k=0;k<8;k++){
+        const x=-175+k*50,z=FZ+sd*25;
+        add(box(root,9,1.4,9,planterMat,x,0.7,z));
+        add(new THREE.Mesh(new THREE.CylinderGeometry(2.1,2.7,5.5,8),lam(pick([0x5b4938,0x6a523b,0x4a4638])))).position.set(x,4,z);
+        for(let j=0;j<5;j++){const a=j/5*2*PI,leaf=new THREE.Mesh(new THREE.ConeGeometry(0.8,5,5),lam(pick([0x315c3d,0x3c7048,0x557b45])));leaf.position.set(x+Math.cos(a)*1.3,7,z+Math.sin(a)*1.3);leaf.rotation.z=-Math.cos(a)*0.55;leaf.rotation.x=Math.sin(a)*0.55;add(leaf);}
+      }
+      for(let k=0;k<7;k++){
+        const x=-150+k*50,z=FZ+sd*13.5;
+        add(box(root,7,0.55,2.2,stoneMat,x,1.3,z));
+        for(const dx of[-2.5,2.5])add(box(root,0.35,1.6,0.35,metalMat,x+dx,0.8,z));
+      }
+      for(let k=0;k<10;k++){
+        const x=-190+k*42,z=FZ+sd*20.5;
+        add(box(root,0.55,0.55,0.55,basic(0xffd98a),x,0.28,z));
+        const post=box(root,0.45,7,0.45,metalMat,x,3.5,z);
+        add(post);add(box(root,2.8,0.28,1.2,basic(0xffd98a),x,7,z));
+        const lamp=glowSprite(0xffc978,x,7.2,z,4,0.45);add(lamp);
+      }
+    }
+    // small illuminated wayfinding pylons at the pedestrian mall entrances
+    for(const x of[-205,205]){
+      add(box(root,2.8,7,2.8,lam(0x343b48),x,3.5,FZ));
+      add(box(root,2.2,3.6,0.18,basic(0x45eaff),x,4.2,FZ-1.5));
+      sign('FREMONT', '#ffe08a',2.1,0.45,x,6.3,FZ-1.62,0);
+    }
     freezeStatic(objs,root,true);
     // downtown crowd under the canopy
     for(let i=0;i<14;i++){const T={type:'critter',mesh:useAnim('person',makeHuman(false),'vegas'),spawn:spawnCow,fl:[{x:-120,z:FZ},{x:0,z:FZ},{x:120,z:FZ}],rad:12};T.spawn(T);targets.push(T);}
@@ -3724,7 +3861,44 @@ function makeShowgirl(){
   // 🏜️ RED ROCK CANYON (far west): striped red/cream sandstone cliffs, Joshua trees, hikers, climbers, wild burros
   {const objs=[],add=m=>{objs.push(m);return m;},bands=[0xb0442a,0xc85a34,0xe0a070,0xa83a24,0xe8b888,0xc0502e];
     for(let i=0;i<46;i++){const x=rand(-1130,-860),z=rand(-420,320),lv=(i%3);const r=new THREE.Mesh(new THREE.DodecahedronGeometry(rand(26,44),0),lam(pick(bands)));r.material.flatShading=true;
-      r.position.set(x-lv*30,rand(4,26)+lv*26,z);r.scale.set(rand(1,1.6),rand(0.7,1.3),rand(1,1.6));r.rotation.y=rand(0,6);root.add(r);add(r);}
+      r.position.set(x-lv*30,rand(4,26)+lv*26,z);r.scale.set(rand(1,1.6),rand(0.7,1.3),rand(1,1.6));r.rotation.y=rand(0,6);root.add(r);add(r);
+      // exposed sandstone bedding on the cliff-facing side of each outcrop
+      const strata=[0x8e3826,0xb65a38,0xd18a5d,0xe3b58a];
+      for(let band=0;band<4;band++){
+        const width=rand(0.48,0.9),y=-0.48+band*0.3;
+        const ledge=new THREE.Mesh(new THREE.BoxGeometry(width,0.035,0.055),lam(strata[(band+lv)%strata.length]));
+        ledge.position.set(rand(-0.08,0.08),y,0.49);ledge.rotation.z=rand(-0.08,0.08);r.add(ledge);
+      }
+      // fractured seams and pale weathered cap on the upper face
+      for(let crack=0;crack<2;crack++){
+        const seam=new THREE.Mesh(new THREE.BoxGeometry(0.018,rand(0.28,0.55),0.035),lam(0x704033));
+        seam.position.set(rand(-0.28,0.28),rand(-0.1,0.2),0.505);seam.rotation.z=rand(-0.18,0.18);r.add(seam);
+      }
+      const cap=new THREE.Mesh(new THREE.BoxGeometry(0.62,0.045,0.07),lam(0xe0b98e));
+      cap.position.set(0,0.51,0.47);cap.rotation.z=rand(-0.06,0.06);r.add(cap);
+    }
+    // broad, uneven sedimentary shelves across the main Calico-style escarpment
+    for(let tier=0;tier<13;tier++){
+      const y=7+tier*7.2,segments=12;
+      for(let seg=0;seg<segments;seg++){
+        const x=-1190+seg*7.2+rand(-2,2),z=-432+rand(-3,3);
+        const w=rand(5.5,10.5),depth=rand(1.0,2.4),h=rand(0.35,1.0);
+        const ledge=new THREE.Mesh(new THREE.BoxGeometry(w,h,depth),lam(pick([0x9d3e28,0xb64b2c,0xc96a43,0xd88b61,0xe3b58a])));
+        ledge.position.set(x,y+rand(-1,1),z);ledge.rotation.y=rand(-0.12,0.12);root.add(ledge);add(ledge);
+      }
+    }
+    // narrow dark erosion gullies cut down the sandstone face
+    for(let gully=0;gully<9;gully++){
+      const x=-1188+gully*9+rand(-2,2),height=rand(38,82);
+      const cut=new THREE.Mesh(new THREE.BoxGeometry(rand(0.7,1.5),height,0.35),lam(0x713727));
+      cut.position.set(x,height/2+5,-430);cut.rotation.z=rand(-0.05,0.05);root.add(cut);add(cut);
+    }
+    // talus fans: angular fallen sandstone blocks collected beneath the cliff
+    for(let i=0;i<54;i++){
+      const b=new THREE.Mesh(new THREE.DodecahedronGeometry(rand(2.5,6),0),lam(pick([0x8d3c29,0xa64a30,0xc16a43,0xd49a70])));
+      b.material.flatShading=true;b.position.set(rand(-1235,-1110),rand(1,4),rand(-420,330));
+      b.scale.set(rand(1,2.4),rand(0.55,1.2),rand(0.8,1.8));b.rotation.set(rand(0,0.4),rand(0,6),rand(0,0.4));root.add(b);add(b);
+    }
     // layered escarpment (stripes) at the back
     for(let k=0;k<7;k++){const s=new THREE.Mesh(new THREE.BoxGeometry(60,16,760),lam(bands[k%6]));s.position.set(-1150-k*4,8+k*14,-50);s.scale.x=1-k*0.08;root.add(s);add(s);}
     colliders.push({x0:-1240,x1:-1110,z0:-430,z1:330,h:110,y0:0});
