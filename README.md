@@ -153,3 +153,5 @@ Neon City polish: 33 shop fronts with neon names and awnings, traffic lights dow
 The Moon: Luna Base One (connecting tubes, solar field, tracking dish, fuel tanks, pad lights, astronauts), a first-landing site with footprints and buggy tracks, two drivable moon buggies, rock spires, dark rilles, a glowing ice crater (+120 when found), falling meteors and a station crossing the sky.
 
 Mars: Ares Colony (greenhouses, habitat modules, solar field, a rocket on the pad, colonists), the Face with three pyramids (+150), ancient ruins round a glowing obelisk (+150), the Great Rift canyon, polar ice in the north, 3D crater rims, dunes, a blue sunset and two drivable buggies.
+
+The Open Sea: a smoking volcano island, a beach village with a pier, a treasure chest under the X (400), a lighthouse with a sweeping beam, an oil rig with a gas flare, a shipwreck in the arms of a kraken (500), a ghost ship circling the Bermuda Triangle (350), sea stacks, breaching whales (300), shark fins, gulls, blinking buoys and a low sun with a glitter path. Moon and Mars crews are now real 3D astronauts.
