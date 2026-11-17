@@ -90,6 +90,9 @@ body.touch #keys{display:none}
 .card{max-width:420px;width:100%;text-align:center;background:rgba(10,14,40,.78);border:1.5px solid rgba(90,225,255,.5);border-radius:22px;padding:22px 20px;box-shadow:0 0 40px rgba(80,200,255,.25);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
 .card h1{margin:0 0 6px;font-size:34px;letter-spacing:1px;background:linear-gradient(90deg,#7dffa8,#6fe6ff,#c58bff);-webkit-background-clip:text;background-clip:text;color:transparent}
 .card p{margin:8px 0;line-height:1.4;opacity:.92;font-size:15px}
+.card details{margin:8px 0}.card summary{cursor:pointer;color:#bff8ff;font-weight:800;font-size:14px;padding:6px;list-style:none}.card summary::-webkit-details-marker{display:none}
+#coach{position:absolute;top:19%;left:50%;transform:translateX(-50%);max-width:min(560px,74vw);text-align:center;font-size:17px;font-weight:800;color:#fff;background:rgba(8,12,36,.78);border:1.5px solid rgba(125,255,176,.7);border-radius:14px;padding:8px 14px;box-shadow:0 0 16px rgba(80,255,150,.35);pointer-events:none;opacity:0;transition:opacity .35s;z-index:6}#coach.on{opacity:1}body.promo #coach{display:none}
+@media (pointer:coarse) and (min-width:800px){#missions{left:172px;top:8px;width:210px}}
 .how{text-align:left;font-size:14px;background:rgba(255,255,255,.05);border-radius:12px;padding:10px 12px;margin:12px 0;line-height:1.6}
 .how b{color:#7dffa8}
 .play{margin-top:10px;font-size:20px;font-weight:900;padding:14px 44px;border-radius:999px;border:none;background:linear-gradient(90deg,#3dff8a,#4fd8ff);color:#06122a;letter-spacing:1px;box-shadow:0 0 28px rgba(61,255,138,.55)}
@@ -173,6 +176,7 @@ body.promo #hud,body.promo #controls,body.promo #keys,body.promo #mute,body.prom
   <div id="bossbar"><div class="lbl" style="color:#ff6a7a">ALIEN MOTHERSHIP</div><div class="bar"><i id="bossfill"></i></div></div>
   <div id="pubar"></div>
   <div id="race"></div>
+  <div id="coach"></div>
   <div id="missions"><div class="lbl">🎯 MISSIONS <span style="opacity:.6;letter-spacing:0">· tap to hide</span></div><div id="mlist"></div></div>
   <div id="heatwarn">☀️ TOO HOT! GET AWAY FROM THE SUN</div>
   <div id="pops"></div>
@@ -205,7 +209,10 @@ body.promo #hud,body.promo #controls,body.promo #keys,body.promo #mute,body.prom
 <div id="menu" class="overlay">
   <div class="card">
     <h1>🛸 UFO ABDUCTION</h1>
-    <p>Beam up as many cows and cars as you can before time runs out. Every catch adds time. Don't crash into the skyscrapers!</p>
+    <p>Beam up cows, cars and people before time runs out. Every catch adds time.<br>Then fly up to space and explore <b>14 worlds</b>: Las Vegas, Egypt, the Moon, Mars and more.</p>
+    <button class="play" id="playBtn">PLAY</button>
+    <div><button class="hbtn" id="freeBtn" style="border-color:#7ffcff;color:#bff8ff;background:rgba(5,30,40,.6)">🌌 FREE EXPLORE <small style="font-size:11px;opacity:.8">· no timer</small></button></div>
+    <details id="howMore"><summary>📋 Controls &amp; scoring</summary>
     <div class="how" id="howTouch">
       <b>Left stick</b> – fly forward &amp; turn<br>
       <b>▲ ▼</b> – go up / down<br>
@@ -227,10 +234,9 @@ body.promo #hud,body.promo #controls,body.promo #keys,body.promo #mute,body.prom
     </div>
     <p style="font-size:13px">🐄 Cow 10 · 🚗 Car 25 · 🚓 Police car 40 · 🚚 Army truck 40 · 🚁 Helicopter 60 · 💎 Space crystal 5</p>
     <p style="font-size:13px">⭐ Every abduction raises your <b>wanted level</b>. Helicopters, then fighter jets with homing missiles come after you. Boost to outrun missiles. Beam up helicopters flying below you!</p>
-    <p style="font-size:13px">🚀 Fly up through the stormy Sky Realm (360m+) to reach space, then fly through a portal to travel to the <b>Area 51 desert</b>, or ride deep-space wormholes to alien planets: ❄️ Antarctica, 🔥 Magmor and 🍄 Verdana.</p>
-    <button class="play" id="playBtn">PLAY</button>
+    <p style="font-size:13px">🚀 Fly up through the stormy Sky Realm (360m+) to reach space, then fly through a portal to Las Vegas, Egypt, the Yucatán, Area 51, the Ocean, Antarctica, 🔥 Magmor, 🍄 Verdana, the Moon, Mars and your home planet.</p>
+    </details>
     <div><button class="hbtn" id="gfxBtn">⚙️ Graphics: Auto</button></div>
-    <div><button class="hbtn" id="freeBtn" style="border-color:#7ffcff;color:#bff8ff;background:rgba(5,30,40,.6)">🌌 FREE EXPLORE <small style="font-size:11px;opacity:.8">· no timer</small></button></div>
     <div><button class="hbtn" id="promoBtn2" style="border-color:#ff4fd8;color:#ffb3ef;background:rgba(40,5,30,.6)">🎬 PROMO CAMERA</button></div>
     <div><button class="hbtn" id="tutBtn">❓ HOW TO PLAY</button></div>
     <div><button class="hbtn" id="shopBtn">🛠️ HANGAR</button></div>
@@ -8140,6 +8146,7 @@ function mEvent(ev,d){
       const box=$('missions');box.classList.remove('flash');void box.offsetWidth;box.classList.add('flash');
       setTimeout(()=>{const n=drawMission();saveMS();renderMissions();pop('🎯 NEW: '+n.t,'t');},1600);}
     else{const el=document.querySelector(`[data-mid="${M.id}"]`);if(el){el.classList.remove('bump');void el.offsetWidth;el.classList.add('bump');}}
+    missionPeek(5);
   }
   saveMS();renderMissions();
 }
@@ -8156,7 +8163,10 @@ function renderMissions(){
   if(h!==mLast){mLast=h;$('mlist').innerHTML=h;}
   try{$('mhangar').innerHTML=MS.active.map(a=>{const M=MBYID[a.id];return `<div class="row"><div><b>🎯 ${M.t}</b><small>${M.g>1?`Progress ${a.p}/${M.g} · `:''}Reward 💰 ${M.r} credits</small></div></div>`;}).join('');}catch(e){}
 }
-$('missions').addEventListener('pointerdown',e=>{e.stopPropagation();$('missions').classList.toggle('mini');});
+$('missions').addEventListener('pointerdown',e=>{e.stopPropagation();$('missions').classList.toggle('mini');mAuto=0;});
+let mAuto=0;const mSmall=()=>isTouch&&innerWidth<800;
+function missionPeek(sec){if(!mSmall())return;$('missions').classList.remove('mini');mAuto=sec;}
+setInterval(()=>{if(mAuto>0&&state==='play'){mAuto-=0.5;if(mAuto<=0&&mSmall())$('missions').classList.add('mini');}},500);
 renderMissions();
 
 // ---------- SKY RACE (ring course above the clouds) ----------
@@ -8488,7 +8498,19 @@ const pos=new V3(0,60,400),fwd=new V3(),right=new V3(),desired=new V3(),look=new
 
 function pop(txt,cls){const d=document.createElement('div');d.className='pop '+(cls||'');d.textContent=txt;$('pops').appendChild(d);setTimeout(()=>d.remove(),1250);}
 let freeMode=false;
-function startGame(free){try{mechReset();if(window.MECH)MECH.cd=20;}catch(e){}try{rrReset();RR.cd=0;}catch(e){}TRIDE=null;if(BRIDE){BRIDE.ride=false;BRIDE.T.state='ground';BRIDE=null;}if(DRIVE){try{endDrive();}catch(e){DRIVE=null;}}TOMB.got=false;TOMB.in=false;JEEPS.forEach(J=>{J.g.position.set(J.x0,0,J.z0);J.g.rotation.set(0,J.y0,0);J.did=false;});if(RIDE){RIDE.state='ground';RIDE=null;}SWIM=false;if(FLYP){PILOT_G[FLYP.k].visible=false;FLYP.g.visible=true;FLYP.col.h=5;FLYP=null;applyShip();}
+const COACH={step:-1,t:0,x:0,z:0,on:false};
+function coachSay(txt){const el=$('coach');if(!txt){el.classList.remove('on');return;}el.innerHTML=txt;el.classList.add('on');}
+function coachStart(){let seen=false;try{seen=!!localStorage.getItem('ufoCoach');}catch(e){}COACH.on=!seen;COACH.step=-1;COACH.t=0;COACH.x=pos.x;COACH.z=pos.z;coachSay('');}
+setInterval(()=>{if(!COACH.on||state!=='play')return;const C=COACH,T=isTouch;C.t+=0.4;
+  if(mode!=='ground'||curTown!=='city'){if(C.step<3){coachSay('');}}
+  if(C.step===-1&&C.t>1.6){C.step=0;C.t=0;coachSay(T?'👆 Push the <b style="color:#7dffb0">green stick</b> up to fly forward':'Hold <b style="color:#7dffb0">W</b> to fly forward · A / D to turn');}
+  else if(C.step===0&&Math.hypot(pos.x-C.x,pos.z-C.z)>45){C.step=1;C.t=0;coachSay('🚗 Fly low over a car or a person (yellow dots on the radar) and hold <b style="color:#7dffb0">'+(T?'BEAM':'SPACE')+'</b>');}
+  else if(C.step===1&&score>0){C.step=2;C.t=0;coachSay('⏱️ Nice! Every catch adds time. Finish the <b style="color:#ffd27a">🎯 missions</b> for credits');}
+  else if(C.step===2&&C.t>7){C.step=3;C.t=0;coachSay('🚀 When you are ready, fly <b style="color:#7dffb0">straight up</b> through the clouds: space and 14 worlds are up there');}
+  else if(C.step===3&&(C.t>10||mode!=='ground')){C.step=4;C.on=false;coachSay('');try{localStorage.setItem('ufoCoach','1');}catch(e){}}
+  else if(C.step===1&&C.t>40){C.t=0;coachSay('🚗 Tip: drop down with <b style="color:#7dffb0">'+(T?'▼':'F')+'</b> until the panel says BEAM OK, then hold '+(T?'BEAM':'SPACE')+' over a car');}
+},400);
+function startGame(free){coachStart();missionPeek(8);try{mechReset();if(window.MECH)MECH.cd=20;}catch(e){}try{rrReset();RR.cd=0;}catch(e){}TRIDE=null;if(BRIDE){BRIDE.ride=false;BRIDE.T.state='ground';BRIDE=null;}if(DRIVE){try{endDrive();}catch(e){DRIVE=null;}}TOMB.got=false;TOMB.in=false;JEEPS.forEach(J=>{J.g.position.set(J.x0,0,J.z0);J.g.rotation.set(0,J.y0,0);J.did=false;});if(RIDE){RIDE.state='ground';RIDE=null;}SWIM=false;if(FLYP){PILOT_G[FLYP.k].visible=false;FLYP.g.visible=true;FLYP.col.h=5;FLYP=null;applyShip();}
   initAudio();freeMode=free===true;document.body.classList.toggle('free',freeMode);
   score=0;timer=150;shield=100;energy=100;lock=false;cows=0;cars=0;
   yaw=0;speed=0;vy=0;pos.set(0,60,400);hitCd=0;
