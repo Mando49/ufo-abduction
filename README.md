@@ -143,3 +143,5 @@ Fremont Street (Las Vegas): now 600 long and 64 wide with a tall LED canopy you 
 Earth from orbit: the planet below now shows North America (centered on Las Vegas) with coasts, deserts, forests, mountains, the Great Lakes and slowly drifting clouds.
 
 Green Antarctica: the Lost City now has a wall with a golden gate, a column avenue, fountains, a step-pyramid temple, houses, gardens and citizens. Bigfoot roams the woods, Whitefoot lives near the Ice Wall, dinosaurs really walk, snow petrels wheel overhead and pterodactyls circle the city tower (they hover when the saucer is close).
+
+Zeta Prime plaza: patterned floor, pool of light with a turning holo-Earth, a ring of chasing light pylons, six gardens with benches, gate arches on every road, energy pulses along the roads and a ring boulevard.
