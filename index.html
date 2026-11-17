@@ -1113,7 +1113,7 @@ const MODELS={cow:{file:'cow',len:3.0,rotY:PI/2,list:[]},car:{file:'car',len:4.4
   whale:{file:'whale',len:3.8,rotY:-PI/2,list:[]},octopus:{file:'octopus',height:1.6,rotY:0,list:[]},sub:{file:'sub',len:6.5,rotY:0,list:[]},dolphin:{file:'dolphin',len:3.6,rotY:PI/2,rotX:0.69,list:[]},
   carrier:{file:'carrier',len:150,rotY:0,list:[]},destroyer:{file:'destroyer',len:70,rotY:0,list:[]},cargo:{file:'cargo',len:100,rotY:0,list:[]},cruise:{file:'cruise',len:90,rotY:0,list:[]},fishboat:{file:'fishboat',len:9,rotY:0,list:[]},sailboat:{file:'sailboat',len:8,rotY:0,list:[]},
   subE:{file:'sub',len:7,rotY:0,list:[],recolor:true},
-  unicorn:{file:'unicorn',height:4.6,rotY:0,list:[]},nileboat:{file:'nileboat',len:20,rotY:0,list:[]},croc:{file:'croc',len:9,rotY:0,list:[]},jeep:{file:'jeep',len:7.5,rotY:0,list:[]},mask:{file:'mask',height:7.5,rotY:-PI/2,list:[],yOff:3.4},sphinx:{file:'sphinx',height:24,rotY:-PI/2,list:[]},dragon:{file:'dragon',len:30,rotY:0,list:[]},sleigh:{file:'sleigh',len:10,rotY:PI/2,list:[]},reindeer:{file:'reindeer',height:4.4,rotY:PI/2,list:[]},
+  unicorn:{file:'unicorn',height:4.6,rotY:0,list:[]},nileboat:{file:'nileboat',len:20,rotY:0,list:[]},croc:{file:'croc',len:9,rotY:0,list:[]},jeep:{file:'jeep',len:7.5,rotY:0,list:[]},toucan:{file:'toucan',len:3.2,rotY:-PI/2,list:[]},macaw:{file:'macaw',len:5,rotY:0,list:[]},iguana:{file:'iguana',len:6,rotY:PI/2,list:[]},coati:{file:'coati',len:4.4,rotY:PI/2,list:[]},turkey:{file:'turkey',height:3.6,rotY:PI/2,list:[]},monkey:{file:'monkey',height:4.2,rotY:-PI/2,list:[]},mask:{file:'mask',height:7.5,rotY:-PI/2,list:[],yOff:3.4},sphinx:{file:'sphinx',height:24,rotY:-PI/2,list:[]},dragon:{file:'dragon',len:30,rotY:0,list:[]},sleigh:{file:'sleigh',len:10,rotY:PI/2,list:[]},reindeer:{file:'reindeer',height:4.4,rotY:PI/2,list:[]},
   mustang:{file:'mustang',height:4.2,rotY:PI/4,list:[]},burro:{file:'burro',height:3,rotY:0,list:[]}};
 let MODELS_BOOTED=false;
 function useModel(type,g){const M=MODELS[type];if(M.proto)attachModel(M,g);else{M.list.push(g);if(MODELS_BOOTED&&!M.loading&&window.loadModel)loadModel(type);}return g;}
@@ -3413,7 +3413,7 @@ beginTown('maya');
   const rays=[];for(let k=0;k<12;k++){const a=rand(0,2*PI),d=rand(110,460),c=K(new THREE.Mesh(new THREE.ConeGeometry(rand(7,13),70,8,1,true),new THREE.MeshBasicMaterial({color:0xfff2b8,transparent:true,opacity:.07,blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide})));c.position.set(PX+Math.cos(a)*d,33,PZ+140+Math.sin(a)*d*0.8);c.rotation.z=-0.4;c.rotation.y=0.6;root.add(c);rays.push(c);}
   const FN=70,fp=new Float32Array(FN*3),fd=[];for(let i=0;i<FN;i++)fd.push({ox:rand(-70,70),oy:rand(2,26),oz:rand(-70,70),ph:rand(0,6),sp:rand(0.3,1)});
   const fg=new THREE.BufferGeometry();fg.setAttribute('position',new THREE.BufferAttribute(fp,3));const flies=K(new THREE.Points(fg,new THREE.PointsMaterial({color:0xeaff9a,size:1.1,map:GLOW,transparent:true,opacity:.85,blending:THREE.AdditiveBlending,depthWrite:false})));flies.frustumCulled=false;root.add(flies);
-  const birds=[];for(let k=0;k<8;k++){const g=new THREE.Group(),c=pick([0xe83a3a,0x2a8ae8,0x3ac060,0xf0c040]);const b=new THREE.Mesh(new THREE.ConeGeometry(0.5,2.2,5),lam(c));b.rotation.z=-PI/2;g.add(b);const w1=new THREE.Mesh(new THREE.BoxGeometry(1,0.08,2.4),lam(c)),w2=w1.clone();w1.geometry=w1.geometry.clone();w1.geometry.translate(0,0,1.2);w2.geometry=w2.geometry.clone();w2.geometry.translate(0,0,-1.2);g.add(w1);g.add(w2);g.traverse(o=>{o.userData.keep=true;});root.add(g);birds.push({g,w1,w2,r:rand(60,240),y:rand(26,60),sp:rand(.15,.3)*(k%2?1:-1),ph:rand(0,6),cx:rand(-200,200),cz:rand(-380,-80)});}
+  const birds=[];
   planetAnim.push({town:'maya',f:(t,dt)=>{
     fog.forEach(F=>{F.s.position.x=F.x+Math.sin(t*0.05*F.sp+F.ph)*40;F.s.material.opacity=0.08+0.06*Math.sin(t*0.3+F.ph);});rays.forEach((c,i)=>{c.material.opacity=0.05+0.035*Math.sin(t*0.5+i);});
     for(let i=0;i<FN;i++){const F=fd[i];fp[i*3]=pos.x+((F.ox+Math.sin(t*F.sp+F.ph)*6-pos.x*0)%140);fp[i*3+1]=F.oy+Math.sin(t*F.sp*1.7+F.ph)*2;fp[i*3+2]=pos.z+F.oz+Math.cos(t*F.sp*0.8+F.ph)*6;}fg.attributes.position.needsUpdate=true;flies.material.opacity=0.5+0.35*Math.sin(t*2.3);
@@ -3625,73 +3625,20 @@ beginTown('maya');
     // Traditional log hives for stingless bees, placed at the grove edges
     beeHive(-118,548);beeHive(118,548);beeHive(-128,620);beeHive(128,620);
   })();
-  // 🦜 Yucatán jungle wildlife: toucans, macaws, monkeys, coatis and iguanas
+  // 🦜 Yucatán jungle wildlife (3D models): toucans, macaws, monkeys, coatis, iguanas and wild turkeys — all beam-able
   (function(){
-    const wildlife=[],darkFeather=lam(0x202832),brightFeather=lam(0x176b55),
-      wingFeather=lam(0x245b48),beakMat=lam(0xf0a52e),skin=lam(0x8a6548),
-      fur=lam(0x76533a),belly=lam(0xc6a77b),scale=lam(0x548b48);
-    function bird(x,z,kind,phase){
-      const g=new THREE.Group(),bodyMat=kind==='macaw'?brightFeather:darkFeather;
-      const body=new THREE.Mesh(new THREE.SphereGeometry(1.25,9,7),bodyMat);
-      body.scale.set(1.45,0.78,0.72);g.add(body);
-      const head=new THREE.Mesh(new THREE.SphereGeometry(0.62,8,6),bodyMat);head.position.set(1.35,0.45,0);g.add(head);
-      const beak=new THREE.Mesh(new THREE.ConeGeometry(0.42,1.25,6),kind==='toucan'?beakMat:lam(0xd6a34b));
-      beak.rotation.z=-PI/2;beak.position.set(2.12,0.32,0);g.add(beak);
-      const wingL=new THREE.Group(),wingR=new THREE.Group();
-      for(const [w,side] of[[wingL,-1],[wingR,1]]){
-        const feather=new THREE.Mesh(new THREE.BoxGeometry(1.9,0.16,0.78),kind==='macaw'?lam(0xd84c32):wingFeather);
-        feather.position.x=side*0.85;w.add(feather);w.position.set(0,0,side*0.48);g.add(w);
-      }
-      const tail=new THREE.Mesh(new THREE.ConeGeometry(0.36,2.8,5),kind==='macaw'?lam(0xd84c32):brightFeather);
-      tail.rotation.z=PI/2;tail.position.set(-2,0,0);g.add(tail);
-      root.add(g);wildlife.push({kind,g,wingL,wingR,phase,radius:rand(12,26),speed:rand(0.18,0.34),x,z,height:rand(28,43)});
-    }
-    for(let i=0;i<5;i++)bird(-570+i*34,-80+(i%2)*42,'toucan',i*1.7);
-    for(let i=0;i<5;i++)bird(570-i*32,100-(i%2)*38,'macaw',i*1.4);
-    function monkey(x,z,phase){
-      const g=new THREE.Group();
-      const torso=new THREE.Mesh(new THREE.SphereGeometry(0.9,8,7),fur);torso.scale.set(0.72,1.25,0.62);torso.position.y=2.1;g.add(torso);
-      const head=new THREE.Mesh(new THREE.SphereGeometry(0.62,8,7),skin);head.position.set(0,3.25,0);g.add(head);
-      for(const side of[-1,1]){
-        const arm=new THREE.Mesh(new THREE.CylinderGeometry(0.16,0.2,1.8,6),fur);arm.position.set(side*0.72,2.7,0);arm.rotation.z=side*0.35;g.add(arm);
-        const leg=new THREE.Mesh(new THREE.CylinderGeometry(0.18,0.2,1.35,6),fur);leg.position.set(side*0.48,0.85,0);g.add(leg);
-      }
-      const tail=new THREE.Mesh(new THREE.TorusGeometry(1.25,0.13,5,12,PI*1.6),fur);tail.position.set(-0.7,1.35,0);tail.rotation.z=PI/2;g.add(tail);
-      root.add(g);wildlife.push({kind:'monkey',g,phase,x,z,radius:5,speed:0.7,height:0});
-    }
-    monkey(-585,-360,0.2);monkey(590,-360,2.1);monkey(-590,360,4.2);
-    function groundCritter(x,z,kind){
-      const g=new THREE.Group(),m=kind==='iguana'?scale:fur;
-      const body=new THREE.Mesh(new THREE.SphereGeometry(1,8,6),m);body.scale.set(1.55,0.55,0.68);body.position.y=0.8;g.add(body);
-      const head=new THREE.Mesh(new THREE.SphereGeometry(0.48,7,6),m);head.position.set(1.35,0.9,0);g.add(head);
-      const tail=new THREE.Mesh(new THREE.ConeGeometry(0.35,2.3,6),m);tail.rotation.z=-PI/2;tail.position.set(-2.1,0.62,0);g.add(tail);
-      for(const side of[-1,1])for(const along of[-1,1]){
-        const leg=new THREE.Mesh(new THREE.CylinderGeometry(0.1,0.13,0.65,5),m);leg.position.set(along*0.8,0.35,side*0.48);leg.rotation.z=along*0.25;g.add(leg);
-      }
-      if(kind==='coati'){const mask=new THREE.Mesh(new THREE.SphereGeometry(0.22,6,5),belly);mask.position.set(1.62,1.05,0);g.add(mask);}
-      else for(let i=0;i<5;i++){const spike=new THREE.Mesh(new THREE.ConeGeometry(0.16,0.55,4),lam(0x426b3b));spike.position.set(-0.6+i*0.42,1.35,0);g.add(spike);}
-      g.position.set(x,0,z);root.add(g);wildlife.push({kind,g,x,z,phase:rand(0,6),radius:rand(3,9),speed:rand(0.12,0.24),height:0});
-    }
-    groundCritter(-500,-250,'coati');groundCritter(500,-250,'coati');
-    groundCritter(-500,330,'iguana');groundCritter(500,330,'iguana');
-    planetAnim.push({town:'maya',f:(t)=>{
-      wildlife.forEach(W=>{
-        const a=t*W.speed+W.phase;
-        if(W.kind==='monkey'){
-          W.g.position.set(W.x+Math.sin(a)*W.radius,6+Math.sin(a*2)*1.4,W.z+Math.cos(a)*W.radius);
-          W.g.rotation.y=-a;
-        }else if(W.kind==='coati'||W.kind==='iguana'){
-          W.g.position.x=W.x+Math.sin(a)*W.radius;
-          W.g.position.z=W.z+Math.cos(a)*W.radius;
-          W.g.rotation.y=-a;
-        }else{
-          W.g.position.set(W.x+Math.cos(a)*W.radius,W.height+Math.sin(a*2)*2.2,W.z+Math.sin(a)*W.radius);
-          W.g.rotation.y=-a+PI/2;
-          const flap=Math.sin(t*9+W.phase)*0.48;
-          W.wingL.rotation.z=flap;W.wingR.rotation.z=-flap;
-        }
-      });
-    }});
+    const W=[],mk=(kind,emoji,pts,n,fn)=>{for(let i=0;i<n;i++){const g=new THREE.Group();box(g,2,1,1,0x6a5a40,0,0.8,0);g.userData.emoji=emoji;g.userData.pts=pts;g.userData.heat=0;root.add(g);useModel(kind,g);
+      const T={type:'critter',mesh:g,still:true,spawn:T=>{T.mesh.visible=true;T.state='ground';resetRot(T.mesh);}};T.state='ground';targets.push(T);W.push(Object.assign({kind,g,T,ph:rand(0,6)},fn(i)));}};
+    mk('toucan','🦜',90,5,i=>({fly:1,cx:rand(-300,300),cz:rand(-380,200),r:rand(40,110),y:rand(24,44),sp:rand(.18,.3)*(i%2?1:-1)}));
+    mk('macaw','🦜',90,5,i=>({fly:1,cx:rand(-300,300),cz:rand(-380,200),r:rand(50,130),y:rand(28,50),sp:rand(.16,.28)*(i%2?-1:1)}));
+    [[-120,-430],[140,-150],[-330,-300],[330,-200],[-60,40],[72,170]].forEach(([x,z],i)=>mk('monkey','🐒',110,1,()=>({sit:1,x:x-12+i,z:z+9,y:i<5?0:0}))); // monkeys hang around the ruins and palace
+    mk('coati','🦝',80,6,i=>({walk:1,cx:[-430,430,0,-200,200,60][i],cz:[-300,-270,480,120,-30,-200][i],r:rand(14,26),sp:rand(.25,.4)*(i%2?1:-1)}));
+    mk('iguana','🦎',80,5,i=>({walk:1,cx:[-262,0,230,-120,330][i],cz:[-60,-225,-70,-405,-170][i],r:rand(5,10),sp:rand(.08,.16)*(i%2?1:-1)}));
+    mk('turkey','🦃',100,6,i=>({walk:1,cx:[-470,470,-60,60,-380,380][i],cz:[100,100,440,250,-140,-120][i],r:rand(10,20),sp:rand(.15,.25)*(i%2?-1:1)}));
+    planetAnim.push({town:'maya',f:(t)=>{W.forEach(o=>{if(o.T.state!=='ground')return;const a=t*o.sp+o.ph;
+      if(o.fly){o.g.position.set(o.cx+Math.cos(a)*o.r,o.y+Math.sin(a*2.3)*3,o.cz+Math.sin(a)*o.r);o.g.rotation.set(0,-a+(o.sp>0?-PI/2:PI/2),Math.sin(t*5+o.ph)*0.25);}
+      else if(o.walk){o.g.position.set(o.cx+Math.cos(a)*o.r,Math.abs(Math.sin(t*6+o.ph))*0.25,o.cz+Math.sin(a)*o.r);o.g.rotation.set(0,-a+(o.sp>0?-PI/2:PI/2),0);}
+      else{o.g.position.set(o.x,Math.abs(Math.sin(t*2.2+o.ph))**8*1.6,o.z);o.g.rotation.y=o.ph+Math.sin(t*0.4+o.ph)*0.8;}});}});
   })();
   // 🏛️ Everyday ceremonial landmarks: a temazcal, carved stelae and a cenote landing
   (function(){
@@ -5922,7 +5869,7 @@ renderShop();
 // ---------- 📖 Abduction Log: a collection book of everything ever beamed up ----------
 const LOG_NAMES={'🐄':'Cow','🚗':'Car','🚓':'Police Car','🚚':'Truck','😴':'Sleeper','🚶':'Walker','🚜':'Tractor','🦊':'Fox','🤖':'Robot','📣':'Cheerleader','🏈':'Football Player','🎈':'Balloon','🏎️':'Luxury / Race Car','📺':'News Van','🌮':'Taco Truck','🍔':'Diner Guest','🔘':'Mystery Orb','🌑':'Jellyfish UFO',
   '👽':'Little Alien','🏃':'Area 51 Raider','🤳':'Streamer','🪖':'Soldier','🐎':'Mustang','🫏':'Burro','🔩':'Secret Tech','🕴️':'Man in Black','❄️':'Yeti','🐧':'Penguin','🦍':'Ice Ape','🦕':'Dinosaur','🦀':'Lava Crab','🦖':'T-Rex','🚙':'Moon Rover','🧊':'Hypercube','🪼':'Glitch Jelly','🤍':'Tall White','💙':'Nordic',
-  '🐪':'Camel','🧟':'Mummy','🐆':'Jaguar','🧗':'Climber / Zipliner','🛩️':'Fighter Jet','🚤':'Speedboat','🛫':'Airliner','🥾':'Hiker','🕺':'Elvis','💃':'Showgirl','🚢':'Submarine','🐟':'Fish','🐢':'Sea Turtle','🦈':'Shark','🐋':'Whale','🐬':'Dolphin','🐙':'Octopus','🎣':'Fishing Boat','⛵':'Sailboat','👾':'Alien Specimen','🥼':'Scientist','🛞':'Mars Rover','🚁':'Mars Helicopter','💎':'Cave Crystal','🦇':'Cave Bat','👑':'Sleeping King','🛶':'Nile Boat','🪶':'Aztec Warrior','🌺':'Aztec Woman','💚':'Family & Friends','🪼':'Sky Jelly','🎤':'Zeta Live Band','🤴':'Pharaoh','👸':'Queen of the Nile','⚱️':'Golden Sarcophagus','⛏️':'Archaeologist','🐊':'Crocodile','👻':'Ghost Ship','🦌':'Reindeer','🎅':'Santa\'s Sleigh','🎁':'Present','🦶':'Bigfoot','🦄':'Unicorn','🎐':'Gas Floater','🛰️':'Lost Probe','🩶':'Grey','🦎':'Reptilian','🦗':'Mantis'};
+  '🐪':'Camel','🧟':'Mummy','🐆':'Jaguar','🧗':'Climber / Zipliner','🛩️':'Fighter Jet','🚤':'Speedboat','🛫':'Airliner','🥾':'Hiker','🕺':'Elvis','💃':'Showgirl','🚢':'Submarine','🐟':'Fish','🐢':'Sea Turtle','🦈':'Shark','🐋':'Whale','🐬':'Dolphin','🐙':'Octopus','🎣':'Fishing Boat','⛵':'Sailboat','👾':'Alien Specimen','🥼':'Scientist','🛞':'Mars Rover','🚁':'Mars Helicopter','💎':'Cave Crystal','🦇':'Cave Bat','👑':'Sleeping King','🛶':'Nile Boat','🦜':'Toucan / Macaw','🐒':'Spider Monkey','🦝':'Coati','🦎':'Iguana','🦃':'Wild Turkey','🪶':'Aztec Warrior','🌺':'Aztec Woman','💚':'Family & Friends','🪼':'Sky Jelly','🎤':'Zeta Live Band','🤴':'Pharaoh','👸':'Queen of the Nile','⚱️':'Golden Sarcophagus','⛏️':'Archaeologist','🐊':'Crocodile','👻':'Ghost Ship','🦌':'Reindeer','🎅':'Santa\'s Sleigh','🎁':'Present','🦶':'Bigfoot','🦄':'Unicorn','🎐':'Gas Floater','🛰️':'Lost Probe','🩶':'Grey','🦎':'Reptilian','🦗':'Mantis'};
 let LOG={};try{LOG=JSON.parse(localStorage.getItem('ufoLog')||'{}');}catch(e){}
 const logKey=T=>{const u=T.mesh.userData;return u.emoji||(u.police?'🚓':{cow:'🐄',car:'🚗',truck:'🚚'}[T.type]);};
 let LOG_CAT=null;
@@ -7312,6 +7259,7 @@ const MISSIONS=[
   {id:'balloon30',t:'Ride a hot-air balloon for 30 seconds (Egypt)',ev:'balloon30',g:1,r:600},
   {id:'train25',t:'Surf the roof of the sky-train for 25 seconds (Neon City)',ev:'train25',g:1,r:500},
   {id:'drive30',t:'Joyride a desert 4x4 for 30 seconds (Egypt or Area 51)',ev:'drive30',g:1,r:500},
+  {id:'mayazoo',t:'Beam up 5 jungle animals in the Yucatán (toucan, macaw, monkey, coati, iguana or turkey)',ev:'abduct',m:d=>['🦜','🐒','🦝','🦎','🦃'].includes(d.emoji),g:5,r:900},
   {id:'aztec',t:'Beam up 2 Aztec warriors and 2 Aztec women (Yucatán)',ev:'abduct',m:d=>d.emoji==='🪶'||d.emoji==='🌺',g:4,r:800},
   {id:'pharaoh',t:'Beam up the Pharaoh and the Queen (Egypt)',ev:'abduct',m:d=>d.emoji==='🤴'||d.emoji==='👸',g:2,r:900},
   {id:'sarco',t:'Steal the golden sarcophagus (Valley of the Kings, Egypt)',ev:'abduct',m:d=>d.emoji==='⚱️',g:1,r:900},
