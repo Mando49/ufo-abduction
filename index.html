@@ -2069,7 +2069,7 @@ for(let i=0;i<8;i++){const g=makeHorse(0x8a8078,0.85);g.userData.emoji='🫏';g.
     crS.forEach(S=>{const u=(t*0.14+S.ph)%1;S.s.position.set(CX+18+u*14,6+u*40,CZ+u*5);S.s.scale.setScalar(8+u*26);S.s.material.opacity=0.32*(1-u);});
     dishes.forEach(g=>{g.rotation.set(0.7+Math.sin(t*0.05)*0.25,t*0.04,0);});
     tw.forEach(W=>{W.x+=W.sp*dt;W.z+=Math.sin(t*0.3+W.ph)*3*dt;if(W.x>640){W.x=-640;W.z=rand(-600,600);}W.m.position.set(W.x,1.5*W.m.scale.x+Math.abs(Math.sin(t*3+W.ph))*1.6,W.z);W.m.rotation.z=-W.x/(1.5*W.m.scale.x);});
-    if(state!=='play'){seen={};return;}for(const [k,x,z,msg] of[['d',DX,DZ,'🛩️ THE DRY LAKE TEST RANGE! +120'],['c',CX,CZ,'🛸 SAUCER CRASH SITE! +150'],['a',AX,AZ,'📡 THE LISTENING ARRAY +100']]){if(!seen[k]&&Math.hypot(pos.x-x,pos.z-z)<60){seen[k]=1;score+=k==='c'?150:k==='d'?120:100;pop(msg);blip(400,1200,0.4,'triangle',0.08);}}});
+    if(state!=='play'){seen={};return;}for(const [k,x,z,msg] of[['d',DX,DZ,'🛩️ THE DRY LAKE TEST RANGE! +120'],['c',CX,CZ,'🛸 SAUCER CRASH SITE! +150'],['a',AX,AZ,'📡 THE LISTENING ARRAY +100']]){if(!seen[k]&&Math.hypot(pos.x-x,pos.z-z)<60){seen[k]=1;score+=k==='c'?150:k==='d'?120:100;mEvent('found',{k:'desert'+k});pop(msg);blip(400,1200,0.4,'triangle',0.08);}}});
 })();
 endTown('desert',[220,1700]);
 // ---------- ALIEN PLANETS ----------
@@ -2492,7 +2492,7 @@ beginTown('lava');
     bub.forEach(B=>{const u=(t*B.sp+B.ph)%1;B.s.position.set(B.x,0.6+u*2.4,B.z);B.s.scale.setScalar(2+u*9);B.s.material.opacity=u<0.85?0.5*u:0.9*(1-u)/0.15;});
     smoke.forEach(S=>{const u=(t*0.16+S.ph)%1;S.s.position.set(S.x+u*8,S.y+u*26,S.z);S.s.scale.setScalar(5+u*18);S.s.material.opacity=0.34*(1-u);});
     bt-=dt;if(bt<=0){bt=rand(3,9);const a=rand(0,7);bolt.position.set(pos.x+Math.cos(a)*900,rand(260,420),pos.z+Math.sin(a)*900);bolt.material.opacity=0.8;}else bolt.material.opacity*=0.86;
-    if(state!=='play'){seen={};return;}for(const [k,x,z,msg] of[['l',LX,LZ,'🌋 THE LAVA LAKE! +120'],['f',FX,FZ,'⚒️ THE FORGE OF MAGMOR! +120']]){if(!seen[k]&&Math.hypot(pos.x-x,pos.z-z)<60){seen[k]=1;score+=120;pop(msg);blip(260,900,0.4,'sawtooth',0.07);}}}});
+    if(state!=='play'){seen={};return;}for(const [k,x,z,msg] of[['l',LX,LZ,'🌋 THE LAVA LAKE! +120'],['f',FX,FZ,'⚒️ THE FORGE OF MAGMOR! +120']]){if(!seen[k]&&Math.hypot(pos.x-x,pos.z-z)<60){seen[k]=1;score+=120;mEvent('found',{k:'lava'+k});pop(msg);blip(260,900,0.4,'sawtooth',0.07);}}}});
 })();
 endTown('lava',[120,800]);Object.assign(towns.lava,{planet:true,fogC:new THREE.Color(0x4a1810),skyTint:0xff8060,label:'🔥 MAGMOR'});
 
@@ -2650,7 +2650,7 @@ beginTown('jungle');
   planetAnim.push({town:'jungle',f:(t,dt)=>{rt.offset.x=-t*0.12;pondG.material.opacity=0.18+0.08*Math.sin(t*1.4);lan.forEach((s,i)=>{s.material.opacity=0.55+0.3*Math.sin(t*2.4+i);});
     for(const B of bfs){B.a+=B.w*dt;B.g.position.set(B.cx+Math.cos(B.a)*B.r,B.y+Math.sin(t*1.7+B.r)*3,B.cz+Math.sin(B.a)*B.r);B.g.rotation.set(0,-B.a-(B.w>0?PI:0),0);const f=Math.sin(t*B.fl+B.r)*1.0;B.L.rotation.z=f;B.R.rotation.z=-f;}
     jel.forEach(J=>{J.g.position.set(J.x+Math.sin(t*0.1+J.ph)*40,J.y+Math.sin(t*0.5+J.ph)*6,J.z+Math.cos(t*0.08+J.ph)*40);const p=1+0.12*Math.sin(t*2+J.ph);J.g.scale.set(p,1/p,p);});
-    if(state!=='play'){seen={};return;}for(const [k,x,z,msg] of[['v',VX,VZ,'🌳 THE TREETOP VILLAGE! +120'],['p',PX,PZ,'🪷 THE LILY POND +80']]){if(!seen[k]&&Math.hypot(pos.x-x,pos.z-z)<60){seen[k]=1;score+=k==='v'?120:80;pop(msg);blip(500,1300,0.4,'triangle',0.08);}}}});
+    if(state!=='play'){seen={};return;}for(const [k,x,z,msg] of[['v',VX,VZ,'🌳 THE TREETOP VILLAGE! +120'],['p',PX,PZ,'🪷 THE LILY POND +80']]){if(!seen[k]&&Math.hypot(pos.x-x,pos.z-z)<60){seen[k]=1;score+=k==='v'?120:80;mEvent('found',{k:'jungle'+k});pop(msg);blip(500,1300,0.4,'triangle',0.08);}}}});
 })();
 endTown('jungle',[140,850]);Object.assign(towns.jungle,{planet:true,fogC:new THREE.Color(0x2a2048),skyTint:0xc09cff,label:'🍄 VERDANA'});
 // 🏠 ZETA PRIME — the alien homeworld (reached by the long warp home from Earth orbit)
@@ -2696,7 +2696,7 @@ beginTown('home');
   // family and friends: greys, tall whites, nordics, elders
   for(let i=0;i<26;i++){const g=makeHuman(false);g.userData.emoji='💚';g.userData.pts=25;g.userData.heat=0;g.scale.setScalar(2.3);{const h=glowSprite(0x7dffa0,0,0,0,3.2,0.4);root.remove(h);h.position.set(0,1.4,0);h.userData.keep=true;g.add(h);}
     const T={type:'critter',mesh:useAnim('alien',g,'home'),spawn:spawnCow,fl:[{x:0,z:60},{x:-70,z:-40},{x:80,z:-30},{x:150,z:120},{x:-160,z:110},{x:20,z:-170}],rad:38};T.mesh.userData.T=T;T.spawn(T);targets.push(T);}
-  for(let i=0;i<10;i++){const g=makeHuman(false);g.userData.emoji=i%2?'🧝':'🤍';g.userData.pts=40;g.userData.heat=0;g.scale.setScalar(1.35);{const h=glowSprite(i%2?0xffe9a0:0xdfe8ff,0,0,0,3.4,0.35);root.remove(h);h.position.set(0,2.2,0);h.userData.keep=true;g.add(h);}
+  for(let i=0;i<10;i++){const g=makeHuman(false);g.userData.emoji=i%2?'💙':'🤍';g.userData.pts=40;g.userData.heat=0;g.scale.setScalar(1.35);{const h=glowSprite(i%2?0xffe9a0:0xdfe8ff,0,0,0,3.4,0.35);root.remove(h);h.position.set(0,2.2,0);h.userData.keep=true;g.add(h);}
     const T={type:'critter',mesh:useAnim(i%2?'nordic':'tallwhite',g,'home'),spawn:spawnCow,fl:[{x:0,z:-50},{x:60,z:60},{x:-60,z:70}],rad:30};T.mesh.userData.T=T;T.spawn(T);targets.push(T);}
   let fw=0;planetAnim.push({town:'home',f:(t,dt)=>{holo.rotation.y=t*0.5;holo.position.y=34+Math.sin(t)*2;ms.rotation.y=t*0.05;saucers.forEach(S=>{S.g.position.y=5+Math.sin(t*1.2+S.ph)*0.8;S.g.rotation.y=t*0.4+S.ph;});
     fw-=dt;if(fw<=0){fw=rand(0.5,1.4);const c=pick([0xff5ad8,0x45eaff,0xffd84a,0x6dffb0]),p=tmpV2.set(rand(-160,160),rand(60,130),rand(-160,160));for(let i=0;i<18;i++)spawnFx(p,tmpV.set(rand(-1,1),rand(-1,1),rand(-1,1)).normalize().multiplyScalar(rand(12,26)),0.9,1.6,2.4,c,true);}}});
@@ -3109,7 +3109,7 @@ beginTown('moon');
     if(mU<0){mT-=dt;if(mT<=0){mU=0;mB.set(pos.x+rand(-260,260),0,pos.z+rand(-260,260));mA.set(mB.x+rand(-200,200),rand(260,380),mB.z+rand(-200,200));}met.material.opacity=0;}
     else{mU+=dt*0.9;met.position.lerpVectors(mA,mB,Math.min(1,mU));met.material.opacity=0.95;spawnFx(met.position,tmpV.set(rand(-1,1),rand(0,2),rand(-1,1)),0.5,1.6,0.6,0xffd090,true);
       if(mU>=1){mU=-1;mT=rand(4,10);for(let i=0;i<16;i++)spawnFx(mB,tmpV.set(rand(-1,1),rand(0.4,1.6),rand(-1,1)).multiplyScalar(rand(5,14)),1.3,2.4,3.4,i%4?0xb0b2ba:0xffe0a0,i%4===0);if(Math.hypot(pos.x-mB.x,pos.z-mB.z)<200)blip(140,50,0.25,'sawtooth',0.05);}}
-    if(state!=='play'){iceSeen=false;return;}if(!iceSeen&&Math.hypot(pos.x-IX,pos.z-IZ)<45&&pos.y<70){iceSeen=true;score+=120;pop('🧊 WATER ICE FOUND ON THE MOON! +120');blip(600,1500,0.4,'triangle',0.1);}}});
+    if(state!=='play'){iceSeen=false;return;}if(!iceSeen&&Math.hypot(pos.x-IX,pos.z-IZ)<45&&pos.y<70){iceSeen=true;score+=120;mEvent('found',{k:'moonice'});pop('🧊 WATER ICE FOUND ON THE MOON! +120');blip(600,1500,0.4,'triangle',0.1);}}});
 })();
 endTown('moon',[260,1400]);Object.assign(towns.moon,{planet:true,fogC:new THREE.Color(0x05060a),skyTint:0x000000,label:'🌕 THE MOON'});
 
@@ -5333,8 +5333,8 @@ beginTown('mars');
   planetAnim.push({town:'mars',f:(t,dt)=>{padL.forEach((s,i)=>{const k=((t*4-i)%12+12)%12;s.material.opacity=0.25+0.7*Math.max(0,1-k/4);});rl.material.opacity=(t%1.6)<0.25?1:0.12;
     glyph.forEach((m,i)=>{m.material.color.setHSL(0.45+0.05*Math.sin(t+i),1,0.35+0.3*Math.max(0,Math.sin(t*2-i*0.8)));});ug.material.opacity=0.22+0.12*Math.sin(t*1.4);
     if(state!=='play'){seenF=seenU=false;return;}
-    if(!seenF&&Math.hypot(pos.x-FX,pos.z-FZ)<70){seenF=true;score+=150;pop('🗿 THE FACE ON MARS! +150');blip(300,1200,0.5,'triangle',0.1);}
-    if(!seenU&&Math.hypot(pos.x-UX,pos.z-UZ)<50){seenU=true;score+=150;pop('🏛️ ANCIENT MARTIAN RUINS! +150');blip(500,1500,0.5,'triangle',0.1);}}});
+    if(!seenF&&Math.hypot(pos.x-FX,pos.z-FZ)<70){seenF=true;score+=150;mEvent('found',{k:'marsface'});pop('🗿 THE FACE ON MARS! +150');blip(300,1200,0.5,'triangle',0.1);}
+    if(!seenU&&Math.hypot(pos.x-UX,pos.z-UZ)<50){seenU=true;score+=150;mEvent('found',{k:'marsruins'});pop('🏛️ ANCIENT MARTIAN RUINS! +150');blip(500,1500,0.5,'triangle',0.1);}}});
 })();
 endTown('mars',[200,1200]);Object.assign(towns.mars,{planet:true,fogC:new THREE.Color(0xc87a52),skyTint:0xffb08a,label:'🔴 MARS'});
 // 🌊 THE OCEAN (underwater world)
@@ -5683,7 +5683,7 @@ beginTown('ocean');
     gG.material.opacity=0.3+0.14*Math.sin(t*1.6);lid.rotation.x=-0.5-0.32*(0.5+0.5*Math.sin(t*0.7));pG.material.opacity=pT.state==='ground'?0.45+0.25*Math.sin(t*2.4):0;
     hb.forEach(H=>{const a=t*H.w+H.ph;H.g.position.set(Math.cos(a)*H.R,H.y+Math.sin(t*0.3+H.ph)*5,Math.sin(a)*H.R);H.g.rotation.set(0,-a-Math.sign(H.w)*PI/2+PI/2,0);H.g.children[0].rotation.z=Math.sin(t*0.5+H.ph)*0.08;});
     if(state!=='play'){seen={};return;}song-=dt;if(song<=0){song=rand(18,34);blip(180,90,1.6,'sine',0.05);setTimeout(()=>blip(120,260,1.4,'sine',0.045),900);}
-    for(const [k,x,z,msg] of[['g',GX,GZ,'⚓ THE LOST GALLEON! +150'],['p',PX,PZ,'✈️ THE LOST PLANE! +150'],['w',WX,WZ,'🦴 A WHALE SKELETON +80']]){if(!seen[k]&&Math.hypot(pos.x-x,pos.z-z)<42){seen[k]=1;score+=k==='w'?80:150;pop(msg);blip(400,1100,0.4,'triangle',0.09);}}}});
+    for(const [k,x,z,msg] of[['g',GX,GZ,'⚓ THE LOST GALLEON! +150'],['p',PX,PZ,'✈️ THE LOST PLANE! +150'],['w',WX,WZ,'🦴 A WHALE SKELETON +80']]){if(!seen[k]&&Math.hypot(pos.x-x,pos.z-z)<42){seen[k]=1;score+=k==='w'?80:150;mEvent('found',{k:'ocean'+k});pop(msg);blip(400,1100,0.4,'triangle',0.09);}}}});
 })();
 endTown('ocean',[30,340]);Object.assign(towns.ocean,{planet:true,fogC:new THREE.Color(0x0a5a7a),skyTint:0x0a3a5a,label:'🌊 THE OCEAN'});
 const PLANE_SPOTS=[];const CARRIER={x:220,z:-170,deckY:16,g:null,measured:false,hx:72,hz:21};
@@ -8001,7 +8001,7 @@ const MISSIONS=[
   {id:'train25',t:'Surf the roof of the sky-train for 25 seconds (Neon City)',ev:'train25',g:1,r:500},
   {id:'drive30',t:'Joyride a desert 4x4 for 30 seconds (Egypt or Area 51)',ev:'drive30',g:1,r:500},
   {id:'mayazoo',t:'Beam up 5 jungle animals in the Yucatán (toucan, macaw, monkey, coati, iguana or turkey)',ev:'abduct',m:d=>['🦜','🐒','🦝','🦎','🦃'].includes(d.emoji),g:5,r:900},
-  {id:'fremont',t:'Beam up 3 costumed street performers on Fremont Street (Las Vegas)',ev:'abduct',m:d=>['🦸','👹','🤠'].includes(d.emoji),g:3,r:900},
+  {id:'performers',t:'Beam up 3 costumed street performers on Fremont Street (Las Vegas)',ev:'abduct',m:d=>['🦸','👹','🤠'].includes(d.emoji),g:3,r:900},
   {id:'tourists',t:'Beam up 8 tourists on Fremont Street (Las Vegas)',ev:'abduct',m:d=>d.emoji==='📸',g:8,r:600},
   {id:'aztec',t:'Beam up 2 Aztec warriors and 2 Aztec women (Yucatán)',ev:'abduct',m:d=>d.emoji==='🪶'||d.emoji==='🌺',g:4,r:800},
   {id:'pharaoh',t:'Beam up the Pharaoh and the Queen (Egypt)',ev:'abduct',m:d=>d.emoji==='🤴'||d.emoji==='👸',g:2,r:900},
@@ -8012,7 +8012,7 @@ const MISSIONS=[
   {id:'dragon',t:'Slay the dragon of Magmor',ev:'dragon',g:1,r:1200},
   {id:'santa',t:'Beam up Santa\'s sleigh (Antarctica)',ev:'abduct',m:d=>d.emoji==='🎅',g:1,r:900},
   {id:'deer',t:'Beam up 3 reindeer (Antarctica)',ev:'abduct',m:d=>d.emoji==='🦌',g:3,r:600},
-  {id:'bigfoot',t:'Beam up Bigfoot (pine woods at the edge of Neon City)',ev:'abduct',m:d=>d.emoji==='🦶',g:1,r:900},
+  {id:'bigfoot',t:'Beam up Bigfoot (pine woods at the edge of Neon City, or the woods of green Antarctica)',ev:'abduct',m:d=>d.emoji==='🦶',g:1,r:900},
   {id:'unicorns',t:'Beam up 3 unicorns (5th Dimension)',ev:'abduct',m:d=>d.emoji==='🦄',g:3,r:600},
   {id:'darkside',t:'Find the 3 alien ships on the dark side of the Moon',ev:'darkship',g:3,r:900},
   {id:'moonbase',t:'Fly down the giant crater into the Moon',ev:'moonbase',g:1,r:600},
@@ -8050,7 +8050,7 @@ const MISSIONS=[
   {id:'tractor',t:'Abduct 2 farm tractors',ev:'abduct',m:d=>d.emoji==='🚜',g:2,r:400},
   {id:'inhouse',t:'Walk inside your house on Zeta Prime and take a nap',ev:'inhouse',g:1,r:600},
   {id:'bikerace',t:'Finish a lap of the hover-bike race on Zeta Prime',ev:'bikerace',g:1,r:1200},
-  {id:'jelly',t:'Beam up 3 sky jellies on Zeta Prime',ev:'abduct',m:d=>d.emoji==='🪼',g:3,r:700},
+  {id:'skyjelly',t:'Beam up 3 sky jellies on Zeta Prime',ev:'abduct',m:d=>d.emoji==='🪼',g:3,r:700},
   {id:'myhouse',t:'Visit your own house on Zeta Prime (look for the MY HOUSE sign)',ev:'myhouse',g:1,r:800},
   {id:'home',t:'Go home: fly through the 🏠 GO HOME wormhole in Earth orbit (or press H in space)',ev:'visit',m:d=>d.town==='home',g:1,r:2000},
   {id:'jungle',t:'Visit the jungle planet Verdana',ev:'visit',m:d=>d.town==='jungle',g:1,r:700},
@@ -8090,6 +8090,28 @@ const MISSIONS=[
   {id:'soldiers',t:'Abduct 4 soldiers (Area 51)',ev:'abduct',m:d=>d.emoji==='🪖',g:4,r:600},
   {id:'mustangs',t:'Abduct 3 wild mustangs',ev:'abduct',m:d=>d.emoji==='🐎',g:3,r:500},
   {id:'burros',t:'Abduct 3 burros',ev:'abduct',m:d=>d.emoji==='🫏',g:3,r:400},
+  {id:'golems',t:'Beam up 2 lava golems (Magmor)',ev:'abduct',m:d=>d.emoji==='🪨',g:2,r:800},
+  {id:'crabs',t:'Abduct 5 lava crabs (Magmor)',ev:'abduct',m:d=>d.emoji==='🦀',g:5,r:500},
+  {id:'astronauts',t:'Beam up 4 astronauts (Moon or Mars)',ev:'abduct',m:d=>d.emoji==='🧑‍🚀',g:4,r:600},
+  {id:'moonrovers',t:'Beam up 3 moon rovers',ev:'abduct',m:d=>d.emoji==='🚙',g:3,r:500},
+  {id:'greys',t:'Beam up 3 Greys guarding the ships on the dark side of the Moon',ev:'abduct',m:d=>d.emoji==='🩶',g:3,r:600},
+  {id:'pearl',t:'Steal the giant pearl from the clam (Ocean floor)',ev:'abduct',m:d=>d.emoji==='🦪',g:1,r:900},
+  {id:'turtles',t:'Abduct 3 sea turtles (Ocean)',ev:'abduct',m:d=>d.emoji==='🐢',g:3,r:500},
+  {id:'seachest',t:'Beam up the treasure chest under the red X (island on the Open Sea)',ev:'abduct',m:d=>d.emoji==='💰',g:1,r:800},
+  {id:'ghostship',t:'Beam up the ghost ship circling the Bermuda Triangle (Open Sea)',ev:'abduct',m:d=>d.emoji==='👻',g:1,r:900},
+  {id:'core',t:'Recover the power core from the saucer crash site (Area 51 desert)',ev:'abduct',m:d=>d.emoji==='💠',g:1,r:900},
+  {id:'citizens',t:'Beam up 4 citizens of the Lost City (green Antarctica)',ev:'abduct',m:d=>d.emoji==='🧙',g:4,r:600},
+  {id:'villagers',t:'Beam up 4 treetop villagers (Verdana)',ev:'abduct',m:d=>d.emoji==='🌿',g:4,r:600},
+  {id:'foxes',t:'Abduct 3 foxes (Neon City)',ev:'abduct',m:d=>d.emoji==='🦊',g:3,r:400},
+  {id:'marsface',t:'Find the Face on Mars',ev:'found',m:d=>d.k==='marsface',g:1,r:700},
+  {id:'marsruins',t:'Find the ancient ruins on Mars',ev:'found',m:d=>d.k==='marsruins',g:1,r:700},
+  {id:'moonice',t:'Find the ice crater on the Moon',ev:'found',m:d=>d.k==='moonice',g:1,r:600},
+  {id:'galleon',t:'Find the Lost Galleon on the Ocean floor',ev:'found',m:d=>d.k==='oceang',g:1,r:700},
+  {id:'lostplane',t:'Find the sunken plane on the Ocean floor',ev:'found',m:d=>d.k==='oceanp',g:1,r:700},
+  {id:'crashsite',t:'Find the saucer crash site in the Area 51 desert',ev:'found',m:d=>d.k==='desertc',g:1,r:600},
+  {id:'drylake',t:'Find the secret runway on the dry lake (north of Area 51)',ev:'found',m:d=>d.k==='desertd',g:1,r:600},
+  {id:'forge',t:'Find the Forge of Magmor',ev:'found',m:d=>d.k==='lavaf',g:1,r:600},
+  {id:'treetop',t:'Find the Treetop Village on Verdana',ev:'found',m:d=>d.k==='junglev',g:1,r:600},
   {id:'wanted',t:'Reach a 5-star wanted level',ev:'heat5',g:1,r:400},
   {id:'score',t:'Score 2,000 in one game',ev:'score2k',g:1,r:500},
   {id:'race',t:'Finish the Sky Race',ev:'race',g:1,r:500},
@@ -8101,8 +8123,10 @@ const MBYID={};MISSIONS.forEach(m=>MBYID[m.id]=m);
 let MS={active:[],done:[]};try{const v=JSON.parse(localStorage.getItem('ufoMissions')||'null');if(v&&v.active)MS=v;}catch(e){}
 MS.active=MS.active.filter(a=>MBYID[a.id]);
 const saveMS=()=>{try{localStorage.setItem('ufoMissions',JSON.stringify(MS));}catch(e){}};
+const STARTER=['cows','cars','walker','ring','crates','tractor','foxes','desert','vegas','egypt','moon','ocean','warps','pu'];
 function drawMission(){
   const act=MS.active.map(a=>a.id);let pool=MISSIONS.filter(m=>!act.includes(m.id)&&!MS.done.includes(m.id));
+  if(MS.done.length<6){const st=pool.filter(m=>STARTER.includes(m.id));if(st.length)pool=st;} // first few missions are simple ones close to the start
   if(!pool.length){MS.done=[];pool=MISSIONS.filter(m=>!act.includes(m.id));}
   const m=pick(pool);MS.active.push({id:m.id,p:0});return m;
 }
@@ -8629,7 +8653,7 @@ function collide(){
 function abduct(T){
   mEvent('abduct',{type:T.type,cop:!!(T.mesh&&T.mesh.userData.police),emoji:T.mesh&&T.mesh.userData.emoji});
   T.state='gone';T.mesh.visible=false;T.rt=rand(5,9);doBurst(T.mesh.position);try{logAbduct(T);}catch(e){}
-  if(curTown==='vegas'&&Math.hypot(T.mesh.position.x+260,T.mesh.position.z+520)<220){score+=40;mEvent('sphere');pop('🎆 THE SPHERE CROWD GOES WILD! +40');}
+  if(curTown==='vegas'&&Math.hypot(T.mesh.position.x-150,T.mesh.position.z+440)<170){score+=40;mEvent('sphere');pop('🎆 THE SPHERE CROWD GOES WILD! +40');}
   const k=T.type,isCow=k==='cow',cop=!!T.mesh.userData.police,tb={cow:4,car:6,truck:7,critter:5}[k];let pts=T.mesh.userData.pts||{cow:10,car:cop?40:25,truck:40,critter:20}[k];
   if(T.mesh.userData.combo){const now=performance.now();COMBO.n=(now-COMBO.t<3500)?COMBO.n+1:1;COMBO.t=now;if(COMBO.n>1){pts*=Math.min(COMBO.n,6);pop(`🔥 COMBO x${Math.min(COMBO.n,6)}!`);}}
   if(INV.on&&curTown==='desert')pts*=2;

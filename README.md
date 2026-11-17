@@ -164,3 +164,5 @@ Magmor: glowing cracked ground, a lava lake with a lava-fall, obsidian and fire-
 Area 51 desert: a dry-lake test runway with chasing lights and a parked black triangle, a saucer crash site with a power core to beam (300) and guards, a three-dish listening array, a Saucer Springs water tower, joshua trees, dunes, rock arches and rolling tumbleweeds.
 
 Speed pass: small props, lamps and glows far from the camera are skipped (distance culling), and in crowds only the nearest animated characters are drawn (triangle budget). Draw calls on the heaviest worlds drop by roughly half.
+
+Missions: 166 total. Fixed two pairs of missions that shared an id (one of each pair could never be completed), fixed the Sphere mission (it still pointed at the Sphere's old spot), added 22 missions for the new things to beam and find, and new players now get simple nearby missions first.
