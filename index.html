@@ -4182,9 +4182,10 @@ function makeShowgirl(){
       // street lights
       for(const X of xs)for(let z=-400;z<=(side<0?280:440);z+=60){add(box(root,0.4,7,0.4,0x55565e,X+side*7,3.5,z));glowSprite(0xffc070,X+side*7,7.2,z,7,0.6);}
       // a strip mall + gas station at the edge of each neighborhood
-      const mx=side*560;add(box(root,30,7,90,0xd8c8a8,mx,3.5,170));add(box(root,30.4,1.6,90.4,0xa0523a,mx,7.6,170));
-      sign(side<0?'DESERT GROCERY':'24/7 MART',side<0?'#45eaff':'#ff7a30',20,3,mx-side*15.4,9.5,170,side<0?PI/2:-PI/2);
-      add(flatPlane(40,90,0x3a3b42,-2,mx-side*36,170));colliders.push({x0:mx-15,x1:mx+15,z0:125,z1:215,h:9,y0:0});
+      const mx=side*560,gz=side<0?400:170; // west grocery moved south to make room for Chinatown
+      add(box(root,30,7,90,0xd8c8a8,mx,3.5,gz));add(box(root,30.4,1.6,90.4,0xa0523a,mx,7.6,gz));
+      sign(side<0?'DESERT GROCERY':'24/7 MART',side<0?'#45eaff':'#ff7a30',20,3,mx-side*15.4,9.5,gz,side<0?PI/2:-PI/2);
+      add(flatPlane(40,90,0x3a3b42,-2,mx-side*36,gz));colliders.push({x0:mx-15,x1:mx+15,z0:gz-45,z1:gz+45,h:9,y0:0});
       add(box(root,22,0.8,16,0xf0f0f0,mx,6,-60));for(const px of[-8,8])add(box(root,0.8,6,0.8,0xd0d0d0,mx+px,3,-60));add(box(root,4,1.6,2,0xe04040,mx,1.5,-60)); // gas station canopy + pump
       RES.push({x:side*302,z:-310},{x:side*302,z:170},{x:side*407,z:-60},{x:side*407,z:side<0?-200:370});}
     freezeStatic(objs,root,true);
@@ -4247,7 +4248,7 @@ function makeShowgirl(){
     freezeStatic(objs,root,true);
   }
   // 🏮 CHINATOWN DISTRICT: Las Vegas Spring Mountain Road-inspired night market
-  {const CX=-540,CZ=-640,objs=[],add=m=>{objs.push(m);return m;}; // moved: the original spot (-760,90) sat on the Red Rock race loop
+  {const CX=-590,CZ=170,objs=[],add=m=>{objs.push(m);return m;}; // by Red Rock, where the west grocery store used to be (kept clear of the race loop)
     const stone=lam(0x77716b),red=lam(0x8d2428),roof=lam(0x252a35),gold=basic(0xffd16a),jade=lam(0x477d70);
     add(flatPlane(190,170,0x5a5149,-1,CX,CZ));
     // Main pedestrian promenade with stone edging and a central patterned walk
