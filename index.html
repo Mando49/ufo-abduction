@@ -2037,7 +2037,7 @@ for(let i=0;i<8;i++){const g=makeHorse(0x8a8078,0.85);g.userData.emoji='🫏';g.
   const rwL=[];for(let k=0;k<14;k++)for(const s of[-1,1]){const sp=glowSprite(s>0?0x45eaff:0x45eaff,DX-122+k*18.8,0.7,DZ+s*11,2.4,0.8);sp.userData.keep=true;rwL.push({sp,k});}
   const triL=[0,1,2].map(k=>{const a=k/3*2*PI+PI/2+0.5,s=glowSprite(k?0xffffff:0xff3030,DX-70+Math.cos(a)*14,1.4,DZ+26-Math.sin(a)*14,4,0.8);s.userData.keep=true;return s;});
   // --- SAUCER CRASH SITE: scorched furrow, half-buried disc, debris, guards
-  const [CX,CZ]=clearAt(430,330,70);window.__ds.C=[CX,CZ];{const f=add(flatPlane(130,13,0x2a1c14,-3,CX-52,CZ));f.position.y=0.07;const f2=add(flatPlane(130,5,0x140c08,-4,CX-52,CZ));f2.position.y=0.09;
+  const [CX,CZ]=[430,382];used.push([CX,CZ,70]);window.__ds.C=[CX,CZ];{const f=add(flatPlane(130,13,0x2a1c14,-3,CX-52,CZ));f.position.y=0.07;const f2=add(flatPlane(130,5,0x140c08,-4,CX-52,CZ));f2.position.y=0.09;
     for(let k=0;k<26;k++){const s=rand(1.5,4.5),m=add(new THREE.Mesh(new THREE.DodecahedronGeometry(s,0),rock));m.position.set(CX-112+k*5+rand(-2,2),s*0.3,CZ+pick([-1,1])*rand(7,11));m.scale.y=0.6;root.add(m);}
     const S=new THREE.Group();S.position.set(CX+18,3,CZ);S.rotation.set(0.1,0.3,0.42);const sm=new THREE.MeshPhongMaterial({color:0xc8d0d8,shininess:140,specular:0xffffff});const d=new THREE.Mesh(new THREE.SphereGeometry(20,24,10),sm);d.scale.y=0.2;S.add(d);const dm=new THREE.Mesh(new THREE.SphereGeometry(8,16,8,0,2*PI,0,PI/2),new THREE.MeshPhongMaterial({color:0x6ad8ff,emissive:0x0a4a6a,transparent:true,opacity:0.75}));dm.position.y=2.4;S.add(dm);
     for(let k=0;k<8;k++){const a=k/8*2*PI,l=new THREE.Mesh(new THREE.SphereGeometry(1,8,6),basic(k%2?0x6dff7a:0x224a2a));l.position.set(Math.cos(a)*16,0.6,Math.sin(a)*16);S.add(l);}S.traverse(o=>{if(o.isMesh)objs.push(o);});root.add(S);colliders.push({x0:CX+2,x1:CX+34,z0:CZ-16,z1:CZ+16,h:9,y0:0});
@@ -2258,7 +2258,7 @@ beginTown('ice');
   const sgg=new THREE.ConeGeometry(1,1,5);sgg.translate(0,0.5,0);inst(sgg,new THREE.MeshLambertMaterial({color:0xe8f6ff,emissive:0x2a4a66,flatShading:true}),sp,o=>compose(o.x,HW-1,o.z,o.w,o.h,o.w,0,rand(0,3),0));
   // the green land INSIDE the wall: grass, lakes, trees, a lost golden city, dinosaurs (frozen wastes lie beyond)
   const grass=new THREE.Mesh(new THREE.CircleGeometry(RW-13,120),new THREE.MeshLambertMaterial({color:0x4f9a3a,polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-2}));grass.rotation.x=-PI/2;grass.position.y=0.05;root.add(grass);
-  const lakes=[];for(let i=0;i<7;i++){const a=rand(0,2*PI),r=rand(160,500);const m=new THREE.Mesh(new THREE.CircleGeometry(rand(22,40),28),new THREE.MeshPhongMaterial({color:0x2a8ad0,emissive:0x0a3050,shininess:100,polygonOffset:true,polygonOffsetFactor:-4,polygonOffsetUnits:-4}));m.rotation.x=-PI/2;m.position.set(Math.cos(a)*r,0.1,Math.sin(a)*r);root.add(m);lakes.push(m);}
+  const lakes=[];for(let i=0;i<7;i++){let a,r;do{a=rand(0,2*PI);r=rand(160,500);}while(Math.hypot(Math.cos(a)*r,Math.sin(a)*r+300)<175);const m=new THREE.Mesh(new THREE.CircleGeometry(rand(22,40),28),new THREE.MeshPhongMaterial({color:0x2a8ad0,emissive:0x0a3050,shininess:100,polygonOffset:true,polygonOffsetFactor:-4,polygonOffsetUnits:-4}));m.rotation.x=-PI/2;m.position.set(Math.cos(a)*r,0.1,Math.sin(a)*r);root.add(m);lakes.push(m);}
   const tr=[],cr=[];for(let i=0;i<900&&tr.length<300;i++){const a=rand(0,2*PI),r=rand(90,RW-30),x=Math.cos(a)*r,z=Math.sin(a)*r;if(Math.hypot(x,z+300)<110||Math.hypot(x,z-330)<60)continue;tr.push({x,z,s:rand(1,2.2)});cr.push({x,z,s:rand(1,2.2),c:new THREE.Color().setHSL(rand(0.24,0.36),rand(0.5,0.7),rand(0.25,0.4)).getHex()});}
   const tg=new THREE.CylinderGeometry(0.5,0.7,6,6);tg.translate(0,3,0);inst(tg,lam(0x5a3a22),tr,o=>compose(o.x,0,o.z,o.s,o.s,o.s));
   const cg=new THREE.IcosahedronGeometry(3.6,0);cg.translate(0,7.5,0);inst(cg,new THREE.MeshLambertMaterial({color:0xffffff,flatShading:true}),cr,o=>compose(o.x,0,o.z,o.s,o.s,o.s));
@@ -2317,9 +2317,9 @@ beginTown('ice');
     for(let i=0;i<14;i++){const g=makeHuman(false);g.userData.emoji='🧙';g.userData.pts=90;const T={type:'critter',mesh:useAnim('person',g,'ice'),spawn:spawnCow,fl:[{x:X,z:Z+70},{x:X-45,z:Z+35},{x:X+45,z:Z+35},{x:X,z:Z+35}],rad:20};T.mesh.userData.T=T;T.spawn(T);targets.push(T);}
   }
   // 🦶 Bigfoot in the woods + 🐾 Whitefoot (his snowy cousin) near the Ice Wall
-  {const mkF=(ty,em,pts,S,rad)=>{const g=makeHuman(false);g.scale.setScalar(1.9);g.userData.emoji=em;g.userData.pts=pts;g.userData.heat=0.4;
+  {const mkF=(ty,em,pts,S,rad,tint,suit)=>{const g=makeHuman(false);g.scale.setScalar(1.9);if(tint){g.userData.tintHex=tint;g.userData.suit=suit;}g.userData.emoji=em;g.userData.pts=pts;g.userData.heat=0.4;
       const T={type:'critter',mesh:useAnim(ty,g,'ice'),spawn:spawnCow,fl:[S],rad};T.mesh.userData.T=T;T.spawn(T);targets.push(T);};
-    for(const [x,z] of[[-330,110],[310,190],[-140,430]])mkF('bigfoot','🦶',300,{x,z},45);
+    for(const [x,z] of[[-330,110],[310,190],[-140,430]])mkF('bigfoot','🦶',300,{x,z},45,0xd8b090,0x4a3220);
     for(const a of[0.5,1.9,3.5,5.3])for(let k=0;k<(a<1?2:1);k++)mkF('whitefoot','🐾',350,{x:Math.cos(a)*505,z:Math.sin(a)*505},40);}
   // 🦖 dinosaurs that really walk
   for(let i=0;i<6;i++){const g=makeHuman(false);g.scale.setScalar(2.7);g.userData.emoji='🦕';g.userData.pts=300;g.userData.heat=0.3;
@@ -2656,7 +2656,7 @@ beginTown('jungle');
   planetAnim.push({town:'jungle',f:(t,dt)=>{rt.offset.x=-t*0.12;pondG.material.opacity=0.18+0.08*Math.sin(t*1.4);lan.forEach((s,i)=>{s.material.opacity=0.55+0.3*Math.sin(t*2.4+i);});
     for(const B of bfs){B.a+=B.w*dt;B.g.position.set(B.cx+Math.cos(B.a)*B.r,B.y+Math.sin(t*1.7+B.r)*3,B.cz+Math.sin(B.a)*B.r);B.g.rotation.set(0,-B.a-(B.w>0?PI:0),0);const f=Math.sin(t*B.fl+B.r)*1.0;B.L.rotation.z=f;B.R.rotation.z=-f;}
     jel.forEach(J=>{J.g.position.set(J.x+Math.sin(t*0.1+J.ph)*40,J.y+Math.sin(t*0.5+J.ph)*6,J.z+Math.cos(t*0.08+J.ph)*40);const p=1+0.12*Math.sin(t*2+J.ph);J.g.scale.set(p,1/p,p);});
-    if(state!=='play'){seen={};return;}for(const [k,x,z,msg] of[['v',VX,VZ,'🌳 THE TREETOP VILLAGE! +120'],['p',PX,PZ,'🪷 THE LILY POND +80']]){if(!seen[k]&&Math.hypot(pos.x-x,pos.z-z)<60){seen[k]=1;score+=k==='v'?120:80;mEvent('found',{k:'jungle'+k});pop(msg);blip(500,1300,0.4,'triangle',0.08);}}}});
+    if(state!=='play'){seen={};return;}for(const [k,x,z,msg] of[['v',VX,VZ,'🌳 TREETOP VILLAGE! +120 · land and jetpack up'],['p',PX,PZ,'🪷 THE LILY POND +80']]){if(!seen[k]&&Math.hypot(pos.x-x,pos.z-z)<60){seen[k]=1;score+=k==='v'?120:80;mEvent('found',{k:'jungle'+k});pop(msg);blip(500,1300,0.4,'triangle',0.08);}}}});
 })();
 endTown('jungle',[140,850]);Object.assign(towns.jungle,{planet:true,fogC:new THREE.Color(0x2a2048),skyTint:0xc09cff,label:'🍄 VERDANA'});
 // 🏠 ZETA PRIME — the alien homeworld (reached by the long warp home from Earth orbit)
@@ -2963,7 +2963,7 @@ const ZHOUSE={x:150,z:165,in:false,nap:false};let BIKE_RACE=null;
       const k=add(new THREE.Mesh(new THREE.ConeGeometry(rand(1,1.8),h,5),new THREE.MeshLambertMaterial({color:c,emissive:c,emissiveIntensity:0.55,flatShading:true})));k.position.set(p.x-tg.z*(w+2.5)*s,h/2,p.z+tg.x*(w+2.5)*s);k.rotation.set(rand(-.2,.2),rand(0,3),rand(-.2,.2));root.add(k);}};
   river([[-680,430],[-600,372],[-520,352],[-455,300],[-405,268]],11);
   river([[-262,318],[-205,372],[-150,395],[-110,470],[-40,540],[30,600],[60,690]],11);
-  river([[690,-150],[590,-100],[520,-30],[455,40],[410,150],[450,270],[540,350],[690,420]],12);
+  river([[690,-150],[590,-100],[520,-30],[470,40],[500,150],[530,260],[570,350],[690,420]],12);
   river([[-690,-330],[-600,-300],[-540,-230],[-470,-250],[-400,-330],[-330,-420],[-300,-560],[-340,-690]],10);
   freezeStatic(objs,root,true);
   // --- star-moss: thousands of tiny twinkling lights in the ground
@@ -5687,7 +5687,7 @@ beginTown('ocean');
   let seen={},song=20;
   planetAnim.push({town:'ocean',f:(t,dt)=>{cau[0].position.set(Math.round(pos.x/100)*100,0.15,Math.round(pos.z/100)*100);cau[1].position.set(Math.round(pos.x/155.5556)*155.5556,0.2,Math.round(pos.z/155.5556)*155.5556);ct.offset.set(t*0.012,t*0.008);ct2.offset.set(-t*0.009,t*0.011);cau[0].material.opacity=0.18+0.06*Math.sin(t*1.3);
     gG.material.opacity=0.3+0.14*Math.sin(t*1.6);lid.rotation.x=-0.5-0.32*(0.5+0.5*Math.sin(t*0.7));pG.material.opacity=pT.state==='ground'?0.45+0.25*Math.sin(t*2.4):0;
-    hb.forEach(H=>{const a=t*H.w+H.ph;H.g.position.set(Math.cos(a)*H.R,H.y+Math.sin(t*0.3+H.ph)*5,Math.sin(a)*H.R);H.g.rotation.set(0,-a-Math.sign(H.w)*PI/2+PI/2,0);H.g.children[0].rotation.z=Math.sin(t*0.5+H.ph)*0.08;});
+    hb.forEach(H=>{const a=t*H.w+H.ph;H.g.position.set(Math.cos(a)*H.R,H.y+Math.sin(t*0.3+H.ph)*5,Math.sin(a)*H.R);H.g.rotation.set(0,-a-Math.sign(H.w)*PI/2,0);H.g.children[0].rotation.z=Math.sin(t*0.5+H.ph)*0.08;});
     if(state!=='play'){seen={};return;}song-=dt;if(song<=0){song=rand(18,34);blip(180,90,1.6,'sine',0.05);setTimeout(()=>blip(120,260,1.4,'sine',0.045),900);}
     for(const [k,x,z,msg] of[['g',GX,GZ,'⚓ THE LOST GALLEON! +150'],['p',PX,PZ,'✈️ THE LOST PLANE! +150'],['w',WX,WZ,'🦴 A WHALE SKELETON +80']]){if(!seen[k]&&Math.hypot(pos.x-x,pos.z-z)<42){seen[k]=1;score+=k==='w'?80:150;mEvent('found',{k:'ocean'+k});pop(msg);blip(400,1100,0.4,'triangle',0.09);}}}});
 })();
@@ -5850,7 +5850,7 @@ beginTown('seas');
     if(kT.state==='ground'){kT.mesh.position.set(KX+18,Math.sin(t*0.6)*2.2-1.5,KZ+26);kT.mesh.rotation.set(0,Math.sin(t*0.3)*0.4,0);}
     if(gT.state==='ground'){const a=t*0.2;ghost.position.set(BX+Math.cos(a)*72,Math.sin(t)*0.6,BZ+Math.sin(a)*72);ghost.rotation.set(0,-a-PI/2,0);ghost.children.forEach(c=>{});}
     buoys.forEach(B=>{const wv=window.SEA_WAVE(B.g.position.x,B.g.position.z);B.g.position.y=Math.sin(t*1.4+B.ph)*0.5+wv[0];B.g.rotation.z=Math.sin(t*1.1+B.ph)*0.12;B.g.rotation.x=-wv[1]*0.4;B.l.material.opacity=((t+B.ph)%2)<0.3?1:0.08;});
-    whales.forEach(W=>{if(W.T.state!=='ground'){W.sp.material.opacity=0;return;}const a=t*W.w+W.ph,j=(t*0.22+W.ph)%1,up=j<0.3?Math.sin(j/0.3*PI):0;W.g.position.set(W.cx+Math.cos(a)*70,-3.2+up*9,W.cz+Math.sin(a)*70);W.g.rotation.set(0,-a-Math.sign(W.w)*PI/2+PI/2,0);W.g.children[0].rotation.z=j<0.3?(0.15-j)*3.2:0;
+    whales.forEach(W=>{if(W.T.state!=='ground'){W.sp.material.opacity=0;return;}const a=t*W.w+W.ph,j=(t*0.22+W.ph)%1,up=j<0.3?Math.sin(j/0.3*PI):0;W.g.position.set(W.cx+Math.cos(a)*70,-3.2+up*9,W.cz+Math.sin(a)*70);W.g.rotation.set(0,-a-Math.sign(W.w)*PI/2,0);W.g.children[0].rotation.z=j<0.3?(0.15-j)*3.2:0;
       const so=j>0.3&&j<0.5?(1-(j-0.3)/0.2):0;W.sp.position.set(W.g.position.x,3+(1-so)*9,W.g.position.z);W.sp.material.opacity=so*0.7;W.sp.scale.setScalar(5+(1-so)*9);});
     fins.forEach(F=>{const a=t*F.w+F.ph;F.m.position.set(KX+Math.cos(a)*F.r,-0.6+Math.sin(t*1.3+F.ph)*0.3,KZ+Math.sin(a)*F.r);F.m.rotation.y=-a+(F.w>0?-PI/2:PI/2);});
     for(const B of gulls){B.a+=B.w*dt;B.g.position.set(B.cx+Math.cos(B.a)*B.r,B.y+Math.sin(t*0.5+B.r)*5,B.cz+Math.sin(B.a)*B.r);B.g.rotation.set(0,-B.a-(B.w>0?PI:0),B.w>0?-0.25:0.25);const fz=Math.sin(t*B.fl+B.r)*0.7;B.L.rotation.z=fz;B.R.rotation.z=-fz;}
