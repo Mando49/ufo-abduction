@@ -4153,8 +4153,6 @@ function makeShowgirl(){
     const c=document.createElement('canvas');c.width=512;c.height=512;const x=c.getContext('2d');x.translate(256,256);x.rotate(PI/4);x.fillStyle='#f8f4e8';x.fillRect(-170,-170,340,340);x.rotate(-PI/4);
     x.fillStyle='#e8203a';x.font='900 40px system-ui';x.textAlign='center';x.fillText('WELCOME TO',0,-60);x.fillStyle='#1a5ac8';x.font='900 30px system-ui';x.fillText('FABULOUS',0,-10);x.fillStyle='#e8203a';x.font='900 66px system-ui';x.fillText('LAS VEGAS',0,58);x.fillStyle='#1a5ac8';x.font='900 30px system-ui';x.fillText('NEVADA',0,100);
     const m=new THREE.Mesh(new THREE.PlaneGeometry(36,36),new THREE.MeshBasicMaterial({map:new THREE.CanvasTexture(c),transparent:true,side:THREE.DoubleSide}));m.position.set(0,30,0);m.rotation.y=PI;g.add(m);glowSprite(0xfff0c0,SX,30,559,50,0.25);}
-  // our own billboard
-  makeBillboard(SX+36,420,-0.4,'TINT & PPF · LAS VEGAS');
   let beamMsg=0;
   planetAnim.push({town:'vegas',f:(t,dt)=>{
     casinos.forEach((s,i)=>{const on=Math.sin(t*3+i*0.7)>-0.3;s.visible=on;});
