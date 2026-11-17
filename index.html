@@ -1701,6 +1701,76 @@ beginTown('desert');
     escapeAura.material.opacity=.32+.25*(.5+.5*Math.sin(t*2));
     alarmLamp.material.opacity=.12+.6*(.5+.5*Math.sin(t*5));
   });
+  // ---- SUBLEVEL 9B: interrogation, autopsy, command and titan containment ----
+  // A second exposed underground wing, connected visually to the main xenobiology block.
+  const WINGX=LABX-205,WINGZ=LABZ+112;
+  const wingFloor=new THREE.Mesh(new THREE.BoxGeometry(142,2,108),lam(0x111a24));
+  wingFloor.position.set(WINGX,-5,WINGZ);root.add(wingFloor);
+  const wingWallMat=lam(0x354451),wingTrim=lam(0x71818d);
+  for(const [x,z,w,d] of [[WINGX,WINGZ-53,142,4],[WINGX,WINGZ+53,142,4],[WINGX-69,WINGZ,4,108],[WINGX+69,WINGZ,4,108]]){
+    const wall=new THREE.Mesh(new THREE.BoxGeometry(w,14,d),wingWallMat);wall.position.set(x,2,z);root.add(wall);
+    const rim=new THREE.Mesh(new THREE.BoxGeometry(w,.45,d),wingTrim);rim.position.set(x,9.2,z);root.add(rim);
+  }
+  const roomGlow=[],screenMats=[];
+  function wingRoom(x,z,w,d,name,color){
+    const g=new THREE.Group();g.position.set(x,-4,z);root.add(g);
+    const floor=new THREE.Mesh(new THREE.BoxGeometry(w,.7,d),lam(0x263440));floor.position.y=.1;g.add(floor);
+    for(const [xx,zz,ww,dd] of [[0,-d/2,w,.7],[0,d/2,w,.7],[-w/2,0,.7,d],[w/2,0,.7,d]]){
+      const p=new THREE.Mesh(new THREE.BoxGeometry(ww,10,dd),darkMetal);p.position.set(xx,5,zz);g.add(p);
+    }
+    const ceiling=new THREE.Mesh(new THREE.BoxGeometry(w,1,d),lam(0x202b35));ceiling.position.y=10;g.add(ceiling);
+    const sign=neonText(name,'#'+color.toString(16).padStart(6,'0'),25,5);sign.position.set(0,8,-d/2-.5);g.add(sign);
+    const strip=new THREE.Mesh(new THREE.BoxGeometry(w-3,.25,.35),new THREE.MeshBasicMaterial({color}));strip.position.set(0,9.5,-d/2+1);g.add(strip);
+    return g;
+  }
+  // Interrogation room: bolted table, two seats and a one-way observation pane.
+  const interview=wingRoom(WINGX-43,WINGZ-25,48,42,'INTERROGATION',0xffb84d);
+  const interviewTable=new THREE.Mesh(new THREE.BoxGeometry(12,1.2,6),lam(0x59636b));interviewTable.position.set(0,2,0);interview.add(interviewTable);
+  for(const x of[-8,8]){const seat=new THREE.Mesh(new THREE.BoxGeometry(3,3,3),lam(0x394653));seat.position.set(x,1.8,0);interview.add(seat);}
+  const oneWay=new THREE.Mesh(new THREE.BoxGeometry(17,6,.35),new THREE.MeshPhongMaterial({color:0x5bdfff,transparent:true,opacity:.28,shininess:130}));oneWay.position.set(0,5,-20);interview.add(oneWay);
+  const interviewLamp=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:0xffd18a,transparent:true,opacity:.7,blending:THREE.AdditiveBlending,depthWrite:false}));interviewLamp.position.set(WINGX-43,8,WINGZ-25);interviewLamp.scale.set(17,17,1);root.add(interviewLamp);roomGlow.push(interviewLamp);
+  // Autopsy lab: surgical table, alien form and articulated examination lamps.
+  const autopsy=wingRoom(WINGX+43,WINGZ-25,48,42,'XENOPATHOLOGY',0x57dcff);
+  const slab=new THREE.Mesh(new THREE.BoxGeometry(17,1.2,7),lam(0x9aaab2));slab.position.set(0,2,0);autopsy.add(slab);
+  const bodyForm=new THREE.Mesh(new THREE.SphereGeometry(2.4,14,10),new THREE.MeshLambertMaterial({color:0x74a99c,emissive:0x153b39,emissiveIntensity:.25}));bodyForm.scale.set(1.6,.55,.8);bodyForm.position.set(0,3.2,0);autopsy.add(bodyForm);
+  for(const x of[-8,8]){
+    const arm=new THREE.Mesh(new THREE.CylinderGeometry(.25,.25,8,8),lam(0x8796a0));arm.position.set(x,7,-5);arm.rotation.z=x*.025;autopsy.add(arm);
+    const lamp=new THREE.Mesh(new THREE.CylinderGeometry(1.1,1.7,.5,12),new THREE.MeshBasicMaterial({color:0x9defff}));lamp.position.set(x,10,-5);autopsy.add(lamp);
+  }
+  // Security control room: console banks and individually lit surveillance screens.
+  const command=wingRoom(WINGX-43,WINGZ+30,48,42,'SECURITY CONTROL',0x62ffad);
+  for(let i=0;i<4;i++){
+    const console=box(command,8,2,3,0x34434e,-16+i*10,1.5,-12);
+    const monitor=new THREE.Mesh(new THREE.BoxGeometry(7,4,.45),new THREE.MeshBasicMaterial({color:[0x39dfff,0x63ffad,0xff526c,0xffc45e][i],transparent:true,opacity:.85}));
+    monitor.position.set(-16+i*10,5,-15);command.add(monitor);screenMats.push(monitor.material);
+  }
+  const controlPulse=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:0x57ffb1,transparent:true,opacity:.55,blending:THREE.AdditiveBlending,depthWrite:false}));controlPulse.position.set(WINGX-43,7,WINGZ+30);controlPulse.scale.set(24,24,1);root.add(controlPulse);roomGlow.push(controlPulse);
+  // Titan containment: a massive specimen suspended inside a reinforced cylindrical vault.
+  const titan=wingRoom(WINGX+43,WINGZ+30,48,42,'TITAN CONTAINMENT',0xff526c);
+  const tube=new THREE.Mesh(new THREE.CylinderGeometry(10,10,17,24,1,true),new THREE.MeshPhongMaterial({color:0x70eaff,transparent:true,opacity:.16,shininess:150,side:THREE.DoubleSide,depthWrite:false}));tube.position.set(0,8.5,0);titan.add(tube);
+  for(let a=0;a<8;a++){
+    const ang=a*PI/4,bar=new THREE.Mesh(new THREE.BoxGeometry(.7,18,.7),lam(0x73828d));bar.position.set(Math.cos(ang)*10,8.5,Math.sin(ang)*10);titan.add(bar);
+  }
+  const titanCore=new THREE.Group();titanCore.position.set(0,2,0);titan.add(titanCore);
+  const titanBody=new THREE.Mesh(new THREE.SphereGeometry(4.5,18,14),new THREE.MeshLambertMaterial({color:0x7b9b8d,emissive:0x245c4a,emissiveIntensity:.35}));titanBody.scale.set(1.05,1.65,.8);titanCore.add(titanBody);
+  const titanHead=new THREE.Mesh(new THREE.SphereGeometry(3.2,18,12),new THREE.MeshPhongMaterial({color:0x9dc8b5,emissive:0x285d4d,shininess:100}));titanHead.position.set(0,8,-.4);titanCore.add(titanHead);
+  for(const x of[-1.25,1.25]){
+    const eye=new THREE.Mesh(new THREE.SphereGeometry(.75,12,8),basic(0xff334f));eye.position.set(x,8.2,-3.1);titanCore.add(eye);
+    const arm=new THREE.Mesh(new THREE.CylinderGeometry(.8,1.15,8,10),lam(0x688b7e));arm.position.set(x*3,2,-.1);arm.rotation.z=x*.22;titanCore.add(arm);
+  }
+  const titanField=new THREE.Mesh(new THREE.CylinderGeometry(11,11,.35,32),new THREE.MeshBasicMaterial({color:0xff526c,transparent:true,opacity:.5,blending:THREE.AdditiveBlending}));titanField.position.y=1;titan.add(titanField);
+  const titanGlow=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:0xff526c,transparent:true,opacity:.55,blending:THREE.AdditiveBlending,depthWrite:false}));titanGlow.position.set(WINGX+43,9,WINGZ+30);titanGlow.scale.set(35,35,1);root.add(titanGlow);roomGlow.push(titanGlow);
+  // Small overhead warning beacons and restrained room lighting animation.
+  const wingBeacons=[];
+  for(const [x,z] of [[WINGX-43,WINGZ-48],[WINGX+43,WINGZ-48],[WINGX-43,WINGZ+48],[WINGX+43,WINGZ+48]]){
+    const beacon=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:0xff425f,transparent:true,opacity:.45,blending:THREE.AdditiveBlending,depthWrite:false}));beacon.position.set(x,12,z);beacon.scale.set(10,10,1);root.add(beacon);wingBeacons.push(beacon);
+  }
+  desertAnim.push((dt,t)=>{
+    titanCore.position.y=2+Math.sin(t*.8)*1.1;titanCore.rotation.y=Math.sin(t*.22)*.16;
+    titanField.material.opacity=.28+.3*(.5+.5*Math.sin(t*2.1));
+    roomGlow.forEach((L,i)=>{L.material.opacity=.35+.3*(.5+.5*Math.sin(t*1.4+i));});
+    wingBeacons.forEach((B,i)=>{B.material.opacity=.18+.65*(.5+.5*Math.sin(t*3.5+i*1.7));});
+  });
   // ---- cacti + rocks ----
   const cac=[],rocks=[];
   const bad=(x,z)=>(x>-370&&x<-220&&z>105&&z<320)||Math.abs(z-80)<16||(x>40&&x<350&&z>86&&z<155)||(x>-515&&x<-5&&z>-385&&z<-125)||fields.some(f=>Math.abs(f.x-x)<62&&Math.abs(f.z-z)<62)||Math.hypot(x,z)>660;
