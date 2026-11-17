@@ -3464,6 +3464,62 @@ function makeShowgirl(){
     freezeStatic(objs,root,true);
     // 🏡 locals out walking the dog / checking the mail (beam them up)
     for(let i=0;i<16;i++){const T={type:'critter',mesh:useAnim('person',makeHuman(false),'vegas'),spawn:spawnCow,fl:RES,rad:30};T.spawn(T);targets.push(T);}}
+  // 🌆 LAS VEGAS STREET LIFE: neighborhood sidewalks, crosswalks, bus shelters and utility details
+  {const objs=[],add=m=>{objs.push(m);return m;},curb=lam(0xb8ad98),walk=lam(0x77777a),metal=lam(0x454b55),glass=lam(0x6e9ca8,0x10202a),yellow=basic(0xf3c84b);
+    // Raised sidewalks and curb edges along the main neighborhood streets
+    for(const side of[-1,1]){
+      const xs=[250,355,460].map(v=>side*v),zMax=side<0?296:465;
+      for(const X of xs)for(const edge of[-1,1]){
+        const ex=X+edge*8.5;
+        add(flatPlane(2.2,zMax+420,0x77777a,-1.2,ex,(zMax-420)/2));
+        for(let z=-410;z<zMax-12;z+=42)add(box(root,2.5,0.22,0.22,curb,ex,0.12,z));
+      }
+      // Zebra crossings at three prominent intersections on each side of the Strip
+      for(const Z of[-190,50,290]){
+        if(side<0&&Z>280)continue;
+        for(const X of xs)for(let stripe=-3;stripe<=3;stripe++){
+          add(flatPlane(1.1,8,0xe6e3d8,-1.35,X+stripe*1.65,Z-8));
+        }
+        // Painted stop bars and a small traffic-control cabinet
+        add(flatPlane(0.65,16,0xf0d45a,-1.3,side*355,Z-13));
+        add(box(root,1.2,1.8,0.9,metal,side*355+19,0.9,Z+9));
+      }
+      // Covered RTC-style neighborhood bus stops, spaced along the arterial
+      for(const Z of[-300,130,390]){
+        if(side<0&&Z>280)continue;
+        const bx=side*355+side*11,bz=Z;
+        add(box(root,12,0.35,4.2,curb,bx,0.18,bz));
+        for(const dx of[-5.4,5.4])add(box(root,0.22,3.2,0.22,metal,bx+dx,1.6,bz));
+        add(box(root,12,0.22,4.4,lam(0x3b414b),bx,3.25,bz));
+        add(box(root,0.12,2.2,3.5,glass,bx-side*5.35,1.65,bz));
+        add(box(root,0.12,2.2,3.5,glass,bx+side*5.35,1.65,bz));
+        add(box(root,5.8,0.45,1.1,lam(0x59616a),bx,1.05,bz+1.15));
+        sign('BUS STOP','#ffe08a',3.2,0.55,bx,2.65,bz-2.3,side>0?PI:0);
+        add(box(root,0.65,1.1,0.65,lam(0x77716a),bx+side*8,0.55,bz+1));
+      }
+      // Utility poles and restrained overhead service wires on the outer blocks
+      for(const Z of[-360,-80,200,420]){
+        if(side<0&&Z>280)continue;
+        const px=side*490;
+        add(box(root,0.65,13,0.65,lam(0x66503c),px,6.5,Z));
+        add(box(root,5.2,0.35,0.35,lam(0x66503c),px,11.4,Z));
+        for(const dx of[-1.8,0,1.8])add(box(root,0.18,0.7,0.18,metal,px+dx,12,Z));
+        glowSprite(0xffd18a,px-side*2.5,12.2,Z,3.2,0.22);
+      }
+    }
+    // Desert-landscape medians with low shrubs on the long cross streets
+    for(const Z of[-190,50,290]){
+      for(const side of[-1,1]){
+        const mx=side*355;
+        add(flatPlane(5.2,42,0x8a806f,-1.1,mx,Z));
+        for(let k=0;k<5;k++){
+          const sh=new THREE.Mesh(new THREE.SphereGeometry(1.35,7,5),lam(pick([0x536b3c,0x687846,0x7a7545])));
+          sh.scale.set(1.7,0.7,1.1);sh.position.set(mx+rand(-1.2,1.2),0.9,Z-18+k*9);add(sh);
+        }
+      }
+    }
+    freezeStatic(objs,root,true);
+  }
   // 🏟️ DESERT DOME: a sleek black stadium with a glowing see-through roof and a giant flame torch (south-west of the Strip)
   {const DX=-360,DZ=392,RX=80,RZ=60,objs=[],add=m=>{objs.push(m);return m;};
     add(flatPlane(250,190,0x2e2f36,-1,DX,DZ));for(let x=-115;x<=115;x+=8)for(const z of[-80,80])add(flatPlane(.4,9,0xe8e8e8,-3,DX+x,DZ+z)); // parking lot
