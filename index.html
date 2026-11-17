@@ -1113,7 +1113,7 @@ const MODELS={cow:{file:'cow',len:3.0,rotY:PI/2,list:[]},car:{file:'car',len:4.4
   whale:{file:'whale',len:3.8,rotY:-PI/2,list:[]},octopus:{file:'octopus',height:1.6,rotY:0,list:[]},sub:{file:'sub',len:6.5,rotY:0,list:[]},dolphin:{file:'dolphin',len:3.6,rotY:PI/2,rotX:0.69,list:[]},
   carrier:{file:'carrier',len:150,rotY:0,list:[]},destroyer:{file:'destroyer',len:70,rotY:0,list:[]},cargo:{file:'cargo',len:100,rotY:0,list:[]},cruise:{file:'cruise',len:90,rotY:0,list:[]},fishboat:{file:'fishboat',len:9,rotY:0,list:[]},sailboat:{file:'sailboat',len:8,rotY:0,list:[]},
   subE:{file:'sub',len:7,rotY:0,list:[],recolor:true},
-  unicorn:{file:'unicorn',height:4.6,rotY:0,list:[]},nileboat:{file:'nileboat',len:20,rotY:0,list:[]},croc:{file:'croc',len:9,rotY:0,list:[]},jeep:{file:'jeep',len:7.5,rotY:0,list:[]},toucan:{file:'toucan',len:3.2,rotY:-PI/2,list:[]},macaw:{file:'macaw',len:5,rotY:PI,list:[]},iguana:{file:'iguana',len:6,rotY:PI/2,list:[]},coati:{file:'coati',len:4.4,rotY:PI/2,list:[]},turkey:{file:'turkey',height:3.6,rotY:PI/2,list:[]},monkey:{file:'monkey',height:4.2,rotY:-PI/2,list:[]},mask:{file:'mask',height:7.5,rotY:-PI/2,list:[],yOff:3.4},sphinx:{file:'sphinx',height:24,rotY:-PI/2,list:[]},dragon:{file:'dragon',len:30,rotY:0,list:[]},sleigh:{file:'sleigh',len:10,rotY:PI/2,list:[]},reindeer:{file:'reindeer',height:4.4,rotY:PI/2,list:[]},
+  unicorn:{file:'unicorn',height:4.6,rotY:0,list:[]},nileboat:{file:'nileboat',len:20,rotY:0,list:[]},croc:{file:'croc',len:9,rotY:0,list:[]},jeep:{file:'jeep',len:7.5,rotY:0,list:[]},toucan:{file:'toucan',len:3.2,rotY:-PI/2,list:[]},macaw:{file:'macaw',len:5,rotY:PI,list:[]},iguana:{file:'iguana',len:6,rotY:PI/2,list:[]},coati:{file:'coati',len:4.4,rotY:PI/2,list:[]},turkey:{file:'turkey',height:3.6,rotY:PI/2,list:[]},mask:{file:'mask',height:7.5,rotY:-PI/2,list:[],yOff:3.4},sphinx:{file:'sphinx',height:24,rotY:-PI/2,list:[]},dragon:{file:'dragon',len:30,rotY:0,list:[]},sleigh:{file:'sleigh',len:10,rotY:PI/2,list:[]},reindeer:{file:'reindeer',height:4.4,rotY:PI/2,list:[]},
   mustang:{file:'mustang',height:4.2,rotY:PI/4,list:[]},burro:{file:'burro',height:3,rotY:0,list:[]}};
 let MODELS_BOOTED=false;
 function useModel(type,g){const M=MODELS[type];if(M.proto)attachModel(M,g);else{M.list.push(g);if(MODELS_BOOTED&&!M.loading&&window.loadModel)loadModel(type);}return g;}
@@ -1151,6 +1151,7 @@ const ANIM={alien:{file:'alien',height:2.3,rotY:PI/2,clips:{walk:0},list:[]},
   person:{file:'person',height:3.4,rotY:PI/2,clips:{walk:0},tint:true,list:[]},mummy:{file:'mummy',height:3.7,rotY:PI/2,clips:{walk:0},list:[]},yeti:{file:'yeti',height:7.2,rotY:PI/2,clips:{walk:0},list:[]},
   fox:{file:'fox',len:3.4,axis:'z',rotY:PI/2,clips:{idle:'Survey',walk:'Walk',run:'Run'},list:[]},
   mech:{file:'mech',height:47,rotY:0,clips:{walk:0},list:[],lift:1.9},
+  monkeyw:{file:'monkeyw',height:3.2,rotY:PI/2,clips:{walk:0},list:[],lift:1.6},
   aztec:{file:'aztec',height:4.3,rotY:PI/2,clips:{walk:0},list:[],lift:1.7},aztecw:{file:'aztecw',height:3.9,rotY:PI/2,clips:{walk:0},list:[],lift:1.7},
   pharaoh:{file:'pharaoh',height:4.4,rotY:PI/2,clips:{walk:0},list:[]},queen:{file:'queen',height:4,rotY:PI/2,clips:{walk:0},list:[]},
   bigfoot:{file:'bigfoot',height:3.9,rotY:PI/2,clips:{walk:0},list:[]},
@@ -3631,18 +3632,24 @@ beginTown('maya');
       const T={type:'critter',mesh:g,still:true,spawn:T=>{T.mesh.visible=true;T.state='ground';resetRot(T.mesh);}};T.state='ground';targets.push(T);W.push(Object.assign({kind,g,T,ph:rand(0,6)},fn(i)));}};
     mk('toucan','🦜',90,5,i=>({fly:1,cx:rand(-300,300),cz:rand(-380,200),r:rand(40,110),y:rand(24,44),sp:rand(.18,.3)*(i%2?1:-1)}));
     mk('macaw','🦜',90,5,i=>({fly:1,cx:rand(-300,300),cz:rand(-380,200),r:rand(50,130),y:rand(28,50),sp:rand(.16,.28)*(i%2?-1:1)}));
-    [[-120,-430],[140,-150],[-330,-300],[330,-200],[-60,40],[72,170]].forEach(([x,z],i)=>mk('monkey','🐒',110,1,()=>({sit:1,x:x-12+i,z:z+9,y:i<5?0:0}))); // monkeys hang around the ruins and palace
+    [[-120,-430],[140,-150],[-330,-300],[330,-200],[-60,40],[72,170],[0,-225],[-262,-60]].forEach(([x,z],i)=>{const g=makeHuman(false);g.userData.emoji='🐒';g.userData.pts=110;g.userData.heat=0;
+      const T={type:'critter',mesh:useAnim('monkeyw',g,'maya'),spawn:spawnCow,fl:[{x:x-6,z:z+16}],rad:16};T.mesh.userData.T=T;T.spawn(T);targets.push(T);}); // walking spider monkeys around the ruins, pyramid and cenote
     mk('coati','🦝',80,6,i=>({walk:1,cx:[-430,430,0,-200,200,60][i],cz:[-300,-270,480,120,-30,-200][i],r:rand(14,26),sp:rand(.25,.4)*(i%2?1:-1)}));
     mk('iguana','🦎',80,5,i=>({walk:1,cx:[-262,0,230,-120,330][i],cz:[-60,-225,-70,-405,-170][i],r:rand(5,10),sp:rand(.08,.16)*(i%2?1:-1)}));
     mk('turkey','🦃',100,6,i=>({walk:1,cx:[-470,470,-60,60,-380,380][i],cz:[100,100,440,250,-140,-120][i],r:rand(10,20),sp:rand(.15,.25)*(i%2?-1:1)}));
     // wing flapping for the 3D birds: bend the mesh up/down by distance from the body (no rig needed)
     const flapInit=o=>{let done=false;o.g.traverse(m=>{if(!m.isMesh||!m.material||!m.material.map||m.userData.flap)return;const gm=m.geometry;if(!gm.boundingBox)gm.computeBoundingBox();const bb=gm.boundingBox,ax=o.kind==='toucan'?'x':'z',c=(bb.min[ax]+bb.max[ax])/2,h=(bb.max[ax]-bb.min[ax])/2||1;
         const mat=m.material=m.material.clone(),U={value:0};m.userData.flap=U;m.frustumCulled=false;
-        mat.onBeforeCompile=sh=>{sh.uniforms.uFlap=U;sh.vertexShader='uniform float uFlap;\n'+sh.vertexShader.replace('#include <begin_vertex>',`#include <begin_vertex>\n float fl=clamp(abs(position.${ax}-(${c.toFixed(5)}))/${h.toFixed(5)},0.0,1.0);transformed.y+=fl*fl*uFlap*${(h*0.45).toFixed(5)};`);};mat.customProgramCacheKey=()=>'flap'+ax+o.kind;mat.needsUpdate=true;o.flaps=o.flaps||[];o.flaps.push(U);done=true;});return done;};
+        mat.onBeforeCompile=sh=>{sh.uniforms.uFlap=U;sh.vertexShader='uniform float uFlap;\n'+sh.vertexShader.replace('#include <begin_vertex>',`#include <begin_vertex>\n float fl=clamp(abs(position.${ax}-(${c.toFixed(5)}))/${h.toFixed(5)},0.0,1.0);transformed.y+=fl*fl*uFlap*${(h*(o.kind==='macaw'?0.9:0.45)).toFixed(5)};`);};mat.customProgramCacheKey=()=>'flap'+ax+o.kind;mat.needsUpdate=true;o.flaps=o.flaps||[];o.flaps.push(U);done=true;});return done;};
+    // body wiggle for the ground animals: the spine and tail sway side to side as they walk (no rig needed)
+    const wigInit=o=>{o.g.traverse(m=>{if(!m.isMesh||!m.material||!m.material.map||m.userData.wig)return;const gm=m.geometry;if(!gm.boundingBox)gm.computeBoundingBox();const bb=gm.boundingBox,c=(bb.min.z+bb.max.z)/2,h=(bb.max.z-bb.min.z)/2||1,amp=o.kind==='iguana'?0.16:0.07;
+        const mat=m.material=m.material.clone(),U={value:0};m.userData.wig=U;m.frustumCulled=false;
+        mat.onBeforeCompile=sh=>{sh.uniforms.uWig=U;sh.vertexShader='uniform float uWig;\n'+sh.vertexShader.replace('#include <begin_vertex>',`#include <begin_vertex>\n float wk=(position.z-(${c.toFixed(5)}))/${h.toFixed(5)};transformed.x+=sin(wk*3.4+uWig)*${(h*amp).toFixed(5)}*(0.35+0.65*(1.0-smoothstep(-1.0,0.2,wk)));`);};mat.customProgramCacheKey=()=>'wig'+o.kind;mat.needsUpdate=true;o.wigs=o.wigs||[];o.wigs.push(U);});};
     planetAnim.push({town:'maya',f:(t)=>{W.forEach(o=>{if(o.T.state!=='ground')return;const a=t*o.sp+o.ph;
+      if((o.kind==='iguana'||o.kind==='coati')&&!o.wigs)wigInit(o);if(o.wigs)o.wigs.forEach(U=>U.value=t*(o.kind==='iguana'?7:10)+o.ph);
       if(o.fly&&!o.flaps)flapInit(o);if(o.flaps){const f=Math.sin(t*(o.kind==='toucan'?11:8)+o.ph);o.flaps.forEach(U=>U.value=f);}
       if(o.fly){o.g.position.set(o.cx+Math.cos(a)*o.r,o.y+Math.sin(a*2.3)*3,o.cz+Math.sin(a)*o.r);o.g.rotation.set(0,-a+(o.sp>0?-PI/2:PI/2),0.18*Math.sign(o.sp));o.g.position.y+=Math.sin(t*(o.kind==='toucan'?11:8)+o.ph+1.6)*0.35;}
-      else if(o.walk){o.g.position.set(o.cx+Math.cos(a)*o.r,Math.abs(Math.sin(t*6+o.ph))*0.25,o.cz+Math.sin(a)*o.r);o.g.rotation.set(0,-a+(o.sp>0?-PI/2:PI/2),0);}
+      else if(o.walk){const tk=o.kind==='turkey';o.g.position.set(o.cx+Math.cos(a)*o.r,Math.abs(Math.sin(t*(tk?5:8)+o.ph))*(tk?0.3:0.15),o.cz+Math.sin(a)*o.r);o.g.rotation.set(tk?Math.sin(t*5+o.ph)*0.16:0,-a+(o.sp>0?-PI/2:PI/2),tk?Math.sin(t*10+o.ph)*0.07:Math.sin(t*8+o.ph)*0.04);}
       else{o.g.position.set(o.x,Math.abs(Math.sin(t*2.2+o.ph))**8*1.6,o.z);o.g.rotation.y=o.ph+Math.sin(t*0.4+o.ph)*0.8;}});}});
   })();
   // 🏛️ Everyday ceremonial landmarks: a temazcal, carved stelae and a cenote landing
