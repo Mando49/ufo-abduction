@@ -3591,12 +3591,12 @@ function makeShowgirl(){
     }
     // A small koi garden and tea pavilion at the southern end
     const pond=new THREE.Mesh(new THREE.CircleGeometry(15,24),new THREE.MeshPhongMaterial({color:0x174e62,emissive:0x071a22,shininess:120}));
-    pond.rotation.x=-PI/2;pond.position.set(CX,CZ+74,0.12);root.add(pond);
+    pond.rotation.x=-PI/2;pond.position.set(CX,0.12,CZ+74);add(pond);
     for(let i=0;i<8;i++){
       const a=i/8*2*PI;
       add(box(root,1.2,0.8,1.2,stone,CX+Math.cos(a)*16,0.4,CZ+74+Math.sin(a)*16));
     }
-    const pavilion=new THREE.Group();pavilion.position.set(CX,0,CZ+103);root.add(pavilion);
+    const pavilion=new THREE.Group();pavilion.position.set(CX,0,CZ+103);add(pavilion);
     box(pavilion,15,0.7,12,jade,0,3,0);
     for(const x of[-6,6])for(const z of[-4.5,4.5])box(pavilion,0.7,6,0.7,red,x,3,z);
     box(pavilion,19,0.7,15,roof,0,6.2,0);
