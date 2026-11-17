@@ -2531,20 +2531,74 @@ endTown('fifth',[250,1500]);Object.assign(towns.fifth,{planet:true,fogC:new THRE
 
 // 🇪🇬 GIZA, EGYPT
 // shared helpers for the new Earth worlds
+// ⛰️ Egypt off-road terrain: sand dunes + stone jump ramps (jeep and on-foot follow the height)
+const DUNES=[],RAMPS=[],TOMB={x:-60,z:-300,got:false,in:false};
+function groundH(x,z){if(curTown!=='egypt')return 0;let h=0;
+  for(const d of DUNES){const dx=x-d.x,dz=z-d.z,q=(dx*dx+dz*dz)/(d.r*d.r);if(q<1)h+=d.h*(1-q)*(1-q);}
+  h=Math.max(0,h-0.3);
+  for(const r of RAMPS){const dx=x-r.x,dz=z-r.z,u=dx*r.c-dz*r.s,v=dx*r.s+dz*r.c;if(u>=0&&u<=r.len&&v>=0&&v<=r.w)h=Math.max(h,r.h*u/r.len);}
+  return h;}
+function buildDunes(){
+  const add=(x,z,r,h)=>DUNES.push({x,z,r,h});
+  // big dune sea in the south-west, a smaller field north-east of the dig
+  for(let i=0;i<26;i++)add(rand(-545,-310),rand(215,465),rand(34,62),rand(5,13));
+  for(let i=0;i<10;i++)add(rand(170,262),rand(210,400),rand(30,50),rand(4,10));
+  for(const [x0,x1,z0,z1] of[[-615,-240,145,535],[100,355,140,470]]){const w=x1-x0,d=z1-z0,sx=Math.round(w/6),sz=Math.round(d/6),g=new THREE.PlaneGeometry(w,d,sx,sz);g.rotateX(-PI/2);g.translate((x0+x1)/2,0,(z0+z1)/2);
+    const p=g.attributes.position;for(let i=0;i<p.count;i++){let h=0;const x=p.getX(i),z=p.getZ(i);for(const D of DUNES){const dx=x-D.x,dz=z-D.z,q=(dx*dx+dz*dz)/(D.r*D.r);if(q<1)h+=D.h*(1-q)*(1-q);}p.setY(i,h-0.3);}
+    g.computeVertexNormals();const m=new THREE.Mesh(g,new THREE.MeshLambertMaterial({color:0xe2bf82,emissive:0x1a1006,flatShading:true}));m.userData.keep=true;root.add(m);}
+  // stone jump ramps
+  for(const [x,z,a,len,w,h] of[[-40,225,0.9,26,12,7],[-250,300,PI,30,14,9],[60,-40,-0.6,24,12,6],[-120,250,2.4,28,14,9]]){
+    const sh=new THREE.Shape();sh.moveTo(0,0);sh.lineTo(len,0);sh.lineTo(len,h);sh.lineTo(0,0);const g=new THREE.ExtrudeGeometry(sh,{depth:w,bevelEnabled:false});
+    const m=new THREE.Mesh(g,new THREE.MeshLambertMaterial({color:0xc8a868,emissive:0x1a1006,flatShading:true}));m.position.set(x,0,z);m.rotation.y=a;m.userData.keep=true;root.add(m);
+    RAMPS.push({x,z,c:Math.cos(a),s:Math.sin(a),len,w,h});
+    const ex=x+Math.cos(a)*(len+0.4)+Math.sin(a)*w/2,ez=z-Math.sin(a)*(len+0.4)+Math.cos(a)*w/2;colliders.push({x0:ex-1,x1:ex+1,z0:ez-1,z1:ez+1,h:h-2.5,y0:0,ramp:true});}}
+// 🏺 walk-in / drive-in tomb inside the Great Pyramid
+function buildTomb(x,z,base){const hb=base/2,ch=22,cw=7,H=16,zf=z+hb; // chamber half-size, corridor half-width, ceiling, front face z
+  const wallT=texCanvas(256,256,g=>{g.fillStyle='#6a5230';g.fillRect(0,0,256,256);for(let r=0;r<8;r++)for(let c=0;c<8;c++){g.fillStyle=`rgba(${40+Math.random()*30|0},${28+Math.random()*20|0},12,.5)`;g.fillRect(c*32+1,r*32+1,30,30);
+      g.strokeStyle=g.fillStyle=pick(['#e8c040','#d8a830','#40b8c8','#c85030']);g.lineWidth=2;const k=(Math.random()*6)|0,X=c*32+16,Y=r*32+16;g.beginPath();
+      if(k===0){g.arc(X,Y-4,5,0,7);g.moveTo(X,Y+1);g.lineTo(X,Y+11);g.moveTo(X-6,Y+5);g.lineTo(X+6,Y+5);g.stroke();}else if(k===1){g.ellipse(X,Y,9,5,0,0,7);g.stroke();g.beginPath();g.arc(X,Y,2.5,0,7);g.fill();}
+      else if(k===2){g.moveTo(X-9,Y+8);g.lineTo(X,Y-9);g.lineTo(X+9,Y+8);g.closePath();g.stroke();}else if(k===3){for(let i=0;i<3;i++){g.moveTo(X-9,Y-6+i*6);g.quadraticCurveTo(X-4,Y-10+i*6,X,Y-6+i*6);g.quadraticCurveTo(X+4,Y-2+i*6,X+9,Y-6+i*6);}g.stroke();}
+      else if(k===4){g.fillRect(X-2,Y-10,4,20);g.fillRect(X-8,Y-10,16,3);}else{g.arc(X,Y,7,0.3,5.2);g.stroke();g.fillRect(X+3,Y-3,7,3);}}});
+  wallT.wrapS=wallT.wrapT=THREE.RepeatWrapping;
+  const wm=(rx,ry)=>{const t=wallT.clone();t.needsUpdate=true;t.repeat.set(rx,ry);return new THREE.MeshLambertMaterial({map:t,color:0xffffff,emissive:0x302010});};
+  const K=m=>{m.userData.keep=true;return m;};
+  K(box(root,ch*2,0.4,ch*2,0x4a3a22,x,0,z));K(box(root,cw*2,0.4,hb-ch+8,0x4a3a22,x,0,z+ch+(hb-ch+8)/2)); // floors
+  K(box(root,ch*2+2,1,ch*2+2,0x2a2014,x,H+0.5,z));K(box(root,cw*2+2,1,hb-ch,0x2a2014,x,10.5,z+ch+(hb-ch)/2)); // ceilings
+  K(box(root,ch*2,H,1,wm(4,1.5),x,H/2,z-ch-0.5));for(const s of[-1,1]){K(box(root,1,H,ch*2,wm(4,1.5),x+s*(ch+0.5),H/2,z));
+    K(box(root,ch-cw,H,1,wm(1.5,1.5),x+s*(cw+(ch-cw)/2),H/2,z+ch+0.5));K(box(root,1,10,hb-ch,wm(4,1),x+s*(cw+0.5),5,z+ch+(hb-ch)/2));}
+  K(box(root,cw*2,H-10,1,wm(1,0.5),x,10+(H-10)/2,z+ch+0.5));
+  // outside doorway: pillars, lintel, dark veil
+  for(const s of[-1,1])box(root,3,11,9,0xc8a868,x+s*(cw+1.5),5.5,zf+1);box(root,cw*2+8,2.4,10,0xb89858,x,12.2,zf+1);box(root,cw*2+2,3,1,0xffd040,x,14.8,zf+5.4);
+  K(box(root,cw*2,11,0.3,basic(0x050302),x,5.5,zf+3));
+  // treasure: gold piles, statues, sarcophagus, torches
+  const gold=new THREE.MeshLambertMaterial({color:0xffc830,emissive:0x8a5a00});
+  for(let i=0;i<9;i++){const a=i/9*2*PI,r=rand(5,9),m=new THREE.Mesh(new THREE.ConeGeometry(rand(1.6,3),rand(1.2,2.6),7),gold);m.position.set(x+Math.cos(a)*r,0.9,z-8+Math.sin(a)*r*0.6);root.add(m);}
+  box(root,9,2,4.5,0x3a2a18,x,1,z-8);box(root,8,1.6,3.6,gold,x,2.8,z-8);box(root,2.4,1.2,2.6,0x40b8c8,x-2.6,4,z-8);
+  for(const s of[-1,1]){box(root,3,9,3,0x2a2a30,x+s*13,4.5,z-16);box(root,2.2,2.6,2.6,gold,x+s*13,10.2,z-16);box(root,0.5,2,0.5,gold,x+s*13-0.7,12.4,z-16);box(root,0.5,2,0.5,gold,x+s*13+0.7,12.4,z-16);} // jackal guardians
+  for(const [tx,tz] of[[-ch+2,-ch+2],[ch-2,-ch+2],[-ch+2,ch-2],[ch-2,ch-2],[-cw+1,ch+18],[cw-1,ch+34]]){box(root,0.5,5,0.5,0x3a2a18,x+tx,2.5,z+tz);const f=glowSprite(0xff9030,x+tx,5.8,z+tz,6,0.9);f.userData.keep=true;}
+  glowSprite(0xffd040,x,4,z-8,26,0.5).userData.keep=true;
+  // colliders: hollow out the lowest tier into chamber + corridor
+  const big=colliders.filter(b=>Math.abs((b.x0+b.x1)/2-x)<1&&Math.abs((b.z0+b.z1)/2-z)<1&&b.y0===0);big.sort((a,b)=>a.h-b.h);
+  const low=big[0],lh=low.h,e=low.x1-x;big.slice(1).forEach(b=>b.y0=lh);colliders.splice(colliders.indexOf(low),1);
+  const P=(x0,x1,z0,z1,y0)=>colliders.push({x0,x1,z0,z1,h:lh,y0:y0||0});
+  P(x-e,x-ch,z-e,z+e);P(x+ch,x+e,z-e,z+e);P(x-ch,x+ch,z-e,z-ch);P(x-ch,x-cw,z+ch,z+e);P(x+cw,x+ch,z+ch,z+e);P(x-ch,x+ch,z-ch,z+e,H+1);colliders.push({x0:x-4.6,x1:x+4.6,z0:z-10.4,z1:z-5.6,h:3.6,y0:0});}
+function tombTick(){if(curTown!=='egypt'){TOMB.in=false;return;}const dx=Math.abs(pos.x-TOMB.x),dz=pos.z-TOMB.z,inn=dx<23&&Math.abs(dz)<23&&pos.y<16;
+  if(inn&&!TOMB.in){pop('🏺 INSIDE THE GREAT PYRAMID');blip(110,70,0.8,'sine',0.08);mEvent('tomb');}TOMB.in=inn;
+  if(inn&&!TOMB.got&&dx<10&&Math.abs(dz+8)<8){TOMB.got=true;score+=1000;pop("👑 PHARAOH'S TREASURE! +1000");blip(520,1040,0.5,'triangle',0.12);for(let i=0;i<24;i++)spawnFx(tmpV2.set(TOMB.x+rand(-5,5),3,TOMB.z-8+rand(-3,3)),tmpV.set(rand(-6,6),rand(6,16),rand(-6,6)),0.7,1.2,2,0xffd040,true);mEvent('treasure');}}
 let PYR_TEX=null;
 function pyramidMat(){if(!PYR_TEX){PYR_TEX=texCanvas(512,512,g=>{g.fillStyle='#d2b06e';g.fillRect(0,0,512,512);const rows=32,rh=512/rows;
     for(let r=0;r<rows;r++){let x=(r%2)*14;while(x<512){const w=22+Math.random()*22,sh=Math.random();g.fillStyle=`rgb(${(196+sh*40)|0},${(160+sh*36)|0},${(96+sh*30)|0})`;g.fillRect(x,r*rh,w-1.5,rh-1.5);if(Math.random()<0.12){g.fillStyle='rgba(90,60,30,.35)';g.fillRect(x+3,r*rh+2,w*0.5,rh*0.5);}x+=w;}
       g.fillStyle='rgba(70,45,20,.55)';g.fillRect(0,(r+1)*rh-1.6,512,1.8);g.fillStyle='rgba(255,240,200,.25)';g.fillRect(0,r*rh,512,1.2);}});
     PYR_TEX.wrapS=PYR_TEX.wrapT=THREE.RepeatWrapping;PYR_TEX.anisotropy=4;}
   const t=PYR_TEX.clone();t.needsUpdate=true;return t;}
-function bigPyramid(x,z,base,h,mat,capC){const r=base/Math.SQRT2;let m;
+function bigPyramid(x,z,base,h,mat,capC,tomb){const r=base/Math.SQRT2;let m;
   if(h>40){ // real-looking: stepped stone courses, weathered blocks, smooth casing near the top, entrance, rubble
     const tex=pyramidMat();tex.repeat.set(Math.round(base/9),Math.round(h/26*10)/10);const levels=Math.round(h/3.2),g=new THREE.CylinderGeometry(r*0.02,r,h,4,levels,false);
     {const p=g.attributes.position,n=p.count;for(let i=0;i<n;i++){const y=p.getY(i)+h/2,k=Math.round(y/h*levels);if(k>0&&k<levels){const j=((k*7919)%13)/13-0.5;p.setX(i,p.getX(i)*(1+j*0.012));p.setZ(i,p.getZ(i)*(1+j*0.012));}}g.computeVertexNormals();}
     m=new THREE.Mesh(g,new THREE.MeshLambertMaterial({map:tex,color:0xf0e0c0,emissive:0x2a1a08}));m.rotation.y=PI/4;m.position.set(x,h/2,z);m.userData.keep=true;root.add(m);
     const cs=new THREE.Mesh(new THREE.ConeGeometry(r*0.235,h*0.225,4),new THREE.MeshLambertMaterial({color:0xf2e6cc,emissive:0x3a2a14}));cs.rotation.y=PI/4;cs.position.set(x,h*0.8875+0.3,z);root.add(cs); // surviving smooth casing stones
-    const hb=base/2;box(root,10,9,7,0xc8a868,x,4.5,z+hb-2);box(root,5,6,0.6,basic(0x0a0604),x,3,z+hb+1.6);box(root,12,1.6,8,0xb89858,x,9.6,z+hb-2); // entrance
-    box(root,base+10,0.8,base+10,0xc4a264,x,0.4,z); // stone platform
+    const hb=base/2;if(!tomb){box(root,10,9,7,0xc8a868,x,4.5,z+hb-2);box(root,5,6,0.6,basic(0x0a0604),x,3,z+hb+1.6);box(root,12,1.6,8,0xb89858,x,9.6,z+hb-2); // entrance
+    box(root,base+10,0.8,base+10,0xc4a264,x,0.4,z);} // stone platform
     for(let i=0;i<Math.round(base/7);i++){const a=rand(0,2*PI),d=hb+rand(4,16),s=rand(1.5,4);const b=box(root,s,s*0.7,s*1.2,pick([0xc8a868,0xb89858,0xd8b878]),x+Math.cos(a)*d*1.2,s*0.3,z+Math.sin(a)*d*1.2);b.rotation.set(rand(-.3,.3),rand(0,3),rand(-.3,.3));}}
   else{m=new THREE.Mesh(new THREE.ConeGeometry(r,h,4,1),mat);m.rotation.y=PI/4;m.position.set(x,h/2,z);root.add(m);}
   [[0.92,0.34],[0.62,0.67],[0.3,1]].forEach(([b,hh])=>{const hb=base*b/2;colliders.push({x0:x-hb,x1:x+hb,z0:z-hb,z1:z+hb,h:h*hh,y0:0});});
@@ -2576,7 +2630,7 @@ beginTown('egypt');
   ringMountains(0xd8b07a,0xe8c890,50,120);
   const stone=new THREE.MeshLambertMaterial({color:0xd9b878,emissive:0x2a1a08,flatShading:true});
   // the three great pyramids + queens' pyramids
-  bigPyramid(-60,-300,150,100,stone,0xffd040);
+  bigPyramid(-60,-300,150,100,stone,0xffd040,true);buildTomb(-60,-300,150);buildDunes();
   const khafre=bigPyramid(110,-400,136,94,stone,0xfff0c0);
   bigPyramid(-200,-480,72,48,stone,0xffd040);
   [[-170,-360],[-190,-395],[-210,-430]].forEach(([x,z])=>bigPyramid(x,z,26,17,stone));
@@ -4996,7 +5050,7 @@ function nearDolphin(){if(curTown!=='seas'||!SWIM)return null;return towns.seas.
 function startRide(T){RIDE=T;T.state='ridden';const m=T.mesh;m.scale.setScalar(2.8);m.rotation.set(0,0,0);m.updateMatrixWorld(true);const b=new THREE.Box3().setFromObject(m);T.rideOff=m.worldToLocal(b.getCenter(new V3()));T.rt0=0;RIDE.t=0;RIDE.tick=0;yaw=Math.atan2(-(T.mesh.position.x-pos.x),-(T.mesh.position.z-pos.z));pop('🐬 RIDING A DOLPHIN!');pop('Steer · RUN = faster · SHIP to hop off','t');splash(pos,14);}
 function endRide(){walker.rotation.set(0,yaw,0);const T=RIDE;RIDE=null;T.state='ground';T.mesh.scale.setScalar(2);T.cx=pos.x-Math.cos(T.ph)*40;T.cz=pos.z-Math.sin(T.ph)*40;pos.y=-1.3;wv=0;pop(`Rode the dolphin ${T.t.toFixed(1)}s`,'t');}
 function walkUpdate(dt,ix,iy,jumpBtn,run,shipBtn,t){
-  if(DRIVE){driveUpdate(dt,ix,iy,jumpBtn,run,shipBtn,t);return;}
+  tombTick();if(DRIVE){driveUpdate(dt,ix,iy,jumpBtn,run,shipBtn,t);return;}
   if(RIDE){const T=RIDE;yaw-=ix*1.8*dt;fwd.set(-Math.sin(yaw),0,-Math.cos(yaw));pos.addScaledVector(fwd,(24+(run?16:0)+Math.max(0,iy)*6)*dt);
     const hd=Math.hypot(pos.x,pos.z);if(hd>620){pos.x*=620/hd;pos.z*=620/hd;yaw+=PI*dt*2;}
     T.t+=dt;T.tick+=dt;if(T.tick>=1){T.tick=0;score+=10;}if(T.t>=20&&!T.did){T.did=true;mEvent('ride20');pop('🐬 20s DOLPHIN RIDE!');}
@@ -5014,8 +5068,8 @@ function walkUpdate(dt,ix,iy,jumpBtn,run,shipBtn,t){
   pos.y+=wv*dt;wv-=grav*dt;
   const hd=Math.hypot(pos.x,pos.z),HL=curTown==='ice'?930:620;if(hd>HL){pos.x*=HL/hd;pos.z*=HL/hd;}
   if(curTown==='ice')iceWallBlock(1.2);
-  let gh=0;const R=0.7;if(onDeck(pos.x,pos.z)){gh=carrierDeckY();if(pos.y<gh-2.5&&wv<=0)pos.y=gh;} // walk/climb onto the carrier deck
-  for(const b of colliders){
+  let gh=groundH(pos.x,pos.z);const R=0.7;if(onDeck(pos.x,pos.z)){gh=carrierDeckY();if(pos.y<gh-2.5&&wv<=0)pos.y=gh;} // walk/climb onto the carrier deck
+  for(const b of colliders){if(b.ramp)continue;
     const cx=clamp(pos.x,b.x0,b.x1),cz=clamp(pos.z,b.z0,b.z1),dx=pos.x-cx,dz=pos.z-cz,d2=dx*dx+dz*dz;if(d2>=R*R)continue;
     if(pos.y>=b.h-0.9){gh=Math.max(gh,b.h);continue;}
     if(pos.y+3<b.y0)continue;
@@ -5210,21 +5264,33 @@ const JEEPS=[];let DRIVE=null,jeepHint=0;
     const hl=[];for(const wz of[-0.9,0.9]){const s=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:0xfff2c0,transparent:true,opacity:.0,blending:THREE.AdditiveBlending,depthWrite:false}));s.position.set(3.4,1.9,wz);s.scale.set(3,3,1);s.userData.keep=true;g.add(s);hl.push(s);}
     g.position.set(x,0,z);g.rotation.y=yw;root.add(g);useModel('jeep',g);JEEPS.push({g,town,hl,sp:0,x0:x,z0:z,y0:yw,t:0,tick:0,air:0,vy:0});}
   root=r0;colliders=c0;})();
-function nearJeep(){return JEEPS.find(J=>J.town===curTown&&Math.hypot(J.g.position.x-pos.x,J.g.position.z-pos.z)<11&&pos.y<6);}
-function startDrive(J){DRIVE=J;J.sp=0;J.t=0;J.tick=0;pos.set(J.g.position.x,0,J.g.position.z);yaw=J.g.rotation.y-PI/2;J.hl.forEach(s=>s.material.opacity=.9);wv=0;
+function nearJeep(){return JEEPS.find(J=>J.town===curTown&&Math.hypot(J.g.position.x-pos.x,J.g.position.z-pos.z)<11&&Math.abs(pos.y-J.g.position.y)<6);}
+function startDrive(J){DRIVE=J;J.sp=0;J.t=0;J.tick=0;J.vy=0;J.air=0;J.wasG=true;pos.copy(J.g.position);yaw=J.g.rotation.y-PI/2;J.hl.forEach(s=>s.material.opacity=.9);wv=0;
   pop('🚙 DRIVING!');pop(isTouch?'Stick = steer + gas · RUN = turbo · JUMP = hop · SHIP = get out':'W/S gas + reverse · A/D steer · SHIFT turbo · SPACE hop · L get out','t');blip(120,300,0.4,'sawtooth',0.1);}
-function endDrive(){const J=DRIVE;DRIVE=null;J.sp=0;J.hl.forEach(s=>s.material.opacity=0);J.g.position.y=0;J.g.rotation.set(0,J.g.rotation.y,0);walker.scale.setScalar(1);walker.rotation.set(0,yaw,0);
-  pos.addScaledVector(right,4.5);pos.y=0;wv=0;pop(`🚙 Drove for ${J.t.toFixed(0)}s`,'t');}
+function endDrive(){const J=DRIVE;DRIVE=null;J.sp=0;J.vy=0;J.pitch=0;J.wet=false;J.hl.forEach(s=>s.material.opacity=0);if(curTown==='egypt'&&Math.abs(pos.x-360)<38){pos.x=360+(pos.x<360?-44:44);splash(pos,14);}J.g.position.set(pos.x,groundH(pos.x,pos.z),pos.z);J.g.rotation.set(0,yaw+PI/2,0);walker.scale.setScalar(1);walker.rotation.set(0,yaw,0);
+  pos.addScaledVector(right,4.5);pos.y=groundH(pos.x,pos.z);wv=0;pop(`🚙 Drove for ${J.t.toFixed(0)}s`,'t');}
 function driveUpdate(dt,ix,iy,jumpBtn,run,shipBtn,t){const J=DRIVE,g=J.g;
   const top=(run?46:30),want=iy>0?iy*top:iy*12;J.sp+=(want-J.sp)*Math.min(1,dt*(Math.abs(want)>Math.abs(J.sp)?1.6:2.6));
   yaw-=ix*dt*1.9*clamp(J.sp/14,-1,1);fwd.set(-Math.sin(yaw),0,-Math.cos(yaw));right.set(Math.cos(yaw),0,-Math.sin(yaw));
   const ox=pos.x,oz=pos.z;pos.addScaledVector(fwd,J.sp*dt);
   const hd=Math.hypot(pos.x,pos.z);if(hd>620){pos.x*=620/hd;pos.z*=620/hd;}
-  for(const b of colliders){if(b.y0>3||b.h<1.2)continue;if(pos.x>b.x0-2.2&&pos.x<b.x1+2.2&&pos.z>b.z0-2.2&&pos.z<b.z1+2.2){pos.x=ox;pos.z=oz;if(Math.abs(J.sp)>10){blip(160,60,0.2,'square',0.1);shake=Math.max(shake,0.3);}J.sp*=-0.3;break;}}
-  if(jumpBtn&&!prevJump&&pos.y<=0.01){J.vy=11;blip(300,600,0.15,'sine',0.08);}prevJump=jumpBtn;pos.y+=J.vy*dt;J.vy-=28*dt;if(pos.y<=0){if(J.vy<-6)spawnFx(pos,tmpV.set(0,2,0),0.4,6,8,0xd8b47a,true);pos.y=0;J.vy=0;}
-  const water=curTown==='egypt'&&Math.abs(pos.x-360)<40;if(water){J.sp*=1-Math.min(1,dt*2.5);if(Math.abs(J.sp)>3&&Math.random()<0.5)spawnFx(pos,tmpV.set(rand(-3,3),6,rand(-3,3)),0.5,2,3,0xbfe8ff,true);}
-  else if(Math.abs(J.sp)>8&&pos.y<=0.01&&Math.random()<0.7)spawnFx(tmpV2.copy(pos).addScaledVector(fwd,-3.5),tmpV.set(rand(-2,2),rand(2,5),rand(-2,2)),0.6,2.5,4,curTown==='egypt'?0xd8b47a:0xc08a60,true);
-  g.position.set(pos.x,pos.y+Math.abs(Math.sin(t*22))*Math.min(0.12,Math.abs(J.sp)*0.004),pos.z);g.rotation.set(0,yaw+PI/2,0);g.rotateZ(clamp(J.vy*0.02,-0.3,0.3));g.rotateX(-ix*clamp(J.sp/40,-1,1)*0.12);
+  for(const b of colliders){if(b.y0>3||b.h<1.2)continue;if(pos.y<b.h-0.5&&pos.x>b.x0-2.2&&pos.x<b.x1+2.2&&pos.z>b.z0-2.2&&pos.z<b.z1+2.2){pos.x=ox;pos.z=oz;if(Math.abs(J.sp)>10){blip(160,60,0.2,'square',0.1);shake=Math.max(shake,0.3);}J.sp*=-0.3;break;}}
+  const gh=groundH(pos.x,pos.z),py=pos.y,water=curTown==='egypt'&&Math.abs(pos.x-360)<38,wl=water?-1.5:gh;let grounded=false;
+  J.vy-=28*dt;pos.y+=J.vy*dt;
+  if(pos.y<=wl){grounded=true;if(!water&&J.vy<-9){spawnFx(pos,tmpV.set(0,2,0),0.4,6,8,0xd8b47a,true);shake=Math.max(shake,0.25);blip(110,50,0.15,'square',0.08);}
+    const cr=(wl-py)/Math.max(dt,0.001);pos.y=wl;J.vy=(water||J.wet)?0:clamp(cr,-30,17);if(!J.wasG&&py-wl<0.05)J.vy=Math.min(J.vy,0);}
+  if(grounded&&J.air>0.7){pop(`🚙 AIR TIME ${J.air.toFixed(1)}s! +${Math.round(J.air*100)}`);score+=Math.round(J.air*100);if(J.air>=1.5)mEvent('bigair');}
+  J.air=grounded?0:J.air+dt;J.wasG=grounded;
+  if(jumpBtn&&!prevJump&&grounded&&!water){J.vy=Math.max(J.vy,0)+11;blip(300,600,0.15,'sine',0.08);}prevJump=jumpBtn;
+  if(water){if(!J.wet){J.wet=true;splash(pos,26);shake=Math.max(shake,0.4);pop('🌊 SPLASH! 4x4s make bad boats — paddle to the bank','t');blip(200,60,0.5,'sawtooth',0.08);}
+    J.sp=clamp(J.sp,-5,7);J.sp*=1-Math.min(1,dt*0.8);pos.z+=dt*3;pos.y=-1.5+Math.sin(t*2.2)*0.25; // floats low, drifts downstream, barely moves
+    if(Math.random()<0.25)spawnFx(tmpV2.set(pos.x+rand(-3,3),0.3,pos.z+rand(-3,3)),tmpV.set(rand(-1,1),rand(2,5),rand(-1,1)),0.5,0.8,1.2,0xbfe8ff,true);
+    if(Math.abs(J.sp)>2&&Math.random()<0.5)spawnFx(tmpV2.copy(pos).addScaledVector(fwd,-3.5).setY(0.3),tmpV.set(rand(-2,2),rand(3,7),rand(-2,2)),0.5,1,1.4,0xffffff,true);}
+  else{if(J.wet){J.wet=false;pop('💦 Back on dry land','t');for(let i=0;i<10;i++)spawnFx(pos,tmpV.set(rand(-4,4),rand(3,8),rand(-4,4)),0.5,0.8,1.2,0xbfe8ff,true);}
+    if(Math.abs(J.sp)>8&&grounded&&Math.random()<0.7)spawnFx(tmpV2.copy(pos).addScaledVector(fwd,-3.5),tmpV.set(rand(-2,2),rand(2,5),rand(-2,2)),0.6,2.5,4,curTown==='egypt'?0xd8b47a:0xc08a60,true);}
+  const slope=grounded&&!water?Math.atan2(groundH(pos.x+fwd.x*3,pos.z+fwd.z*3)-groundH(pos.x-fwd.x*3,pos.z-fwd.z*3),6):water?0.06+Math.sin(t*1.7)*0.04:clamp(J.vy*0.025,-0.45,0.45);
+  J.pitch=(J.pitch||0)+(slope-(J.pitch||0))*Math.min(1,dt*9);if(grounded&&!water)J.sp-=Math.sin(J.pitch)*14*dt; // hills slow you going up, speed you going down
+  g.position.set(pos.x,pos.y+(grounded&&!water?Math.abs(Math.sin(t*22))*Math.min(0.12,Math.abs(J.sp)*0.004):0),pos.z);g.rotation.set(0,yaw+PI/2,0);g.rotateZ(J.pitch);g.rotateX(-ix*clamp(J.sp/40,-1,1)*0.12+(water?Math.sin(t*1.3)*0.06:0));
   walker.scale.setScalar(0.8);walker.position.copy(pos).addScaledVector(right,-0.7).addScaledVector(fwd,-0.3);walker.position.y=pos.y+1.5;walker.rotation.set(0,yaw,0);if(PILOT.mixer){pilotPlay(PILOT.acts.sit?'sit':'idle');PILOT.mixer.update(dt);}wParts.jet.visible=false;
   J.t+=dt;J.tick+=dt*Math.min(1,Math.abs(J.sp)/20);if(J.tick>=1){J.tick=0;score+=5;}if(J.t>=30&&!J.did){J.did=true;mEvent('drive30');pop('🚙 30s JOYRIDE! +100');score+=100;}
   if(shipBtn&&!prevShip)endDrive();prevShip=shipBtn;}
@@ -5568,6 +5634,8 @@ const MISSIONS=[
   {id:'marscave',t:'Find the hidden cave on Mars',ev:'marscave',g:1,r:600},
   {id:'king',t:'Beam up the Sleeping King (Mars cave)',ev:'abduct',m:d=>d.emoji==='👑',g:1,r:1200},
   {id:'rovers',t:'Beam up 2 Mars rovers',ev:'abduct',m:d=>d.emoji==='🛞',g:2,r:700},
+  {id:'treasure',t:"Walk or drive into the Great Pyramid and find the Pharaoh's treasure (Egypt)",ev:'treasure',g:1,r:1200},
+  {id:'bigair',t:'Get 1.5 seconds of air time in a 4x4 (hit a ramp or dune in Egypt)',ev:'bigair',g:1,r:700},
   {id:'drive30',t:'Joyride a desert 4x4 for 30 seconds (Egypt or Area 51)',ev:'drive30',g:1,r:500},
   {id:'pharaoh',t:'Beam up the Pharaoh and the Queen (Egypt)',ev:'abduct',m:d=>d.emoji==='🤴'||d.emoji==='👸',g:2,r:900},
   {id:'sarco',t:'Steal the golden sarcophagus (Valley of the Kings, Egypt)',ev:'abduct',m:d=>d.emoji==='⚱️',g:1,r:900},
@@ -6039,7 +6107,7 @@ const pos=new V3(0,60,400),fwd=new V3(),right=new V3(),desired=new V3(),look=new
 
 function pop(txt,cls){const d=document.createElement('div');d.className='pop '+(cls||'');d.textContent=txt;$('pops').appendChild(d);setTimeout(()=>d.remove(),1250);}
 let freeMode=false;
-function startGame(free){try{mechReset();if(window.MECH)MECH.cd=20;}catch(e){}if(DRIVE){try{endDrive();}catch(e){DRIVE=null;}}JEEPS.forEach(J=>{J.g.position.set(J.x0,0,J.z0);J.g.rotation.set(0,J.y0,0);J.did=false;});if(RIDE){RIDE.state='ground';RIDE=null;}SWIM=false;if(FLYP){PILOT_G[FLYP.k].visible=false;FLYP.g.visible=true;FLYP.col.h=5;FLYP=null;applyShip();}
+function startGame(free){try{mechReset();if(window.MECH)MECH.cd=20;}catch(e){}if(DRIVE){try{endDrive();}catch(e){DRIVE=null;}}TOMB.got=false;TOMB.in=false;JEEPS.forEach(J=>{J.g.position.set(J.x0,0,J.z0);J.g.rotation.set(0,J.y0,0);J.did=false;});if(RIDE){RIDE.state='ground';RIDE=null;}SWIM=false;if(FLYP){PILOT_G[FLYP.k].visible=false;FLYP.g.visible=true;FLYP.col.h=5;FLYP=null;applyShip();}
   initAudio();freeMode=free===true;document.body.classList.toggle('free',freeMode);
   score=0;timer=150;shield=100;energy=100;lock=false;cows=0;cars=0;
   yaw=0;speed=0;vy=0;pos.set(0,60,400);hitCd=0;
