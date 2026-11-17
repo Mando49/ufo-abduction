@@ -151,3 +151,5 @@ Zeta Prime ground + roads: four glowing rivers with crystal banks, soft pools of
 Neon City polish: 33 shop fronts with neon names and awnings, traffic lights downtown, steam vents, holo-ads on four towers (made-up brands), sweeping searchlights and blinking red beacons on every big tower.
 
 The Moon: Luna Base One (connecting tubes, solar field, tracking dish, fuel tanks, pad lights, astronauts), a first-landing site with footprints and buggy tracks, two drivable moon buggies, rock spires, dark rilles, a glowing ice crater (+120 when found), falling meteors and a station crossing the sky.
+
+Mars: Ares Colony (greenhouses, habitat modules, solar field, a rocket on the pad, colonists), the Face with three pyramids (+150), ancient ruins round a glowing obelisk (+150), the Great Rift canyon, polar ice in the north, 3D crater rims, dunes, a blue sunset and two drivable buggies.

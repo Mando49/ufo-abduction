@@ -2921,7 +2921,7 @@ beginTown('moon');
     const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(P,3));g.setIndex(I);g.computeVertexNormals();const m=new THREE.Mesh(g,new THREE.MeshBasicMaterial({color:0x2c2d36,side:THREE.DoubleSide,polygonOffset:true,polygonOffsetFactor:-3,polygonOffsetUnits:-3}));m.userData.keep=true;root.add(m);};
   rille([[-640,60],[-520,110],[-430,90],[-340,150],[-240,130],[-170,190]],5);rille([[180,-640],[230,-520],[190,-420],[260,-320],[240,-220]],6);rille([[520,40],[440,90],[420,170],[330,200],[300,260]],4);
   // --- the ice crater: frozen water glowing in permanent shadow
-  const IX=-380,IZ=300;{const fl=new THREE.Mesh(new THREE.CircleGeometry(34,36),flatMat(0x1a2430,-4));fl.rotation.x=-PI/2;fl.position.set(IX,0.05,IZ);root.add(fl);add(fl);
+  const IX=430,IZ=-180;{const fl=new THREE.Mesh(new THREE.CircleGeometry(34,36),flatMat(0x1a2430,-4));fl.rotation.x=-PI/2;fl.position.set(IX,0.05,IZ);root.add(fl);add(fl);
     const rim=add(new THREE.Mesh(new THREE.TorusGeometry(35,5,7,36),lam(0xa4a6ae)));rim.rotation.x=PI/2;rim.scale.z=0.75;rim.position.set(IX,0,IZ);root.add(rim);
     const iceM=new THREE.MeshPhongMaterial({color:0xbff4ff,emissive:0x2a9ac8,shininess:150,specular:0xffffff,flatShading:true,transparent:true,opacity:0.9});
     for(let k=0;k<22;k++){const a=rand(0,2*PI),d=rand(0,26),h=rand(3,13),m=add(new THREE.Mesh(new THREE.ConeGeometry(rand(1,3),h,5),iceM));m.position.set(IX+Math.cos(a)*d,h/2,IZ+Math.sin(a)*d);m.rotation.set(rand(-.35,.35),rand(0,3),rand(-.35,.35));root.add(m);}
@@ -5100,6 +5100,71 @@ beginTown('mars');
       r1.rotation.y=t*30;r2.rotation.y=-t*30;if(HT.state==='ground'){const p=R[0].g.position;heli.position.set(p.x+Math.cos(t*.4)*14,12+Math.sin(t*1.3)*2,p.z+Math.sin(t*.4)*14);heli.rotation.set(0,-t*.4,0);}}});}
   addTargets(martianMesh,28);
 })();
+// 🔴 MARS, part 2: Ares Colony, the Face + pyramids, ancient ruins, the Great Rift, polar ice, 3D craters, dunes, blue sunset
+(function(){
+  const objs=[],add=m=>{objs.push(m);return m;},BX=-150,BZ=120,grey=lam(0xd0c8c0),dark=lam(0x4a4038),rockM=new THREE.MeshLambertMaterial({color:0x8a3a1e,flatShading:true}),rockD=new THREE.MeshLambertMaterial({color:0x6a2a14,flatShading:true});
+  const cylM=(r0,r1,h,mat,x,y,z,seg)=>{const m=new THREE.Mesh(new THREE.CylinderGeometry(r0,r1,h,seg||12),mat);m.position.set(x,y,z);root.add(m);return add(m);};
+  const clearAt=(x0,z0,R)=>{for(let k=0;k<60;k++){const a=k*2.4,d=k*7,x=x0+Math.cos(a)*d,z=z0+Math.sin(a)*d;if(Math.hypot(x,z)<600&&!colliders.some(c=>x+R>c.x0&&x-R<c.x1&&z+R>c.z0&&z-R<c.z1))return [x,z];}return [x0,z0];};
+  // --- ARES COLONY: greenhouses, habitat modules, solar field, a rocket on the pad, colonists
+  const gh=new THREE.MeshLambertMaterial({color:0x9affb0,emissive:0x2a8a4a,transparent:true,opacity:0.45,side:THREE.DoubleSide});
+  for(let k=0;k<3;k++){const x=BX-30+k*26,z=BZ+58;const g=new THREE.Mesh(new THREE.CylinderGeometry(8,8,30,14,1,false,0,PI),gh);g.rotation.x=PI/2;g.rotation.z=PI/2;g.position.set(x,0,z);g.userData.keep=true;root.add(g);
+    for(let r=-1;r<=1;r++)for(let j=0;j<7;j++)add(box(root,1.6,rand(1.4,3),1.6,lam(pick([0x2a8a3a,0x3aa04a,0x4ab85a])),x+r*4,1.2,z-12+j*4));add(box(root,17,0.5,31,dark,x,0.25,z));
+    colliders.push({x0:x-8,x1:x+8,z0:z-15,z1:z+15,h:8,y0:0});}
+  for(let k=0;k<4;k++){const x=BX-58,z=BZ-30+k*13,m=cylM(4,4,16,grey,x,4.2,z,12);m.rotation.z=PI/2;add(box(root,1.6,2.6,0.3,basic(0xffd890),x,3.4,z+4.05));add(box(root,15,0.6,1,lam(0xe07a2a),x,7.7,z));colliders.push({x0:x-8,x1:x+8,z0:z-4,z1:z+4,h:8.5,y0:0});}
+  const pan=new THREE.MeshPhongMaterial({color:0x1c3c9c,emissive:0x0a1a4a,shininess:120,specular:0xaaccff});
+  for(let i=0;i<5;i++)for(let j=0;j<3;j++){const x=BX-24+i*12,z=BZ-52-j*10;const p=add(box(root,9.5,0.3,6,pan,x,3.4,z));p.rotation.x=-0.5;add(box(root,0.4,3.2,0.4,dark,x,1.6,z));}
+  sign('ARES COLONY','#ffb070',30,4.6,BX,21,BZ+34,0);for(const sx of[-14,14])add(box(root,0.6,19,0.6,dark,BX+sx,9.5,BZ+34));
+  // rocket standing on the landing pad
+  {const RX=BX+55,RZ=BZ,steel=new THREE.MeshPhongMaterial({color:0xd8dce4,shininess:90,specular:0xffffff});cylM(4.2,4.2,34,steel,RX,19,RZ,18);const nose=add(new THREE.Mesh(new THREE.ConeGeometry(4.2,11,18),steel));nose.position.set(RX,41.5,RZ);root.add(nose);
+    cylM(4.3,4.3,1.4,dark,RX,27,RZ,18);for(let k=0;k<4;k++){const a=k/4*2*PI+PI/4,f=add(box(root,5,9,0.5,dark,RX+Math.cos(a)*5.4,6.5,RZ+Math.sin(a)*5.4));f.rotation.y=-a;}for(let k=0;k<3;k++){const a=k/3*2*PI;cylM(1,1.4,2.4,dark,RX+Math.cos(a)*2,1.4,RZ+Math.sin(a)*2,8);}
+    add(box(root,1.6,1.6,0.2,basic(0x9fd8ff),RX,33,RZ+4.2));colliders.push({x0:RX-5,x1:RX+5,z0:RZ-5,z1:RZ+5,h:46,y0:0});}
+  const rl=glowSprite(0xff4040,BX+55,48,BZ,7,0.9);rl.userData.keep=true;
+  const padL=[];for(let i=0;i<12;i++){const a=i/12*2*PI,s=glowSprite(0xffb060,BX+55+Math.cos(a)*13.2,0.6,BZ+Math.sin(a)*13.2,2.6,0.8);s.userData.keep=true;padL.push(s);}
+  for(let i=0;i<12;i++){const g=makeHuman(false);g.userData.emoji='🧑‍🚀';g.userData.pts=80;g.userData.heat=0.3;g.userData.tintHex=0xffb070;g.userData.suit=0x6a3410;g.scale.setScalar(1.15);const v=glowSprite(0x9fe8ff,0,0,0,1.5,0.9);root.remove(v);v.position.set(0,3.05,0);g.add(v);
+    const T={type:'critter',mesh:useAnim('person',g,'mars'),spawn:spawnCow,fl:[{x:BX+10,z:BZ+34},{x:BX+40,z:BZ+26},{x:BX-30,z:BZ-30},{x:BX-10,z:BZ+82}],rad:14};T.mesh.userData.T=T;T.spawn(T);targets.push(T);}
+  // --- THE FACE + three pyramids (see it best from above)
+  const [FX,FZ]=clearAt(330,300,95);window.__marsFace=[FX,FZ];{const m=add(new THREE.Mesh(new THREE.SphereGeometry(1,28,14,0,2*PI,0,PI/2),rockM));m.scale.set(46,15,60);m.position.set(FX,0,FZ);root.add(m);
+    const brow=add(box(root,62,5,7,rockM,FX,13.4,FZ-16));brow.rotation.x=0.2;for(const s of[-1,1]){const e=add(new THREE.Mesh(new THREE.SphereGeometry(1,14,8),lam(0x2a0e06)));e.scale.set(9,3,6.5);e.position.set(FX+s*17,12.6,FZ-9);root.add(e);}
+    const nose=add(new THREE.Mesh(new THREE.ConeGeometry(6,26,4),rockM));nose.rotation.x=PI/2;nose.scale.set(1,1,0.9);nose.position.set(FX,16,FZ+6);root.add(nose);
+    const mo=add(new THREE.Mesh(new THREE.SphereGeometry(1,14,8),lam(0x2a0e06)));mo.scale.set(15,2.4,4);mo.position.set(FX,11.2,FZ+30);root.add(mo);
+    const head=add(new THREE.Mesh(new THREE.TorusGeometry(50,5,6,30,PI),rockD));head.rotation.x=-PI/2;head.rotation.z=0;head.scale.set(0.95,1.05,1.6);head.position.set(FX,3,FZ-12);root.add(head);
+    colliders.push({x0:FX-34,x1:FX+34,z0:FZ-44,z1:FZ+44,h:13,y0:0});
+    for(const [dx,dz,b,h] of[[-105,-40,58,44],[-95,50,44,34],[100,-70,70,54]]){const p=add(new THREE.Mesh(new THREE.ConeGeometry(b/Math.SQRT2,h,4),rockM));p.rotation.y=PI/4;p.position.set(FX+dx,h/2,FZ+dz);root.add(p);colliders.push({x0:FX+dx-b*0.3,x1:FX+dx+b*0.3,z0:FZ+dz-b*0.3,z1:FZ+dz+b*0.3,h:h*0.7,y0:0});}
+    const tg=tagSprite('THE FACE','#ffe0c0');tg.position.set(FX,34,FZ);tg.scale.set(22,5.5,1);root.add(tg);}
+  // --- ancient ruins: broken columns round a glowing obelisk
+  const [UX,UZ]=clearAt(-380,-330,55);const glyph=[];{const st=new THREE.MeshLambertMaterial({color:0xb86a48,flatShading:true});
+    for(let k=0;k<12;k++){const a=k/12*2*PI,h=k%4===3?rand(3,6):rand(11,20),x=UX+Math.cos(a)*32,z=UZ+Math.sin(a)*32;cylM(2.2,2.6,h,st,x,h/2,z,8).rotation.set(rand(-.06,.06),0,rand(-.06,.06));if(h>10)add(box(root,6,1.4,6,st,x,h+0.7,z));}
+    for(const k of[0,1,5,6]){const a=(k+0.5)/12*2*PI,l=add(box(root,17,1.6,4,st,UX+Math.cos(a)*32,rand(13,17),UZ+Math.sin(a)*32));l.rotation.y=-a+PI/2;}
+    for(let k=0;k<5;k++){const f=add(box(root,rand(5,10),2.4,rand(3,5),st,UX+rand(-24,24),1,UZ+rand(-24,24)));f.rotation.set(rand(-.2,.2),rand(0,3),rand(-.3,.3));}
+    const ob=add(new THREE.Mesh(new THREE.CylinderGeometry(1.4,4.4,34,4),new THREE.MeshLambertMaterial({color:0x3a1c14,flatShading:true})));ob.position.set(UX,17,UZ);ob.rotation.y=PI/4;root.add(ob);
+    for(let k=0;k<7;k++){const m=new THREE.Mesh(new THREE.BoxGeometry(3.4-k*0.3,0.7,3.4-k*0.3),new THREE.MeshBasicMaterial({color:0x4affd8}));m.position.set(UX,5+k*3.8,UZ);m.rotation.y=PI/4;m.scale.set(1.5,1,1.5);m.userData.keep=true;root.add(m);glyph.push(m);}
+    const ring=new THREE.Mesh(new THREE.RingGeometry(20,21.2,48),flatMat(0x4affd8,-4));ring.rotation.x=-PI/2;ring.position.set(UX,0.1,UZ);root.add(ring);add(ring);
+    sign('ANCIENT RUINS','#4affd8',20,3,UX,26,UZ+40,0);colliders.push({x0:UX-3,x1:UX+3,z0:UZ-3,z1:UZ+3,h:34,y0:0});}
+  const ug=glowSprite(0x4affd8,UX,18,UZ,60,0.3);
+  // --- THE GREAT RIFT: a dark canyon floor with broken cliffs along both edges
+  {const pts=[[-640,-140],[-520,-175],[-400,-150],[-285,-205],[-170,-185],[-50,-235],[75,-215],[200,-262],[300,-250]],cv=new THREE.CatmullRomCurve3(pts.map(([x,z])=>new V3(x,0.07,z))),N=90,P=[],I=[],cl=[];
+    for(let i=0;i<=N;i++){const u=i/N,p=cv.getPointAt(u),tg=cv.getTangentAt(u),w=(9+7*Math.sin(u*PI))*(1+0.25*Math.sin(u*23));P.push(p.x-tg.z*w,0.07,p.z+tg.x*w,p.x+tg.z*w,0.07,p.z-tg.x*w);if(i<N){const b=i*2;I.push(b,b+1,b+2,b+1,b+3,b+2);}
+      for(const s of[-1,1])if(Math.random()<0.85)cl.push({x:p.x-tg.z*(w+rand(1,4))*s,z:p.z+tg.x*(w+rand(1,4))*s,s:rand(2.5,6.5)});}
+    const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(P,3));g.setIndex(I);const m=new THREE.Mesh(g,new THREE.MeshBasicMaterial({color:0x2e0f06,side:THREE.DoubleSide,polygonOffset:true,polygonOffsetFactor:-3,polygonOffsetUnits:-3}));m.userData.keep=true;root.add(m);
+    inst(new THREE.DodecahedronGeometry(1,0),rockD,cl,r=>compose(r.x,r.s*0.45,r.z,r.s*1.2,r.s,r.s*1.2,0,rand(0,6),0));}
+  // --- polar ice at the north edge
+  for(let i=0;i<16;i++){const x=rand(-330,330),z=rand(-640,-545),r=rand(26,70),c=new THREE.Mesh(new THREE.CircleGeometry(r,14),flatMat(pick([0xf4ece8,0xe8dcd8,0xffffff]),-2));c.rotation.x=-PI/2;c.position.set(x,0.05,z);c.scale.y=rand(0.5,0.9);root.add(c);add(c);}
+  {const iceM=new THREE.MeshPhongMaterial({color:0xf4fbff,emissive:0x5a7a90,shininess:120,flatShading:true});for(let i=0;i<34;i++){const h=rand(4,16),m=add(new THREE.Mesh(new THREE.ConeGeometry(rand(1.4,4),h,5),iceM));m.position.set(rand(-320,320),h/2,rand(-635,-560));m.rotation.set(rand(-.25,.25),rand(0,3),rand(-.25,.25));root.add(m);}}
+  // --- real 3D crater rims + wind-blown dunes
+  for(let i=0;i<60&&i<400;i++){const x=rand(-600,600),z=rand(-520,600),r=rand(12,34);if(i>=12)break;if(colliders.some(c=>x+r+6>c.x0&&x-r-6<c.x1&&z+r+6>c.z0&&z-r-6<c.z1)||Math.hypot(x-BX,z-BZ)<110){continue;}
+    const f=new THREE.Mesh(new THREE.CircleGeometry(r,24),flatMat(0x7a2c14,-2));f.rotation.x=-PI/2;f.position.set(x,0.05,z);root.add(f);add(f);const rim=add(new THREE.Mesh(new THREE.TorusGeometry(r,r*0.13,6,26),rockM));rim.rotation.x=PI/2;rim.scale.z=0.6;rim.position.set(x,0,z);root.add(rim);}
+  {const dn=[];for(let i=0;i<150;i++){const x=rand(-620,620),z=rand(-520,620);if(Math.hypot(x-BX,z-BZ)<100)continue;dn.push({x,z,l:rand(12,30),w:rand(4,9),h:rand(0.8,2.2)});}
+    const dg=new THREE.SphereGeometry(1,10,6,0,2*PI,0,PI/2);inst(dg,lam(0xc8683a),dn,d=>compose(d.x,0,d.z,d.l,d.h,d.w,0,0.5+rand(-0.15,0.15),0));}
+  freezeStatic(objs,root,true);
+  // --- the small cold-blue Martian sunset
+  for(const [s,o,c] of[[520,0.5,0x5a9aff],[130,0.9,0xdff0ff]]){const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:c,transparent:true,opacity:o,blending:THREE.AdditiveBlending,depthWrite:false,fog:false}));sp.position.set(-1150,95,-900);sp.scale.set(s,s,1);sp.userData.keep=true;root.add(sp);}
+  let seenF=false,seenU=false;
+  planetAnim.push({town:'mars',f:(t,dt)=>{padL.forEach((s,i)=>{const k=((t*4-i)%12+12)%12;s.material.opacity=0.25+0.7*Math.max(0,1-k/4);});rl.material.opacity=(t%1.6)<0.25?1:0.12;
+    glyph.forEach((m,i)=>{m.material.color.setHSL(0.45+0.05*Math.sin(t+i),1,0.35+0.3*Math.max(0,Math.sin(t*2-i*0.8)));});ug.material.opacity=0.22+0.12*Math.sin(t*1.4);
+    if(state!=='play'){seenF=seenU=false;return;}
+    if(!seenF&&Math.hypot(pos.x-FX,pos.z-FZ)<70){seenF=true;score+=150;pop('🗿 THE FACE ON MARS! +150');blip(300,1200,0.5,'triangle',0.1);}
+    if(!seenU&&Math.hypot(pos.x-UX,pos.z-UZ)<50){seenU=true;score+=150;pop('🏛️ ANCIENT MARTIAN RUINS! +150');blip(500,1500,0.5,'triangle',0.1);}}});
+})();
 endTown('mars',[200,1200]);Object.assign(towns.mars,{planet:true,fogC:new THREE.Color(0xc87a52),skyTint:0xffb08a,label:'🔴 MARS'});
 // 🌊 THE OCEAN (underwater world)
 const SURF=130;
@@ -7192,12 +7257,12 @@ const JEEPS=[];let DRIVE=null,jeepHint=0;
       const hl=[];for(const wz of[-0.7,0.7]){const s=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:0xffffff,transparent:true,opacity:0,blending:THREE.AdditiveBlending,depthWrite:false}));s.position.set(4.4,1.4,wz);s.scale.set(3,3,1);g.add(s);hl.push(s);}
       const ug=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:c,transparent:true,opacity:.6,blending:THREE.AdditiveBlending,depthWrite:false}));ug.position.y=0.3;ug.scale.set(9,3,1);g.add(ug);g.traverse(o=>{o.userData.keep=true;});
       g.position.set(x,0,z);g.rotation.y=yw;root.add(g);JEEPS.push({g,town:'home',hl,sp:0,x0:x,z0:z,y0:yw,t:0,tick:0,air:0,vy:0,hover:true});}}
-  if(towns.moon){root=towns.moon.group;for(const [x,z,yw] of[[152,152,0.8],[-62,-52,2.2]]){const g=new THREE.Group();
+  for(const [bt,x,z,yw] of[['moon',152,152,0.8],['moon',-62,-52,2.2],['mars',-128,150,0.4],['mars',-95,92,-1.2]]){if(!towns[bt])continue;root=towns[bt].group;{const g=new THREE.Group();
       box(g,5.4,0.5,2.6,0xc8ccd4,0,1.3,0);box(g,1.2,1.2,2.2,0xd8b040,-1.6,2.1,0);box(g,0.3,1.4,2.2,0x3a3d46,0.4,2.2,0);box(g,0.2,2.6,0.2,0x9aa0aa,-2.3,2.8,0.8);
       {const d=new THREE.Mesh(new THREE.SphereGeometry(1.1,12,6,0,2*PI,0,PI/2.4),new THREE.MeshLambertMaterial({color:0xe8ecf2,side:THREE.DoubleSide}));d.rotation.x=PI;d.position.set(-2.3,5,0.8);g.add(d);}
       for(const wx of[-1.9,1.9])for(const wz of[-1.6,1.6]){const w=new THREE.Mesh(new THREE.CylinderGeometry(0.95,0.95,0.6,10),lam(0x5a5d66));w.rotation.x=PI/2;w.position.set(wx,0.95,wz);g.add(w);}
       const hl=[];for(const wz of[-0.9,0.9]){const s=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:0xfff2c0,transparent:true,opacity:0,blending:THREE.AdditiveBlending,depthWrite:false}));s.position.set(3,1.7,wz);s.scale.set(3,3,1);g.add(s);hl.push(s);}
-      g.traverse(o=>{o.userData.keep=true;});g.position.set(x,0,z);g.rotation.y=yw;root.add(g);JEEPS.push({g,town:'moon',hl,sp:0,x0:x,z0:z,y0:yw,t:0,tick:0,air:0,vy:0});}}
+      g.traverse(o=>{o.userData.keep=true;});g.position.set(x,0,z);g.rotation.y=yw;root.add(g);JEEPS.push({g,town:bt,hl,sp:0,x0:x,z0:z,y0:yw,t:0,tick:0,air:0,vy:0});}}
   root=r0;colliders=c0;})();
 // 🏁 RED ROCK GRAND PRIX (Las Vegas): get in a race car on the scenic loop and the race starts — 2 laps against 3 rivals
 const RR={st:'idle',t:0,cd:0,gate:0,lap:0,best:0,rivals:[],gates:[],place:0};try{RR.best=+localStorage.getItem('ufoRedRock')||0;}catch(e){}
