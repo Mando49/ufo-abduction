@@ -3315,6 +3315,40 @@ function makeShowgirl(){
   const FX=SX+150,FZ=60;
   const lake=new THREE.Mesh(new THREE.PlaneGeometry(90,160),new THREE.MeshPhongMaterial({color:0x1a4a8a,emissive:0x0a1a3a,shininess:140,specular:0xffffff,polygonOffset:true,polygonOffsetFactor:-4,polygonOffsetUnits:-4}));lake.rotation.x=-PI/2;lake.position.set(FX,0.15,FZ);root.add(lake);
   const jets=[];for(let i=0;i<16;i++){const j=new THREE.Mesh(new THREE.CylinderGeometry(0.5,1.4,1,8,1,true),new THREE.MeshBasicMaterial({color:0xe8f4ff,transparent:true,opacity:.7,blending:THREE.AdditiveBlending,depthWrite:false}));j.position.set(FX-20,0,FZ-70+i*9.3);root.add(j);jets.push(j);}
+  // Fountain plaza finish: stone coping, overlook steps, bollard lights and submerged color washes
+  const fountainLights=[];
+  const coping=lam(0x777b86),paver=lam(0x4b505b),warmLamp=basic(0xffd28a);
+  for(const x of[FX-47,FX+47]){
+    box(root,2.2,0.85,164,coping,x,0.42,FZ);
+    box(root,3.2,0.18,158,paver,x,0.9,FZ);
+  }
+  for(const z of[FZ-82,FZ+82]){
+    box(root,96,0.85,2.2,coping,FX,0.42,z);
+    box(root,90,0.18,3.2,paver,FX,0.9,z);
+  }
+  // Broad approach steps on the Strip-facing side of the fountain
+  for(let k=0;k<3;k++)box(root,18-k*2,0.35,2.2,lam(0x777b86),FX,0.18+k*0.28,FZ-88-k*2.1);
+  // Low bollards and warm pools of light around the water's edge
+  for(let i=0;i<14;i++){
+    const side=i%2===0?-1:1,row=Math.floor(i/2),z=FZ-66+row*19;
+    const x=FX+side*53;
+    box(root,0.8,2.2,0.8,lam(0x343b47),x,1.1,z);
+    box(root,0.9,0.22,0.9,warmLamp,x,2.25,z);
+    fountainLights.push(glowSprite(0xffd28a,x,2.7,z,4.5,0.45));
+  }
+  // Underwater accent lights cast a subtle blue-green shimmer along the basin
+  for(let i=0;i<8;i++){
+    const x=FX-35+i*10,z=FZ+(i%2?66:-66);
+    fountainLights.push(glowSprite(i%2?0x45eaff:0x7dffcf,x,0.7,z,5,0.38));
+  }
+  // Stone overlook terraces and small seating pockets
+  for(const z of[FZ-96,FZ+96]){
+    box(root,28,0.55,5,paver,FX,0.28,z);
+    for(const x of[FX-10,FX+10]){
+      box(root,5,0.55,1.6,lam(0x655346),x,0.9,z);
+      for(const dx of[-1.8,1.8])box(root,0.35,1.1,0.35,lam(0x343b47),x+dx,0.55,z);
+    }
+  }
   // 🎡 big wheel
   const wheel=new THREE.Group();wheel.position.set(SX+140,95,-260);root.add(wheel);
   wheel.add(new THREE.Mesh(new THREE.TorusGeometry(80,1.4,8,80),basic(0xff3fd2)));wheel.add(new THREE.Mesh(new THREE.TorusGeometry(76,0.6,6,80),basic(0x45eaff)));
@@ -3390,6 +3424,7 @@ function makeShowgirl(){
     casinos.forEach((s,i)=>{const on=Math.sin(t*3+i*0.7)>-0.3;s.visible=on;});
     skyBeam.material.opacity=0.45+0.1*Math.sin(t*2);beamGlow.material.opacity=0.8+0.2*Math.sin(t*5);
     wheel.rotation.z=t*0.08;cabs.forEach((c,k)=>{const a=k/16*2*PI;c.position.set(Math.cos(a)*80,Math.sin(a)*80,0);});
+    fountainLights.forEach((l,i)=>{l.material.opacity=0.3+0.18*(0.5+0.5*Math.sin(t*1.8+i*0.65));});
     // fountains: a show every 22 seconds
     const ph=t%22,show=ph<12;jets.forEach((j,i)=>{const h=show?Math.max(0,(32+26*Math.sin(t*3+i*0.6))*Math.min(1,ph*2)*Math.min(1,(12-ph)*2)):0;j.visible=h>0.5;j.scale.set(1,Math.max(h,0.01),1);j.position.y=h/2;
       if(show&&Math.random()<0.08)spawnFx(tmpV2.set(j.position.x,h,j.position.z),tmpV.set(rand(-3,3),rand(2,6),rand(-3,3)),0.8,2,3,0xe8f4ff,true);});
