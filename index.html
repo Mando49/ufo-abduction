@@ -1098,6 +1098,7 @@ const ANIM={alien:{file:'alien',height:2.3,rotY:PI/2,clips:{walk:0},list:[]},
   soldier:{file:'soldier',height:3.5,rotY:PI/2,clips:{walk:0},list:[]},
   person:{file:'person',height:3.4,rotY:PI/2,clips:{walk:0},tint:true,list:[]},mummy:{file:'mummy',height:3.7,rotY:PI/2,clips:{walk:0},list:[]},yeti:{file:'yeti',height:7.2,rotY:PI/2,clips:{walk:0},list:[]},
   fox:{file:'fox',len:3.4,axis:'z',rotY:PI/2,clips:{idle:'Survey',walk:'Walk',run:'Run'},list:[]},
+  mech:{file:'mech',height:47,rotY:0,clips:{walk:0},list:[],lift:1.9},
   pharaoh:{file:'pharaoh',height:4.4,rotY:PI/2,clips:{walk:0},list:[]},queen:{file:'queen',height:4,rotY:PI/2,clips:{walk:0},list:[]},
   bigfoot:{file:'bigfoot',height:3.9,rotY:PI/2,clips:{walk:0},list:[]},
   reptilian:{file:'reptilian',height:4.4,rotY:PI/2,clips:{walk:0},list:[]},mantis:{file:'mantis',height:5,rotY:PI/2,clips:{walk:0},list:[]},
@@ -1117,6 +1118,7 @@ function attachAnim(A,g){if(!THREE.SkeletonUtils)return;g.children.forEach(c=>{i
       mt.customProgramCacheKey=()=>'team'+TM.join(',');o.material=mt;});}
   else if(g.userData.gray){m.traverse(o=>{if(o.isMesh){const mt=o.material.clone();mt.onBeforeCompile=sh=>{sh.fragmentShader=sh.fragmentShader.replace('#include <map_fragment>','#include <map_fragment>\n{float gL=dot(diffuseColor.rgb,vec3(0.3,0.59,0.11));diffuseColor.rgb=vec3(gL*0.95,gL,gL*1.08)*0.8;}');};mt.customProgramCacheKey=()=>'gray';o.material=mt;}});}
   else if(A.tint||g.userData.tintHex){m.traverse(o=>{if(o.isMesh){o.material=o.material.clone();if(g.userData.tintHex)o.material.color.setHex(g.userData.tintHex);else o.material.color.setHSL(Math.random(),0.35,0.85);}});}
+  if(A.lift)m.traverse(o=>{if(o.isMesh){o.material=o.material.clone();o.material.color.multiplyScalar(A.lift);o.frustumCulled=false;}});
   const I={g,m,mixer,acts,cur:null,town:g.userData.animTown,last:new V3().copy(g.position)};
   const play=k=>{if(!acts[k]){const w=acts.walk;if(w&&I.cur==='walk'){w.timeScale=k==='run'||k==='wave'?1.8:k==='idle'?0.15:1;}return;}if(acts.walk&&k==='walk')acts.walk.timeScale=1;if(I.cur===k)return;const a=acts[k];a.reset().fadeIn(0.25).play();if(I.cur&&acts[I.cur])acts[I.cur].fadeOut(0.25);I.cur=k;};I.play=play;play('walk');
   mixer.update(Math.random()*2);animInst.push(I);}
@@ -5549,7 +5551,7 @@ inTown('desert',()=>{
   for(const s of[-1,1]){const sh=new THREE.Group();sh.position.set(s*12,13,0);torso.add(sh);mk(sh,5,5,6,drk,0,0,0);mk(sh,3.6,12,3.6,arm,0,-7,0);
     const pod=mk(sh,5,5,9,drk,0,-14,2);for(const dx of[-1.2,1.2])for(const dy of[-1.2,1.2])mk(sh,1.4,1.4,0.5,red,dx,-14+dy,6.6);arms.push(sh);
     const hp=new THREE.Group();hp.position.set(s*5,18,0);g.add(hp);mk(hp,4.6,10,4.6,arm,0,-5,0);const kn=new THREE.Group();kn.position.y=-10;hp.add(kn);mk(kn,4,9,4,drk,0,-4.5,0);mk(kn,6,2.4,9,arm,0,-9,1.5);legs.push({hp,kn});}
-  g.traverse(o=>{if(o.isMesh)o.frustumCulled=false;});
+  g.traverse(o=>{if(o.isMesh)o.frustumCulled=false;});useAnim('mech',g,'desert');
   // hatch it rises out of
   const hatch=new THREE.Mesh(new THREE.CircleGeometry(26,8),new THREE.MeshLambertMaterial({color:0x2a2c26}));hatch.rotation.x=-PI/2;hatch.position.set(MX,0.15,MZ);root.add(hatch);
   const hz=new THREE.Mesh(new THREE.RingGeometry(24,26,8),new THREE.MeshBasicMaterial({color:0xffc020,side:THREE.DoubleSide}));hz.rotation.x=-PI/2;hz.position.set(MX,0.2,MZ);root.add(hz);hatch.visible=hz.visible=false;
