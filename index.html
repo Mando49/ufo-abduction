@@ -5658,7 +5658,7 @@ function walkUpdate(dt,ix,iy,jumpBtn,run,shipBtn,t){
   const jetting=jumpBtn&&!wGround&&wv<6&&energy>1&&pos.y<140;
   if(jetting){wv=Math.min(wv+48*dt,9);energy-=16*dt;if(Math.random()<0.6)spawnFx(pos.clone().add(new V3(0,1.1,0)).addScaledVector(fwd,-0.7),tmpV.set(rand(-1,1),-8,rand(-1,1)),0.35,1.6,2.5,pick([0x7ffcff,0xffa040]),true);}
   pos.y+=wv*dt;wv-=grav*dt;
-  const hd=Math.hypot(pos.x,pos.z),HL=curTown==='ice'?930:620;if(hd>HL){pos.x*=HL/hd;pos.z*=HL/hd;}
+  const hd=Math.hypot(pos.x,pos.z),HL=curTown==='ice'?930:curTown==='vegas'?1400:620;if(hd>HL){pos.x*=HL/hd;pos.z*=HL/hd;}
   if(curTown==='ice')iceWallBlock(1.2);
   let gh=groundH(pos.x,pos.z);const R=0.7;if(onDeck(pos.x,pos.z)){gh=carrierDeckY();if(pos.y<gh-2.5&&wv<=0)pos.y=gh;} // walk/climb onto the carrier deck
   for(const b of colliders){if(b.ramp)continue;
@@ -5864,16 +5864,54 @@ const JEEPS=[];let DRIVE=null,jeepHint=0;
       const ug=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:c,transparent:true,opacity:.6,blending:THREE.AdditiveBlending,depthWrite:false}));ug.position.y=0.3;ug.scale.set(9,3,1);g.add(ug);g.traverse(o=>{o.userData.keep=true;});
       g.position.set(x,0,z);g.rotation.y=yw;root.add(g);JEEPS.push({g,town:'home',hl,sp:0,x0:x,z0:z,y0:yw,t:0,tick:0,air:0,vy:0,hover:true});}}
   root=r0;colliders=c0;})();
+// 🏁 RED ROCK GRAND PRIX (Las Vegas): get in a race car on the scenic loop and the race starts — 2 laps against 3 rivals
+const RR={st:'idle',t:0,cd:0,gate:0,lap:0,best:0,rivals:[],gates:[],place:0};try{RR.best=+localStorage.getItem('ufoRedRock')||0;}catch(e){}
+const RR_P=a=>[-760+Math.cos(a)*70,-50+Math.sin(a)*330],RR_LAPS=2;
+(function(){if(!towns.vegas)return;const r0=root,c0=colliders;root=towns.vegas.group;colliders=towns.vegas.colliders;
+  const carMesh=(c,g)=>{box(g,4.6,0.9,2.1,c,0,0.9,0);box(g,2.2,0.7,1.8,0x16181c,-0.2,1.6,0);box(g,0.3,0.5,2.2,c,-2.3,1.7,0);for(const wx of[-1.5,1.5])for(const wz of[-1.05,1.05]){const w=new THREE.Mesh(new THREE.CylinderGeometry(0.55,0.55,0.4,10),lam(0x16181c));w.rotation.x=PI/2;w.position.set(wx,0.55,wz);g.add(w);}
+    const st=box(g,1.5,0.16,1.25,basic(c),-0.2,1.6,0);st.userData.keep=true;const fl=box(g,0.08,1.3,0.08,0xd8d8d8,-2,2.2,0.8);fl.userData.keep=true;const fg=box(g,0.9,0.5,0.05,basic(c),-2.45,2.6,0.8);fg.userData.keep=true;return g;};
+  // wider racing surface + kerbs over the scenic loop, start banner, grandstand
+  for(let i=0;i<72;i++){const a=i/72*2*PI,[x,z]=RR_P(a),[x2,z2]=RR_P(a+0.01),ry=Math.atan2(-(z2-z),x2-x);const p=flatPlane(21,20,0x2c2c30,-3,x,z);p.rotation.z=ry;
+    for(const s of[-1,1]){const k=flatPlane(1.2,10,i%2?0xd83030:0xf4f4f4,-4,x+Math.sin(ry)*s*10.6,z+Math.cos(ry)*s*10.6);k.rotation.z=ry;}}
+  {const [sx,sz]=RR_P(0);for(const s of[-1,1])box(root,1,13,1,0x2a2a30,sx+s*12,6.5,sz);box(root,25,3,0.6,0x16181c,sx,12,sz);const sg=neonText('RED ROCK GRAND PRIX','#ffb070',22,2.4);sg.position.set(sx,12,sz-0.5);sg.rotation.y=PI;root.add(sg);
+    for(let k=0;k<12;k++)flatPlane(1.7,1.7,k%2?0xf4f4f4:0x16181c,-5,sx-10+k*1.8,sz);for(let k=0;k<12;k++)flatPlane(1.7,1.7,k%2?0x16181c:0xf4f4f4,-5,sx-10+k*1.8,sz+1.7);
+    for(let r=0;r<4;r++)box(root,6,1.2,40,[0x8a3a2a,0xb0502e][r%2],sx+22+r*5,0.6+r*1.3,sz-30);box(root,24,0.5,42,0xd8d0c0,sx+30,9,sz-30);for(const dz of[-20,20])box(root,0.6,9,0.6,0x8a8a8a,sx+19,4.5,sz-30+dz);
+    const s2=neonText('GET IN A RACE CAR TO START','#ffe9a0',26,2.2);s2.position.set(sx+19,7,sz-30);s2.rotation.y=-PI/2;root.add(s2);}
+  for(let k=0;k<12;k++){const a=k/12*2*PI,[x,z]=RR_P(a),[x2,z2]=RR_P(a+0.01),ry=Math.atan2(-(z2-z),x2-x);
+    const ar=new THREE.Mesh(new THREE.TorusGeometry(12,0.6,6,24,PI),new THREE.MeshBasicMaterial({color:k===0?0xffffff:0xff8a30}));ar.position.set(x,0,z);ar.rotation.y=ry+PI/2;ar.userData.keep=true;ar.visible=k!==0;root.add(ar);
+    const gl=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:0xffb070,transparent:true,opacity:.2,blending:THREE.AdditiveBlending,depthWrite:false}));gl.position.set(x,14,z);gl.scale.set(12,12,1);gl.userData.keep=true;root.add(gl);RR.gates.push({x,z,gl});}
+  // 3 rival cars on the grid + 2 cars for you
+  [[0xd83030,33.5],[0x2a6ad8,36.5],[0xf0c030,39]].forEach(([c,v],i)=>{const g=carMesh(c,new THREE.Group());g.scale.setScalar(1.5);root.add(g);useModel('car',g);RR.rivals.push({g,v,a:0,a0:-0.045-i*0.03,lane:[-5,0,5][i],prog:0,done:0});});
+  for(const [dx,c] of[[6.5,0x3ac060],[-6.5,0xff7ae0]]){const [sx,sz]=RR_P(-0.16);const g=carMesh(c,new THREE.Group());g.scale.setScalar(1.5);const hl=[];for(const wz of[-0.7,0.7]){const s=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:0xfff2c0,transparent:true,opacity:0,blending:THREE.AdditiveBlending,depthWrite:false}));s.position.set(2.5,0.9,wz);s.scale.set(2.4,2.4,1);g.add(s);hl.push(s);}
+    g.position.set(sx+dx,0,sz);g.rotation.y=-PI/2;root.add(g);useModel('car',g);JEEPS.push({g,town:'vegas',hl,sp:0,x0:sx+dx,z0:sz,y0:-PI/2,t:0,tick:0,air:0,vy:0,race:true,top:1.25});}
+  root=r0;colliders=c0;})();
+function rrReset(){RR.st='idle';RR.rivals.forEach(R=>{R.a=R.a0;R.prog=0;R.done=0;});}
+function rrTick(dt,t){if(!towns.vegas||!towns.vegas.group.visible)return;
+  RR.rivals.forEach(R=>{const [x,z]=RR_P(R.a),[x2,z2]=RR_P(R.a+0.01),ry=Math.atan2(-(z2-z),x2-x);R.g.position.set(x+Math.sin(ry)*R.lane,0,z+Math.cos(ry)*R.lane);R.g.rotation.y=ry;});
+  RR.gates.forEach((G,k)=>{G.gl.material.opacity=RR.st==='race'&&k===RR.gate%12?0.55+0.4*Math.sin(t*7):0.15;});
+  const racing=DRIVE&&DRIVE.race&&curTown==='vegas';
+  if(RR.st==='idle'){RR.cd-=dt;if(racing&&RR.cd<=0){RR.st='count';RR.t=3.4;RR.n=4;const [sx,sz]=RR_P(-0.16);pos.set(sx+(DRIVE.x0>sx?6.5:-6.5),0,sz);yaw=-PI;DRIVE.sp=0;pop('🏁 RED ROCK GRAND PRIX');pop(`${RR_LAPS} laps · follow the flashing gates · ${isTouch?'RUN':'SHIFT'} = turbo`,'t');}return;}
+  if(!racing){rrReset();RR.cd=2;pop('🏁 Race cancelled','t');return;}
+  if(RR.st==='count'){RR.t-=dt;DRIVE.sp=0;const n=Math.ceil(RR.t);if(n!==RR.n&&n>0&&n<4){RR.n=n;pop(String(n));blip(440,440,0.15,'square',0.08);}
+    if(RR.t<=0){RR.st='race';RR.t=0;RR.gate=1;RR.lap=1;pop('GO!');blip(880,880,0.5,'square',0.1);}return;}
+  // racing
+  RR.t+=dt;RR.rivals.forEach(R=>{if(R.done)return;const sp=R.v*(0.5+0.5*Math.pow(Math.abs(Math.cos(R.a)),0.7))*(0.96+0.08*Math.sin(t*0.7+R.v)),ds=Math.hypot(70*Math.sin(R.a),330*Math.cos(R.a));R.a+=sp*dt/Math.max(ds,30);R.prog=R.a-R.a0;if(R.a>=RR_LAPS*2*PI){R.done=RR.t;}});
+  const G=RR.gates[RR.gate%12];if(Math.hypot(pos.x-G.x,pos.z-G.z)<17){RR.gate++;blip(900,1300,0.1,'triangle',0.07);
+    if(RR.gate%12===1&&RR.gate>1){RR.lap++;if(RR.lap<=RR_LAPS)pop(`🏁 LAP ${RR.lap}/${RR_LAPS} · ${RR.t.toFixed(1)}s`,'t');}
+    if(RR.gate>RR_LAPS*12){const place=1+RR.rivals.filter(R=>R.done).length,rw=[1500,900,600,300][place-1],nb=!RR.best||RR.t<RR.best;if(nb){RR.best=RR.t;try{localStorage.setItem('ufoRedRock',String(RR.t));}catch(e){}}
+      score+=rw+(nb?300:0);mEvent('redrockrace',{place});pop(`🏁 ${['1ST 🥇','2ND 🥈','3RD 🥉','4TH'][place-1]} · ${RR.t.toFixed(1)}s${nb?' · NEW BEST!':''}`);pop(`+${rw+(nb?300:0)} · get back in a car to race again`,'t');blip(520,1560,0.9,'triangle',0.12);
+      rrReset();RR.cd=6;endDrive();return;}}
+  if(Math.floor(RR.t)!==Math.floor(RR.t-dt)&&Math.floor(RR.t)%5===0){const myp=RR.gate-1,ahead=RR.rivals.filter(R=>R.a/(2*PI)*12>myp).length;pop(`P${ahead+1}/4 · gate ${Math.min(RR.gate,RR_LAPS*12)}/${RR_LAPS*12}`,'t');}}
 function nearJeep(){return JEEPS.find(J=>J.town===curTown&&Math.hypot(J.g.position.x-pos.x,J.g.position.z-pos.z)<11&&Math.abs(pos.y-J.g.position.y)<6);}
 function startDrive(J){DRIVE=J;J.sp=0;J.t=0;J.tick=0;J.vy=0;J.air=0;J.wasG=true;pos.copy(J.g.position);yaw=J.g.rotation.y-PI/2;J.hl.forEach(s=>s.material.opacity=.9);wv=0;
   pop('🚙 DRIVING!');pop(isTouch?'Stick = steer + gas · RUN = turbo · JUMP = hop · SHIP = get out':'W/S gas + reverse · A/D steer · SHIFT turbo · R hop · L get out','t');blip(120,300,0.4,'sawtooth',0.1);}
 function endDrive(){const J=DRIVE;DRIVE=null;J.sp=0;J.vy=0;J.pitch=0;J.wet=false;J.hl.forEach(s=>s.material.opacity=0);if(curTown==='egypt'&&Math.abs(pos.x-360)<38){pos.x=360+(pos.x<360?-44:44);splash(pos,14);}J.g.position.set(pos.x,groundH(pos.x,pos.z),pos.z);J.g.rotation.set(0,yaw+PI/2,0);walker.scale.setScalar(1);walker.rotation.set(0,yaw,0);
   pos.addScaledVector(right,4.5);pos.y=groundH(pos.x,pos.z);wv=0;pop(`🚙 Drove for ${J.t.toFixed(0)}s`,'t');}
 function driveUpdate(dt,ix,iy,jumpBtn,run,shipBtn,t){const J=DRIVE,g=J.g;
-  const top=(run?46:30),want=iy>0?iy*top:iy*12;J.sp+=(want-J.sp)*Math.min(1,dt*(Math.abs(want)>Math.abs(J.sp)?1.6:2.6));
+  const top=(run?46:30)*(J.top||1),want=iy>0?iy*top:iy*12;J.sp+=(want-J.sp)*Math.min(1,dt*(Math.abs(want)>Math.abs(J.sp)?1.6:2.6));
   yaw-=ix*dt*1.9*clamp(J.sp/14,-1,1);fwd.set(-Math.sin(yaw),0,-Math.cos(yaw));right.set(Math.cos(yaw),0,-Math.sin(yaw));
   const ox=pos.x,oz=pos.z;pos.addScaledVector(fwd,J.sp*dt);
-  const hd=Math.hypot(pos.x,pos.z);if(hd>620){pos.x*=620/hd;pos.z*=620/hd;}
+  const hd=Math.hypot(pos.x,pos.z),DL=curTown==='vegas'?1300:620;if(hd>DL){pos.x*=DL/hd;pos.z*=DL/hd;}
   for(const b of colliders){if(b.y0>3||b.h<1.2)continue;if(pos.y<b.h-0.5&&pos.x>b.x0-2.2&&pos.x<b.x1+2.2&&pos.z>b.z0-2.2&&pos.z<b.z1+2.2){pos.x=ox;pos.z=oz;if(Math.abs(J.sp)>10){blip(160,60,0.2,'square',0.1);shake=Math.max(shake,0.3);}J.sp*=-0.3;break;}}
   const gh=groundH(pos.x,pos.z),py=pos.y,water=curTown==='egypt'&&Math.abs(pos.x-360)<38,wl=water?-1.5:gh;let grounded=false;
   J.vy-=28*dt;pos.y+=J.vy*dt;
@@ -6300,6 +6338,8 @@ const MISSIONS=[
   {id:'tallwhite',t:'Beam up 3 Tall Whites (5th Dimension)',ev:'abduct',m:d=>d.emoji==='🤍',g:3,r:600},
   {id:'nordic',t:'Beam up 3 Nordics (5th Dimension)',ev:'abduct',m:d=>d.emoji==='💙',g:3,r:600},
   {id:'airport',t:'Beam up a parked airliner at Harry Reid Airport',ev:'abduct',m:d=>d.emoji==='🛫',g:1,r:900},
+  {id:'redrockrace',t:'Finish the Red Rock Grand Prix (get in a race car at Red Rock Canyon, Las Vegas)',ev:'redrockrace',g:1,r:1200},
+  {id:'redrockwin',t:'WIN the Red Rock Grand Prix (1st place)',ev:'redrockrace',m:d=>d.place===1,g:1,r:2500},
   {id:'redrock',t:'Pluck 2 rock climbers off Red Rock Canyon',ev:'abduct',m:d=>d.emoji==='🧗',g:2,r:500},
   {id:'sphere',t:'Beam something up in front of the Sphere',ev:'sphere',g:1,r:400},
   {id:'tintshop',t:'Fly by Mando Window Tinting (east side)',ev:'tintshop',g:1,r:300},
@@ -6716,7 +6756,7 @@ const pos=new V3(0,60,400),fwd=new V3(),right=new V3(),desired=new V3(),look=new
 
 function pop(txt,cls){const d=document.createElement('div');d.className='pop '+(cls||'');d.textContent=txt;$('pops').appendChild(d);setTimeout(()=>d.remove(),1250);}
 let freeMode=false;
-function startGame(free){try{mechReset();if(window.MECH)MECH.cd=20;}catch(e){}TRIDE=null;if(BRIDE){BRIDE.ride=false;BRIDE.T.state='ground';BRIDE=null;}if(DRIVE){try{endDrive();}catch(e){DRIVE=null;}}TOMB.got=false;TOMB.in=false;JEEPS.forEach(J=>{J.g.position.set(J.x0,0,J.z0);J.g.rotation.set(0,J.y0,0);J.did=false;});if(RIDE){RIDE.state='ground';RIDE=null;}SWIM=false;if(FLYP){PILOT_G[FLYP.k].visible=false;FLYP.g.visible=true;FLYP.col.h=5;FLYP=null;applyShip();}
+function startGame(free){try{mechReset();if(window.MECH)MECH.cd=20;}catch(e){}try{rrReset();RR.cd=0;}catch(e){}TRIDE=null;if(BRIDE){BRIDE.ride=false;BRIDE.T.state='ground';BRIDE=null;}if(DRIVE){try{endDrive();}catch(e){DRIVE=null;}}TOMB.got=false;TOMB.in=false;JEEPS.forEach(J=>{J.g.position.set(J.x0,0,J.z0);J.g.rotation.set(0,J.y0,0);J.did=false;});if(RIDE){RIDE.state='ground';RIDE=null;}SWIM=false;if(FLYP){PILOT_G[FLYP.k].visible=false;FLYP.g.visible=true;FLYP.col.h=5;FLYP=null;applyShip();}
   initAudio();freeMode=free===true;document.body.classList.toggle('free',freeMode);
   score=0;timer=150;shield=100;energy=100;lock=false;cows=0;cars=0;
   yaw=0;speed=0;vy=0;pos.set(0,60,400);hitCd=0;
@@ -6994,7 +7034,7 @@ function loop(now){
     pos.addScaledVector(fwd,speed*dt);pos.y+=vy*dt;
     if(mode==='ground'){
       if(pos.y<3){pos.y=3;if(vy<0)vy=0;}
-      const hd=Math.hypot(pos.x,pos.z),HL=curTown==='ice'?930:620;if(hd>HL){pos.x*=HL/hd;pos.z*=HL/hd;}
+      const hd=Math.hypot(pos.x,pos.z),HL=curTown==='ice'?930:curTown==='vegas'?1380:620;if(hd>HL){pos.x*=HL/hd;pos.z*=HL/hd;} // Vegas is a big map: Red Rock, Fremont, Nellis and Hoover Dam sit outside the old 620 limit
       if(curTown==='ice')iceWallBlock(3);
       if(FLYP&&pos.y>SPACE_Y-30){pos.y=SPACE_Y-30;if(vy>0)vy=0;}
       if(curTown==='desert'&&state==='play'&&!FLYP&&pos.z<-406&&pos.z>-440&&Math.abs(pos.x-420)<44&&pos.y<34)enterHangar18();
@@ -7143,7 +7183,7 @@ function loop(now){
   bossUpdate(dt*ES,t);
   {const ph=Math.floor(t*6)%2;policeLights.forEach(([r,b])=>{r.visible=!!ph;b.visible=!ph;});}
   if(TRACK&&curTown==='city'&&mode==='ground'&&!onFoot&&state==='play'){trainHint-=dt;if(trainHint<=0&&nearTrain(40)){trainHint=25;pop(isTouch?'🚝 Tap LAND next to the sky-train to ride it':'🚝 Press L next to the sky-train to ride it','t');}}
-  flameTick(t);
+  flameTick(t);rrTick(dt,t);
   if(curTown==='egypt'&&mode==='ground'&&!onFoot&&state==='play'){balHint-=dt;if(balHint<=0&&nearBalloon(55)){balHint=25;pop(isTouch?'🎈 Tap LAND next to a balloon to ride it':'🎈 Press L next to a balloon to ride it','t');}}
   if(TRACK)trains.forEach(T=>{const L=TRACK.L;
     if(T.wait>0)T.wait-=dt;else{T.d=(T.d+30*dt)%L;const u=T.d/L;TRACK.stations.forEach((su,i)=>{if(T.lastSt!==i&&Math.abs(u-su)<0.004){T.wait=4;T.lastSt=i;}});}
