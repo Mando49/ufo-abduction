@@ -1155,7 +1155,7 @@ const ANIM={alien:{file:'alien',height:2.3,rotY:PI/2,clips:{walk:0},list:[]},
   aztec:{file:'aztec',height:4.3,rotY:PI/2,clips:{walk:0},list:[],lift:1.7},aztecw:{file:'aztecw',height:3.9,rotY:PI/2,clips:{walk:0},list:[],lift:1.7},
   fhero:{file:'fhero',height:4.3,rotY:PI/2,clips:{walk:0},list:[],lift:1.5},fmonster:{file:'fmonster',height:4.8,rotY:PI/2,clips:{walk:0},list:[],lift:1.5},fstatue:{file:'fstatue',height:4.3,rotY:PI/2,clips:{walk:0},list:[],lift:1.5},
   pharaoh:{file:'pharaoh',height:4.4,rotY:PI/2,clips:{walk:0},list:[]},queen:{file:'queen',height:4,rotY:PI/2,clips:{walk:0},list:[]},
-  bigfoot:{file:'bigfoot',height:3.9,rotY:PI/2,clips:{walk:0},list:[]},astronaut:{file:'astronaut',height:3.7,rotY:PI/2,clips:{walk:0},list:[],lift:1.3},whitefoot:{file:'whitefoot',height:4.1,rotY:PI/2,clips:{walk:0},list:[],lift:1.3},rex:{file:'rex',height:4.4,rotY:PI/2,clips:{walk:0},list:[],lift:1.3},
+  bigfoot:{file:'bigfoot',height:3.9,rotY:PI/2,clips:{walk:0},list:[]},golem:{file:'golem',height:4.4,rotY:PI/2,clips:{walk:0},list:[],lift:1.05},astronaut:{file:'astronaut',height:3.7,rotY:PI/2,clips:{walk:0},list:[],lift:1.3},whitefoot:{file:'whitefoot',height:4.1,rotY:PI/2,clips:{walk:0},list:[],lift:1.3},rex:{file:'rex',height:4.4,rotY:PI/2,clips:{walk:0},list:[],lift:1.3},
   reptilian:{file:'reptilian',height:4.4,rotY:PI/2,clips:{walk:0},list:[]},mantis:{file:'mantis',height:5,rotY:PI/2,clips:{walk:0},list:[]},
   tallwhite:{file:'tallwhite',height:5.4,rotY:PI/2,clips:{walk:0},list:[]},nordic:{file:'nordic',height:4.5,rotY:PI/2,clips:{walk:0},list:[]},
   robot:{file:'robot',height:4.2,rotY:PI/2,clips:{idle:'Idle',walk:'Walking',run:'Running',wave:'Wave'},list:[]}};
@@ -2373,6 +2373,49 @@ beginTown('lava');
     colliders.push({x0:T0.x-35,x1:T0.x+35,z0:T0.z-35,z1:T0.z+35,h:40,y0:0});
     const fire=glowSprite(0xff6a10,T0.x,52,T0.z,40,0.9);planetAnim.push({town:'lava',f:t=>{fire.material.opacity=0.6+0.3*Math.sin(t*7)+0.1*Math.sin(t*17);rune.color.setHSL(0.03+0.02*Math.sin(t),1,0.45+0.1*Math.sin(t*2));}});}
 })();
+// 🔥 MAGMOR, part 2: glowing cracked ground, a lava lake with a lava-fall, obsidian + fire-crystal fields, the Forge village, lava golems, ash lightning
+(function(){
+  const objs=[],add=m=>{objs.push(m);return m;},obs=new THREE.MeshPhongMaterial({color:0x0e0a12,emissive:0x1a0604,shininess:160,specular:0xff9a50,flatShading:true}),bas=new THREE.MeshLambertMaterial({color:0x2c2022,flatShading:true});
+  const clearAt=(x0,z0,R)=>{for(let k=0;k<70;k++){const a=k*2.4,d=k*7,x=x0+Math.cos(a)*d,z=z0+Math.sin(a)*d;if(Math.hypot(x,z)<560&&!colliders.some(c=>x+R>c.x0&&x-R<c.x1&&z+R>c.z0&&z-R<c.z1)&&!fields.some(f=>Math.abs(f.x-x)<50+R&&Math.abs(f.z-z)<50+R))return [x,z];}return [x0,z0];};
+  // --- glowing cracks all over the ground
+  const ck=texCanvas(512,512,q=>{q.fillStyle='#000';q.fillRect(0,0,512,512);q.lineCap='round';for(let i=0;i<34;i++){let x=rand(0,512),y=rand(0,512),a=rand(0,7);q.beginPath();q.moveTo(x,y);const n=4+(Math.random()*7|0);for(let k=0;k<n;k++){a+=rand(-0.9,0.9);x+=Math.cos(a)*rand(14,40);y+=Math.sin(a)*rand(14,40);q.lineTo(x,y);}
+      q.strokeStyle='rgba(255,90,20,.35)';q.lineWidth=7;q.stroke();q.strokeStyle='rgba(255,170,60,.9)';q.lineWidth=2.2;q.stroke();}});
+  ck.wrapS=ck.wrapT=THREE.RepeatWrapping;ck.repeat.set(9,9);const ckM=new THREE.Mesh(new THREE.PlaneGeometry(1500,1500),new THREE.MeshBasicMaterial({map:ck,transparent:true,opacity:0.7,blending:THREE.AdditiveBlending,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-1.5,polygonOffsetUnits:-1.5}));ckM.rotation.x=-PI/2;ckM.position.y=0.06;ckM.userData.keep=true;root.add(ckM);
+  // --- lava lake with islands, bubbles and a lava-fall pouring off a cliff
+  const [LX,LZ]=clearAt(-200,220,105);window.__lv={L:[LX,LZ]};const lt=texCanvas(256,256,q=>{q.fillStyle='#e0420c';q.fillRect(0,0,256,256);for(let i=0;i<120;i++){q.fillStyle=`rgba(${pick(['255,200,60','255,120,20','90,20,6','255,240,160'])},${rand(.15,.6).toFixed(2)})`;q.beginPath();q.ellipse(rand(0,256),rand(0,256),rand(6,34),rand(3,12),rand(0,3),0,7);q.fill();}});
+  lt.wrapS=lt.wrapT=THREE.RepeatWrapping;lt.repeat.set(4,4);const lake=new THREE.Mesh(new THREE.CircleGeometry(92,40),new THREE.MeshBasicMaterial({map:lt,polygonOffset:true,polygonOffsetFactor:-3,polygonOffsetUnits:-3}));lake.rotation.x=-PI/2;lake.position.set(LX,0.1,LZ);lake.userData.keep=true;root.add(lake);
+  for(let k=0;k<30;k++){const a=k/30*2*PI+rand(-.08,.08),r=92+rand(-3,6),s=rand(6,14),m=add(new THREE.Mesh(new THREE.DodecahedronGeometry(s,0),bas));m.position.set(LX+Math.cos(a)*r,s*0.25,LZ+Math.sin(a)*r);m.scale.y=0.6;m.rotation.y=rand(0,3);root.add(m);}
+  for(let k=0;k<7;k++){const a=rand(0,7),r=rand(15,70),s=rand(5,11),m=add(new THREE.Mesh(new THREE.CylinderGeometry(s*0.8,s,3,7),bas));m.position.set(LX+Math.cos(a)*r,1.2,LZ+Math.sin(a)*r);root.add(m);}
+  const lakeG=glowSprite(0xff6a1a,LX,10,LZ,230,0.3),bub=[];for(let k=0;k<12;k++){const s=glowSprite(0xffd060,LX,1,LZ,6,0);s.userData.keep=true;bub.push({s,x:LX+rand(-70,70),z:LZ+rand(-70,70),ph:rand(0,1),sp:rand(0.3,0.7)});}
+  {const cx=LX,cz=LZ-108;for(const [dx,w,h] of[[-34,30,52],[0,44,64],[36,30,48]]){add(box(root,w,h,26,bas,cx+dx,h/2,cz-8));}colliders.push({x0:cx-52,x1:cx+52,z0:cz-22,z1:cz+6,h:50,y0:0});}
+  const ft=texCanvas(64,256,q=>{const g=q.createLinearGradient(0,0,64,0);g.addColorStop(0,'#c8300a');g.addColorStop(.5,'#ffd060');g.addColorStop(1,'#c8300a');q.fillStyle=g;q.fillRect(0,0,64,256);for(let i=0;i<60;i++){q.fillStyle=`rgba(${pick(['255,255,200','120,20,4'])},${rand(.2,.6).toFixed(2)})`;q.fillRect(rand(0,64),rand(0,256),rand(2,7),rand(10,40));}});ft.wrapT=THREE.RepeatWrapping;
+  const fall=new THREE.Mesh(new THREE.PlaneGeometry(16,64),new THREE.MeshBasicMaterial({map:ft}));fall.position.set(LX,32,LZ-102.8);fall.userData.keep=true;root.add(fall);const fallG=glowSprite(0xff8a20,LX,6,LZ-96,46,0.7);
+  sign('THE LAVA LAKE','#ff9a40',22,3.2,LX,76,LZ-110,0);
+  // --- obsidian shards + fire crystals scattered across the plains
+  for(let i=0;i<34;i++){const a=rand(0,7),d=rand(120,600),x=Math.cos(a)*d,z=Math.sin(a)*d;if(!freeSpot(x,z,fields)||Math.hypot(x-LX,z-LZ)<125)continue;const fire=i%3===0,n=3+(Math.random()*4|0);
+    for(let k=0;k<n;k++){const h=fire?rand(4,14):rand(8,32),r=fire?rand(1.2,3):rand(2.5,6),m=add(new THREE.Mesh(new THREE.ConeGeometry(r,h,fire?6:4),fire?new THREE.MeshLambertMaterial({color:0xff7a20,emissive:0xd03808,flatShading:true}):obs));m.position.set(x+rand(-9,9),h/2-0.5,z+rand(-9,9));m.rotation.set(rand(-.3,.3),rand(0,3),rand(-.3,.3));root.add(m);}
+    if(fire)add(glowSprite(0xff6a1a,x,6,z,30,0.35));}
+  // --- THE FORGE: basalt huts with glowing doors round a great anvil, chimneys smoking
+  const [FX,FZ]=clearAt(230,-200,70),smoke=[];window.__lv.F=[FX,FZ];{for(let k=0;k<7;k++){const a=k/7*2*PI,x=FX+Math.cos(a)*42,z=FZ+Math.sin(a)*42,r=rand(7,10),h=rand(9,14);const hut=add(new THREE.Mesh(new THREE.CylinderGeometry(r*0.7,r,h,7),bas));hut.position.set(x,h/2,z);root.add(hut);
+      const rf=add(new THREE.Mesh(new THREE.ConeGeometry(r*0.95,5,7),obs));rf.position.set(x,h+2.5,z);root.add(rf);const dr=add(box(root,3,5,0.4,basic(0xff8a20),x-Math.cos(a)*(r-0.2),2.5,z-Math.sin(a)*(r-0.2)));dr.rotation.y=-a+PI/2;
+      add(new THREE.Mesh(new THREE.CylinderGeometry(1,1.3,6,6),bas)).position.set(x+2,h+5,z);root.add(objs[objs.length-1]);for(let j=0;j<2;j++){const s=glowSprite(0x4a4040,x+2,h+8,z,5,0.3);s.material.blending=THREE.NormalBlending;s.userData.keep=true;smoke.push({s,x:x+2,y:h+8,z,ph:rand(0,1)+j*0.5});}
+      colliders.push({x0:x-r*0.8,x1:x+r*0.8,z0:z-r*0.8,z1:z+r*0.8,h:h+4,y0:0});}
+    add(box(root,16,5,9,obs,FX,2.5,FZ));add(box(root,24,3,7,obs,FX,6.5,FZ));add(box(root,10,2,10,bas,FX,1,FZ));const pool=new THREE.Mesh(new THREE.RingGeometry(14,17,28),basic(0xff5a1a));pool.rotation.x=-PI/2;pool.position.set(FX,0.15,FZ);root.add(pool);add(pool);
+    colliders.push({x0:FX-12,x1:FX+12,z0:FZ-5,z1:FZ+5,h:8,y0:0});sign('THE FORGE','#ff9a40',16,3,FX,24,FZ,0);}
+  const forgeG=glowSprite(0xff7a20,FX,9,FZ,40,0.6);
+  freezeStatic(objs,root,true);
+  // --- 🪨 lava golems stomping about (beam one up!)
+  for(let i=0;i<8;i++){const g=makeHuman(false);g.scale.setScalar(2.1);g.userData.emoji='🪨';g.userData.pts=260;g.userData.heat=0.5;const s=glowSprite(0xff6a1a,0,0,0,4,0.35);root.remove(s);s.position.set(0,1.6,0);g.add(s);
+    const T={type:'critter',mesh:useAnim('golem',g,'lava'),spawn:spawnCow,fl:i<4?[{x:FX,z:FZ}]:[{x:LX+130,z:LZ},{x:LX-20,z:LZ+135}],rad:i<4?30:26};T.mesh.userData.T=T;T.spawn(T);targets.push(T);}
+  // --- lightning in the ash clouds
+  const bolt=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:0xffd0a0,transparent:true,opacity:0,blending:THREE.AdditiveBlending,depthWrite:false,fog:false}));bolt.scale.set(500,260,1);bolt.userData.keep=true;root.add(bolt);let bt=4,seen={};
+  planetAnim.push({town:'lava',f:(t,dt)=>{ckM.material.opacity=0.5+0.25*Math.sin(t*0.9);ckM.position.set(Math.round(pos.x/166.667)*166.667,0.06,Math.round(pos.z/166.667)*166.667);lt.offset.set(t*0.01,t*0.006);ft.offset.y=t*0.5;
+    lakeG.material.opacity=0.24+0.1*Math.sin(t*1.3);fallG.material.opacity=0.55+0.2*Math.sin(t*5);forgeG.material.opacity=0.45+0.25*Math.sin(t*6)*Math.sin(t*1.7);
+    bub.forEach(B=>{const u=(t*B.sp+B.ph)%1;B.s.position.set(B.x,0.6+u*2.4,B.z);B.s.scale.setScalar(2+u*9);B.s.material.opacity=u<0.85?0.5*u:0.9*(1-u)/0.15;});
+    smoke.forEach(S=>{const u=(t*0.16+S.ph)%1;S.s.position.set(S.x+u*8,S.y+u*26,S.z);S.s.scale.setScalar(5+u*18);S.s.material.opacity=0.34*(1-u);});
+    bt-=dt;if(bt<=0){bt=rand(3,9);const a=rand(0,7);bolt.position.set(pos.x+Math.cos(a)*900,rand(260,420),pos.z+Math.sin(a)*900);bolt.material.opacity=0.8;}else bolt.material.opacity*=0.86;
+    if(state!=='play'){seen={};return;}for(const [k,x,z,msg] of[['l',LX,LZ,'🌋 THE LAVA LAKE! +120'],['f',FX,FZ,'⚒️ THE FORGE OF MAGMOR! +120']]){if(!seen[k]&&Math.hypot(pos.x-x,pos.z-z)<60){seen[k]=1;score+=120;pop(msg);blip(260,900,0.4,'sawtooth',0.07);}}}});
+})();
 endTown('lava',[120,800]);Object.assign(towns.lava,{planet:true,fogC:new THREE.Color(0x4a1810),skyTint:0xff8060,label:'🔥 MAGMOR'});
 
 // 🍄 VERDANA
@@ -2480,6 +2523,56 @@ beginTown('jungle');
       for(let k=0;k<4;k++){const sp=new THREE.Mesh(new THREE.ConeGeometry(0.25,0.7,4),lam(0xffe040));sp.position.set(-0.8+k*0.6,3.1,0);g.add(sp);}
       g.userData.emoji='🦖';g.userData.pts=120;root.add(g);return useModel('dino',compactCritter(g));};
     for(let i=0;i<12;i++){const T={type:'critter',mesh:mkDino(),spawn:spawnCow,fl:fields};T.spawn(T);targets.push(T);}}
+})();
+// 🍄 VERDANA, part 2: glowing streams + a lily pond, colossal trees with a tree-house village, giant flowers, ferns, butterflies, lantern-jellies
+(function(){
+  const objs=[],add=m=>{objs.push(m);return m;},bark=new THREE.MeshLambertMaterial({color:0x4a3040,flatShading:true}),wood=lam(0x8a6a4a),caps=[0xff4fd8,0x45eaff,0xffa040,0xb46bff,0x6dff7a];
+  const glowM=c=>new THREE.MeshLambertMaterial({color:c,emissive:c,emissiveIntensity:0.5,flatShading:true});
+  const clearAt=(x0,z0,R)=>{for(let k=0;k<70;k++){const a=k*2.4,d=k*7,x=x0+Math.cos(a)*d,z=z0+Math.sin(a)*d;if(Math.hypot(x,z)<560&&!colliders.some(c=>c.y0<6&&x+R>c.x0&&x-R<c.x1&&z+R>c.z0&&z-R<c.z1)&&!fields.some(f=>Math.abs(f.x-x)<50+R&&Math.abs(f.z-z)<50+R))return [x,z];}return [x0,z0];};
+  // --- soft pools of light + glowing streams
+  const gt=texCanvas(128,128,q=>{const g=q.createRadialGradient(64,64,0,64,64,64);g.addColorStop(0,'rgba(255,255,255,.9)');g.addColorStop(.5,'rgba(255,255,255,.3)');g.addColorStop(1,'rgba(255,255,255,0)');q.fillStyle=g;q.fillRect(0,0,128,128);});
+  for(let i=0;i<30;i++){const a=rand(0,7),d=rand(60,620),r=rand(40,100),m=new THREE.Mesh(new THREE.PlaneGeometry(r*2,r*2),new THREE.MeshBasicMaterial({map:gt,color:pick([0x3aff9a,0x45eaff,0xb46bff,0xff5ad8]),transparent:true,opacity:rand(.22,.4),depthWrite:false,polygonOffset:true,polygonOffsetFactor:-1.5,polygonOffsetUnits:-1.5}));m.rotation.x=-PI/2;m.position.set(Math.cos(a)*d,0.07,Math.sin(a)*d);m.userData.keep=true;root.add(m);}
+  const rt=texCanvas(256,32,q=>{q.fillStyle='#1ad0c8';q.fillRect(0,0,256,32);for(let i=0;i<46;i++){q.fillStyle=`rgba(${pick(['200,255,240','255,255,255','120,240,255'])},${rand(.25,.7).toFixed(2)})`;q.fillRect(rand(0,256),rand(3,29),rand(10,46),rand(1,2.6));}});rt.wrapS=THREE.RepeatWrapping;
+  const rmat=new THREE.MeshBasicMaterial({map:rt,side:THREE.DoubleSide,polygonOffset:true,polygonOffsetFactor:-3,polygonOffsetUnits:-3});
+  const river=(pts,w)=>{const cv=new THREE.CatmullRomCurve3(pts.map(([x,z])=>new V3(x,0.1,z))),N=70,P=[],U=[],I=[],L=cv.getLength();for(let i=0;i<=N;i++){const u=i/N,p=cv.getPointAt(u),tg=cv.getTangentAt(u),ww=w*(0.75+0.25*Math.sin(u*9));P.push(p.x-tg.z*ww,0.1,p.z+tg.x*ww,p.x+tg.z*ww,0.1,p.z-tg.x*ww);U.push(u*L/60,0,u*L/60,1);if(i<N){const b=i*2;I.push(b,b+1,b+2,b+1,b+3,b+2);}}
+    const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(P,3));g.setAttribute('uv',new THREE.Float32BufferAttribute(U,2));g.setIndex(I);const m=new THREE.Mesh(g,rmat);m.userData.keep=true;root.add(m);};
+  const [PX,PZ]=clearAt(150,180,60);window.__jg={P:[PX,PZ]};river([[-660,-240],[-520,-180],[-380,-210],[-240,-120],[-120,-40],[10,40],[PX-40,PZ-30]],8);river([[PX+40,PZ+30],[PX+140,PZ+110],[PX+230,PZ+250],[PX+330,PZ+330],[680,560]],8);river([[-200,660],[-240,520],[-150,400],[-170,280],[-90,170],[-120,-40]],6);
+  // lily pond
+  {const w=new THREE.Mesh(new THREE.CircleGeometry(52,36),new THREE.MeshPhongMaterial({color:0x14a898,emissive:0x084a48,shininess:40,specular:0x224a48,polygonOffset:true,polygonOffsetFactor:-4,polygonOffsetUnits:-4}));w.rotation.x=-PI/2;w.position.set(PX,0.12,PZ);w.userData.keep=true;root.add(w);
+    for(let k=0;k<16;k++){const a=rand(0,7),r=rand(6,44),s=rand(2.4,4.6),p=add(new THREE.Mesh(new THREE.CylinderGeometry(s,s,0.25,10,1,false,0.5,5.6),lam(0x3aa04a)));p.position.set(PX+Math.cos(a)*r,0.35,PZ+Math.sin(a)*r);p.rotation.y=rand(0,6);root.add(p);
+      if(k%3===0){const f=add(new THREE.Mesh(new THREE.ConeGeometry(1.2,2,6),glowM(pick([0xff7ae0,0xffffff,0xffd84a]))));f.rotation.x=PI;f.position.set(p.position.x,1.5,p.position.z);root.add(f);}}}
+  const pondG=glowSprite(0x3affd8,PX,5,PZ,110,0.22);
+  // --- colossal trees with a tree-house village strung between them
+  const [VX,VZ]=clearAt(-180,-280,95);window.__jg.V=[VX,VZ];const TR=[[0,0],[62,18],[-40,58],[20,-64]].map(([dx,dz])=>[VX+dx,VZ+dz]),lan=[];
+  TR.forEach(([x,z],i)=>{const h=120+i*14;const t=add(new THREE.Mesh(new THREE.CylinderGeometry(6,11,h,9),bark));t.position.set(x,h/2,z);root.add(t);for(let k=0;k<5;k++){const a=k/5*2*PI+i,r=add(new THREE.Mesh(new THREE.ConeGeometry(4,22,5),bark));r.position.set(x+Math.cos(a)*11,4,z+Math.sin(a)*11);r.rotation.set(Math.sin(a)*0.9,0,-Math.cos(a)*0.9);root.add(r);}
+    for(let k=0;k<7;k++){const a=k/7*2*PI,c=add(new THREE.Mesh(new THREE.IcosahedronGeometry(rand(20,30),0),new THREE.MeshLambertMaterial({color:pick([0x2a8a6a,0x3a9a5a,0x4a2a8a,0x7a3aaa]),flatShading:true})));c.position.set(x+Math.cos(a)*rand(8,30),h+rand(-8,16),z+Math.sin(a)*rand(8,30));c.scale.y=0.6;root.add(c);}
+    for(let k=0;k<8;k++){const a=rand(0,7),r=rand(10,30),l=rand(20,50),v=add(box(root,0.4,l,0.4,lam(0x3aa05a),x+Math.cos(a)*r,h-10-l/2,z+Math.sin(a)*r));const fr=add(new THREE.Mesh(new THREE.SphereGeometry(1.3,8,6),glowM(pick(caps))));fr.position.set(v.position.x,h-10-l,v.position.z);root.add(fr);}
+    const py=38+i*9;const pf=add(new THREE.Mesh(new THREE.CylinderGeometry(17,15,1.4,12),wood));pf.position.set(x,py,z);root.add(pf);for(let k=0;k<12;k++){const a=k/12*2*PI;add(box(root,0.4,3,0.4,wood,x+Math.cos(a)*16.4,py+2,z+Math.sin(a)*16.4));}
+    for(let k=0;k<2;k++){const a=i+k*2.6,hx=x+Math.cos(a)*10.5,hz=z+Math.sin(a)*10.5;const hut=add(new THREE.Mesh(new THREE.CylinderGeometry(4,4.4,5.5,8),lam(0xc8a878)));hut.position.set(hx,py+3.4,hz);root.add(hut);const rf=add(new THREE.Mesh(new THREE.ConeGeometry(5.6,5,8),glowM(pick(caps))));rf.position.set(hx,py+8.6,hz);root.add(rf);add(box(root,1.6,2.6,0.3,basic(0xffe9a0),hx+Math.cos(a)*4.3,py+2.4,hz+Math.sin(a)*4.3)).rotation.y=-a+PI/2;}
+    colliders.push({x0:x-8,x1:x+8,z0:z-8,z1:z+8,h:h,y0:0});colliders.push({x0:x-15,x1:x+15,z0:z-15,z1:z+15,h:py+0.8,y0:py-1});
+    for(let k=0;k<4;k++){const a=k/4*2*PI+0.4,s=glowSprite(pick([0xffd84a,0xff9ae9,0x7ffcff]),x+Math.cos(a)*16.4,py+4.4,z+Math.sin(a)*16.4,5,0.8);s.userData.keep=true;lan.push(s);}});
+  for(const [i,j] of[[0,1],[0,2],[0,3]]){const [ax,az]=TR[i],[bx,bz]=TR[j],ay=38+i*9,by=38+j*9,dx=bx-ax,dz=bz-az,L=Math.hypot(dx,dz),ux=dx/L,uz=dz/L,n=Math.floor((L-32)/3);
+    for(let k=0;k<=n;k++){const u=k/n,d=16+u*(L-32),y=ay+(by-ay)*u-Math.sin(u*PI)*4,p=add(box(root,2.6,0.3,5,wood,ax+ux*d,y,az+uz*d));p.rotation.y=Math.atan2(-uz,ux);if(k%3===0)for(const s of[-1,1])add(box(root,0.25,2.6,0.25,wood,ax+ux*d-uz*2.4*s,y+1.3,az+uz*d+ux*2.4*s));}}
+  sign('TREETOP VILLAGE','#6dff7a',24,3.4,VX,30,VZ+40,0);
+  for(let i=0;i<10;i++){const g=makeHuman(false);g.userData.emoji='🌿';g.userData.pts=70;g.userData.heat=0.2;g.userData.tintHex=0x9affb0;g.scale.setScalar(1.3);const T={type:'critter',mesh:useAnim('alien',g,'jungle'),spawn:spawnCow,fl:[{x:VX+20,z:VZ+30},{x:VX-30,z:VZ-20}],rad:22};T.mesh.userData.T=T;T.spawn(T);targets.push(T);}
+  // --- giant flowers + ferns
+  for(let i=0;i<26;i++){const a=rand(0,7),d=rand(90,600),x=Math.cos(a)*d,z=Math.sin(a)*d;if(!freeSpot(x,z,fields)||Math.hypot(x-VX,z-VZ)<110||Math.hypot(x-PX,z-PZ)<64)continue;const h=rand(10,24),c=pick(caps);
+    const st=add(new THREE.Mesh(new THREE.CylinderGeometry(0.6,0.9,h,6),lam(0x3aa05a)));st.position.set(x,h/2,z);st.rotation.z=rand(-.12,.12);root.add(st);for(let k=0;k<7;k++){const pa=k/7*2*PI,p=add(new THREE.Mesh(new THREE.ConeGeometry(2.4,9,5),glowM(c)));p.position.set(x+Math.cos(pa)*3.6,h+1,z+Math.sin(pa)*3.6);p.rotation.set(Math.sin(pa)*1.15,0,-Math.cos(pa)*1.15);root.add(p);}
+    const ct=add(new THREE.Mesh(new THREE.SphereGeometry(2.2,8,6),glowM(0xffe14a)));ct.position.set(x,h+1,z);root.add(ct);for(let k=0;k<2;k++){const lf=add(new THREE.Mesh(new THREE.ConeGeometry(2,8,4),lam(0x2a8a4a)));lf.position.set(x+(k?3:-3),h*0.4,z);lf.rotation.z=k?-1.2:1.2;root.add(lf);}}
+  {const fg=new THREE.ConeGeometry(0.5,1,4);fg.translate(0,0.5,0);const fr=[];for(let i=0;i<300;i++){const x=rand(-600,600),z=rand(-600,600);for(let k=0;k<6;k++){const a=k/6*2*PI;fr.push({x:x+Math.cos(a)*1.2,z:z+Math.sin(a)*1.2,a,h:rand(3,7)});}}
+    inst(fg,new THREE.MeshLambertMaterial({color:0x3ab86a,emissive:0x0a3a1a,flatShading:true}),fr,d=>compose(d.x,0,d.z,1.4,d.h,0.5,Math.sin(d.a)*0.7,0,-Math.cos(d.a)*0.7));}
+  freezeStatic(objs,root,true);
+  // --- 🦋 butterflies + floating lantern-jellies
+  const wg=new THREE.BufferGeometry();wg.setAttribute('position',new THREE.Float32BufferAttribute([0,0,-0.8, 0,0,0.8, 1.8,0,1.2, 0,0,-0.8, 1.8,0,1.2, 1.5,0,-1],3));wg.computeVertexNormals();const bfs=[];
+  for(let i=0;i<22;i++){const c=pick(caps),m=new THREE.MeshBasicMaterial({color:c,side:THREE.DoubleSide}),g=new THREE.Group(),L=new THREE.Mesh(wg,m),R=new THREE.Mesh(wg,m);R.scale.x=-1;g.add(L);g.add(R);g.scale.setScalar(rand(0.9,1.6));g.traverse(o=>o.userData.keep=true);root.add(g);
+    bfs.push({g,L,R,cx:[VX,PX,0,-300,300][i%5]+rand(-50,50),cz:[VZ,PZ,60,200,-250][i%5]+rand(-50,50),r:rand(12,50),y:rand(5,34),w:rand(0.3,0.7)*(i%2?1:-1),a:rand(0,7),fl:rand(9,14)});}
+  const jel=[];for(let i=0;i<12;i++){const c=pick(caps),g=new THREE.Group(),b=new THREE.Mesh(new THREE.SphereGeometry(2.4,10,6,0,2*PI,0,PI/2),new THREE.MeshBasicMaterial({color:c,transparent:true,opacity:0.7}));g.add(b);for(let k=0;k<4;k++){const tn=new THREE.Mesh(new THREE.CylinderGeometry(0.08,0.08,5,4),new THREE.MeshBasicMaterial({color:c}));tn.position.set(Math.cos(k*1.6)*1.2,-2.5,Math.sin(k*1.6)*1.2);g.add(tn);}
+    const s=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:c,transparent:true,opacity:.5,blending:THREE.AdditiveBlending,depthWrite:false}));s.scale.set(12,12,1);g.add(s);g.traverse(o=>o.userData.keep=true);root.add(g);jel.push({g,x:rand(-420,420),z:rand(-420,420),y:rand(26,80),ph:rand(0,7)});}
+  let seen={};
+  planetAnim.push({town:'jungle',f:(t,dt)=>{rt.offset.x=-t*0.12;pondG.material.opacity=0.18+0.08*Math.sin(t*1.4);lan.forEach((s,i)=>{s.material.opacity=0.55+0.3*Math.sin(t*2.4+i);});
+    for(const B of bfs){B.a+=B.w*dt;B.g.position.set(B.cx+Math.cos(B.a)*B.r,B.y+Math.sin(t*1.7+B.r)*3,B.cz+Math.sin(B.a)*B.r);B.g.rotation.set(0,-B.a-(B.w>0?PI:0),0);const f=Math.sin(t*B.fl+B.r)*1.0;B.L.rotation.z=f;B.R.rotation.z=-f;}
+    jel.forEach(J=>{J.g.position.set(J.x+Math.sin(t*0.1+J.ph)*40,J.y+Math.sin(t*0.5+J.ph)*6,J.z+Math.cos(t*0.08+J.ph)*40);const p=1+0.12*Math.sin(t*2+J.ph);J.g.scale.set(p,1/p,p);});
+    if(state!=='play'){seen={};return;}for(const [k,x,z,msg] of[['v',VX,VZ,'🌳 THE TREETOP VILLAGE! +120'],['p',PX,PZ,'🪷 THE LILY POND +80']]){if(!seen[k]&&Math.hypot(pos.x-x,pos.z-z)<60){seen[k]=1;score+=k==='v'?120:80;pop(msg);blip(500,1300,0.4,'triangle',0.08);}}}});
 })();
 endTown('jungle',[140,850]);Object.assign(towns.jungle,{planet:true,fogC:new THREE.Color(0x2a2048),skyTint:0xc09cff,label:'🍄 VERDANA'});
 // 🏠 ZETA PRIME — the alien homeworld (reached by the long warp home from Earth orbit)
@@ -6371,7 +6464,7 @@ renderShop();
 // ---------- 📖 Abduction Log: a collection book of everything ever beamed up ----------
 const LOG_NAMES={'🐄':'Cow','🚗':'Car','🚓':'Police Car','🚚':'Truck','😴':'Sleeper','🚶':'Walker','🚜':'Tractor','🦊':'Fox','🤖':'Robot','📣':'Cheerleader','🏈':'Football Player','🎈':'Balloon','🏎️':'Luxury / Race Car','📺':'News Van','🌮':'Taco Truck','🍔':'Diner Guest','🔘':'Mystery Orb','🌑':'Jellyfish UFO',
   '👽':'Little Alien','🏃':'Area 51 Raider','🤳':'Streamer','🪖':'Soldier','🐎':'Mustang','🫏':'Burro','🔩':'Secret Tech','🕴️':'Man in Black','❄️':'Yeti','🐧':'Penguin','🦍':'Ice Ape','🦕':'Dinosaur','🦀':'Lava Crab','🦖':'T-Rex','🚙':'Moon Rover','🧊':'Hypercube','🪼':'Glitch Jelly','🤍':'Tall White','💙':'Nordic',
-  '🐪':'Camel','🧟':'Mummy','🐆':'Jaguar','🧗':'Climber / Zipliner','🦪':'Giant Pearl','💰':'Treasure Chest','🏝️':'Islander','🧑‍🚀':'Astronaut','🐾':'Whitefoot','🧙':'Lost City Citizen','🦅':'Pterodactyl','🦸':'Captain Zap (street performer)','👹':'Fuzzy Monster Mascot','🤠':'Golden Cowboy Statue','📸':'Fremont Tourist','🛩️':'Fighter Jet','🚤':'Speedboat','🛫':'Airliner','🥾':'Hiker','🕺':'Elvis','💃':'Showgirl','🚢':'Submarine','🐟':'Fish','🐢':'Sea Turtle','🦈':'Shark','🐋':'Whale','🐬':'Dolphin','🐙':'Octopus','🎣':'Fishing Boat','⛵':'Sailboat','👾':'Alien Specimen','🥼':'Scientist','🛞':'Mars Rover','🚁':'Mars Helicopter','💎':'Cave Crystal','🦇':'Cave Bat','👑':'Sleeping King','🛶':'Nile Boat','🦜':'Toucan / Macaw','🐒':'Spider Monkey','🦝':'Coati','🦎':'Iguana','🦃':'Wild Turkey','🪶':'Aztec Warrior','🌺':'Aztec Woman','💚':'Family & Friends','🪼':'Sky Jelly','🎤':'Zeta Live Band','🤴':'Pharaoh','👸':'Queen of the Nile','⚱️':'Golden Sarcophagus','⛏️':'Archaeologist','🐊':'Crocodile','👻':'Ghost Ship','🦌':'Reindeer','🎅':'Santa\'s Sleigh','🎁':'Present','🦶':'Bigfoot','🦄':'Unicorn','🎐':'Gas Floater','🛰️':'Lost Probe','🩶':'Grey','🦎':'Reptilian','🦗':'Mantis'};
+  '🐪':'Camel','🧟':'Mummy','🐆':'Jaguar','🧗':'Climber / Zipliner','🪨':'Lava Golem','🌿':'Treetop Villager','🦪':'Giant Pearl','💰':'Treasure Chest','🏝️':'Islander','🧑‍🚀':'Astronaut','🐾':'Whitefoot','🧙':'Lost City Citizen','🦅':'Pterodactyl','🦸':'Captain Zap (street performer)','👹':'Fuzzy Monster Mascot','🤠':'Golden Cowboy Statue','📸':'Fremont Tourist','🛩️':'Fighter Jet','🚤':'Speedboat','🛫':'Airliner','🥾':'Hiker','🕺':'Elvis','💃':'Showgirl','🚢':'Submarine','🐟':'Fish','🐢':'Sea Turtle','🦈':'Shark','🐋':'Whale','🐬':'Dolphin','🐙':'Octopus','🎣':'Fishing Boat','⛵':'Sailboat','👾':'Alien Specimen','🥼':'Scientist','🛞':'Mars Rover','🚁':'Mars Helicopter','💎':'Cave Crystal','🦇':'Cave Bat','👑':'Sleeping King','🛶':'Nile Boat','🦜':'Toucan / Macaw','🐒':'Spider Monkey','🦝':'Coati','🦎':'Iguana','🦃':'Wild Turkey','🪶':'Aztec Warrior','🌺':'Aztec Woman','💚':'Family & Friends','🪼':'Sky Jelly','🎤':'Zeta Live Band','🤴':'Pharaoh','👸':'Queen of the Nile','⚱️':'Golden Sarcophagus','⛏️':'Archaeologist','🐊':'Crocodile','👻':'Ghost Ship','🦌':'Reindeer','🎅':'Santa\'s Sleigh','🎁':'Present','🦶':'Bigfoot','🦄':'Unicorn','🎐':'Gas Floater','🛰️':'Lost Probe','🩶':'Grey','🦎':'Reptilian','🦗':'Mantis'};
 let LOG={};try{LOG=JSON.parse(localStorage.getItem('ufoLog')||'{}');}catch(e){}
 const logKey=T=>{const u=T.mesh.userData;return u.emoji||(u.police?'🚓':{cow:'🐄',car:'🚗',truck:'🚚'}[T.type]);};
 let LOG_CAT=null;
@@ -6640,7 +6733,7 @@ function planetTex(kind){
 }
 const SECTORS={
   earth:{name:'EARTH ORBIT',tex:planet.material.map,atm:[0.35,0.7,1],emis:0x0a1430,rock:[0x6a6058,0x5a5048],bg:0x02030a,home:'city',
-    portals:[{dest:'city',c:0x45eaff,label:'NEON CITY'},{dest:'sector:ice',c:0xd8f4ff,label:'FROST SECTOR ➜'},{dest:'desert',c:0xffa040,label:'AREA 51 DESERT'},{dest:'ocean',c:0x2ad8ff,label:'🌊 THE OCEAN'},{dest:'egypt',c:0xffc850,label:'🇪🇬 GIZA, EGYPT'},{dest:'maya',c:0x6dffb0,label:'🌴 YUCATÁN, MEXICO'},{dest:'vegas',c:0xff3fd2,label:'🎰 LAS VEGAS'},{dest:'sector:home',c:0xb07aff,label:'🏠 GO HOME · ZETA NEBULA ➜'}]},
+    portals:[{dest:'city',c:0x45eaff,label:'NEON CITY'},{dest:'sector:ice',c:0xd8f4ff,label:'FROST SECTOR ➜'},{dest:'desert',c:0xffa040,label:'AREA 51 DESERT'},{dest:'ocean',c:0x2ad8ff,label:'🌊 THE OCEAN'},{dest:'egypt',c:0xffc850,label:'🇪🇬 GIZA, EGYPT'},{dest:'maya',c:0x6dffb0,label:'🌴 YUCATÁN, MEXICO'},{dest:'vegas',c:0xff3fd2,label:'🎰 LAS VEGAS'},{dest:'lava',c:0xff5a1a,label:'🔥 MAGMOR'},{dest:'jungle',c:0x6dff7a,label:'🍄 VERDANA'},{dest:'sector:home',c:0xb07aff,label:'🏠 GO HOME · ZETA NEBULA ➜'}]},
   ice:{name:'FROST SECTOR',tex:planetTex('ice'),atm:[0.7,0.9,1],emis:0x1a2a40,rock:[0xbfe6ff,0x9fc8ef],bg:0x020a14,home:'ice',
     portals:[{dest:'ice',c:0x9fe8ff,label:'LAND: ANTARCTICA'},{dest:'sector:lava',c:0xff7a30,label:'INFERNO SECTOR ➜'},{dest:'sector:earth',c:0x45eaff,label:'⟲ EARTH ORBIT'}]},
   lava:{name:'INFERNO SECTOR',tex:planetTex('lava'),atm:[1,0.4,0.15],emis:0x2a0800,rock:[0x2a1a1a,0x5a2010],bg:0x0a0202,home:'lava',
