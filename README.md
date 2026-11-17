@@ -149,3 +149,5 @@ Zeta Prime plaza: patterned floor, pool of light with a turning holo-Earth, a ri
 Zeta Prime ground + roads: four glowing rivers with crystal banks, soft pools of light, twinkling star-moss, road centre lines, pink kerbs and lamp studs; residents are bigger with a soft halo.
 
 Neon City polish: 33 shop fronts with neon names and awnings, traffic lights downtown, steam vents, holo-ads on four towers (made-up brands), sweeping searchlights and blinking red beacons on every big tower.
+
+The Moon: Luna Base One (connecting tubes, solar field, tracking dish, fuel tanks, pad lights, astronauts), a first-landing site with footprints and buggy tracks, two drivable moon buggies, rock spires, dark rilles, a glowing ice crater (+120 when found), falling meteors and a station crossing the sky.
