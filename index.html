@@ -3747,6 +3747,78 @@ beginTown('maya');
       waterGlints.forEach(W=>{W.glint.material.opacity=0.18+0.5*(0.5+0.5*Math.sin(t*2.4+W.phase));});
     }});
   })();
+  // 🏛️ Yucatán civic architecture pass: palace court, carved lintels and plaza stonework
+  (function(){
+    const limestone=lam(0xb7aa8c),paleStone=lam(0xd0c2a0),shadowStone=lam(0x81765f),
+      plaster=lam(0xd8c8a4),paint=lam(0x9d5940),jade=lam(0x397d69),dark=lam(0x514b3d);
+    const court=new THREE.Group();court.position.set(72,0,170);root.add(court);
+    // Broad low terrace and a quiet enclosed court, set away from the main pyramid
+    const terrace=new THREE.Mesh(new THREE.BoxGeometry(92,2.2,58),limestone);terrace.position.set(0,1.1,0);court.add(terrace);
+    const paving=new THREE.Mesh(new THREE.BoxGeometry(80,0.18,46),paleStone);paving.position.set(0,2.28,0);court.add(paving);
+    for(const [x,z,w,d] of [[0,-27,92,3],[0,27,92,3],[-44,0,3,54],[44,0,3,54]]){
+      const wall=new THREE.Mesh(new THREE.BoxGeometry(w,3.2,d),shadowStone);wall.position.set(x,3.8,z);court.add(wall);
+      const cap=new THREE.Mesh(new THREE.BoxGeometry(w+0.8,0.55,d+0.8),paleStone);cap.position.set(x,5.55,z);court.add(cap);
+    }
+    // Open entry stair on the south side
+    for(let i=0;i<5;i++){
+      const step=new THREE.Mesh(new THREE.BoxGeometry(17,0.55,3.4),limestone);
+      step.position.set(0,0.35+i*0.48,31-i*3.2);court.add(step);
+    }
+    // Palace block: several connected rooms with a flat roof and a stepped roof comb
+    const palace=new THREE.Group();palace.position.set(-1,2.4,-8);court.add(palace);
+    const body=new THREE.Mesh(new THREE.BoxGeometry(55,8,19),plaster);body.position.y=4.2;palace.add(body);
+    const roof=new THREE.Mesh(new THREE.BoxGeometry(60,1.6,23),limestone);roof.position.y=9;palace.add(roof);
+    for(let i=0;i<7;i++){
+      const panel=new THREE.Mesh(new THREE.BoxGeometry(6.6,3.2,0.8),paleStone);
+      panel.position.set(-23+i*7.6,6.1,9.8);palace.add(panel);
+      const inset=new THREE.Mesh(new THREE.BoxGeometry(3.8,1.65,0.22),paint);
+      inset.position.set(-23+i*7.6,6.15,10.32);palace.add(inset);
+      const glyph=new THREE.Mesh(new THREE.BoxGeometry(0.75,0.75,0.3),jade);
+      glyph.position.set(-23+i*7.6,6.2,10.48);palace.add(glyph);
+    }
+    // Three recessed doorways and thick stone lintels facing the courtyard
+    for(let i=0;i<3;i++){
+      const x=-17+i*17;
+      const door=new THREE.Mesh(new THREE.BoxGeometry(5.2,5.6,0.45),dark);
+      door.position.set(x,3.1,9.85);palace.add(door);
+      const lintel=new THREE.Mesh(new THREE.BoxGeometry(7.4,1.2,1.5),limestone);
+      lintel.position.set(x,6.25,10.2);palace.add(lintel);
+      const lintelMark=new THREE.Mesh(new THREE.BoxGeometry(2.6,0.35,0.18),jade);
+      lintelMark.position.set(x,6.25,11.02);palace.add(lintelMark);
+    }
+    // Low stepped roof crest and corner ornaments
+    for(let i=0;i<9;i++){
+      const block=new THREE.Mesh(new THREE.BoxGeometry(5.3,1.4,2.2),limestone);
+      block.position.set(-24+i*6,10.5,0);palace.add(block);
+      const notch=new THREE.Mesh(new THREE.BoxGeometry(1.1,0.65,0.25),paint);
+      notch.position.set(-24+i*6,10.65,1.18);palace.add(notch);
+    }
+    for(const x of [-27,27]){
+      const ornament=new THREE.Mesh(new THREE.BoxGeometry(3,3,3),paleStone);
+      ornament.position.set(x,11.8,0);palace.add(ornament);
+    }
+    // Two small courtyard altars and patterned border stones
+    for(const x of [-27,27]){
+      const base=new THREE.Mesh(new THREE.BoxGeometry(9,1.4,7),shadowStone);base.position.set(x,3.05,15);court.add(base);
+      const top=new THREE.Mesh(new THREE.BoxGeometry(7,0.7,5),paleStone);top.position.set(x,4.05,15);court.add(top);
+      const marker=new THREE.Mesh(new THREE.BoxGeometry(1.5,4.4,1.1),limestone);marker.position.set(x,6.5,15);court.add(marker);
+      for(let k=0;k<3;k++){
+        const glyph=new THREE.Mesh(new THREE.BoxGeometry(0.38,0.38,0.18),paint);
+        glyph.position.set(x-0.48+k*0.48,6.7+k*0.55,15.62);court.add(glyph);
+      }
+    }
+    for(let i=0;i<18;i++){
+      const tile=new THREE.Mesh(new THREE.BoxGeometry(2.8,0.22,1.8),i%3===0?jade:(i%3===1?paint:limestone));
+      tile.position.set(-34+i*4,2.42,22);court.add(tile);
+    }
+    // A pair of shade trees frames the approach without blocking the entry
+    for(const x of [-55,55]){
+      const trunk=new THREE.Mesh(new THREE.CylinderGeometry(0.8,1.1,8,7),lam(0x705038));
+      trunk.position.set(x,4,37);court.add(trunk);
+      const crown=new THREE.Mesh(new THREE.SphereGeometry(6,8,6),lam(0x47713a));
+      crown.scale.set(1.2,0.65,1);crown.position.set(x,10,37);court.add(crown);
+    }
+  })();
   // A few low limestone markers and shade trees tie the hamlets into the old paths
   for(const [x,z] of[[-350,-455],[350,-455],[-300,445],[300,445]]){
     const plinth=new THREE.Mesh(new THREE.BoxGeometry(3.6,0.8,3.6),villageStone);plinth.position.set(x,0.4,z);root.add(plinth);
