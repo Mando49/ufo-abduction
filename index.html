@@ -1730,6 +1730,85 @@ for(let i=0;i<22;i++){const g=makeHuman(false);g.userData.emoji='🏃';g.userDat
   flatPlane(40,18,0x3a3a40,-1,X,Z-17);for(let i=0;i<3;i++){const c=box(root,4.4,1.6,2.2,pick([0xd04a4a,0x4a7ad0,0xe0c040]),X-10+i*9,1.2,Z-18);box(root,2.6,1.1,2,0x1a2230,X-10+i*9,2.4,Z-18);}
   for(let i=0;i<8;i++){const g=makeHuman(false);g.userData.emoji='🤳';g.userData.pts=45;g.userData.heat=0.4;const T={type:'critter',mesh:useAnim('person',g,'desert'),spawn:spawnCow,fl:[{x:X-14,z:Z-20}],rad:14};T.mesh.userData.T=T;T.spawn(T);targets.push(T);}
 })();
+// 🏪 Saucer Springs detail pass: painted storefronts (windows, doors, signs) + street furniture
+(function(){
+  const facade=(w,h,x,z,paint)=>{const S=40,t=texCanvas(Math.round(w*S),Math.round(h*S),g=>{g.scale(S,S);paint(g,w,h);});t.anisotropy=4;
+    const m=new THREE.Mesh(new THREE.PlaneGeometry(w,h),new THREE.MeshLambertMaterial({map:t,emissive:0xffffff,emissiveMap:t,emissiveIntensity:0.16}));m.rotation.y=PI;m.position.set(x,h/2,z);m.userData.keep=true;root.add(m);return m;};
+  const siding=(g,w,h,c1,c2,step)=>{g.fillStyle=c1;g.fillRect(0,0,w,h);g.fillStyle=c2;for(let y=0;y<h;y+=step)g.fillRect(0,y,w,0.05);};
+  const brick=(g,w,h,c1,c2)=>{g.fillStyle=c1;g.fillRect(0,0,w,h);g.fillStyle=c2;for(let r=0;r*0.35<h;r++){g.fillRect(0,r*0.35,w,0.04);for(let x=(r%2)*0.45;x<w;x+=0.9)g.fillRect(x,r*0.35,0.04,0.35);}};
+  const win=(g,x,y,w,h,lit,people)=>{g.fillStyle='#22262e';g.fillRect(x-0.15,y-0.15,w+0.3,h+0.3);const gr=g.createLinearGradient(0,y,0,y+h);gr.addColorStop(0,lit||'#ffd98a');gr.addColorStop(1,'#c98a3a');g.fillStyle=gr;g.fillRect(x,y,w,h);
+    if(people)for(let i=0;i<people;i++){const px=x+w*(i+0.5)/people+rand(-0.2,0.2);g.fillStyle='rgba(40,24,20,.75)';g.beginPath();g.arc(px,y+h*0.52,0.33,0,7);g.fill();g.fillRect(px-0.45,y+h*0.62,0.9,h*0.4);}
+    g.fillStyle='rgba(255,255,255,.22)';g.beginPath();g.moveTo(x+w*0.1,y);g.lineTo(x+w*0.3,y);g.lineTo(x+w*0.12,y+h);g.lineTo(x,y+h);g.closePath();g.fill();g.fillStyle='#22262e';for(let k=1;k<Math.round(w/2.2);k++)g.fillRect(x+w*k/Math.round(w/2.2)-0.04,y,0.08,h);};
+  const door=(g,x,y,w,h,c,glass)=>{g.fillStyle='#1c1e24';g.fillRect(x-0.12,y-0.12,w+0.24,h+0.12);g.fillStyle=c;g.fillRect(x,y,w,h);if(glass){g.fillStyle='#ffd98a';g.fillRect(x+0.2,y+0.25,w-0.4,h*0.5);}g.fillStyle='#d8d8d8';g.fillRect(x+w-0.3,y+h*0.55,0.12,0.4);};
+  const txt=(g,s,x,y,sz,c,al)=>{g.font=`900 ${sz}px system-ui,sans-serif`;g.textAlign=al||'center';g.textBaseline='middle';g.fillStyle=c;g.fillText(s,x,y);};
+  const awning=(x,z,w,c1,c2,y)=>{const n=Math.round(w/1.2);for(let i=0;i<n;i++){const b=box(root,w/n,0.25,3,i%2?c1:c2,x-w/2+(i+0.5)*w/n,y,z-1.4);b.rotation.x=-0.32;}};
+  const lot=(x,z,w,n)=>{flatPlane(w,13,0x34343a,-1,x,z);for(let i=0;i<=n;i++)flatPlane(0.3,6,0xe8e8e0,-2,x-w/2+1+i*(w-2)/n,z+2.5);};
+  const ac=(x,y,z)=>{box(root,2.4,1.3,2,0x9aa0aa,x,y+0.65,z);box(root,1.6,0.1,1.6,0x3a3f48,x,y+1.32,z);};
+  const can=(x,z)=>{const m=new THREE.Mesh(new THREE.CylinderGeometry(0.6,0.5,1.6,8),lam(0x3a5a44));m.position.set(x,0.8,z);root.add(m);};
+  const bench=(x,z)=>{box(root,3.4,0.25,1,0x7a4a2a,x,1,z);box(root,3.4,1,0.2,0x7a4a2a,x,1.6,z+0.45);box(root,0.25,1,0.9,0x2a2a30,x-1.4,0.5,z);box(root,0.25,1,0.9,0x2a2a30,x+1.4,0.5,z);};
+  const planter=(x,z)=>{box(root,2,1,2,0xb86a4a,x,0.5,z);const c=new THREE.Mesh(new THREE.CylinderGeometry(0.45,0.5,2.6,7),lam(0x3a8a4a));c.position.set(x,2.2,z);root.add(c);box(root,1.4,0.35,0.35,0x3a8a4a,x,2.3,z);box(root,0.35,1,0.35,0x3a8a4a,x+0.6,2.9,z);};
+  const picnic=(x,z,c)=>{box(root,4,0.25,2,0xa87a4a,x,1.5,z);box(root,4,0.2,0.7,0x8a6238,x,0.9,z-1.6);box(root,4,0.2,0.7,0x8a6238,x,0.9,z+1.6);box(root,0.25,1.5,2.6,0x5a4028,x-1.5,0.75,z);box(root,0.25,1.5,2.6,0x5a4028,x+1.5,0.75,z);
+    box(root,0.15,4.4,0.15,0xd8d8d8,x,2.6,z);const u=new THREE.Mesh(new THREE.ConeGeometry(3,1.1,8),lam(c));u.position.set(x,5,z);root.add(u);};
+  // sidewalk along the whole strip
+  flatPlane(330,5,0x8a8478,-2,180,99);
+  // ---------- DINER (150,118) front z=110 ----------
+  facade(30,8,150,109.55,(g,w,h)=>{g.fillStyle='#bfb8a8';g.fillRect(0,0,w,h);for(let x=0;x<w;x+=0.6){g.fillStyle=(Math.floor(x/0.6)%2)?'#8e929a':'#b8bcc4';g.fillRect(x,h-1.3,0.6,1.3);} // chrome ribbed base
+    g.fillStyle='#c0302a';g.fillRect(0,0.9,w,0.55);g.fillRect(0,h-1.6,w,0.3);g.fillStyle='#45eaff';g.fillRect(0,1.55,w,0.12);
+    for(let x=0;x<w;x+=0.7){g.fillStyle=(Math.floor(x/0.7)%2)?'#16181c':'#f4f4f4';g.fillRect(x,0.2,0.7,0.6);}
+    win(g,1.2,2.4,11,3.3,'#e8b860',5);win(g,17.8,2.4,11,3.3,'#e8b860',5);door(g,13.6,2.6,2.8,4.1,'#c0302a',true);
+    txt(g,'OPEN 24 HRS',15,2.1,0.55,'#ff4fd8');txt(g,'PIE · BURGERS · SHAKES',6.7,6.3,0.5,'#c0302a');txt(g,'BEST COFFEE IN THE GALAXY',23.3,6.3,0.5,'#c0302a');});
+  awning(150,109.5,6,0xc0302a,0xf4f4f4,7.2);ac(142,7,120);ac(158,7,122);
+  {const b=new THREE.Group();b.position.set(160,7.2,114);const bun=lam(0xd89a4a);for(const [y,r,hh,m] of[[0.5,2.2,1,bun],[1.25,2.4,0.5,lam(0x5a2a14)],[1.65,2.5,0.25,lam(0xf0c030)],[1.9,2.45,0.25,lam(0x4a9a3a)],[2.6,2.2,1.2,bun]]){const c=new THREE.Mesh(new THREE.CylinderGeometry(m===bun&&y>2?r*0.7:r,r,hh,14),m);c.position.y=y;b.add(c);}root.add(b);} // giant rooftop burger
+  lot(150,96.5,34,8);bench(140,107);bench(160,107);can(146,107.5);planter(134,107);planter(166,107);
+  for(const [x,c] of[[152.5,0x2a5ad0],[154.2,0xd0302a]])box(root,1.1,1.9,0.9,c,x,0.95,108.2); // newspaper boxes
+  // ---------- UFO GIFTS (90,125) front z=118 ----------
+  facade(18,7,90,117.7,(g,w,h)=>{siding(g,w,h,'#3f9a52','#2a6e3a',0.45);g.fillStyle='#1a3a22';g.fillRect(0,h-0.5,w,0.5);
+    win(g,0.9,2.3,6,3.2,'#d8ffd0');win(g,11.1,2.3,6,3.2,'#d8ffd0');door(g,7.7,2.5,2.6,4,'#f0e8d0',true);
+    for(const bx of[1.2,11.4])for(let i=0;i<4;i++){const x=bx+0.6+i*1.4;g.fillStyle=['#6dff7a','#ff4fd8','#45eaff','#ffd84a'][i];g.beginPath();g.ellipse(x,3.6,0.38,0.5,0,0,7);g.fill();g.fillRect(x-0.22,4,0.44,0.9);g.fillStyle='#101010';g.beginPath();g.ellipse(x-0.14,3.55,0.09,0.15,0.4,0,7);g.ellipse(x+0.14,3.55,0.09,0.15,-0.4,0,7);g.fill();} // alien dolls on display
+    txt(g,'T-SHIRTS · MAGNETS · ALIEN JERKY',9,1.5,0.62,'#eaffea');txt(g,'👽 SOUVENIRS 👽',9,0.65,0.6,'#ffd84a');txt(g,'OPEN',9,3.1,0.4,'#c0302a');});
+  awning(90,117.6,16,0x6dff7a,0xf4f4f4,6.3);ac(84,7,128);
+  {const s=new THREE.Group();s.position.set(95,7.6,124);const d=new THREE.Mesh(new THREE.SphereGeometry(3,18,10),new THREE.MeshLambertMaterial({color:0xb8c0cc,emissive:0x14181e}));d.scale.y=0.3;s.add(d);const dm=new THREE.Mesh(new THREE.SphereGeometry(1.3,12,8),new THREE.MeshLambertMaterial({color:0x6dff7a,emissive:0x2a7a34}));dm.position.y=0.7;s.add(dm);s.rotation.z=0.18;root.add(s);glowSprite(0x6dff7a,95,8.4,124,9,0.5);} // little saucer crashed on the roof
+  for(const x of[83.5,96.5]){box(root,0.2,3,0.2,0x2a2a30,x,1.5,116);for(let k=0;k<3;k++)box(root,1.5,0.7,0.12,pick([0xf0e0c0,0x9ad8ff,0xffb0d0]),x,1+k*0.8,115.9);} // postcard racks
+  for(const [x,c] of[[80,0x6dff7a],[100.5,0xff4fd8]]){const m=new THREE.Mesh(new THREE.CylinderGeometry(0.7,0.9,3.4,8),lam(c));m.position.set(x,1.7,116);root.add(m);const hh=new THREE.Mesh(new THREE.SphereGeometry(1.1,10,8),lam(c));hh.position.set(x,4.2,116);hh.scale.y=1.2;root.add(hh);} // inflatable aliens
+  lot(84,96.5,24,5);can(101.5,113);
+  // ---------- MOTEL (225,125) front z=118 ----------
+  facade(48,7,225,117.7,(g,w,h)=>{brick(g,w,h,'#c96a4a','#a4523a');g.fillStyle='#f0e6d0';g.fillRect(0,0,w,0.7);g.fillStyle='#45eaff';g.fillRect(0,0.7,w,0.1);
+    for(let i=0;i<8;i++){const x=1+i*5.9;door(g,x,2.6,2,3.9,['#2a8a8a','#d08a2a'][i%2]);txt(g,String(i+1),x+1,3.3,0.6,'#fff');win(g,x+2.5,3,2.6,2,'#ffe2a0');g.fillStyle='rgba(180,60,60,.75)';g.fillRect(x+2.5,3,0.7,2);g.fillRect(x+4.4,3,0.7,2);g.fillStyle='#9aa0aa';g.fillRect(x+3,5.3,1.6,0.7);
+      g.fillStyle='#ffe9a0';g.beginPath();g.arc(x+1,2.1,0.2,0,7);g.fill();}
+    txt(g,'COLOR TV · POOL · FREE ICE',24,1.5,0.6,'#f0e6d0');});
+  box(root,49,0.4,4,0xf0e6d0,225,7.1,116.2);for(let i=0;i<9;i++)box(root,0.3,7,0.3,0xf0e6d0,201.6+i*5.9,3.5,114.5); // covered walkway
+  box(root,2.4,3.6,1.6,0xe8eef4,248.5,1.8,116.6);box(root,2,1.4,0.1,basic(0x9adfff),248.5,2.6,115.75);box(root,2.2,3.8,1.6,0xc0302a,245.6,1.9,116.6);box(root,1.6,2.4,0.1,basic(0xffd0d0),245.6,2.2,115.75); // ice + soda machines
+  {const px=232,pz=104;flatPlane(22,13,0xd8d0c0,-2,px,pz);const w=new THREE.Mesh(new THREE.PlaneGeometry(16,8),new THREE.MeshPhongMaterial({color:0x2ac8e8,emissive:0x0a4a5a,shininess:120,polygonOffset:true,polygonOffsetFactor:-6,polygonOffsetUnits:-6}));w.rotation.x=-PI/2;w.position.set(px,0.1,pz);w.userData.keep=true;root.add(w);
+    for(const [a,b,c,d] of[[17,0.5,px,pz-4.25],[17,0.5,px,pz+4.25],[0.5,9,px-8.25,pz],[0.5,9,px+8.25,pz]])box(root,a,0.4,b,0xf4f4f4,c,0.2,d);
+    for(let i=0;i<4;i++){const cx=px-7+i*4.6;box(root,1.2,0.25,3,pick([0xff4fd8,0x45eaff,0xffd84a]),cx,0.6,pz-6.2).rotation.x=0.12;}
+    box(root,0.15,2.2,0.15,0xd8d8d8,px+7,1.1,pz+3.4);box(root,0.15,2.2,0.15,0xd8d8d8,px+7.6,1.1,pz+3.4);box(root,2.6,0.2,1,0x45a0d0,px+6.6,1.3,pz+2.6);glowSprite(0x2ad8ff,px,1,pz,16,0.3);} // motel pool, loungers, diving board
+  lot(215,107.5,22,5);for(let i=0;i<3;i++){const cx=208+i*4.4*1.6;box(root,2.2,1.4,4.6,pick([0xd04a4a,0x4a7ad0,0xe0e0e0,0x3a8a5a]),cx,1,107);box(root,2,1,2.4,0x1a2230,cx,2.1,107.3);}
+  // ---------- GAS STATION (canopy 300,110 · store 300,132) ----------
+  facade(18,5,300,126.8,(g,w,h)=>{siding(g,w,h,'#d8d0c0','#b8b0a0',0.5);g.fillStyle='#c0302a';g.fillRect(0,0,w,0.8);txt(g,'ROCKET FUEL · SNACKS · MAPS',9,0.42,0.5,'#fff');
+    win(g,0.8,1.6,6.4,2.3,'#fff0c0');win(g,10.8,1.6,6.4,2.3,'#fff0c0');door(g,7.8,1.5,2.4,3.5,'#e8e8e8',true);
+    for(let i=0;i<5;i++){g.fillStyle=['#ff4fd8','#45eaff','#ffd84a','#6dff7a','#ff8a3a'][i];g.fillRect(1.1+i*1.2,2.9,0.8,0.9);g.fillRect(11.1+i*1.2,2.9,0.8,0.9);}txt(g,'ICE',15.6,4.5,0.5,'#2a6ad0');});
+  for(const x of[292,300,308]){box(root,0.7,0.8,0.1,basic(0x9affc0),x,1.5,109.55);box(root,1.2,0.3,1,0xf4f4f4,x,1.95,110);box(root,0.12,1.2,0.12,0x16181c,x+0.65,1.1,110.3);box(root,1.6,0.3,2.4,0x8a8478,x,0.15,110);} // pump screens, tops, hoses, islands
+  box(root,26.4,0.5,16.4,0xc0302a,300,8.1,110);for(const x of[292,300,308])glowSprite(0xfff4d8,x,6.4,110,7,0.5);
+  box(root,6,5,0.5,0x16181c,320,8,93);box(root,5.4,1,0.1,basic(0xffbe46),320,9.6,92.7);box(root,5.4,1,0.1,basic(0x6dff7a),320,8.2,92.7);box(root,5.4,1,0.1,basic(0xff5a5a),320,6.8,92.7); // price board
+  box(root,3,2.4,1.6,0xe8eef4,307,1.2,126);box(root,2.6,0.6,0.1,basic(0x2a6ad0),307,2,125.15);for(let k=0;k<4;k++){const tr=new THREE.Mesh(new THREE.TorusGeometry(0.9,0.38,6,12),lam(0x16181c));tr.rotation.x=PI/2;tr.position.set(291.5,0.4+k*0.7,125.6);root.add(tr);} // ice chest, tire stack
+  box(root,0.9,2.2,0.7,0x2a6ad0,311.5,1.1,125.8);box(root,3.4,2,2,0x3a5a44,286,1,136);ac(300,5,133);
+  // ---------- ALIEN INN (40,118) front z=110 ----------
+  facade(30,8,40,109.55,(g,w,h)=>{siding(g,w,h,'#d8cfbe','#b8ae9a',0.5);g.fillStyle='#2a2f3a';g.fillRect(0,h-0.7,w,0.7);g.fillStyle='#7dff8a';g.fillRect(0,0.15,w,0.12);
+    win(g,15.5,2.6,9.5,3.2,'#ffe6a8',4);door(g,2.4,2.3,3.2,4.9,'#3a2a20',true);
+    // mural: saucer beaming up a cow under the stars
+    g.fillStyle='#141a3a';g.fillRect(7,1.4,7.2,5.6);for(let i=0;i<40;i++){g.fillStyle='#fff';g.fillRect(7+Math.random()*7.2,1.4+Math.random()*3,0.06,0.06);}
+    g.fillStyle='rgba(125,255,138,.35)';g.beginPath();g.moveTo(10.2,2.9);g.lineTo(11,2.9);g.lineTo(12.4,6.6);g.lineTo(8.8,6.6);g.closePath();g.fill();
+    g.fillStyle='#b8c0cc';g.beginPath();g.ellipse(10.6,2.7,1.9,0.42,0,0,7);g.fill();g.fillStyle='#7dff8a';g.beginPath();g.ellipse(10.6,2.4,0.8,0.5,0,PI,2*PI);g.fill();
+    g.fillStyle='#f4f4f4';g.fillRect(10,5,1.3,0.75);g.fillRect(9.75,4.85,0.45,0.45);g.fillStyle='#16181c';g.fillRect(10.4,5.1,0.4,0.3);g.fillRect(10.05,5.75,0.15,0.5);g.fillRect(11.05,5.75,0.15,0.5);
+    g.fillStyle='#3a5a2a';g.fillRect(7,6.6,7.2,0.4);
+    g.fillStyle='#16181c';g.fillRect(25.7,2.2,3.6,4.6);txt(g,'MENU',27.5,2.7,0.5,'#ffd84a');['ALIEN BURGER','SAUCER FRIES','MOON PIE','COSMIC SHAKE'].forEach((s,i)=>txt(g,s,27.5,3.5+i*0.75,0.36,'#f4f4f4'));
+    txt(g,'WORLD FAMOUS ALIEN BURGER',20.2,1.6,0.6,'#c0302a');});
+  awning(42.4,109.5,6,0x7dff8a,0x2a2f3a,7.6);ac(34,8.5,121);ac(46,8.5,123);
+  picnic(54,104,0xff4fd8);picnic(62,104,0x7dff8a);can(58,107.5);planter(26,107);
+  {const s=new THREE.Group();s.position.set(48,10.4,118);const d=new THREE.Mesh(new THREE.SphereGeometry(4.4,20,10),new THREE.MeshLambertMaterial({color:0xc8ced8,emissive:0x16181e}));d.scale.y=0.26;s.add(d);const dm=new THREE.Mesh(new THREE.SphereGeometry(1.8,14,8),new THREE.MeshLambertMaterial({color:0x7dff8a,emissive:0x2a7a34}));dm.position.y=0.9;s.add(dm);for(let k=0;k<8;k++){const a=k/8*2*PI,l=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:[0xff4fd8,0x45eaff,0xffd84a][k%3],transparent:true,depthWrite:false}));l.position.set(Math.cos(a)*3.9,0,Math.sin(a)*3.9);l.scale.set(1.6,1.6,1);s.add(l);}root.add(s);desertAnim.push((dt,t)=>{s.rotation.y=t*0.6;});} // spinning saucer sign on the roof
+  // power poles + dumpsters behind the strip
+  for(let x=30;x<=330;x+=60){box(root,0.5,14,0.5,0x5a4028,x,7,142);box(root,5,0.3,0.3,0x5a4028,x,13,142);}for(const x of[118,180,270])box(root,4.4,2.2,2.4,0x2a5a3a,x,1.1,138);
+})();
 // 🪖 soldiers on patrol, 🐎 wild mustangs and 🫏 burros roaming the open desert
 for(let i=0;i<9;i++){const g=makeHuman(false);g.userData.emoji='🪖';g.userData.pts=70;g.userData.heat=1.2;
   const T={type:'critter',mesh:useAnim('soldier',g,'desert'),spawn:spawnCow,fl:[{x:-240,z:-215},{x:420,z:-290},{x:-300,z:200},{x:60,z:-150}],rad:40};T.mesh.userData.T=T;T.spawn(T);targets.push(T);}
