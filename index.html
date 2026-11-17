@@ -2486,9 +2486,9 @@ beginTown('home');
   for(const [x,y,z,r,c] of[[900,520,-1300,150,0xff9ad8],[-1200,640,-900,90,0x9affd8],[300,900,1500,260,0xffc880]]){const m=new THREE.Mesh(new THREE.SphereGeometry(r,24,16),new THREE.MeshBasicMaterial({color:c,fog:false}));m.position.set(x,y,z);m.userData.keep=true;root.add(m);
     if(r>200){const rg=new THREE.Mesh(new THREE.RingGeometry(r*1.3,r*2,48),new THREE.MeshBasicMaterial({color:0xffe6b0,transparent:true,opacity:.55,side:THREE.DoubleSide,fog:false}));rg.rotation.x=1.2;rg.position.copy(m.position);rg.userData.keep=true;root.add(rg);}}
   // family and friends: greys, tall whites, nordics, elders
-  for(let i=0;i<26;i++){const g=makeHuman(false);g.userData.emoji='💚';g.userData.pts=25;g.userData.heat=0;g.scale.setScalar(1.5);
+  for(let i=0;i<26;i++){const g=makeHuman(false);g.userData.emoji='💚';g.userData.pts=25;g.userData.heat=0;g.scale.setScalar(2.3);{const h=glowSprite(0x7dffa0,0,0,0,3.2,0.4);root.remove(h);h.position.set(0,1.4,0);h.userData.keep=true;g.add(h);}
     const T={type:'critter',mesh:useAnim('alien',g,'home'),spawn:spawnCow,fl:[{x:0,z:60},{x:-70,z:-40},{x:80,z:-30},{x:150,z:120},{x:-160,z:110},{x:20,z:-170}],rad:38};T.mesh.userData.T=T;T.spawn(T);targets.push(T);}
-  for(let i=0;i<10;i++){const g=makeHuman(false);g.userData.emoji=i%2?'🧝':'🤍';g.userData.pts=40;g.userData.heat=0;
+  for(let i=0;i<10;i++){const g=makeHuman(false);g.userData.emoji=i%2?'🧝':'🤍';g.userData.pts=40;g.userData.heat=0;g.scale.setScalar(1.35);{const h=glowSprite(i%2?0xffe9a0:0xdfe8ff,0,0,0,3.4,0.35);root.remove(h);h.position.set(0,2.2,0);h.userData.keep=true;g.add(h);}
     const T={type:'critter',mesh:useAnim(i%2?'nordic':'tallwhite',g,'home'),spawn:spawnCow,fl:[{x:0,z:-50},{x:60,z:60},{x:-60,z:70}],rad:30};T.mesh.userData.T=T;T.spawn(T);targets.push(T);}
   let fw=0;planetAnim.push({town:'home',f:(t,dt)=>{holo.rotation.y=t*0.5;holo.position.y=34+Math.sin(t)*2;ms.rotation.y=t*0.05;saucers.forEach(S=>{S.g.position.y=5+Math.sin(t*1.2+S.ph)*0.8;S.g.rotation.y=t*0.4+S.ph;});
     fw-=dt;if(fw<=0){fw=rand(0.5,1.4);const c=pick([0xff5ad8,0x45eaff,0xffd84a,0x6dffb0]),p=tmpV2.set(rand(-160,160),rand(60,130),rand(-160,160));for(let i=0;i<18;i++)spawnFx(p,tmpV.set(rand(-1,1),rand(-1,1),rand(-1,1)).normalize().multiplyScalar(rand(12,26)),0.9,1.6,2.4,c,true);}}});
@@ -2722,6 +2722,42 @@ const ZHOUSE={x:150,z:165,in:false,nap:false};let BIKE_RACE=null;
     orbs.forEach((s,i)=>{const k=((t*1.5-i)%12+12)%12;s.material.opacity=0.2+0.7*Math.max(0,1-k/3);s.scale.setScalar(7+5*Math.max(0,1-k/3));});
     for(const P of pul){P.u=(P.u+dt*0.13)%1;const r=106+P.u*440;P.s.position.set(Math.cos(P.th)*r,1.2,Math.sin(P.th)*r);P.s.material.opacity=0.85*Math.sin(P.u*PI);}
     for(const F of ff){F.a+=F.w*dt;F.s.position.set(Math.cos(F.a)*F.r,F.y+Math.sin(t*0.8+F.ph)*2.5,Math.sin(F.a)*F.r);F.s.material.opacity=0.45+0.4*Math.sin(t*2.2+F.ph);}}});
+})();
+// 🏠 Zeta Prime, part 6: living ground (glowing rivers, light pools, star-moss), lit roads, easier-to-see residents
+(function(){
+  const objs=[],add=m=>{objs.push(m);return m;};
+  // --- roads: bright centre line, pink kerbs, lamp studs down both sides
+  for(let k=0;k<6;k++){const a=k/6*PI;const c=add(flatPlane(1100,0.7,0xe8fdff,-3,0,0));c.rotation.z=a;c.position.y=0.1;
+    for(const s of[-1,1]){const e=add(flatPlane(1100,0.6,0xff7ae0,-3,-Math.sin(a)*3.6*s*-1,Math.cos(a)*3.6*s*-1));e.rotation.z=a;e.position.y=0.1;}}
+  const studM=basic(0xbff8ff),studP=basic(0xffb0f0);
+  for(let j=0;j<12;j++){const th=j/12*2*PI,cx=Math.cos(th),cz=Math.sin(th);for(let r=124;r<=540;r+=32){if(Math.abs(r-150)<8||Math.abs(r-305)<14)continue;for(const s of[-1,1]){
+    const x=cx*r-cz*5.2*s,z=cz*r+cx*5.2*s;add(box(root,0.6,2.2,0.6,0x4a3f86,x,1.1,z));add(box(root,1.3,0.8,1.3,(r/32|0)%2?studM:studP,x,2.6,z));}}}
+  // --- soft pools of light on the ground instead of flat patches
+  const gt=texCanvas(128,128,q=>{const g=q.createRadialGradient(64,64,0,64,64,64);g.addColorStop(0,'rgba(255,255,255,.9)');g.addColorStop(.5,'rgba(255,255,255,.3)');g.addColorStop(1,'rgba(255,255,255,0)');q.fillStyle=g;q.fillRect(0,0,128,128);});
+  for(let i=0;i<34;i++){const a=rand(0,2*PI),d=rand(170,640),r=rand(40,110),m=new THREE.Mesh(new THREE.PlaneGeometry(r*2,r*2),new THREE.MeshBasicMaterial({map:gt,color:pick([0x3a6aff,0x9a4aff,0x1fb8a8,0xff4ac8,0x4a3aff]),transparent:true,opacity:rand(.3,.5),depthWrite:false,polygonOffset:true,polygonOffsetFactor:-1.5,polygonOffsetUnits:-1.5}));
+    m.rotation.x=-PI/2;m.position.set(Math.cos(a)*d,0.07,Math.sin(a)*d);m.userData.keep=true;root.add(m);}
+  // --- glowing rivers that flow into / past the lake
+  const rt=texCanvas(256,32,q=>{q.fillStyle='#18c8dc';q.fillRect(0,0,256,32);for(let i=0;i<46;i++){q.fillStyle=`rgba(${pick(['140,255,240','255,255,255','90,220,255'])},${rand(.25,.7).toFixed(2)})`;q.fillRect(rand(0,256),rand(3,29),rand(10,46),rand(1,2.6));}
+    const e=q.createLinearGradient(0,0,0,32);e.addColorStop(0,'rgba(190,255,250,.95)');e.addColorStop(.16,'rgba(190,255,250,0)');e.addColorStop(.84,'rgba(190,255,250,0)');e.addColorStop(1,'rgba(190,255,250,.95)');q.fillStyle=e;q.fillRect(0,0,256,32);});
+  rt.wrapS=THREE.RepeatWrapping;const rmat=new THREE.MeshBasicMaterial({map:rt,side:THREE.DoubleSide,polygonOffset:true,polygonOffsetFactor:-3,polygonOffsetUnits:-3});
+  const river=(pts,w)=>{const cv=new THREE.CatmullRomCurve3(pts.map(([x,z])=>new V3(x,0.1,z))),N=70,P=[],U=[],I=[],L=cv.getLength();
+    for(let i=0;i<=N;i++){const u=i/N,p=cv.getPointAt(u),tg=cv.getTangentAt(u),nx=-tg.z,nz=tg.x,ww=w*(0.75+0.25*Math.sin(u*9));P.push(p.x+nx*ww,0.1,p.z+nz*ww,p.x-nx*ww,0.1,p.z-nz*ww);U.push(u*L/60,0,u*L/60,1);
+      if(i<N){const b=i*2;I.push(b,b+1,b+2,b+1,b+3,b+2);}}
+    const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(P,3));g.setAttribute('uv',new THREE.Float32BufferAttribute(U,2));g.setIndex(I);
+    const m=new THREE.Mesh(g,rmat);m.userData.keep=true;root.add(m);
+    for(let i=4;i<N;i+=7){const p=cv.getPointAt(i/N),tg=cv.getTangentAt(i/N),s=i%2?1:-1,c=pick([0x6dffb0,0x45eaff,0xff7ae0]),h=rand(3,7); // crystals + reeds on the banks
+      const k=add(new THREE.Mesh(new THREE.ConeGeometry(rand(1,1.8),h,5),new THREE.MeshLambertMaterial({color:c,emissive:c,emissiveIntensity:0.55,flatShading:true})));k.position.set(p.x-tg.z*(w+2.5)*s,h/2,p.z+tg.x*(w+2.5)*s);k.rotation.set(rand(-.2,.2),rand(0,3),rand(-.2,.2));root.add(k);}};
+  river([[-680,430],[-600,372],[-520,352],[-455,300],[-405,268]],11);
+  river([[-262,318],[-205,372],[-150,395],[-110,470],[-40,540],[30,600],[60,690]],11);
+  river([[690,-150],[590,-100],[520,-30],[455,40],[410,150],[450,270],[540,350],[690,420]],12);
+  river([[-690,-330],[-600,-300],[-540,-230],[-470,-250],[-400,-330],[-330,-420],[-300,-560],[-340,-690]],10);
+  freezeStatic(objs,root,true);
+  // --- star-moss: thousands of tiny twinkling lights in the ground
+  const N=1500,pp=new Float32Array(N*3),pc=new Float32Array(N*3),col=new THREE.Color();
+  for(let i=0;i<N;i++){const a=rand(0,2*PI),d=Math.sqrt(rand(0.04,1))*660;pp[i*3]=Math.cos(a)*d;pp[i*3+1]=rand(0.3,0.9);pp[i*3+2]=Math.sin(a)*d;col.setHex(pick([0x7ffcff,0xff9ae9,0xb49aff,0x9affc8,0xffffff]));pc[i*3]=col.r;pc[i*3+1]=col.g;pc[i*3+2]=col.b;}
+  const mg=new THREE.BufferGeometry();mg.setAttribute('position',new THREE.BufferAttribute(pp,3));mg.setAttribute('color',new THREE.BufferAttribute(pc,3));
+  const moss=new THREE.Points(mg,new THREE.PointsMaterial({size:1.5,map:GLOW,vertexColors:true,transparent:true,opacity:0.85,blending:THREE.AdditiveBlending,depthWrite:false}));moss.userData.keep=true;root.add(moss);
+  planetAnim.push({town:'home',f:t=>{rt.offset.x=-t*0.12;moss.material.opacity=0.6+0.25*Math.sin(t*1.3);}});
 })();
 endTown('home',[300,1900]);Object.assign(towns.home,{planet:true,fogC:new THREE.Color(0x1a0a3a),skyTint:0xb07aff,label:'🏠 ZETA PRIME · HOME',bloom:0.3});
 // 🌕 THE MOON

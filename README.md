@@ -145,3 +145,5 @@ Earth from orbit: the planet below now shows North America (centered on Las Vega
 Green Antarctica: the Lost City now has a wall with a golden gate, a column avenue, fountains, a step-pyramid temple, houses, gardens and citizens. Bigfoot roams the woods, Whitefoot lives near the Ice Wall, dinosaurs really walk, snow petrels wheel overhead and pterodactyls circle the city tower (they hover when the saucer is close).
 
 Zeta Prime plaza: patterned floor, pool of light with a turning holo-Earth, a ring of chasing light pylons, six gardens with benches, gate arches on every road, energy pulses along the roads and a ring boulevard.
+
+Zeta Prime ground + roads: four glowing rivers with crystal banks, soft pools of light, twinkling star-moss, road centre lines, pink kerbs and lamp studs; residents are bigger with a soft halo.
