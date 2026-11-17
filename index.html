@@ -3397,6 +3397,23 @@ function makeShowgirl(){
     const pg=K(new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:0x38bfff,transparent:true,opacity:.18,blending:THREE.AdditiveBlending,depthWrite:false})));pg.position.set(FX,3,FZ);pg.scale.set(120,170,1);root.add(pg);
     for(let i=0;i<8;i++)palmTree(FX+52,FZ-74+i*21,1.1);for(let i=0;i<5;i++){palmTree(FX-38+i*19,FZ-88,1);palmTree(FX-38+i*19,FZ+88,1);}
     planetAnim.push({town:'vegas',f:t=>{mist.forEach(M=>{M.m.material.opacity=0.06+0.2*(0.5+0.5*Math.sin(t*1.7+M.ph));M.m.position.y=11+Math.sin(t+M.ph)*2;});pg.material.opacity=0.1+0.12*(0.5+0.5*Math.sin(t*1.2));}});}
+  const fountainLights=[];
+  const coping=lam(0x777b86),paver=lam(0x4b505b),warmLamp=basic(0xffd28a);
+  // Broad approach steps on the Strip-facing side of the fountain
+  for(let k=0;k<3;k++)box(root,18-k*2,0.35,2.2,lam(0x777b86),FX,0.18+k*0.28,FZ-88-k*2.1);
+  // Underwater accent lights cast a subtle blue-green shimmer along the basin
+  for(let i=0;i<8;i++){
+    const x=FX-35+i*10,z=FZ+(i%2?66:-66);
+    fountainLights.push(glowSprite(i%2?0x45eaff:0x7dffcf,x,0.7,z,5,0.38));
+  }
+  // Stone overlook terraces and small seating pockets
+  for(const z of[FZ-96,FZ+96]){
+    box(root,28,0.55,5,paver,FX,0.28,z);
+    for(const x of[FX-10,FX+10]){
+      box(root,5,0.55,1.6,lam(0x655346),x,0.9,z);
+      for(const dx of[-1.8,1.8])box(root,0.35,1.1,0.35,lam(0x343b47),x+dx,0.55,z);
+    }
+  }
   // 🎡 big wheel
   const wheel=new THREE.Group();wheel.position.set(SX+140,95,-260);root.add(wheel);
   wheel.add(new THREE.Mesh(new THREE.TorusGeometry(80,1.4,8,80),basic(0xff3fd2)));wheel.add(new THREE.Mesh(new THREE.TorusGeometry(76,0.6,6,80),basic(0x45eaff)));
@@ -3483,6 +3500,7 @@ function makeShowgirl(){
     casinos.forEach((s,i)=>{const on=Math.sin(t*3+i*0.7)>-0.3;s.visible=on;});
     skyBeam.material.opacity=0.45+0.1*Math.sin(t*2);beamGlow.material.opacity=0.8+0.2*Math.sin(t*5);
     wheel.rotation.z=t*0.08;cabs.forEach((c,k)=>{const a=k/16*2*PI;c.position.set(Math.cos(a)*80,Math.sin(a)*80,0);});
+    fountainLights.forEach((l,i)=>{l.material.opacity=0.3+0.18*(0.5+0.5*Math.sin(t*1.8+i*0.65));});
     // fountains: a show every 22 seconds
     const ph=t%22,show=ph<12;jets.forEach((j,i)=>{const h=show?Math.max(0,(32+26*Math.sin(t*3+i*0.6))*Math.min(1,ph*2)*Math.min(1,(12-ph)*2)):0;j.visible=h>0.5;j.scale.set(1,Math.max(h,0.01),1);j.position.y=h/2;
       if(show&&Math.random()<0.08)spawnFx(tmpV2.set(j.position.x,h,j.position.z),tmpV.set(rand(-3,3),rand(2,6),rand(-3,3)),0.8,2,3,0xe8f4ff,true);});
@@ -3630,6 +3648,85 @@ function makeShowgirl(){
       }
     }
     freezeStatic(objs,root,true);
+  }
+  // 🏮 CHINATOWN DISTRICT: Las Vegas Spring Mountain Road-inspired night market
+  {const CX=-540,CZ=-640,objs=[],add=m=>{objs.push(m);return m;}; // moved: the original spot (-760,90) sat on the Red Rock race loop
+    const stone=lam(0x77716b),red=lam(0x8d2428),roof=lam(0x252a35),gold=basic(0xffd16a),jade=lam(0x477d70);
+    add(flatPlane(190,170,0x5a5149,-1,CX,CZ));
+    // Main pedestrian promenade with stone edging and a central patterned walk
+    add(flatPlane(18,132,0x827b73,-0.8,CX,CZ));
+    for(const x of[CX-11,CX+11])add(flatPlane(1.1,132,0xc5bba8,-0.7,x,CZ));
+    for(let z=CZ-62;z<=CZ+62;z+=12)add(flatPlane(15,0.35,0xb7a58b,-0.6,CX,z));
+    // Paifang-style gateway at the district entrance
+    for(const x of[CX-13,CX+13]){
+      add(box(root,2.8,13,3,red,x,6.5,CZ-67));
+      add(box(root,4.2,1.2,4.2,gold,x,13.3,CZ-67));
+      add(box(root,3.2,1.4,3.2,red,x,14.3,CZ-67));
+    }
+    add(box(root,31,1.8,5,red,CX,15.3,CZ-67));
+    add(box(root,34,0.7,6,gold,CX,16.3,CZ-67));
+    for(const x of[CX-15,CX+15]){const cap=new THREE.Mesh(new THREE.ConeGeometry(3.5,1.8,4),roof);cap.rotation.y=PI/4;cap.position.set(x,18,CZ-67);add(cap);}
+    sign('CHINATOWN','#ffd16a',23,4,CX,11.2,CZ-63,0);
+    // Four compact restaurant fronts with tiled roofs, lit windows and bilingual-style neon
+    const stores=[['DIM SUM','#ff4fd8'],['NOODLES','#45eaff'],['HOT POT','#ff654a'],['TEA HOUSE','#7dffb0']];
+    stores.forEach(([name,col],i)=>{
+      const side=i<2?-1:1,k=i%2,bx=CX+side*53,bz=CZ-35+k*70,w=34,d=29,h=12;
+      add(box(root,w,h,d,lam(i%2?0x39313a:0x3b302b),bx,h/2,bz));
+      add(box(root,w+2,0.7,d+2,red,bx,h+0.3,bz));
+      // Upturned eaves and layered tiled roof
+      add(box(root,w+7,0.65,d+7,roof,bx,h+1.2,bz));
+      for(const ex of[-1,1]){
+        const e=add(box(root,w+10,0.35,1.2,red,bx,h+2.1,bz+ex*(d/2+3)));
+        e.rotation.z=ex*0.12;
+      }
+      for(const zoff of[-8,0,8]){
+        add(box(root,0.25,7,0.25,gold,bx-side*(w/2+0.2),5,bz+zoff));
+      }
+      add(box(root,0.35,6,15,lam(0x111820),bx-side*(w/2+0.3),5,bz));
+      add(box(root,0.4,4.6,12,basic(0x284b5a),bx-side*(w/2+0.55),5,bz));
+      sign(name,col,19,3.2,bx-side*(w/2+1),h+4,bz,side<0?PI/2:-PI/2);
+      sign('OPEN  ·  美食','#ffe3a0',13,1.8,bx-side*(w/2+1),h+1,bz,side<0?PI/2:-PI/2);
+      colliders.push({x0:bx-w/2,x1:bx+w/2,z0:bz-d/2,z1:bz+d/2,h:h+4,y0:0});
+      // Decorative roof ridge caps
+      add(box(root,w+2,0.55,0.7,gold,bx,h+2.1,bz));
+    });
+    // Lantern strings over the promenade, with alternating warm colors
+    const lanterns=[];
+    for(let row=0;row<2;row++)for(let j=0;j<9;j++){
+      const x=CX+(row?7:-7),z=CZ-54+j*13;
+      add(box(root,0.12,0.12,0.12,stone,x,18,z));
+      const l=glowSprite(j%2?0xff654a:0xffc56a,x,15.8,z,4.5,0.75);lanterns.push(l);
+      const body=add(new THREE.Mesh(new THREE.SphereGeometry(0.85,8,6),lam(j%2?0xa72c32:0xc64b32)));
+      body.scale.set(0.8,1.25,0.8);body.position.set(x,15.8,z);
+      add(box(root,1.2,0.16,1.2,gold,x,17,z));
+    }
+    // A small koi garden and tea pavilion at the southern end
+    const pond=new THREE.Mesh(new THREE.CircleGeometry(15,24),new THREE.MeshPhongMaterial({color:0x174e62,emissive:0x071a22,shininess:120}));
+    pond.rotation.x=-PI/2;pond.position.set(CX,0.12,CZ+74);add(pond);
+    for(let i=0;i<8;i++){
+      const a=i/8*2*PI;
+      add(box(root,1.2,0.8,1.2,stone,CX+Math.cos(a)*16,0.4,CZ+74+Math.sin(a)*16));
+    }
+    const pavilion=new THREE.Group();pavilion.position.set(CX,0,CZ+103);add(pavilion);
+    box(pavilion,15,0.7,12,jade,0,3,0);
+    for(const x of[-6,6])for(const z of[-4.5,4.5])box(pavilion,0.7,6,0.7,red,x,3,z);
+    box(pavilion,19,0.7,15,roof,0,6.2,0);
+    const pr=new THREE.Mesh(new THREE.ConeGeometry(11,4,4),red);pr.rotation.y=PI/4;pr.position.set(0,8.5,0);pavilion.add(pr);
+    for(const x of[-5,5]){const lamp=glowSprite(0xffb85c,CX+x,5,CZ+103,5,0.65);lanterns.push(lamp);}
+    colliders.push({x0:CX-10,x1:CX+10,z0:CZ+93,z1:CZ+113,h:12,y0:0});
+    // Street trees, stone planters and public seating
+    for(const z of[CZ-35,CZ+35]){
+      add(box(root,3,1,3,stone,CX-28,0.5,z));
+      const tree=new THREE.Mesh(new THREE.SphereGeometry(2.6,8,6),lam(0x47734b));tree.position.set(CX-28,3,z);add(tree);
+      add(box(root,6,0.5,1.8,lam(0x5b4638),CX+28,0.9,z));
+    }
+    freezeStatic(objs,root,true);
+    // Visitors browsing the restaurant row and promenade
+    for(let i=0;i<10;i++){
+      const T={type:'critter',mesh:useAnim('person',makeHuman(false),'vegas'),spawn:spawnCow,fl:[{x:CX,z:CZ-25,rad:35},{x:CX,z:CZ+45,rad:28}],rad:22};
+      T.spawn(T);targets.push(T);
+    }
+    planetAnim.push({town:'vegas',f:(t)=>{lanterns.forEach((l,i)=>{l.visible=true;l.material.opacity=0.58+0.2*Math.sin(t*2.4+i*0.7);});}});
   }
   // 🏟️ DESERT DOME: a sleek black stadium with a glowing see-through roof and a giant flame torch (south-west of the Strip)
   {const DX=-360,DZ=392,RX=80,RZ=60,objs=[],add=m=>{objs.push(m);return m;};
