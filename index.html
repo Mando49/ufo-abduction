@@ -3921,11 +3921,151 @@ function makeShowgirl(){
   // 🪟 MANDO WINDOW TINTING (east suburbs, next to the strip mall)
   {const SX=560,SZ=330,objs=[],add=m=>{objs.push(m);return m;};
     add(flatPlane(70,110,0x34353a,-2,SX,SZ));
-    add(box(root,30,12,70,0x2a2c34,SX+14,6,SZ));add(box(root,30.6,1.4,70.6,0x111216,SX+14,12.7,SZ)); // shop building
-    for(let k=0;k<3;k++){const bz=SZ-22+k*22;add(box(root,0.4,8,14,basic(0xf4f6ff),SX-1.2,4.2,bz));} // 3 open bays (lit inside)
+    // shop building as a hollow shell so the bays are really open and you can see the work inside
+    add(box(root,1,12,70,0x2a2c34,SX+28.5,6,SZ));for(const s of[-1,1])add(box(root,30,12,1,0x2a2c34,SX+14,6,SZ+s*34.5));add(box(root,30,1,70,0x2a2c34,SX+14,11.5,SZ));
+    for(const [z0,z1] of[[-35,-29],[-15,-7],[7,15],[29,35]])add(box(root,1,12,z1-z0,0x2a2c34,SX-0.5,6,SZ+(z0+z1)/2));add(box(root,1,3.6,70,0x2a2c34,SX-0.5,10.2,SZ));
+    add(box(root,0.3,10.6,68,0xaab0ba,SX+27.8,5.6,SZ));for(const z of[-11,11])add(box(root,27,10.6,0.4,0x8a909a,SX+14,5.6,SZ+z));
+    add(box(root,30.6,1.4,70.6,0x111216,SX+14,12.7,SZ));
+    for(let k=0;k<3;k++){const bz=SZ-22+k*22;const gl=glowSprite(0xf4f6ff,SX+12,7,bz,22,0.22);gl.userData.keep=true;} // 3 open bays (lit inside)
     add(box(root,0.5,2.2,44,basic(0xff3fd2),SX-1.4,10.2,SZ));
     sign('MANDO WINDOW TINTING','#45eaff',40,6,SX-1.6,16,SZ,-PI/2);sign('lasvegaswindowtintnv.com','#ffffff',30,3,SX-1.6,11.4,SZ+0.2,-PI/2);
     const pole=box(root,1,22,1,0x3a3a40,SX-28,11,SZ-48);sign('TINT & PPF','#ff3fd2',18,5,SX-28,24,SZ-48,-PI/2);
+    // 🏁 SHOP FRONTAGE: framed service bays, glass entry, canopy and branded service signage
+    const frame=lam(0x69717d),dark=lam(0x111722),warm=basic(0xffd28a),cyan=basic(0x45eaff);
+    // Deep bay interiors and clean epoxy floors
+    for(let k=0;k<3;k++){
+      const bz=SZ-22+k*22;
+      add(flatPlane(24,13,0x555a62,-1.85,SX+11,bz));
+      // Steel jambs and lintels frame each of the three service openings
+      for(const dz of[-7.2,7.2])add(box(root,0.75,8.8,0.75,frame,SX-1.1,4.35,bz+dz));
+      add(box(root,0.8,0.65,15.1,frame,SX-1.1,8.65,bz));
+      // Interior ceiling strip lights and rear work lights
+      add(box(root,0.8,0.18,9,warm,SX+8,10.7,bz));
+      add(box(root,0.35,3.2,0.35,cyan,SX+24,6,bz-5.8));
+      add(box(root,0.35,3.2,0.35,cyan,SX+24,6,bz+5.8));
+      // Low-profile wheel stops at the front of each bay
+      add(box(root,1.2,0.35,4.8,lam(0x252a32),SX-7,0.18,bz+9.2));
+    }
+    // Continuous architectural canopy above the bays, with a bright underside
+    add(box(root,3.8,0.65,52,lam(0x171c27),SX-2.2,10.1,SZ));
+    add(box(root,3.6,0.16,50,basic(0x45eaff),SX-2.3,9.72,SZ));
+    for(const z of[SZ-25,SZ+25])add(box(root,0.8,3.5,0.8,frame,SX-3.6,8.2,z));
+    // A glass customer entrance and reception window on the north end of the facade
+    add(box(root,0.45,7.6,7.5,glass,SX-1.25,4,SZ+27));
+    for(const z of[SZ+23.1,SZ+30.9])add(box(root,0.55,8,0.55,frame,SX-1.5,4,z));
+    add(box(root,0.55,8.2,8.1,frame,SX-1.5,4,SZ+27));
+    add(box(root,0.3,1.2,0.3,warm,SX-1.85,4,SZ+29.6));
+    sign('CUSTOMER LOUNGE','#ffe2a0',8,1.8,SX-1.7,9.1,SZ+27,-PI/2);
+    // A clear service menu and PPF identity panel on the shop's side wall
+    add(box(root,0.22,7,25,dark,SX+29.45,7,SZ-19));
+    sign('WINDOW TINT  ·  PPF','#45eaff',20,3.2,SX+29.6,9,SZ-19,PI/2);
+    sign('LLUMAR  ·  PAINT PROTECTION','#ffe2a0',20,2.2,SX+29.6,5.2,SZ-19,PI/2);
+    // Marked customer parking apron with wheel stops and protective bollards
+    for(let k=0;k<4;k++){
+      const z=SZ-45+k*24;
+      add(flatPlane(0.45,17,0xe7e2d2,-2.1,SX-20,z));
+      add(box(root,1.4,0.3,5.5,lam(0x252a32),SX-29,0.15,z));
+    }
+    for(const z of[SZ-53,SZ+53]){
+      add(box(root,0.85,1.4,0.85,lam(0x454c58),SX-5,0.7,z));
+      add(box(root,0.9,0.3,0.9,basic(0xffd28a),SX-5,1.35,z));
+    }
+    // Roof HVAC units and conduit make the low commercial building feel finished
+    for(const z of[SZ-23,SZ+20]){
+      add(box(root,8,2.2,7,lam(0x777d86),SX+17,13.9,z));
+      add(box(root,5.5,0.18,4.5,lam(0x343a44),SX+17,15.1,z));
+      for(let vent=0;vent<4;vent++)add(box(root,0.16,1.2,5.5,lam(0x454c55),SX+13.8+vent*2.1,14.2,z));
+    }
+    // Desert planters and warm wall sconces at the customer approach
+    for(const z of[SZ-40,SZ+40]){
+      add(box(root,3.8,1.1,3.8,lam(0x5c5147),SX-9,0.55,z));
+      const shrub=new THREE.Mesh(new THREE.SphereGeometry(1.7,8,6),lam(0x527344));shrub.position.set(SX-9,2.2,z);add(shrub);
+      add(box(root,0.35,2.8,0.35,frame,SX-1.8,8.4,z));
+      glowSprite(0xffc978,SX-2,10,z,5,0.45);
+    }
+    // 🧰 SHOP INTERIOR: film storage, plotter, prep benches and installation tools
+    const shelf=lam(0x343d49),steel=lam(0x8995a3),rubber=lam(0x20252d),filmColors=[0x111820,0x263849,0x3d5264,0x6e7780];
+    // Wall-mounted tint and PPF film rolls in each bay, with end caps and storage brackets
+    for(let k=0;k<3;k++){
+      const bz=SZ-22+k*22;
+      add(box(root,0.45,5.8,10.8,shelf,SX+26.5,5.2,bz));
+      for(let j=0;j<4;j++){
+        const rz=bz-4.1+j*2.7,roll=new THREE.Mesh(new THREE.CylinderGeometry(0.72,0.72,8.8,12),lam(filmColors[(j+k)%filmColors.length]));
+        roll.rotation.x=PI/2;roll.position.set(SX+25.7,3.4,rz);add(roll);
+        add(new THREE.Mesh(new THREE.CylinderGeometry(0.18,0.18,9.1,8),steel)).rotation.x=PI/2;
+        const core=objs[objs.length-1];core.position.set(SX+25.7,3.4,rz);
+        add(box(root,0.35,0.35,0.35,steel,SX+21.2,3.4,rz));add(box(root,0.35,0.35,0.35,steel,SX+30.2,3.4,rz));
+      }
+      // Stainless prep bench, lower storage and a neatly arranged tool strip
+      add(box(root,7.2,0.35,3.8,steel,SX+15.2,2.1,bz+5.1));
+      for(const dx of[-3,3])add(box(root,0.35,2,0.35,shelf,SX+15.2+dx,1,bz+5.1));
+      add(box(root,5.8,1.1,3.1,rubber,SX+15.2,0.65,bz+5.1));
+      for(let j=0;j<3;j++)add(box(root,0.24,0.18,1.1,[0xffd16a,0x45eaff,0xff4fd8][j],SX+13+j*2.1,2.42,bz+5.1));
+      // Small spray bottles and squeegees on the bench
+      for(let j=0;j<2;j++){
+        const bottle=add(new THREE.Mesh(new THREE.CylinderGeometry(0.28,0.32,0.95,8),lam(0x79b8c8)));
+        bottle.position.set(SX+13.2+j*1.1,2.75,bz+4.7);
+        add(box(root,0.72,0.12,0.16,basic(0xf2f4f7),SX+17.2,2.55+j*0.12,bz+5.1));
+      }
+      // Compact wall-mounted heat gun and steamer silhouette
+      add(box(root,1.5,0.55,0.7,lam(0x252a32),SX+22,5.8,bz+5.7));
+      add(box(root,0.3,0.35,1.8,lam(0xd8e0e8),SX+22.8,5.75,bz+5.7));
+    }
+    // Precision film plotter and cutting workstation in the center bay
+    add(box(root,8.8,0.35,3.2,lam(0x252c36),SX+14.5,3.1,SZ));
+    for(const dx of[-3.8,3.8])add(box(root,0.35,2.8,0.35,steel,SX+14.5+dx,1.5,SZ));
+    add(box(root,8.2,0.18,0.35,basic(0x45eaff),SX+14.5,3.38,SZ-1.1));
+    add(box(root,8.2,0.18,0.35,basic(0x45eaff),SX+14.5,3.38,SZ+1.1));
+    add(box(root,0.32,1.4,0.32,lam(0x111820),SX+14.5,4.1,SZ));
+    add(box(root,1.8,0.12,0.8,lam(0x8995a3),SX+14.5,4.85,SZ));
+    // A roll of clear PPF feeds through the plotter; subtle blue edge marks the film path
+    const feed=new THREE.Mesh(new THREE.CylinderGeometry(0.62,0.62,7.4,12),lam(0x9bb9c4));feed.rotation.x=PI/2;feed.position.set(SX+18.9,3.9,SZ);add(feed);
+    add(box(root,7.2,0.035,0.55,basic(0x9beaff),SX+14.5,3.34,SZ));
+    // Clean installation table with a windshield-shaped glass panel and edge lighting
+    add(box(root,7.4,0.45,4.6,lam(0x303945),SX+14.5,1.15,SZ+27));
+    for(const dx of[-3,3])add(box(root,0.35,1.1,0.35,steel,SX+14.5+dx,0.55,SZ+27));
+    const panel=new THREE.Mesh(new THREE.BoxGeometry(5.6,0.12,2.7),new THREE.MeshPhongMaterial({color:0x83b8d2,transparent:true,opacity:0.62,shininess:110}));
+    panel.position.set(SX+14.5,1.48,SZ+27);add(panel);
+    add(box(root,5.9,0.08,0.12,basic(0x45eaff),SX+14.5,1.53,SZ+25.6));
+    // Film offcuts bin and detailing/cleaning caddy beside the installation table
+    add(box(root,1.8,1.4,1.8,lam(0x4b5965),SX+21.5,0.7,SZ+30));
+    add(box(root,1.2,0.18,1.2,lam(0x20252d),SX+21.5,1.48,SZ+30));
+    for(let j=0;j<3;j++)add(box(root,0.24,0.85,0.24,[0x45a9d8,0x7dffb0,0xffd16a][j],SX+20.8+j*0.7,2.0,SZ+30));
+    // Branded interior wall panel visible from the open service bays
+    add(box(root,0.25,3.8,13,lam(0x111722),SX+29.1,7.2,SZ));
+    sign('LLUMAR PPF','#45eaff',10,1.8,SX+28.9,8.2,SZ,PI/2);
+    sign('CUT  ·  PREP  ·  INSTALL','#ffe2a0',11,1.25,SX+28.9,6.3,SZ,PI/2);
+    // 🚘 VEHICLE SERVICE DETAILS: low-rise lift pads, wheel chocks and inspection lights
+    for(let k=0;k<3;k++){
+      const bz=SZ-22+k*22;
+      for(const dz of[-1.1,1.1]){
+        add(box(root,5.6,0.22,0.55,lam(0x303944),SX+1.5,0.18,bz+dz));
+        add(box(root,0.9,0.12,0.72,basic(0xffd16a),SX-1.1,0.31,bz+dz));
+      }
+      // Retractable service reels and hanging air/electrical drops
+      add(box(root,1.1,0.8,1.1,lam(0x252c36),SX+10,10.2,bz-5.4));
+      add(new THREE.Mesh(new THREE.TorusGeometry(0.48,0.11,6,14),lam(0xffd16a))).position.set(SX+10,9.55,bz-5.4);
+      add(box(root,0.16,3.8,0.16,lam(0x252c36),SX+10,7.2,bz-5.4));
+      add(box(root,0.7,0.16,0.7,basic(0x45eaff),SX+10,5.2,bz-5.4));
+      // Wall-mounted inspection light bars
+      add(box(root,0.22,4.4,0.22,steel,SX+23.7,5.2,bz));
+      add(box(root,0.32,3.6,0.32,basic(0xf4f7ff),SX+23.45,5.2,bz));
+    }
+    // Customer lounge finishing touches: reception counter, seating and framed service credentials
+    add(box(root,4.8,1.25,1.5,lam(0x202a36),SX+8.5,1.0,SZ+31));
+    add(box(root,4.5,0.12,1.3,basic(0x45eaff),SX+8.5,1.68,SZ+31));
+    for(const z of[SZ+35,SZ+39]){
+      add(box(root,2.2,0.65,1.1,lam(0x424b58),SX+15,z===SZ+35?0.6:0.6,z));
+      add(box(root,2.2,0.18,1.15,lam(0x20252d),SX+15,1.0,z));
+    }
+    // Framed certificates and a digital service-status display on the lounge wall
+    for(let j=0;j<3;j++){
+      add(box(root,0.18,2.3,1.8,steel,SX+22,7.4,SZ+23+j*4));
+      add(box(root,0.12,1.9,1.4,basic(j===1?0x45eaff:0xffd28a),SX+21.88,7.4,SZ+23+j*4));
+    }
+    add(box(root,0.2,2.6,4.8,lam(0x111722),SX+29.1,8.8,SZ+28));
+    sign('SERVICE STATUS','#45eaff',4,0.9,SX+28.9,9.6,SZ+28,PI/2);
+    sign('TINT  ·  PPF  ·  READY','#ffe2a0',4,0.7,SX+28.9,8.3,SZ+28,PI/2);
     colliders.push({x0:SX-1,x1:SX+29,z0:SZ-35,z1:SZ+35,h:14,y0:0});
     freezeStatic(objs,root,true);
     // cars getting tinted: windows slowly go dark, then drive off and a new one pulls in
