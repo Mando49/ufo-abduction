@@ -147,3 +147,5 @@ Green Antarctica: the Lost City now has a wall with a golden gate, a column aven
 Zeta Prime plaza: patterned floor, pool of light with a turning holo-Earth, a ring of chasing light pylons, six gardens with benches, gate arches on every road, energy pulses along the roads and a ring boulevard.
 
 Zeta Prime ground + roads: four glowing rivers with crystal banks, soft pools of light, twinkling star-moss, road centre lines, pink kerbs and lamp studs; residents are bigger with a soft halo.
+
+Neon City polish: 33 shop fronts with neon names and awnings, traffic lights downtown, steam vents, holo-ads on four towers (made-up brands), sweeping searchlights and blinking red beacons on every big tower.

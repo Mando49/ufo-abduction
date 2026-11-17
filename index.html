@@ -1404,6 +1404,43 @@ if(LOT)(function(){const X=LOT.x,Z=LOT.z;
   cityAnim.push((t,dt)=>{bulbs.forEach((b,i)=>{b.material.opacity=0.6+0.35*Math.sin(t*3+i*0.7);});});
 })();
 cityAnim.push((()=>{let k=0;return(t,dt)=>{k-=dt;if(k>0)return;k=0.5;LIVE.forEach(L=>{L.draw(L.c.getContext('2d'),L.c.width,L.c.height);L.tx.needsUpdate=true;});};})());
+// 🌃 NEON CITY polish: shop-front neon + awnings, traffic lights, steam vents, holo-ads on the big towers, searchlights, blinking tower beacons
+(function(){
+  const objs=[],add=m=>{objs.push(m);return m;};
+  // --- street-level shops: neon name + awning + lit window on the road side of small buildings
+  const SH=[['RAMEN','#ff5a4a'],['ARCADE','#45eaff'],['DINER','#ffd84a'],['PIZZA','#ff8a30'],['KARAOKE','#ff5ad8'],['COFFEE','#ffe9c0'],['RECORDS','#b46bff'],['NOODLES','#6dff7a'],['TACOS','#ffb030'],['COMICS','#7ffcff']];
+  const protoS=SH.map(([t,c])=>neonText(t,c,9,2.2)),awC=[0xc8463a,0x2a8a9a,0xd8a030,0x7a4ac8,0x3a9a5a];let ns=0;
+  bList.forEach((b,i)=>{if(ns>=34||b.y0||b.h>70||b.w<10||b.d<10||i%3)return;const bx=Math.round(b.x/60)*60,bz=Math.round(b.z/60)*60,dx=b.x-bx,dz=b.z-bz;if(Math.hypot(b.x,b.z)>250)return;
+    const alongX=Math.abs(dx)>Math.abs(dz),s=Math.sign(alongX?dx:dz)||1,fx=alongX?b.x+s*(b.w/2+0.25):b.x,fz=alongX?b.z:b.z+s*(b.d/2+0.25),ry=alongX?(s>0?PI/2:-PI/2):(s>0?0:PI);
+    if(colliders.some(c=>c.y0===0&&c.h>4&&fx+ (alongX?s*2:0)>c.x0&&fx+(alongX?s*2:0)<c.x1&&fz+(alongX?0:s*2)>c.z0&&fz+(alongX?0:s*2)<c.z1))return; // another building is in the way
+    const k=ns%SH.length,m=protoS[k].clone();m.position.set(fx+(alongX?s*0.3:0),7.4,fz+(alongX?0:s*0.3));m.rotation.y=ry;root.add(m);
+    const aw=add(box(root,alongX?2.4:9.6,0.35,alongX?9.6:2.4,awC[ns%5],fx+(alongX?s*1.2:0),5.6,fz+(alongX?0:s*1.2)));aw.rotation[alongX?'z':'x']=(alongX?-s:s)*0.28;
+    add(box(root,alongX?0.2:8,3.6,alongX?8:0.2,basic(0xb89a62),fx,2.4,fz));add(box(root,alongX?0.3:1.6,3.4,alongX?1.6:0.3,0x2a2a34,fx+(alongX?s*0.05:0),1.9,fz+(alongX?0:s*0.05)));ns++;});
+  // --- traffic lights at the downtown crossings
+  const tlM=[basic(0xff4040),basic(0xffc030),basic(0x40ff70)],tls=[];
+  for(const rx of roads.slice(2,8))for(const rz of roads.slice(2,8))for(const s of[-1,1]){const x=rx+s*7.2,z=rz+s*7.2;add(box(root,0.35,7.5,0.35,0x30343c,x,3.75,z));add(box(root,0.3,0.3,4.2,0x30343c,x,7.3,z-s*2.1));
+    add(box(root,0.9,2.6,0.9,0x16181e,x,6.2,z-s*4.2));const on=(rx+rz+(s>0?60:0))/60&1;for(let k=0;k<3;k++)add(box(root,0.5,0.5,1.0,(k===0&&on)||(k===2&&!on)?tlM[k]:lam(0x2a2a2a),x,7+ -k*0.8,z-s*4.2));}
+  // --- holo-ads floating on the four tallest towers
+  const H=heroes.slice().sort((a,b)=>b.h-a.h),ADS=[['ZETA COLA','#ff5ad8','🥤'],['ORBIT GUM','#45eaff','🪐'],['MOON MILK','#ffffff','🌙'],['NOVA SNEAKERS','#ffd84a','👟']],holo=[];
+  ADS.forEach(([t,c,e],i)=>{const B=H[i+3];if(!B)return;const tx=texCanvas(128,512,q=>{q.clearRect(0,0,128,512);q.strokeStyle=c;q.lineWidth=5;q.strokeRect(5,5,118,502);q.font='70px serif';q.textAlign='center';q.fillText(e,64,84);
+      q.fillStyle=c;q.shadowColor=c;q.shadowBlur=14;q.font='900 58px system-ui,sans-serif';const L=t.replace(' ','').split('');L.forEach((ch,k)=>q.fillText(ch,64,150+k*(350/L.length)));});
+    const m=new THREE.Mesh(new THREE.PlaneGeometry(9,36),new THREE.MeshBasicMaterial({map:tx,transparent:true,opacity:0.9,side:THREE.DoubleSide,depthWrite:false,blending:THREE.AdditiveBlending}));
+    const s=i%2?1:-1;m.position.set(B.x+s*(B.w*0.62+5.5),B.h*0.52,B.z);m.rotation.y=i<2?0:PI/2;if(i>=2)m.position.set(B.x,B.h*0.52,B.z+s*(B.w*0.62+5.5));m.userData.keep=true;root.add(m);holo.push(m);});
+  // --- searchlights sweeping the sky
+  const beams=[];for(const [x,y,z,c] of[[-60,26,-395,0xffffff],[0,26,-395,0xff9ae9],[H[0].x,H[0].h+2,H[0].z,0x9ff4ff],[210,2,210,0xffe9a0],[-210,2,-150,0x9ff4ff]]){const p=new THREE.Group();p.position.set(x,y,z);
+    const g=new THREE.CylinderGeometry(9,0.6,150,12,1,true);g.translate(0,75,0);const m=new THREE.Mesh(g,new THREE.MeshBasicMaterial({color:c,transparent:true,opacity:0.07,blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide,fog:false}));
+    p.add(m);p.traverse(o=>o.userData.keep=true);root.add(p);beams.push({p,ph:rand(0,7),sp:rand(0.25,0.5)});}
+  // --- red aircraft-warning beacons on every big tower
+  const bc=heroes.map((B,i)=>{const s=glowSprite(0xff3030,B.x,B.h+7,B.z,6,0.9);s.userData.keep=true;return s;});
+  // --- steam rising from street vents
+  const steam=[];for(let i=0;i<14;i++){const x=pick(roads.slice(1,9))+rand(-4,4),z=pick(roads.slice(1,9))+pick([-22,22,-14,14]);add(box(root,1.6,0.08,1.6,0x14151a,x,0.06,z));
+    for(let k=0;k<2;k++){const s=glowSprite(0xcfd8e8,x,1,z,3,0.2);s.material.blending=THREE.NormalBlending;s.userData.keep=true;steam.push({s,x,z,ph:rand(0,1)+k*0.5});}}
+  freezeStatic(objs,root,true);
+  cityAnim.push((t,dt)=>{beams.forEach(B=>{B.p.rotation.set(Math.sin(t*B.sp+B.ph)*0.55,0,Math.cos(t*B.sp*0.8+B.ph)*0.55);});
+    bc.forEach((s,i)=>{s.material.opacity=((t*0.9+i*0.37)%1)<0.25?0.95:0.12;});
+    holo.forEach((m,i)=>{m.material.opacity=0.72+0.2*Math.sin(t*2+i)+(Math.random()<0.02?-0.4:0);});
+    steam.forEach(S=>{const u=(t*0.22+S.ph)%1;S.s.position.set(S.x+Math.sin(u*5+S.ph*9)*1.2,0.6+u*11,S.z);const k=2.5+u*7;S.s.scale.set(k,k,1);S.s.material.opacity=0.26*(1-u);});});
+})();
 endTown('city',[160,820]);
 
 // ---------- AREA 51 DESERT ----------
