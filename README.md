@@ -162,3 +162,5 @@ The Ocean (underwater): rippling sunlight on the sand, a much richer reef floor 
 Magmor: glowing cracked ground, a lava lake with a lava-fall, obsidian and fire-crystal fields, the Forge village, walking lava golems (260), ash lightning. Verdana: glowing streams and a lily pond, four colossal trees with a tree-house village and rope bridges, giant flowers, ferns, butterflies and floating lantern-jellies. Both planets now also have a direct portal in Earth orbit.
 
 Area 51 desert: a dry-lake test runway with chasing lights and a parked black triangle, a saucer crash site with a power core to beam (300) and guards, a three-dish listening array, a Saucer Springs water tower, joshua trees, dunes, rock arches and rolling tumbleweeds.
+
+Speed pass: small props, lamps and glows far from the camera are skipped (distance culling), and in crowds only the nearest animated characters are drawn (triangle budget). Draw calls on the heaviest worlds drop by roughly half.
