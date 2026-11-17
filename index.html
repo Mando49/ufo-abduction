@@ -3461,6 +3461,42 @@ beginTown('maya');
       resident.mesh.userData.T=resident;resident.spawn(resident);targets.push(resident);
     }
   });
+  // 🛤️ Ancient Maya sacbeob: pale limestone causeways linking the three hamlets
+  (function(){
+    const roadTop=[lam(0xd8d0b8),lam(0xcfc6ad),lam(0xe0d8c2)],
+      roadEdge=lam(0xaaa18d),roadBase=lam(0x827b6b);
+    function sacbe(points,seed){
+      for(let p=0;p<points.length-1;p++){
+        const A=points[p],B=points[p+1],dx=B[0]-A[0],dz=B[1]-A[1],
+          len=Math.hypot(dx,dz),steps=Math.ceil(len/8),angle=Math.atan2(dx,dz);
+        for(let i=0;i<steps;i++){
+          const u=(i+0.5)/steps,x=A[0]+dx*u,z=A[1]+dz*u,
+            slabLen=len/steps+0.45;
+          const base=new THREE.Mesh(new THREE.BoxGeometry(10.8,0.34,slabLen),roadBase);
+          base.position.set(x,0.18,z);base.rotation.y=angle;root.add(base);
+          const top=new THREE.Mesh(new THREE.BoxGeometry(9.6,0.18,slabLen-0.35),roadTop[(i+p+seed)%roadTop.length]);
+          top.position.set(x,0.42,z);top.rotation.y=angle;root.add(top);
+          // Low, irregular limestone edging keeps the causeway readable from the air
+          if(i%2===0){
+            for(const side of[-1,1]){
+              const off=side*5.25,ex=x+Math.cos(angle)*off,ez=z-Math.sin(angle)*off;
+              const curb=new THREE.Mesh(new THREE.BoxGeometry(0.85,0.5,2.5),roadEdge);
+              curb.position.set(ex,0.34,ez);curb.rotation.y=angle;root.add(curb);
+            }
+          }
+        }
+      }
+    }
+    // Northern cross-causeway bends around the great pyramid rather than crossing it
+    sacbe([[-455,-430],[-455,-500],[-250,-500],[0,-500],[250,-500],[455,-500],[455,-430]],0);
+    // Western and eastern branches skirt the outer jungle and meet the southern hamlet
+    sacbe([[-455,-430],[-545,-430],[-545,-180],[-545,120],[-545,420],[-455,515],[-220,515],[0,515]],1);
+    sacbe([[455,-430],[545,-430],[545,-180],[545,120],[545,420],[455,515],[220,515],[0,515]],2);
+    // Short stone aprons lead from each village plaza onto the main causeway
+    sacbe([[-455,-407],[-455,-430]],0);
+    sacbe([[455,-407],[455,-430]],1);
+    sacbe([[0,492],[0,515]],2);
+  })();
   // A few low limestone markers and shade trees tie the hamlets into the old paths
   for(const [x,z] of[[-350,-455],[350,-455],[-300,445],[300,445]]){
     const plinth=new THREE.Mesh(new THREE.BoxGeometry(3.6,0.8,3.6),villageStone);plinth.position.set(x,0.4,z);root.add(plinth);
