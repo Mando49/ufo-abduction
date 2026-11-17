@@ -3343,6 +3343,42 @@ function makeShowgirl(){
   {const D=[];for(let z=-680;z<=680;z+=14)D.push(flatPlane(0.6,6,0xf0e8a0,-3,SX-11,z),flatPlane(0.6,6,0xf0e8a0,-3,SX+11,z));freezeStatic(D);}
   flatPlane(4,1400,0x3a5a2a,-3,SX,0);for(let z=-640;z<=640;z+=40)palmTree(SX,z,1.1);
   for(const sx of[-1,1])flatPlane(8,1400,0x9a948a,-2,SX+sx*27,0);
+  // Strip boulevard finish: raised curbs, lane reflectors and pedestrian crossings (heights raised 1.9: they were written below ground level)
+  {const streetDetail=[];
+    const curb=lam(0x777a80),paint=basic(0xe9e7df),amber=basic(0xffc45a),tactile=lam(0x9b958a);
+    // Continuous curb lips separate the carriageway from the palm median and sidewalks
+    for(const x of[-23.2,-2.35,2.35,23.2]){
+      streetDetail.push(box(root,0.55,0.42,1400,curb,x,0.12,0));
+      streetDetail.push(box(root,0.72,0.08,1396,lam(0xaaa39a),x,0.37,0));
+    }
+    // Short reflective lane studs run down both sides of the central palm median
+    for(let z=-660;z<=660;z+=18){
+      for(const x of[-5.2,5.2]){
+        streetDetail.push(box(root,0.38,0.09,0.72,amber,x,0.06,z));
+      }
+    }
+    // Five evenly spaced pedestrian crossings connect the existing Strip sidewalks
+    for(const z of[-500,-250,0,250,500]){
+      for(const side of[-1,1]){
+        const inner=side<0?-4.2:4.2,outer=side<0?-21.2:21.2;
+        for(let n=0;n<10;n++){
+          const x=inner+(outer-inner)*(n+0.5)/10;
+          streetDetail.push(box(root,1.35,0.045,5.8,paint,x,0.04,z));
+        }
+        // Stop line and tactile warning strip at the sidewalk approach
+        streetDetail.push(box(root,16.5,0.05,0.75,paint,(inner+outer)/2,0.05,z+(side<0?-8:8)));
+        streetDetail.push(box(root,2.4,0.06,1.6,tactile,side<0?-24.8:24.8,0.08,z));
+      }
+    }
+    // Drain grates at the curb and subtle inset service covers
+    for(let z=-630;z<=630;z+=90){
+      for(const x of[-21.9,21.9]){
+        streetDetail.push(box(root,1.15,0.035,2.4,lam(0x34383e),x,0.06,z));
+        for(let g=0;g<4;g++)streetDetail.push(box(root,0.08,0.025,2.05,lam(0x858990),x-0.38+g*0.25,0.09,z));
+      }
+    }
+    freezeStatic(streetDetail);
+  }
   fields.push({x:SX-33,z:-200},{x:SX+33,z:100},{x:SX-33,z:250},{x:SX+33,z:-350});
   // casinos with neon outlines and signs
   const neonC=[0xff3fd2,0x45eaff,0xffd040,0x6dff7a,0xff7a30,0xb46bff],names=['LUCKY 7','NEON OASIS','COSMIC CASINO','GOLDEN SAUCER','ALIEN ACES','STARLIGHT','DESERT ROSE','ROYAL FLUSH'];
