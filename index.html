@@ -3885,6 +3885,58 @@ function makeShowgirl(){
       add(box(root,0.35,2.8,0.35,frame,SX-1.8,8.4,z));
       glowSprite(0xffc978,SX-2,10,z,5,0.45);
     }
+    // 🧰 SHOP INTERIOR: film storage, plotter, prep benches and installation tools
+    const shelf=lam(0x343d49),steel=lam(0x8995a3),rubber=lam(0x20252d),filmColors=[0x111820,0x263849,0x3d5264,0x6e7780];
+    // Wall-mounted tint and PPF film rolls in each bay, with end caps and storage brackets
+    for(let k=0;k<3;k++){
+      const bz=SZ-22+k*22;
+      add(box(root,0.45,5.8,10.8,shelf,SX+26.5,5.2,bz));
+      for(let j=0;j<4;j++){
+        const rz=bz-4.1+j*2.7,roll=new THREE.Mesh(new THREE.CylinderGeometry(0.72,0.72,8.8,12),lam(filmColors[(j+k)%filmColors.length]));
+        roll.rotation.x=PI/2;roll.position.set(SX+25.7,3.4,rz);add(roll);
+        add(new THREE.Mesh(new THREE.CylinderGeometry(0.18,0.18,9.1,8),steel)).rotation.x=PI/2;
+        const core=objs[objs.length-1];core.position.set(SX+25.7,3.4,rz);
+        add(box(root,0.35,0.35,0.35,steel,SX+21.2,3.4,rz));add(box(root,0.35,0.35,0.35,steel,SX+30.2,3.4,rz));
+      }
+      // Stainless prep bench, lower storage and a neatly arranged tool strip
+      add(box(root,7.2,0.35,3.8,steel,SX+15.2,2.1,bz+5.1));
+      for(const dx of[-3,3])add(box(root,0.35,2,0.35,shelf,SX+15.2+dx,1,bz+5.1));
+      add(box(root,5.8,1.1,3.1,rubber,SX+15.2,0.65,bz+5.1));
+      for(let j=0;j<3;j++)add(box(root,0.24,0.18,1.1,[0xffd16a,0x45eaff,0xff4fd8][j],SX+13+j*2.1,2.42,bz+5.1));
+      // Small spray bottles and squeegees on the bench
+      for(let j=0;j<2;j++){
+        const bottle=add(new THREE.Mesh(new THREE.CylinderGeometry(0.28,0.32,0.95,8),lam(0x79b8c8)));
+        bottle.position.set(SX+13.2+j*1.1,2.75,bz+4.7);
+        add(box(root,0.72,0.12,0.16,basic(0xf2f4f7),SX+17.2,2.55+j*0.12,bz+5.1));
+      }
+      // Compact wall-mounted heat gun and steamer silhouette
+      add(box(root,1.5,0.55,0.7,lam(0x252a32),SX+22,5.8,bz+5.7));
+      add(box(root,0.3,0.35,1.8,lam(0xd8e0e8),SX+22.8,5.75,bz+5.7));
+    }
+    // Precision film plotter and cutting workstation in the center bay
+    add(box(root,8.8,0.35,3.2,lam(0x252c36),SX+14.5,3.1,SZ));
+    for(const dx of[-3.8,3.8])add(box(root,0.35,2.8,0.35,steel,SX+14.5+dx,1.5,SZ));
+    add(box(root,8.2,0.18,0.35,basic(0x45eaff),SX+14.5,3.38,SZ-1.1));
+    add(box(root,8.2,0.18,0.35,basic(0x45eaff),SX+14.5,3.38,SZ+1.1));
+    add(box(root,0.32,1.4,0.32,lam(0x111820),SX+14.5,4.1,SZ));
+    add(box(root,1.8,0.12,0.8,lam(0x8995a3),SX+14.5,4.85,SZ));
+    // A roll of clear PPF feeds through the plotter; subtle blue edge marks the film path
+    const feed=new THREE.Mesh(new THREE.CylinderGeometry(0.62,0.62,7.4,12),lam(0x9bb9c4));feed.rotation.x=PI/2;feed.position.set(SX+18.9,3.9,SZ);add(feed);
+    add(box(root,7.2,0.035,0.55,basic(0x9beaff),SX+14.5,3.34,SZ));
+    // Clean installation table with a windshield-shaped glass panel and edge lighting
+    add(box(root,7.4,0.45,4.6,lam(0x303945),SX+14.5,1.15,SZ+27));
+    for(const dx of[-3,3])add(box(root,0.35,1.1,0.35,steel,SX+14.5+dx,0.55,SZ+27));
+    const panel=new THREE.Mesh(new THREE.BoxGeometry(5.6,0.12,2.7),new THREE.MeshPhongMaterial({color:0x83b8d2,transparent:true,opacity:0.62,shininess:110}));
+    panel.position.set(SX+14.5,1.48,SZ+27);add(panel);
+    add(box(root,5.9,0.08,0.12,basic(0x45eaff),SX+14.5,1.53,SZ+25.6));
+    // Film offcuts bin and detailing/cleaning caddy beside the installation table
+    add(box(root,1.8,1.4,1.8,lam(0x4b5965),SX+21.5,0.7,SZ+30));
+    add(box(root,1.2,0.18,1.2,lam(0x20252d),SX+21.5,1.48,SZ+30));
+    for(let j=0;j<3;j++)add(box(root,0.24,0.85,0.24,[0x45a9d8,0x7dffb0,0xffd16a][j],SX+20.8+j*0.7,2.0,SZ+30));
+    // Branded interior wall panel visible from the open service bays
+    add(box(root,0.25,3.8,13,lam(0x111722),SX+29.1,7.2,SZ));
+    sign('LLUMAR PPF','#45eaff',10,1.8,SX+28.9,8.2,SZ,PI/2);
+    sign('CUT  ·  PREP  ·  INSTALL','#ffe2a0',11,1.25,SX+28.9,6.3,SZ,PI/2);
     colliders.push({x0:SX-1,x1:SX+29,z0:SZ-35,z1:SZ+35,h:14,y0:0});
     freezeStatic(objs,root,true);
     // cars getting tinted: windows slowly go dark, then drive off and a new one pulls in
