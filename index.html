@@ -3278,6 +3278,24 @@ function makeShowgirl(){
     const x=SX+side*rand(85,110),w=rand(50,70),d=rand(40,60),h=rand(70,170),c=neonC[(ni)%neonC.length];
     const tw=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),lam(pick([0x2a2a3a,0x3a2a3a,0x2a3a4a,0xd8c8b0]),0x0a0a14));tw.position.set(x,h/2,z);root.add(tw);
     const ed=new THREE.LineSegments(new THREE.EdgesGeometry(tw.geometry),new THREE.LineBasicMaterial({color:c}));ed.position.copy(tw.position);root.add(ed);
+    // Detailed casino frontage: illuminated window bays, vertical fins and a grand street entrance
+    const faceX=x-side*(w/2+0.22),faceRot=side<0?-PI/2:PI/2;
+    for(let fy=15;fy<h-8;fy+=12){
+      for(let fz=-d/2+7;fz<d/2-4;fz+=10){
+        const win=new THREE.Mesh(new THREE.PlaneGeometry(7,7.2),new THREE.MeshBasicMaterial({color:pick([0x29445c,0x38536b,0x72523e,0x263b55]),transparent:true,opacity:0.78}));
+        win.position.set(faceX,fy,z+fz);win.rotation.y=faceRot;root.add(win);
+        for(const dy of[-3.8,3.8]){const rail=box(root,0.38,0.35,7.5,lam(0x777d88),faceX,fy+dy,z+fz);rail.rotation.y=0;}
+      }
+    }
+    for(let fin=-d/2+5;fin<=d/2-3;fin+=12){
+      box(root,0.7,h-8,0.7,lam(0x858995),faceX-side*0.18,h/2,z+fin);
+    }
+    const entZ=z+d/2+1.8;
+    box(root,18,1.2,5,basic(c),x,h*0.22,entZ);
+    box(root,15,7,0.55,lam(0x171c27),x,h*0.22-4,entZ+2.4);
+    for(const dx of[-5,0,5])box(root,0.22,6.4,0.22,basic(0x9adfff),x+dx,h*0.22-4,entZ+2.72);
+    for(const dx of[-10,10])box(root,0.65,10,0.65,lam(0xb4a58c),x+dx,h*0.22-4,entZ+2);
+    sign('HOTEL  ·  CASINO','#fff0c0',15,2.6,x,h*0.22+4,entZ+2.8,0);
     for(let y=12;y<h-6;y+=14){const strip=new THREE.Mesh(new THREE.BoxGeometry(w+0.4,0.6,d+0.4),basic(c));strip.position.set(x,y,z);root.add(strip);casinos.push(strip);}
     sign(names[ni%names.length],'#'+new THREE.Color(c).getHexString(),d*0.9,d*0.22,x-side*(w/2+0.6),h*0.55,z,side<0?PI/2:-PI/2);
     colliders.push({x0:x-w/2,x1:x+w/2,z0:z-d/2,z1:z+d/2,h,y0:0});ni++;}
