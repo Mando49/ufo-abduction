@@ -4701,20 +4701,52 @@ function homeTown(sec){return sec==='earth'?((curTown==='city'||curTown==='deser
 
 spaceGroup.children.filter(o=>o.isGroup&&Math.abs(o.position.z+300)<1&&Math.abs(Math.abs(o.position.x)-110)<1&&!portals.some(P=>P.g===o)).forEach(o=>spaceGroup.remove(o));
 applySector('earth');
+// 🌕🔴 detailed globe textures for the Moon and Mars as seen from space
+function globeTex(kind){return texCanvas(1024,512,g=>{const W=1024,H=512,blob=(x,y,r,c,a)=>{for(const ox of[-W,0,W]){const gr=g.createRadialGradient(x+ox,y,0,x+ox,y,r);gr.addColorStop(0,`rgba(${c},${a})`);gr.addColorStop(1,`rgba(${c},0)`);g.fillStyle=gr;g.fillRect(x+ox-r,y-r,r*2,r*2);}};
+  const crater=(x,y,r,rim,floor,sh)=>{for(const ox of[-W,0,W]){const X=x+ox;if(X<-r*2||X>W+r*2)continue;
+      g.fillStyle=`rgba(${floor},.85)`;g.beginPath();g.arc(X,y,r,0,7);g.fill();
+      g.strokeStyle=`rgba(${sh},.7)`;g.lineWidth=Math.max(1,r*0.28);g.beginPath();g.arc(X,y,r*0.86,PI*0.9,PI*1.9);g.stroke(); // inner shadow (sun from upper-left)
+      g.strokeStyle=`rgba(${rim},.9)`;g.lineWidth=Math.max(1,r*0.2);g.beginPath();g.arc(X,y,r,-0.1*PI,0.9*PI);g.stroke(); // lit rim
+      g.strokeStyle=`rgba(${rim},.35)`;g.lineWidth=Math.max(0.6,r*0.1);g.beginPath();g.arc(X,y,r,0,7);g.stroke();
+      if(r>9){g.fillStyle=`rgba(${rim},.7)`;g.beginPath();g.arc(X,y,r*0.13,0,7);g.fill();}}}; // central peak
+  if(kind==='moon'){g.fillStyle='#a9abb2';g.fillRect(0,0,W,H);
+    for(let i=0;i<260;i++)blob(rand(0,W),rand(0,H),rand(14,60),pick(['150,152,160','190,192,198','128,130,138']),rand(.1,.3)); // highland mottling
+    for(let i=0;i<9;i++){const x=rand(0,W),y=rand(110,400),n=3+(Math.random()*4|0);for(let k=0;k<n;k++)blob(x+rand(-60,60),y+rand(-35,35),rand(40,95),'62,66,80',rand(.45,.7));} // dark seas (maria)
+    for(let i=0;i<5;i++){const x=rand(0,W),y=rand(90,420),r=rand(9,15);g.strokeStyle='rgba(235,236,242,.22)';for(let k=0;k<16;k++){const a=rand(0,7),l=rand(50,150);g.lineWidth=rand(1,3);g.beginPath();g.moveTo(x+Math.cos(a)*r,y+Math.sin(a)*r);g.lineTo(x+Math.cos(a)*l,y+Math.sin(a)*l*0.8);g.stroke();}blob(x,y,r*2.6,'240,240,246',.5);crater(x,y,r,'245,246,250','150,152,160','60,62,72');} // bright ray craters
+    for(let i=0;i<34;i++)crater(rand(0,W),rand(30,H-30),rand(9,26),'214,216,224','120,122,132','58,60,70');
+    for(let i=0;i<240;i++)crater(rand(0,W),rand(10,H-10),rand(2.5,8),'206,208,216','118,120,130','66,68,78');
+    for(let i=0;i<1400;i++){g.fillStyle=`rgba(${pick(['70,72,82','215,216,222'])},${rand(.2,.5).toFixed(2)})`;g.fillRect(rand(0,W),rand(0,H),rand(1,2.4),rand(1,2.4));}
+  }else{g.fillStyle='#b4532c';g.fillRect(0,0,W,H);
+    for(let i=0;i<300;i++)blob(rand(0,W),rand(0,H),rand(16,70),pick(['206,108,58','150,60,32','228,140,84','120,48,28']),rand(.2,.45)); // dusty mottling
+    for(let i=0;i<10;i++){const x=rand(0,W),y=rand(140,400),n=4+(Math.random()*5|0);for(let k=0;k<n;k++)blob(x+rand(-80,80),y+rand(-30,30),rand(36,90),'62,26,20',rand(.6,.85));} // dark basalt regions
+    for(let i=0;i<4;i++)blob(rand(0,W),rand(150,360),rand(70,130),'240,170,108',.5); // bright dust basins
+    {let x=rand(250,420),y=rand(250,290);g.lineCap='round';for(const [w,c] of[[20,'rgba(70,26,18,.55)'],[11,'rgba(40,14,10,.8)'],[3,'rgba(232,150,96,.5)']]){let X=x,Y=y;g.strokeStyle=c;g.lineWidth=w;g.beginPath();g.moveTo(X,Y);const rs=[0.31,0.77,0.12,0.56,0.9,0.4,0.68,0.2,0.84,0.5];for(let k=0;k<10;k++){X+=30;Y+=(rs[k]-0.5)*22;g.lineTo(X,Y);if(w===11&&k%3===1){g.moveTo(X,Y);g.lineTo(X+12,Y+(rs[k]>.5?26:-26));g.moveTo(X,Y);}}g.stroke();}} // great canyon system
+    for(const [x,y,r] of[[rand(120,200),rand(170,210),34],[rand(215,250),rand(225,245),17],[rand(232,262),rand(262,280),16],[rand(250,280),rand(296,312),15],[rand(700,800),rand(180,300),22]]){blob(x,y,r*2.1,'226,150,98',.6);blob(x+r*0.5,y+r*0.5,r*1.3,'96,40,26',.45);g.fillStyle='rgba(120,52,32,.9)';g.beginPath();g.arc(x,y,r*0.28,0,7);g.fill();g.strokeStyle='rgba(244,186,136,.8)';g.lineWidth=2;g.beginPath();g.arc(x,y,r*0.28,-0.1*PI,0.9*PI);g.stroke();} // giant shield volcanoes
+    for(let i=0;i<130;i++)crater(rand(0,W),rand(60,H-60),rand(3,14),'226,146,96','150,66,38','84,34,22');
+    for(let i=0;i<1200;i++){g.fillStyle=`rgba(${pick(['92,40,26','236,160,110'])},${rand(.15,.4).toFixed(2)})`;g.fillRect(rand(0,W),rand(0,H),rand(1,2.6),rand(1,2.6));}
+    for(const [y0,d] of[[0,1],[H,-1]]){for(let x=0;x<=W;x+=8){const h=(y0?50:66)+Math.sin(x*0.05)*7+Math.sin(x*0.17)*4+rand(-3,3);g.fillStyle='rgba(248,246,240,.96)';g.fillRect(x,y0?H-h:0,8,h);g.fillStyle='rgba(248,236,224,.45)';g.fillRect(x,y0?H-h-9:h,8,9);}} // polar ice caps
+  }});}
 // ---------- fly to the Moon and Mars (Earth Orbit) ----------
 const BODIES=[];let landCd=0;
 (function(){
   const find=r=>spaceGroup.children.find(o=>o.isMesh&&o.geometry&&o.geometry.parameters&&o.geometry.parameters.radius===r&&o.geometry.type==='SphereGeometry');
   const mk=(mesh,tex,town,p,sc,label,css)=>{
-    mesh.material=new THREE.MeshLambertMaterial({map:tex,emissive:0x1a1a1a,fog:false});mesh.position.copy(p);mesh.scale.setScalar(sc);
+    tex.anisotropy=8;mesh.geometry=new THREE.SphereGeometry(mesh.geometry.parameters.radius,64,40);mesh.material=new THREE.MeshLambertMaterial({map:tex,emissive:0x141414,fog:false});mesh.position.copy(p);mesh.scale.setScalar(sc);mesh.rotation.z=town==='mars'?0.42:0.1;
     spaceGroup.remove(mesh);sectorDecor.earth.add(mesh);
     const r=mesh.geometry.parameters.radius*sc;
     const glow=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:css==='#ff7a50'?0xff6a3a:0xbfd0ff,transparent:true,opacity:.35,blending:THREE.AdditiveBlending,depthWrite:false,fog:false}));glow.position.copy(p);glow.scale.set(r*3.2,r*3.2,1);sectorDecor.earth.add(glow);
     const lc=document.createElement('canvas');lc.width=512;lc.height=128;const lg=lc.getContext('2d');lg.font='900 60px system-ui,-apple-system,sans-serif';lg.textAlign='center';lg.textBaseline='middle';lg.shadowColor=css;lg.shadowBlur=20;lg.fillStyle='#fff';lg.fillText(label,256,64);
     const lab=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(lc),transparent:true,depthWrite:false,fog:false}));lab.position.copy(p).add(new V3(0,r+45,0));lab.scale.set(150,38,1);sectorDecor.earth.add(lab);
-    BODIES.push({mesh,town,p:p.clone(),r,css});};
-  mk(find(150),MOON_TEX,'moon',new V3(-650,180,-950),1.25,'🌕 LAND ON THE MOON','#cfe0ff');
-  mk(find(90),MARS_TEX,'mars',new V3(900,140,-1250),1.7,'🔴 LAND ON MARS','#ff7a50');
+    const B={mesh,town,p:p.clone(),r,css,sats:[]};BODIES.push(B);return B;};
+  const Mo=mk(find(150),globeTex('moon'),'moon',new V3(-650,180,-950),1.25,'🌕 LAND ON THE MOON','#cfe0ff');
+  const Ma=mk(find(90),globeTex('mars'),'mars',new V3(900,140,-1250),1.7,'🔴 LAND ON MARS','#ff7a50');
+  // Mars: thin dusty atmosphere shell + its two little potato moons
+  {const at=new THREE.Mesh(new THREE.SphereGeometry(Ma.r*1.035,40,24),new THREE.MeshBasicMaterial({color:0xff9a6a,transparent:true,opacity:.06,blending:THREE.AdditiveBlending,depthWrite:false,fog:false}));at.position.copy(Ma.p);sectorDecor.earth.add(at);
+    for(const [rr,sz,w,c] of[[Ma.r+70,11,0.35,0x8a7a70],[Ma.r+130,7,0.2,0x9a8a7c]]){const m=new THREE.Mesh(new THREE.IcosahedronGeometry(sz,1),new THREE.MeshLambertMaterial({color:c,flatShading:true,fog:false}));m.scale.set(1.3,0.9,1);sectorDecor.earth.add(m);Ma.sats.push({m,r:rr,w,a:rand(0,6),tilt:0.25});}}
+  // Moon: glowing base lights + a lunar orbiter station
+  {for(let i=0;i<5;i++){const v=new V3(rand(-0.5,0.5),rand(-0.2,0.5),1).normalize().multiplyScalar(150.6);const s=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:pick([0x45eaff,0xffe080]),transparent:true,opacity:.9,blending:THREE.AdditiveBlending,depthWrite:false,fog:false}));s.position.copy(v);s.scale.set(7,7,1);Mo.mesh.add(s);}
+    const st=new THREE.Group();const core=new THREE.Mesh(new THREE.CylinderGeometry(3,3,12,8),new THREE.MeshLambertMaterial({color:0xd0d4dc,fog:false}));core.rotation.z=PI/2;st.add(core);for(const sx of[-1,1]){const pn=new THREE.Mesh(new THREE.BoxGeometry(12,0.5,6),new THREE.MeshLambertMaterial({color:0x2a4aa8,emissive:0x0a1a40,fog:false}));pn.position.set(sx*13,0,0);st.add(pn);}
+    sectorDecor.earth.add(st);Mo.sats.push({m:st,r:Mo.r+55,w:0.28,a:rand(0,6),tilt:-0.4});}
 })();
 TOWN_SECTOR.fifth='earth';TOWN_SECTOR.egypt='earth';TOWN_SECTOR.maya='earth';TOWN_SECTOR.vegas='earth';TOWN_SECTOR.moon='earth';TOWN_SECTOR.mars='earth';TOWN_SECTOR.ocean='earth';
 // ---------- SOLAR SYSTEM: Saturn, Jupiter and the Sun (Earth Orbit) ----------
@@ -4748,7 +4780,7 @@ const SOLAR=[];let sunHeatT=0,saturnSide=0,saturnCd=0;
     lg.fillText(S.kind==='saturn'?'🪐 SATURN · FLY THE RINGS':S.kind==='sun'?'☀️ THE SUN · TOO HOT!':'🪐 JUPITER · FLY INTO THE STORM',256,64);
     const lab=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(lc),transparent:true,depthWrite:false,fog:false}));lab.position.copy(S.p).add(new V3(0,S.r+(S.kind==='saturn'?140:70),0));lab.scale.set(190,48,1);D.add(lab);});
 })();
-function solarAnim(dt,t){SOLAR.forEach(S=>{if(S.sp)S.sp.rotation.y+=dt*(S.kind==='jupiter'?0.05:0.04);if(S.moons)S.moons.forEach(M=>{M.a+=M.w*dt;M.m.position.set(Math.cos(M.a)*M.r,Math.sin(M.a*0.7)*30,Math.sin(M.a)*M.r);});if(S.mat)S.mat.uniforms.t.value=t;});}
+function solarAnim(dt,t){for(const B of BODIES){B.mesh.rotation.y+=dt*(B.town==='mars'?0.03:0.012);for(const S of B.sats){S.a+=S.w*dt;S.m.position.set(B.p.x+Math.cos(S.a)*S.r,B.p.y+Math.sin(S.a)*S.r*S.tilt,B.p.z+Math.sin(S.a)*S.r);S.m.rotation.y+=dt*0.4;}}SOLAR.forEach(S=>{if(S.sp)S.sp.rotation.y+=dt*(S.kind==='jupiter'?0.05:0.04);if(S.moons)S.moons.forEach(M=>{M.a+=M.w*dt;M.m.position.set(Math.cos(M.a)*M.r,Math.sin(M.a*0.7)*30,Math.sin(M.a)*M.r);});if(S.mat)S.mat.uniforms.t.value=t;});}
 let solarBump=0;
 function solarUpdate(dt){
   if(curSector!=='earth')return;
