@@ -3497,6 +3497,77 @@ beginTown('maya');
     sacbe([[455,-407],[455,-430]],1);
     sacbe([[0,492],[0,515]],2);
   })();
+  // 🌽 Yucatán food-growing belt: milpa plots, fruit trees and native stingless-bee hives
+  (function(){
+    const soil=[lam(0x59472d),lam(0x665033),lam(0x725a36)],
+      leaf=[lam(0x557b32),lam(0x6d913b),lam(0x819b45)],
+      maize=lam(0xc4a34f),wood=lam(0x59402a),clay=lam(0x986044);
+    function crop(x,z,h,mat){
+      const stem=new THREE.Mesh(new THREE.CylinderGeometry(0.09,0.13,h,5),leaf[1]);
+      stem.position.set(x,h/2,z);root.add(stem);
+      for(let side of[-1,1]){
+        const blade=new THREE.Mesh(new THREE.ConeGeometry(0.2,h*0.48,5),mat||leaf[0]);
+        blade.position.set(x+side*0.22,h*0.55,z);blade.rotation.z=side*0.8;root.add(blade);
+      }
+      const tassel=new THREE.Mesh(new THREE.SphereGeometry(0.18,5,4),maize);
+      tassel.position.set(x,h+0.08,z);root.add(tassel);
+    }
+    function milpa(cx,cz,w,d,seed){
+      const ground=new THREE.Mesh(new THREE.BoxGeometry(w,0.16,d),soil[seed%soil.length]);
+      ground.position.set(cx,0.08,cz);root.add(ground);
+      // Raised planting ridges and alternating maize/bean/squash rows
+      for(let row=0;row<5;row++){
+        const rz=cz-d*0.38+row*d*0.19;
+        const ridge=new THREE.Mesh(new THREE.BoxGeometry(w-2,0.12,1.15),soil[(seed+1)%soil.length]);
+        ridge.position.set(cx,0.2,rz);root.add(ridge);
+        for(let col=0;col<7;col++){
+          const x=cx-w*0.39+col*(w*0.78/6);
+          if((row+seed)%3===0){
+            const squash=new THREE.Mesh(new THREE.SphereGeometry(0.58,7,5),lam(0x71843a));
+            squash.scale.set(1,0.55,0.9);squash.position.set(x,0.55,rz);root.add(squash);
+            const fruit=new THREE.Mesh(new THREE.SphereGeometry(0.24,6,5),lam(0xd6a83c));
+            fruit.position.set(x+0.28,0.48,rz+0.18);root.add(fruit);
+          }else crop(x,rz,2.3+((col+row)%3)*0.28,leaf[(col+row)%leaf.length]);
+        }
+      }
+      // Low stone boundary and a simple shade awning at the field entrance
+      for(const side of[-1,1]){
+        const edge=new THREE.Mesh(new THREE.BoxGeometry(0.7,0.55,d),lam(0x9d9278));
+        edge.position.set(cx+side*w/2,0.28,cz);root.add(edge);
+      }
+    }
+    function fruitTree(x,z,kind){
+      const trunk=new THREE.Mesh(new THREE.CylinderGeometry(0.38,0.55,4.8,7),wood);
+      trunk.position.set(x,2.4,z);root.add(trunk);
+      const crown=new THREE.Mesh(new THREE.SphereGeometry(kind==='cacao'?3.1:3.8,8,7),leaf[kind==='cacao'?0:2]);
+      crown.scale.set(1,0.72,1);crown.position.set(x,5.4,z);root.add(crown);
+      for(let i=0;i<5;i++){
+        const fruit=new THREE.Mesh(new THREE.SphereGeometry(0.35,6,5),lam(kind==='cacao'?0x8b4931:0xd4a33d));
+        fruit.position.set(x+Math.sin(i*2.4)*2.2,4.7+(i%3)*0.7,z+Math.cos(i*2.4)*2.2);root.add(fruit);
+      }
+    }
+    function beeHive(x,z){
+      const stand=new THREE.Mesh(new THREE.CylinderGeometry(0.12,0.16,1.5,5),wood);
+      stand.position.set(x,0.75,z);root.add(stand);
+      const hive=new THREE.Mesh(new THREE.CylinderGeometry(0.78,0.88,1.65,8),clay);
+      hive.position.set(x,2.2,z);root.add(hive);
+      const lid=new THREE.Mesh(new THREE.ConeGeometry(0.92,0.55,8),lam(0x80613a));
+      lid.position.set(x,3.3,z);root.add(lid);
+      const opening=new THREE.Mesh(new THREE.CircleGeometry(0.16,8),lam(0x21180f));
+      opening.position.set(x,2.1,z+0.79);root.add(opening);
+    }
+    // Small plots sit beside the causeways, leaving the central ceremonial complex clear
+    milpa(-545,-285,38,54,0);
+    milpa(545,-285,38,54,1);
+    milpa(-545,255,38,54,2);
+    milpa(545,255,38,54,0);
+    milpa(0,565,52,38,1);
+    // Fruit and cacao groves near the southern settlement
+    fruitTree(-65,570,'fruit');fruitTree(67,570,'fruit');
+    fruitTree(-90,625,'cacao');fruitTree(92,625,'cacao');
+    // Traditional log hives for stingless bees, placed at the grove edges
+    beeHive(-118,548);beeHive(118,548);beeHive(-128,620);beeHive(128,620);
+  })();
   // A few low limestone markers and shade trees tie the hamlets into the old paths
   for(const [x,z] of[[-350,-455],[350,-455],[-300,445],[300,445]]){
     const plinth=new THREE.Mesh(new THREE.BoxGeometry(3.6,0.8,3.6),villageStone);plinth.position.set(x,0.4,z);root.add(plinth);
