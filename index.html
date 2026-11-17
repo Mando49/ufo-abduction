@@ -5798,7 +5798,7 @@ function updateEnemies(dt,t,canGrab,bR){
     heatIdle+=dt;if(heatIdle>10)heat=Math.max(0,heat-dt/8);
     if(curTown==='desert'&&pos.x>-500&&pos.x<-20&&pos.z>-370&&pos.z<-140&&pos.y<120){heat=Math.min(5,heat+0.25*dt);heatIdle=0;}
     lastHurt+=dt;if(lastHurt>4)shield=Math.min(100,shield+3*dt);
-    const sea=curTown==='ocean',wantH=Math.min(sea?4:3,Math.floor(heat)),wantJ=sea?0:heat>=3?Math.min(2,Math.floor(heat)-2):0;
+    const sea=curTown==='ocean',noAir=curTown==='ice',wantH=noAir?0:Math.min(sea?4:3,Math.floor(heat)),wantJ=sea||noAir?0:heat>=3?Math.min(2,Math.floor(heat)-2):0; // no helicopters or jets in Antarctica
     const live=k=>enemies.filter(e=>e.type===k&&!e.leaving&&e.state==='fly');
     spawnT-=dt;
     if(spawnT<=0){spawnT=2.5;
