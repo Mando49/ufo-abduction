@@ -128,3 +128,5 @@ Beyond the pyramids and Sphinx: the Temple of Karnak, the Valley of the Kings (s
 The three great pyramids now have real stone-block courses, surviving casing stones near the top, entrances and rubble. A Pharaoh and the Queen of the Nile walk the sands. Desert 4x4s are parked in Egypt and Area 51: walk up and press L (or tap SHIP) to drive, again to get out.
 
 Off-road: Egypt has two dune fields and stone jump ramps (air-time bonus), the 4x4 floats and crawls if you drive into the Nile, and the Great Pyramid has a doorway you can walk or drive through to a treasure chamber.
+
+Neon City sky-train: fly next to a train and press L (phone: LAND) to jump on the roof and ride the loop; L / SHIP hops off.
