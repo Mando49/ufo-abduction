@@ -173,3 +173,6 @@ First five minutes: the menu now leads with PLAY (controls are folded away), a f
 © 2026 Mando (Mando49). All rights reserved. See [LICENSE](LICENSE). Third-party parts are listed in [CREDITS.md](CREDITS.md).
 
 The game is site-locked: it only runs on approved addresses (this GitHub Pages site, itch.io, the game portals, and localhost for testing). To approve a new address, add it to the list in the site-lock script at the bottom of `index.html`.
+
+## Leaderboard
+Top-10 online scores, stored in Firebase Firestore (collection `scores`). It stays switched off until `LB_CFG` in `index.html` has the Firebase `projectId` and `apiKey`. Security rules are in `firestore.rules`.

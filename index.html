@@ -241,6 +241,7 @@ body.promo #hud,body.promo #controls,body.promo #keys,body.promo #mute,body.prom
     </details>
     <div><button class="hbtn" id="gfxBtn">⚙️ Graphics: Auto</button></div>
     <div><button class="hbtn" id="promoBtn2" style="border-color:#ff4fd8;color:#ffb3ef;background:rgba(40,5,30,.6)">🎬 PROMO CAMERA</button></div>
+    <div><button class="hbtn lbOpen hidden" id="lbBtn">🏆 TOP SCORES</button></div>
     <div><button class="hbtn" id="tutBtn">❓ HOW TO PLAY</button></div>
     <div><button class="hbtn" id="shopBtn">🛠️ HANGAR</button></div>
     <div><button class="hbtn" id="logBtn">📖 ABDUCTION LOG</button></div>
@@ -268,7 +269,9 @@ body.promo #hud,body.promo #controls,body.promo #keys,body.promo #mute,body.prom
     <p id="finalTally"></p>
     <p id="newBest" style="color:#ffe08a;font-weight:800"></p>
     <p id="earned" style="color:#ffe08a;font-weight:800"></p>
+    <div id="lbPost" class="hidden" style="margin:6px 0 10px"><input id="lbName" maxlength="12" placeholder="Nickname" autocomplete="off" autocapitalize="characters" spellcheck="false" style="width:130px;padding:9px 10px;border-radius:10px;border:1.5px solid #7ffcff;background:rgba(5,20,40,.8);color:#fff;font-weight:800;font-size:16px;text-align:center;text-transform:uppercase"> <button class="hbtn" id="lbSend" style="border-color:#ffd84a;color:#ffe9a0">🏆 POST SCORE</button><div id="lbMsg" style="font-size:12px;opacity:.8;margin-top:4px"></div></div>
     <button class="play" id="againBtn">PLAY AGAIN</button>
+    <div><button class="hbtn lbOpen hidden" id="lbBtn2">🏆 TOP SCORES</button></div>
     <div><button class="hbtn" id="shopBtn2">🛠️ HANGAR</button></div>
     <div><button class="hbtn" id="logBtn2">📖 ABDUCTION LOG</button></div>
     <div class="best" id="bestOver"></div>
@@ -284,6 +287,13 @@ body.promo #hud,body.promo #controls,body.promo #keys,body.promo #mute,body.prom
     <div id="tutDots" style="letter-spacing:6px;opacity:.8;margin:6px 0"></div>
     <button class="play" id="tutNext">NEXT</button>
     <div><button class="hbtn" id="tutSkip">Skip</button></div>
+  </div>
+</div>
+<div id="lbv" class="overlay hidden">
+  <div class="card shopcard">
+    <h1>🏆 TOP SCORES</h1>
+    <div id="lbList" style="text-align:left;margin:10px 0;min-height:120px"></div>
+    <button class="play" id="lbBack">BACK</button>
   </div>
 </div>
 <div id="logv" class="overlay hidden">
@@ -8537,10 +8547,33 @@ function endGame(why){
   $('finalTally').textContent=`🐄 ${cows} cows · 🚗 ${cars} cars abducted`;
   save.bank+=score;persist();$('earned').textContent=`+${fmt(score)} credits → 💰 ${fmt(save.bank)}`;renderShop();
   if(score>best){best=score;try{localStorage.setItem('ufoBest',best);}catch(e){}$('newBest').textContent='🏆 NEW BEST!';}else $('newBest').textContent='';
-  showBest();
+  showBest();lbGameOver();
   if(why==='shield')blip(200,40,0.9,'sawtooth',0.2);else blip(600,200,0.6,'triangle',0.15);
   setTimeout(()=>$('over').classList.remove('hidden'),700);
 }
+// ---------- 🏆 online leaderboard (Firebase Firestore over plain web requests; switched off when LB_CFG is empty or the host blocks it) ----------
+const LB_CFG={projectId:'',apiKey:''}; // paste the two values from the Firebase web config here
+const LB={on:!!(LB_CFG.projectId&&LB_CFG.apiKey)&&window.__NOLB!==1,sent:false,from:'menu',cache:null,cacheT:0,
+  url:k=>`https://firestore.googleapis.com/v1/projects/${LB_CFG.projectId}/databases/(default)/documents${k}?key=${LB_CFG.apiKey}`};
+const LB_BAD=/(fuck|fuk|fck|shit|sht|bitch|btch|cunt|nigg|niga|fag|dick|cock|pussy|whore|slut|rape|nazi|hitler|penis|vagin|porn|sex|ass$|^ass|kkk)/i;
+function lbClean(n){n=(n||'').toUpperCase().replace(/[^A-Z0-9 _\-]/g,'').replace(/\s+/g,' ').trim().slice(0,12);return n&&!LB_BAD.test(n.replace(/[^A-Z]/g,''))?n:'';}
+async function lbTop(force){if(!LB.on)return null;if(!force&&LB.cache&&performance.now()-LB.cacheT<30000)return LB.cache;
+  const r=await fetch(LB.url(':runQuery'),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({structuredQuery:{from:[{collectionId:'scores'}],orderBy:[{field:{fieldPath:'score'},direction:'DESCENDING'}],limit:10}})});
+  if(!r.ok)throw new Error('lb '+r.status);const j=await r.json();LB.cache=j.filter(x=>x.document).map(x=>({name:String(x.document.fields.name.stringValue||'').slice(0,12),score:+x.document.fields.score.integerValue||0}));LB.cacheT=performance.now();return LB.cache;}
+async function lbPost(name,sc){const r=await fetch(LB.url('/scores'),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({fields:{name:{stringValue:name},score:{integerValue:String(sc)},v:{integerValue:'1'}}})});if(!r.ok)throw new Error('lb '+r.status);LB.cache=null;}
+function lbRender(rows,me){const el=$('lbList');if(!rows){el.innerHTML='<p style="opacity:.7;text-align:center">Could not load the scores. Check your connection and try again.</p>';return;}
+  if(!rows.length){el.innerHTML='<p style="opacity:.7;text-align:center">No scores yet. Be the first!</p>';return;}
+  el.textContent='';rows.forEach((r,i)=>{const d=document.createElement('div');d.style.cssText='display:flex;justify-content:space-between;gap:10px;padding:7px 10px;border-radius:10px;margin:3px 0;font-weight:800;background:'+(me&&r.name===me.name&&r.score===me.score?'rgba(125,255,176,.22)':'rgba(255,255,255,.06)');
+    const a=document.createElement('span');a.textContent=(['🥇','🥈','🥉'][i]||(i+1)+'.')+' '+r.name;const b=document.createElement('span');b.textContent=fmt(r.score);b.style.color='#ffe08a';d.appendChild(a);d.appendChild(b);el.appendChild(d);});}
+async function lbOpen(from,me){LB.from=from;$('menu').classList.add('hidden');$('over').classList.add('hidden');$('lbv').classList.remove('hidden');$('lbList').innerHTML='<p style="opacity:.7;text-align:center">Loading…</p>';
+  try{lbRender(await lbTop(!!me),me);}catch(e){lbRender(null);}}
+function lbGameOver(){$('lbPost').classList.add('hidden');if(!LB.on||freeMode||score<=0)return;LB.sent=false;$('lbMsg').textContent='';$('lbSend').disabled=false;try{$('lbName').value=localStorage.getItem('ufoName')||'';}catch(e){}$('lbPost').classList.remove('hidden');}
+if(LB.on){document.querySelectorAll('.lbOpen').forEach(b=>b.classList.remove('hidden'));
+  $('lbBtn').addEventListener('click',()=>lbOpen('menu'));$('lbBtn2').addEventListener('click',()=>lbOpen('over'));$('lbBack').addEventListener('click',()=>{$('lbv').classList.add('hidden');$(LB.from).classList.remove('hidden');});
+  for(const ev of['keydown','keyup','keypress','pointerdown','touchstart'])$('lbName').addEventListener(ev,e=>e.stopPropagation());
+  $('lbSend').addEventListener('click',async()=>{if(LB.sent||state!=='over')return;const n=lbClean($('lbName').value);if(!n){$('lbMsg').textContent='Pick a nickname: letters and numbers, up to 12.';return;}
+    const sc=Math.max(0,Math.min(250000,Math.round(score)));LB.sent=true;$('lbSend').disabled=true;$('lbMsg').textContent='Posting…';try{localStorage.setItem('ufoName',n);}catch(e){}
+    try{await lbPost(n,sc);$('lbPost').classList.add('hidden');lbOpen('over',{name:n,score:sc});}catch(e){LB.sent=false;$('lbSend').disabled=false;$('lbMsg').textContent='Could not post the score. Try again.';}});}
 $('playBtn').addEventListener('click',()=>startGame(false));
 $('freeBtn').addEventListener('click',()=>startGame(true));
 $('againBtn').addEventListener('click',()=>startGame(freeMode));
