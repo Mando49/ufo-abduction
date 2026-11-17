@@ -53,6 +53,8 @@ html,body{margin:0;height:100%;overflow:hidden;background:#0a0c2a;font-family:-a
 @keyframes mflash{0%,100%{box-shadow:0 0 12px rgba(255,190,70,.2)}30%{box-shadow:0 0 30px rgba(255,220,100,1);transform:scale(1.04)}}
 .mi{display:flex;align-items:baseline;gap:4px;font-size:10.5px;line-height:1.2;margin-top:3px;font-weight:700}
 .mi span{flex:1}.mi b{color:#7dffa8;font-size:10.5px;white-space:nowrap}
+.msw{font-style:normal;font-size:12px;line-height:1;padding:4px 5px;margin:-3px -3px -3px 1px;border-radius:8px;background:rgba(255,255,255,.1);cursor:pointer;align-self:center}.msw.ask{background:#ffb347;color:#201000;font-weight:900;font-size:10px}
+.mswb{flex:none;font:800 12px inherit;font-family:inherit;color:#fff;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);border-radius:10px;padding:8px 10px;cursor:pointer}
 .mi.bump{animation:mbump .5s}@keyframes mbump{40%{background:rgba(125,255,168,.25)}}
 body.promo #missions{display:none}
 #race{display:none;position:absolute;top:140px;left:50%;transform:translateX(-50%);white-space:nowrap;background:rgba(8,14,38,.8);border:1.5px solid #ffd84a;border-radius:999px;padding:6px 14px;font-size:14px;font-weight:800;box-shadow:0 0 14px rgba(255,216,74,.4)}
@@ -180,7 +182,7 @@ body.promo #hud,body.promo #controls,body.promo #keys,body.promo #mute,body.prom
   <div id="pubar"></div>
   <div id="race"></div>
   <div id="coach"></div>
-  <div id="missions"><div class="lbl">🎯 MISSIONS <span style="opacity:.6;letter-spacing:0">· tap to hide</span></div><div id="mlist"></div></div>
+  <div id="missions"><div class="lbl">🎯 MISSIONS <span style="opacity:.6;letter-spacing:0">· tap to hide · 🔄 swap</span></div><div id="mlist"></div></div>
   <div id="heatwarn">☀️ TOO HOT! GET AWAY FROM THE SUN</div>
   <div id="pops"></div>
   <div id="sndwarn">🔇 Sound is paused · tap anywhere to turn it on</div>
@@ -8144,13 +8146,25 @@ let MS={active:[],done:[]};try{const v=JSON.parse(localStorage.getItem('ufoMissi
 MS.active=MS.active.filter(a=>MBYID[a.id]);
 const saveMS=()=>{try{localStorage.setItem('ufoMissions',JSON.stringify(MS));}catch(e){}};
 const STARTER=['cows','cars','walker','ring','crates','tractor','foxes','desert','vegas','egypt','moon','ocean','warps','pu'];
-function drawMission(){
-  const act=MS.active.map(a=>a.id);let pool=MISSIONS.filter(m=>!act.includes(m.id)&&!MS.done.includes(m.id));
-  if(MS.done.length<6){const st=pool.filter(m=>STARTER.includes(m.id));if(st.length)pool=st;} // first few missions are simple ones close to the start
-  if(!pool.length){MS.done=[];pool=MISSIONS.filter(m=>!act.includes(m.id));}
-  const m=pick(pool);MS.active.push({id:m.id,p:0});return m;
+const NEAR=['cows','cars','cops','walker','sleeper','tractor','foxes','crates','pu','ring','train25','stadium','blimp','news','heli','wanted','score','jetpack','aircurrent']; // doable in Neon City, where every game starts
+const hasNear=()=>MS.active.some(a=>NEAR.includes(a.id));
+function drawMission(at){
+  const act=MS.active.map(a=>a.id),skip=MS.skip||[];let pool=MISSIONS.filter(m=>!act.includes(m.id)&&!MS.done.includes(m.id)&&!skip.includes(m.id));
+  if(!hasNear()){let nr=pool.filter(m=>NEAR.includes(m.id));if(!nr.length)nr=MISSIONS.filter(m=>NEAR.includes(m.id)&&!act.includes(m.id)&&!skip.includes(m.id));if(!nr.length)nr=MISSIONS.filter(m=>NEAR.includes(m.id)&&!act.includes(m.id));if(nr.length)pool=nr;} // always keep one mission you can do right where you start
+  else if(MS.done.length<6){const st=pool.filter(m=>STARTER.includes(m.id));if(st.length)pool=st;} // first few missions are simple ones close to the start
+  if(!pool.length){MS.done=[];pool=MISSIONS.filter(m=>!act.includes(m.id)&&!skip.includes(m.id));}
+  if(!pool.length)pool=MISSIONS.filter(m=>!act.includes(m.id));
+  const m=pick(pool),e={id:m.id,p:0};if(at!=null)MS.active.splice(at,0,e);else MS.active.push(e);return m;
 }
-while(MS.active.length<3)drawMission();saveMS();
+while(MS.active.length<3)drawMission();
+if(!hasNear()){let i=MS.active.findIndex(a=>a.p===0);if(i<0)i=MS.active.length-1;MS.active.splice(i,1);drawMission(i);} // older saves: trade one far-away mission for a close one
+saveMS();
+// 🔄 swap a mission for a different one (a mission with progress asks twice)
+let mSwapAsk='',mSwapT=0;
+function mSwap(id){const i=MS.active.findIndex(a=>a.id===id);if(i<0)return;const a=MS.active[i];
+  if(a.p>0&&!(mSwapAsk===id&&performance.now()-mSwapT<5000)){mSwapAsk=id;mSwapT=performance.now();mLast='';renderMissions();setTimeout(()=>{if(mSwapAsk===id){mSwapAsk='';mLast='';renderMissions();}},5000);return;}
+  mSwapAsk='';MS.active.splice(i,1);MS.skip=(MS.skip||[]).concat(id).slice(-12);const n=drawMission(i);saveMS();mLast='';renderMissions();
+  if(state==='play'){pop('🔄 NEW: '+n.t,'t');missionPeek(6);}try{blip(500,800,0.12,'triangle',0.1);}catch(e){}}
 const runFlags={};
 function mEvent(ev,d){
   if(state!=='play')return;d=d||{};
@@ -8173,11 +8187,12 @@ function missionTick(){
 }
 let mLast='';
 function renderMissions(){
-  const h=MS.active.map(a=>{const M=MBYID[a.id];return `<div class="mi" data-mid="${M.id}"><span>${M.t}</span><b>${M.g>1?a.p+'/'+M.g:'○'}</b></div>`;}).join('');
+  const h=MS.active.map(a=>{const M=MBYID[a.id];return `<div class="mi" data-mid="${M.id}"><span>${M.t}</span><b>${M.g>1?a.p+'/'+M.g:'○'}</b><i class="msw${mSwapAsk===M.id?' ask':''}" data-sw="${M.id}">${mSwapAsk===M.id?'sure?':'🔄'}</i></div>`;}).join('');
   if(h!==mLast){mLast=h;$('mlist').innerHTML=h;}
-  try{$('mhangar').innerHTML=MS.active.map(a=>{const M=MBYID[a.id];return `<div class="row"><div><b>🎯 ${M.t}</b><small>${M.g>1?`Progress ${a.p}/${M.g} · `:''}Reward 💰 ${M.r} credits</small></div></div>`;}).join('');}catch(e){}
+  try{$('mhangar').innerHTML=MS.active.map(a=>{const M=MBYID[a.id];return `<div class="row"><div><b>🎯 ${M.t}</b><small>${M.g>1?`Progress ${a.p}/${M.g} · `:''}Reward 💰 ${M.r} credits</small></div><button class="mswb" data-sw="${M.id}">${mSwapAsk===M.id?'Sure?':'🔄 Swap'}</button></div>`;}).join('');}catch(e){}
 }
-$('missions').addEventListener('pointerdown',e=>{e.stopPropagation();$('missions').classList.toggle('mini');mAuto=0;});
+$('missions').addEventListener('pointerdown',e=>{e.stopPropagation();const sw=e.target&&e.target.closest&&e.target.closest('[data-sw]');if(sw){e.preventDefault();mSwap(sw.dataset.sw);mAuto=Math.max(mAuto,6);return;}$('missions').classList.toggle('mini');mAuto=0;});
+document.addEventListener('click',e=>{const sw=e.target&&e.target.closest&&e.target.closest('#mhangar [data-sw]');if(sw){e.stopPropagation();mSwap(sw.dataset.sw);}});
 let mAuto=0;const mSmall=()=>isTouch&&innerWidth<800;
 function missionPeek(sec){if(!mSmall())return;$('missions').classList.remove('mini');mAuto=sec;}
 setInterval(()=>{if(mAuto>0&&state==='play'){mAuto-=0.5;if(mAuto<=0&&mSmall())$('missions').classList.add('mini');}},500);
