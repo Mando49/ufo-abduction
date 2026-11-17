@@ -3518,6 +3518,364 @@ beginTown('maya');
       resident.mesh.userData.T=resident;resident.spawn(resident);targets.push(resident);
     }
   });
+  // 🛤️ Ancient Maya sacbeob: pale limestone causeways linking the three hamlets
+  (function(){
+    const roadTop=[lam(0xd8d0b8),lam(0xcfc6ad),lam(0xe0d8c2)],
+      roadEdge=lam(0xaaa18d),roadBase=lam(0x827b6b);
+    function sacbe(points,seed){
+      for(let p=0;p<points.length-1;p++){
+        const A=points[p],B=points[p+1],dx=B[0]-A[0],dz=B[1]-A[1],
+          len=Math.hypot(dx,dz),steps=Math.ceil(len/8),angle=Math.atan2(dx,dz);
+        for(let i=0;i<steps;i++){
+          const u=(i+0.5)/steps,x=A[0]+dx*u,z=A[1]+dz*u,
+            slabLen=len/steps+0.45;
+          const base=new THREE.Mesh(new THREE.BoxGeometry(10.8,0.34,slabLen),roadBase);
+          base.position.set(x,0.18,z);base.rotation.y=angle;root.add(base);
+          const top=new THREE.Mesh(new THREE.BoxGeometry(9.6,0.18,slabLen-0.35),roadTop[(i+p+seed)%roadTop.length]);
+          top.position.set(x,0.42,z);top.rotation.y=angle;root.add(top);
+          // Low, irregular limestone edging keeps the causeway readable from the air
+          if(i%2===0){
+            for(const side of[-1,1]){
+              const off=side*5.25,ex=x+Math.cos(angle)*off,ez=z-Math.sin(angle)*off;
+              const curb=new THREE.Mesh(new THREE.BoxGeometry(0.85,0.5,2.5),roadEdge);
+              curb.position.set(ex,0.34,ez);curb.rotation.y=angle;root.add(curb);
+            }
+          }
+        }
+      }
+    }
+    // Northern cross-causeway bends around the great pyramid rather than crossing it
+    sacbe([[-430,-330],[-380,-410],[-250,-470],[0,-480],[250,-470],[330,-440],[380,-390],[430,-300]],0); // re-routed to the moved hamlets and kept inside the reachable map
+    // Western and eastern branches skirt the outer jungle and meet the southern hamlet
+    sacbe([[-430,-330],[-440,-120],[-470,100],[-440,300],[-300,440],[-150,505],[0,515]],1);
+    sacbe([[430,-300],[440,-120],[470,100],[440,300],[300,440],[150,505],[0,515]],2);
+    // Short stone aprons lead from each village plaza onto the main causeway
+    sacbe([[-430,-307],[-430,-330]],0);
+    sacbe([[430,-277],[430,-300]],1);
+    sacbe([[0,492],[0,515]],2);
+  })();
+  // 🌽 Yucatán food-growing belt: milpa plots, fruit trees and native stingless-bee hives
+  (function(){
+    const soil=[lam(0x59472d),lam(0x665033),lam(0x725a36)],
+      leaf=[lam(0x557b32),lam(0x6d913b),lam(0x819b45)],
+      maize=lam(0xc4a34f),wood=lam(0x59402a),clay=lam(0x986044);
+    function crop(x,z,h,mat){
+      const stem=new THREE.Mesh(new THREE.CylinderGeometry(0.09,0.13,h,5),leaf[1]);
+      stem.position.set(x,h/2,z);root.add(stem);
+      for(let side of[-1,1]){
+        const blade=new THREE.Mesh(new THREE.ConeGeometry(0.2,h*0.48,5),mat||leaf[0]);
+        blade.position.set(x+side*0.22,h*0.55,z);blade.rotation.z=side*0.8;root.add(blade);
+      }
+      const tassel=new THREE.Mesh(new THREE.SphereGeometry(0.18,5,4),maize);
+      tassel.position.set(x,h+0.08,z);root.add(tassel);
+    }
+    function milpa(cx,cz,w,d,seed){
+      const ground=new THREE.Mesh(new THREE.BoxGeometry(w,0.16,d),soil[seed%soil.length]);
+      ground.position.set(cx,0.08,cz);root.add(ground);
+      // Raised planting ridges and alternating maize/bean/squash rows
+      for(let row=0;row<5;row++){
+        const rz=cz-d*0.38+row*d*0.19;
+        const ridge=new THREE.Mesh(new THREE.BoxGeometry(w-2,0.12,1.15),soil[(seed+1)%soil.length]);
+        ridge.position.set(cx,0.2,rz);root.add(ridge);
+        for(let col=0;col<7;col++){
+          const x=cx-w*0.39+col*(w*0.78/6);
+          if((row+seed)%3===0){
+            const squash=new THREE.Mesh(new THREE.SphereGeometry(0.58,7,5),lam(0x71843a));
+            squash.scale.set(1,0.55,0.9);squash.position.set(x,0.55,rz);root.add(squash);
+            const fruit=new THREE.Mesh(new THREE.SphereGeometry(0.24,6,5),lam(0xd6a83c));
+            fruit.position.set(x+0.28,0.48,rz+0.18);root.add(fruit);
+          }else crop(x,rz,2.3+((col+row)%3)*0.28,leaf[(col+row)%leaf.length]);
+        }
+      }
+      // Low stone boundary and a simple shade awning at the field entrance
+      for(const side of[-1,1]){
+        const edge=new THREE.Mesh(new THREE.BoxGeometry(0.7,0.55,d),lam(0x9d9278));
+        edge.position.set(cx+side*w/2,0.28,cz);root.add(edge);
+      }
+    }
+    function fruitTree(x,z,kind){
+      const trunk=new THREE.Mesh(new THREE.CylinderGeometry(0.38,0.55,4.8,7),wood);
+      trunk.position.set(x,2.4,z);root.add(trunk);
+      const crown=new THREE.Mesh(new THREE.SphereGeometry(kind==='cacao'?3.1:3.8,8,7),leaf[kind==='cacao'?0:2]);
+      crown.scale.set(1,0.72,1);crown.position.set(x,5.4,z);root.add(crown);
+      for(let i=0;i<5;i++){
+        const fruit=new THREE.Mesh(new THREE.SphereGeometry(0.35,6,5),lam(kind==='cacao'?0x8b4931:0xd4a33d));
+        fruit.position.set(x+Math.sin(i*2.4)*2.2,4.7+(i%3)*0.7,z+Math.cos(i*2.4)*2.2);root.add(fruit);
+      }
+    }
+    function beeHive(x,z){
+      const stand=new THREE.Mesh(new THREE.CylinderGeometry(0.12,0.16,1.5,5),wood);
+      stand.position.set(x,0.75,z);root.add(stand);
+      const hive=new THREE.Mesh(new THREE.CylinderGeometry(0.78,0.88,1.65,8),clay);
+      hive.position.set(x,2.2,z);root.add(hive);
+      const lid=new THREE.Mesh(new THREE.ConeGeometry(0.92,0.55,8),lam(0x80613a));
+      lid.position.set(x,3.3,z);root.add(lid);
+      const opening=new THREE.Mesh(new THREE.CircleGeometry(0.16,8),lam(0x21180f));
+      opening.position.set(x,2.1,z+0.79);root.add(opening);
+    }
+    // Small plots sit beside the causeways, leaving the central ceremonial complex clear
+    milpa(-520,-180,38,54,0);
+    milpa(520,-180,38,54,1);
+    milpa(-520,200,38,54,2);
+    milpa(520,200,38,54,0);
+    milpa(0,565,52,38,1);
+    // Fruit and cacao groves near the southern settlement
+    fruitTree(-65,570,'fruit');fruitTree(67,570,'fruit');
+    fruitTree(-90,625,'cacao');fruitTree(92,625,'cacao');
+    // Traditional log hives for stingless bees, placed at the grove edges
+    beeHive(-118,548);beeHive(118,548);beeHive(-128,620);beeHive(128,620);
+  })();
+  // 🦜 Yucatán jungle wildlife: toucans, macaws, monkeys, coatis and iguanas
+  (function(){
+    const wildlife=[],darkFeather=lam(0x202832),brightFeather=lam(0x176b55),
+      wingFeather=lam(0x245b48),beakMat=lam(0xf0a52e),skin=lam(0x8a6548),
+      fur=lam(0x76533a),belly=lam(0xc6a77b),scale=lam(0x548b48);
+    function bird(x,z,kind,phase){
+      const g=new THREE.Group(),bodyMat=kind==='macaw'?brightFeather:darkFeather;
+      const body=new THREE.Mesh(new THREE.SphereGeometry(1.25,9,7),bodyMat);
+      body.scale.set(1.45,0.78,0.72);g.add(body);
+      const head=new THREE.Mesh(new THREE.SphereGeometry(0.62,8,6),bodyMat);head.position.set(1.35,0.45,0);g.add(head);
+      const beak=new THREE.Mesh(new THREE.ConeGeometry(0.42,1.25,6),kind==='toucan'?beakMat:lam(0xd6a34b));
+      beak.rotation.z=-PI/2;beak.position.set(2.12,0.32,0);g.add(beak);
+      const wingL=new THREE.Group(),wingR=new THREE.Group();
+      for(const [w,side] of[[wingL,-1],[wingR,1]]){
+        const feather=new THREE.Mesh(new THREE.BoxGeometry(1.9,0.16,0.78),kind==='macaw'?lam(0xd84c32):wingFeather);
+        feather.position.x=side*0.85;w.add(feather);w.position.set(0,0,side*0.48);g.add(w);
+      }
+      const tail=new THREE.Mesh(new THREE.ConeGeometry(0.36,2.8,5),kind==='macaw'?lam(0xd84c32):brightFeather);
+      tail.rotation.z=PI/2;tail.position.set(-2,0,0);g.add(tail);
+      root.add(g);wildlife.push({kind,g,wingL,wingR,phase,radius:rand(12,26),speed:rand(0.18,0.34),x,z,height:rand(28,43)});
+    }
+    for(let i=0;i<5;i++)bird(-570+i*34,-80+(i%2)*42,'toucan',i*1.7);
+    for(let i=0;i<5;i++)bird(570-i*32,100-(i%2)*38,'macaw',i*1.4);
+    function monkey(x,z,phase){
+      const g=new THREE.Group();
+      const torso=new THREE.Mesh(new THREE.SphereGeometry(0.9,8,7),fur);torso.scale.set(0.72,1.25,0.62);torso.position.y=2.1;g.add(torso);
+      const head=new THREE.Mesh(new THREE.SphereGeometry(0.62,8,7),skin);head.position.set(0,3.25,0);g.add(head);
+      for(const side of[-1,1]){
+        const arm=new THREE.Mesh(new THREE.CylinderGeometry(0.16,0.2,1.8,6),fur);arm.position.set(side*0.72,2.7,0);arm.rotation.z=side*0.35;g.add(arm);
+        const leg=new THREE.Mesh(new THREE.CylinderGeometry(0.18,0.2,1.35,6),fur);leg.position.set(side*0.48,0.85,0);g.add(leg);
+      }
+      const tail=new THREE.Mesh(new THREE.TorusGeometry(1.25,0.13,5,12,PI*1.6),fur);tail.position.set(-0.7,1.35,0);tail.rotation.z=PI/2;g.add(tail);
+      root.add(g);wildlife.push({kind:'monkey',g,phase,x,z,radius:5,speed:0.7,height:0});
+    }
+    monkey(-585,-360,0.2);monkey(590,-360,2.1);monkey(-590,360,4.2);
+    function groundCritter(x,z,kind){
+      const g=new THREE.Group(),m=kind==='iguana'?scale:fur;
+      const body=new THREE.Mesh(new THREE.SphereGeometry(1,8,6),m);body.scale.set(1.55,0.55,0.68);body.position.y=0.8;g.add(body);
+      const head=new THREE.Mesh(new THREE.SphereGeometry(0.48,7,6),m);head.position.set(1.35,0.9,0);g.add(head);
+      const tail=new THREE.Mesh(new THREE.ConeGeometry(0.35,2.3,6),m);tail.rotation.z=-PI/2;tail.position.set(-2.1,0.62,0);g.add(tail);
+      for(const side of[-1,1])for(const along of[-1,1]){
+        const leg=new THREE.Mesh(new THREE.CylinderGeometry(0.1,0.13,0.65,5),m);leg.position.set(along*0.8,0.35,side*0.48);leg.rotation.z=along*0.25;g.add(leg);
+      }
+      if(kind==='coati'){const mask=new THREE.Mesh(new THREE.SphereGeometry(0.22,6,5),belly);mask.position.set(1.62,1.05,0);g.add(mask);}
+      else for(let i=0;i<5;i++){const spike=new THREE.Mesh(new THREE.ConeGeometry(0.16,0.55,4),lam(0x426b3b));spike.position.set(-0.6+i*0.42,1.35,0);g.add(spike);}
+      g.position.set(x,0,z);root.add(g);wildlife.push({kind,g,x,z,phase:rand(0,6),radius:rand(3,9),speed:rand(0.12,0.24),height:0});
+    }
+    groundCritter(-500,-250,'coati');groundCritter(500,-250,'coati');
+    groundCritter(-500,330,'iguana');groundCritter(500,330,'iguana');
+    planetAnim.push({town:'maya',f:(t)=>{
+      wildlife.forEach(W=>{
+        const a=t*W.speed+W.phase;
+        if(W.kind==='monkey'){
+          W.g.position.set(W.x+Math.sin(a)*W.radius,6+Math.sin(a*2)*1.4,W.z+Math.cos(a)*W.radius);
+          W.g.rotation.y=-a;
+        }else if(W.kind==='coati'||W.kind==='iguana'){
+          W.g.position.x=W.x+Math.sin(a)*W.radius;
+          W.g.position.z=W.z+Math.cos(a)*W.radius;
+          W.g.rotation.y=-a;
+        }else{
+          W.g.position.set(W.x+Math.cos(a)*W.radius,W.height+Math.sin(a*2)*2.2,W.z+Math.sin(a)*W.radius);
+          W.g.rotation.y=-a+PI/2;
+          const flap=Math.sin(t*9+W.phase)*0.48;
+          W.wingL.rotation.z=flap;W.wingR.rotation.z=-flap;
+        }
+      });
+    }});
+  })();
+  // 🏛️ Everyday ceremonial landmarks: a temazcal, carved stelae and a cenote landing
+  (function(){
+    const limestone=lam(0xb8ad94),shadow=lam(0x756d5c),timber=lam(0x59402a),
+      turquoise=lam(0x277f79),ochre=lam(0xb68a48);
+    // Small domed temazcal beside the southern homes
+    const bath=new THREE.Group();bath.position.set(-92,0,485);root.add(bath);
+    const mound=new THREE.Mesh(new THREE.SphereGeometry(13,12,8,0,2*PI,0,PI/2),limestone);
+    mound.scale.set(1.25,0.78,1);mound.position.y=0.2;bath.add(mound);
+    const doorway=new THREE.Mesh(new THREE.BoxGeometry(4.2,5.4,1),shadow);doorway.position.set(0,2.1,12.3);bath.add(doorway);
+    const entry=new THREE.Mesh(new THREE.BoxGeometry(2.5,4.2,0.35),lam(0x211a13));entry.position.set(0,2.1,12.9);bath.add(entry);
+    const vent=new THREE.Mesh(new THREE.CylinderGeometry(0.8,1.1,1.4,8),limestone);vent.position.set(0,10.1,0);bath.add(vent);
+    // Three carved stelae with simple raised glyph marks at the edge of the plaza
+    for(const [x,z,turn] of[[-32,545,0],[32,545,0],[0,590,PI/2]]){
+      const base=new THREE.Mesh(new THREE.BoxGeometry(5,1,4),shadow);base.position.set(x,0.5,z);root.add(base);
+      const slab=new THREE.Mesh(new THREE.BoxGeometry(2.7,7.5,0.85),limestone);slab.position.set(x,4.7,z);slab.rotation.y=turn;root.add(slab);
+      for(let row=0;row<3;row++)for(let col=0;col<2;col++){
+        const glyph=new THREE.Mesh(new THREE.BoxGeometry(0.42,0.42,0.18),ochre);
+        glyph.position.set(x+(col-0.5)*0.8,3.2+row*1.45,z+0.52);glyph.rotation.y=turn;root.add(glyph);
+      }
+    }
+    // A modest canoe landing on the near side of the existing sacred cenote
+    const dock=new THREE.Group();dock.position.set(-260,0,-68);dock.rotation.y=0.22;root.add(dock);
+    for(let i=0;i<5;i++){
+      const plank=new THREE.Mesh(new THREE.BoxGeometry(3.2,0.32,17),timber);
+      plank.position.set((i-2)*3.1,0.55,0);dock.add(plank);
+    }
+    for(const z of[-7,7])for(const x of[-6.2,6.2]){
+      const post=new THREE.Mesh(new THREE.CylinderGeometry(0.22,0.28,2.8,6),timber);
+      post.position.set(x,0.25,z);dock.add(post);
+    }
+    // Two narrow dugout canoes pulled up beside the landing
+    for(const x of[-8,8]){
+      const canoe=new THREE.Group();canoe.position.set(x,0.8,12+(x>0?4:0));dock.add(canoe);
+      const hull=new THREE.Mesh(new THREE.BoxGeometry(2.4,0.65,11),timber);hull.scale.set(0.72,1,1);canoe.add(hull);
+      const bow=new THREE.Mesh(new THREE.ConeGeometry(1.15,3,5),timber);bow.rotation.x=PI/2;bow.position.z=-6;canoe.add(bow);
+      const stern=bow.clone();stern.position.z=6;stern.rotation.x=-PI/2;canoe.add(stern);
+      const seat=new THREE.Mesh(new THREE.BoxGeometry(1.3,0.2,0.55),ochre);seat.position.y=0.42;canoe.add(seat);
+    }
+    // Subtle turquoise water glint and a small offering bowl near the landing
+    const offering=new THREE.Mesh(new THREE.CylinderGeometry(1.1,1.4,0.55,8),turquoise);
+    offering.position.set(-245,0.32,-54);root.add(offering);
+  })();
+  // 🌳 Yucatán canopy polish: ceiba trees, palms, understory plants and water glints
+  (function(){
+    const bark=lam(0x654a32),rootBark=lam(0x806044),
+      canopy=[lam(0x315f2e),lam(0x3f7134),lam(0x527f3a),lam(0x668743)],
+      vine=lam(0x426d36),water=lam(0x2c8880);
+    const swaying=[],waterGlints=[];
+    function ceiba(x,z,size,seed){
+      const g=new THREE.Group();g.position.set(x,0,z);g.scale.setScalar(size);root.add(g);
+      const trunk=new THREE.Mesh(new THREE.CylinderGeometry(0.9,1.25,13,8),bark);trunk.position.y=6.5;g.add(trunk);
+      // Flared buttress roots characteristic of large tropical forest trees
+      for(let i=0;i<5;i++){
+        const a=i/5*2*PI+seed,rootMesh=new THREE.Mesh(new THREE.ConeGeometry(0.9,6,5),rootBark);
+        rootMesh.position.set(Math.cos(a)*2.1,1.5,Math.sin(a)*2.1);
+        rootMesh.rotation.z=Math.cos(a)*0.55;rootMesh.rotation.x=-Math.sin(a)*0.55;g.add(rootMesh);
+      }
+      const crown=new THREE.Group();crown.position.y=12;g.add(crown);
+      for(let i=0;i<7;i++){
+        const a=i/7*2*PI,clump=new THREE.Mesh(new THREE.SphereGeometry(rand(3.8,5.2),8,6),canopy[(i+seed)%canopy.length]);
+        clump.scale.set(1.25,0.72,1);clump.position.set(Math.cos(a)*3.2,rand(-0.2,1.8),Math.sin(a)*3.2);crown.add(clump);
+      }
+      // Hanging lianas and small epiphyte clusters
+      for(let i=0;i<4;i++){
+        const a=i/4*2*PI+seed,v=new THREE.Mesh(new THREE.CylinderGeometry(0.045,0.07,rand(4,7),5),vine);
+        v.position.set(Math.cos(a)*4.2,rand(6,8),Math.sin(a)*4.2);v.rotation.z=Math.sin(a)*0.12;v.rotation.x=Math.cos(a)*0.12;g.add(v);
+      }
+      swaying.push({crown,phase:seed,speed:0.35+seed*0.03});
+    }
+    function palm(x,z,size,seed){
+      const g=new THREE.Group();g.position.set(x,0,z);g.scale.setScalar(size);root.add(g);
+      const trunk=new THREE.Mesh(new THREE.CylinderGeometry(0.32,0.52,11,7),lam(0x795638));trunk.position.y=5.5;g.add(trunk);
+      const crown=new THREE.Group();crown.position.y=11;g.add(crown);
+      for(let i=0;i<8;i++){
+        const a=i/8*2*PI+seed,leafMesh=new THREE.Mesh(new THREE.BoxGeometry(0.55,0.18,7.5),canopy[i%canopy.length]);
+        leafMesh.position.set(Math.cos(a)*2.5,-0.9,Math.sin(a)*2.5);leafMesh.rotation.y=-a;leafMesh.rotation.z=-0.28; crown.add(leafMesh);
+      }
+      swaying.push({crown,phase:seed+2,speed:0.55});
+    }
+    // Place canopy groups in forest gaps, away from village courtyards and central monuments
+    [[-610,-520],[-610,-300],[-610,20],[-610,500],[610,-520],[610,-300],[610,20],[610,500],
+     [-360,-560],[360,-560],[-360,600],[360,600],[-520,570],[520,570]].forEach((p,i)=>ceiba(p[0],p[1],0.72+(i%3)*0.12,i*0.7));
+    [[-575,-470],[-575,180],[575,-470],[575,180],[-250,610],[250,610]].forEach((p,i)=>palm(p[0],p[1],0.8,i*0.8));
+    // Ferns and broad-leaf understory soften the hard edges of fields and paths
+    for(let i=0;i<54;i++){
+      const x=rand(-600,600),z=rand(-600,600);
+      if(Math.abs(x)<95&&z>430)continue;
+      const g=new THREE.Group();g.position.set(x,0,z);root.add(g);
+      for(let k=0;k<5;k++){
+        const a=k/5*2*PI,frond=new THREE.Mesh(new THREE.ConeGeometry(0.52,2.8,5),canopy[(i+k)%canopy.length]);
+        frond.position.set(Math.cos(a)*0.8,1.1,Math.sin(a)*0.8);frond.rotation.z=Math.cos(a)*0.6;frond.rotation.x=-Math.sin(a)*0.6;g.add(frond);
+      }
+    }
+    // A shallow turquoise rainwater runnel beside the southern causeway
+    const runnel=new THREE.Group();runnel.position.set(175,0,540);runnel.rotation.y=-0.16;root.add(runnel);
+    for(let i=0;i<9;i++){
+      const pool=new THREE.Mesh(new THREE.CylinderGeometry(3.2,3.8,0.18,12),water);
+      pool.scale.set(1.4,1,0.75);pool.position.set(i*7,0.12,Math.sin(i*0.8)*2.2);runnel.add(pool);
+      const stone=new THREE.Mesh(new THREE.BoxGeometry(3.2,0.65,2.2),lam(0x938b75));
+      stone.position.set(i*7,0.28,Math.sin(i*0.8)*2.2+3.8);runnel.add(stone);
+    }
+    const glintMat=new THREE.SpriteMaterial({map:GLOW,color:0x9bfff0,transparent:true,opacity:0.45,depthWrite:false,blending:THREE.AdditiveBlending});
+    for(let i=0;i<18;i++){
+      const glint=new THREE.Sprite(glintMat.clone());glint.position.set(175+rand(-8,70),0.55+rand(0,0.2),540+rand(-4,5));glint.scale.set(rand(1.5,3.2),rand(0.6,1.2),1);root.add(glint);
+      waterGlints.push({glint,phase:i*0.7});
+    }
+    planetAnim.push({town:'maya',f:(t)=>{
+      swaying.forEach((S)=>{S.crown.rotation.z=Math.sin(t*S.speed+S.phase)*0.035;S.crown.rotation.x=Math.cos(t*S.speed*0.8+S.phase)*0.025;});
+      waterGlints.forEach(W=>{W.glint.material.opacity=0.18+0.5*(0.5+0.5*Math.sin(t*2.4+W.phase));});
+    }});
+  })();
+  // 🏛️ Yucatán civic architecture pass: palace court, carved lintels and plaza stonework
+  (function(){
+    const limestone=lam(0xb7aa8c),paleStone=lam(0xd0c2a0),shadowStone=lam(0x81765f),
+      plaster=lam(0xd8c8a4),paint=lam(0x9d5940),jade=lam(0x397d69),dark=lam(0x514b3d);
+    const court=new THREE.Group();court.position.set(72,0,170);root.add(court);
+    // Broad low terrace and a quiet enclosed court, set away from the main pyramid
+    const terrace=new THREE.Mesh(new THREE.BoxGeometry(92,2.2,58),limestone);terrace.position.set(0,1.1,0);court.add(terrace);
+    const paving=new THREE.Mesh(new THREE.BoxGeometry(80,0.18,46),paleStone);paving.position.set(0,2.28,0);court.add(paving);
+    for(const [x,z,w,d] of [[0,-27,92,3],[0,27,92,3],[-44,0,3,54],[44,0,3,54]]){
+      const wall=new THREE.Mesh(new THREE.BoxGeometry(w,3.2,d),shadowStone);wall.position.set(x,3.8,z);court.add(wall);
+      const cap=new THREE.Mesh(new THREE.BoxGeometry(w+0.8,0.55,d+0.8),paleStone);cap.position.set(x,5.55,z);court.add(cap);
+    }
+    // Open entry stair on the south side
+    for(let i=0;i<5;i++){
+      const step=new THREE.Mesh(new THREE.BoxGeometry(17,0.55,3.4),limestone);
+      step.position.set(0,0.35+i*0.48,31-i*3.2);court.add(step);
+    }
+    // Palace block: several connected rooms with a flat roof and a stepped roof comb
+    const palace=new THREE.Group();palace.position.set(-1,2.4,-8);court.add(palace);
+    const body=new THREE.Mesh(new THREE.BoxGeometry(55,8,19),plaster);body.position.y=4.2;palace.add(body);
+    const roof=new THREE.Mesh(new THREE.BoxGeometry(60,1.6,23),limestone);roof.position.y=9;palace.add(roof);
+    for(let i=0;i<7;i++){
+      const panel=new THREE.Mesh(new THREE.BoxGeometry(6.6,3.2,0.8),paleStone);
+      panel.position.set(-23+i*7.6,6.1,9.8);palace.add(panel);
+      const inset=new THREE.Mesh(new THREE.BoxGeometry(3.8,1.65,0.22),paint);
+      inset.position.set(-23+i*7.6,6.15,10.32);palace.add(inset);
+      const glyph=new THREE.Mesh(new THREE.BoxGeometry(0.75,0.75,0.3),jade);
+      glyph.position.set(-23+i*7.6,6.2,10.48);palace.add(glyph);
+    }
+    // Three recessed doorways and thick stone lintels facing the courtyard
+    for(let i=0;i<3;i++){
+      const x=-17+i*17;
+      const door=new THREE.Mesh(new THREE.BoxGeometry(5.2,5.6,0.45),dark);
+      door.position.set(x,3.1,9.85);palace.add(door);
+      const lintel=new THREE.Mesh(new THREE.BoxGeometry(7.4,1.2,1.5),limestone);
+      lintel.position.set(x,6.25,10.2);palace.add(lintel);
+      const lintelMark=new THREE.Mesh(new THREE.BoxGeometry(2.6,0.35,0.18),jade);
+      lintelMark.position.set(x,6.25,11.02);palace.add(lintelMark);
+    }
+    // Low stepped roof crest and corner ornaments
+    for(let i=0;i<9;i++){
+      const block=new THREE.Mesh(new THREE.BoxGeometry(5.3,1.4,2.2),limestone);
+      block.position.set(-24+i*6,10.5,0);palace.add(block);
+      const notch=new THREE.Mesh(new THREE.BoxGeometry(1.1,0.65,0.25),paint);
+      notch.position.set(-24+i*6,10.65,1.18);palace.add(notch);
+    }
+    for(const x of [-27,27]){
+      const ornament=new THREE.Mesh(new THREE.BoxGeometry(3,3,3),paleStone);
+      ornament.position.set(x,11.8,0);palace.add(ornament);
+    }
+    // Two small courtyard altars and patterned border stones
+    for(const x of [-27,27]){
+      const base=new THREE.Mesh(new THREE.BoxGeometry(9,1.4,7),shadowStone);base.position.set(x,3.05,15);court.add(base);
+      const top=new THREE.Mesh(new THREE.BoxGeometry(7,0.7,5),paleStone);top.position.set(x,4.05,15);court.add(top);
+      const marker=new THREE.Mesh(new THREE.BoxGeometry(1.5,4.4,1.1),limestone);marker.position.set(x,6.5,15);court.add(marker);
+      for(let k=0;k<3;k++){
+        const glyph=new THREE.Mesh(new THREE.BoxGeometry(0.38,0.38,0.18),paint);
+        glyph.position.set(x-0.48+k*0.48,6.7+k*0.55,15.62);court.add(glyph);
+      }
+    }
+    for(let i=0;i<18;i++){
+      const tile=new THREE.Mesh(new THREE.BoxGeometry(2.8,0.22,1.8),i%3===0?jade:(i%3===1?paint:limestone));
+      tile.position.set(-34+i*4,2.42,22);court.add(tile);
+    }
+    // A pair of shade trees frames the approach without blocking the entry
+    for(const x of [-55,55]){
+      const trunk=new THREE.Mesh(new THREE.CylinderGeometry(0.8,1.1,8,7),lam(0x705038));
+      trunk.position.set(x,4,37);court.add(trunk);
+      const crown=new THREE.Mesh(new THREE.SphereGeometry(6,8,6),lam(0x47713a));
+      crown.scale.set(1.2,0.65,1);crown.position.set(x,10,37);court.add(crown);
+    }
+  })();
   // A few low limestone markers and shade trees tie the hamlets into the old paths
   for(const [x,z] of[[-350,-455],[350,-455],[-300,445],[300,445]]){
     const plinth=new THREE.Mesh(new THREE.BoxGeometry(3.6,0.8,3.6),villageStone);plinth.position.set(x,0.4,z);root.add(plinth);
