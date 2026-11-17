@@ -539,6 +539,23 @@ const roofLights=[];
   for(const a of[0,2.1,4.2]){const leg=new THREE.Mesh(boxGeo(1.2,60,1.2),lam(0x8d93a3));leg.position.set(Math.cos(a)*5,30,Math.sin(a)*5);leg.rotation.set(Math.sin(a)*0.08,0,-Math.cos(a)*0.08);g.add(leg);}
   const pod=new THREE.Mesh(new THREE.CylinderGeometry(9,6,7,24),lam(0x3a3f50));pod.position.y=114;g.add(pod);
   const pod2=new THREE.Mesh(new THREE.CylinderGeometry(7,9,3,24),lam(0x3a3f50));pod2.position.y=119;g.add(pod2);
+  // observation-deck glazing and fine structural trim on the existing tower
+  const deckGlass=basic(0x15384a),deckFrame=lam(0x8d9aaa);
+  for(let i=0;i<20;i++){
+    const a=i/20*2*PI,px=Math.cos(a)*8.55,pz=Math.sin(a)*8.55;
+    const pane=new THREE.Mesh(boxGeo(2.15,2.55,0.22),deckGlass);
+    pane.position.set(px,115.5,pz);pane.rotation.y=-a;g.add(pane);
+    const mullion=new THREE.Mesh(boxGeo(0.12,2.8,0.3),deckFrame);
+    mullion.position.set(Math.cos(a)*8.68,115.5,Math.sin(a)*8.68);mullion.rotation.y=-a;g.add(mullion);
+  }
+  const deckRail=new THREE.Mesh(new THREE.TorusGeometry(9.35,0.16,5,64),basic(0x63eaff));
+  deckRail.rotation.x=PI/2;deckRail.position.y=120.6;g.add(deckRail);
+  const deckUnderside=new THREE.Mesh(new THREE.TorusGeometry(7.4,0.22,5,48),lam(0x778397));
+  deckUnderside.rotation.x=PI/2;deckUnderside.position.y=110.2;g.add(deckUnderside);
+  for(const y of[24,48,72,96]){
+    const band=new THREE.Mesh(new THREE.TorusGeometry(3.05+(y/118)*1.0,0.18,5,32),lam(0x707b8c));
+    band.rotation.x=PI/2;band.position.y=y;g.add(band);
+  }
   const ring1=new THREE.Mesh(new THREE.TorusGeometry(9.1,0.35,6,40),basic(0xff3fd2));ring1.rotation.x=PI/2;ring1.position.y=116;g.add(ring1);
   const ring2=new THREE.Mesh(new THREE.TorusGeometry(8.2,0.3,6,40),basic(0x3de1ff));ring2.rotation.x=PI/2;ring2.position.y=111;g.add(ring2);
   const ant=new THREE.Mesh(new THREE.CylinderGeometry(0.25,0.6,24,6),lam(0xb0b6c4));ant.position.y=132;g.add(ant);
