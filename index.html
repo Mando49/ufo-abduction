@@ -8575,12 +8575,14 @@ const LB={on:!!(LB_CFG.projectId&&LB_CFG.apiKey)&&window.__NOLB!==1,sent:false,f
 const LB_BAD=/(fuck|fuk|fck|shit|sht|bitch|btch|cunt|nigg|niga|fag|dick|cock|pussy|whore|slut|rape|nazi|hitler|penis|vagin|porn|sex|ass$|^ass|kkk)/i;
 function lbClean(n){n=(n||'').toUpperCase().replace(/[^A-Z0-9 _\-]/g,'').replace(/\s+/g,' ').trim().slice(0,12);return n&&!LB_BAD.test(n.replace(/[^A-Z]/g,''))?n:'';}
 async function lbTop(force){if(!LB.on)return null;if(!force&&LB.cache&&performance.now()-LB.cacheT<30000)return LB.cache;
-  const r=await fetch(LB.url(':runQuery'),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({structuredQuery:{from:[{collectionId:'scores'}],orderBy:[{field:{fieldPath:'score'},direction:'DESCENDING'}],limit:10}})});
-  if(!r.ok)throw new Error('lb '+r.status);const j=await r.json();LB.cache=j.filter(x=>x.document).map(x=>({name:String(x.document.fields.name.stringValue||'').slice(0,12),score:+x.document.fields.score.integerValue||0}));LB.cacheT=performance.now();return LB.cache;}
+  const r=await fetch(LB.url(':runQuery'),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({structuredQuery:{from:[{collectionId:'scores'}],orderBy:[{field:{fieldPath:'score'},direction:'DESCENDING'}],limit:25}})});
+  if(!r.ok)throw new Error('lb '+r.status);const j=await r.json();LB.cache=j.filter(x=>x.document).map(x=>({name:String(x.document.fields.name.stringValue||'').slice(0,12),score:+x.document.fields.score.integerValue||0}));
+  {const seen={};LB.cache=LB.cache.filter(r=>seen[r.name]?false:(seen[r.name]=1)).slice(0,10);} // one row per player: their best score (the list arrives highest first)
+  LB.cacheT=performance.now();return LB.cache;}
 async function lbPost(name,sc){const r=await fetch(LB.url('/scores'),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({fields:{name:{stringValue:name},score:{integerValue:String(sc)},v:{integerValue:'1'}}})});if(!r.ok)throw new Error('lb '+r.status);LB.cache=null;}
 function lbRender(rows,me){const el=$('lbList');if(!rows){el.innerHTML='<p style="opacity:.7;text-align:center">Could not load the scores. Check your connection and try again.</p>';return;}
   if(!rows.length){el.innerHTML='<p style="opacity:.7;text-align:center">No scores yet. Be the first!</p>';return;}
-  el.textContent='';rows.forEach((r,i)=>{const d=document.createElement('div');d.style.cssText='display:flex;justify-content:space-between;gap:10px;padding:7px 10px;border-radius:10px;margin:3px 0;font-weight:800;background:'+(me&&r.name===me.name&&r.score===me.score?'rgba(125,255,176,.22)':'rgba(255,255,255,.06)');
+  el.textContent='';rows.forEach((r,i)=>{const d=document.createElement('div');d.style.cssText='display:flex;justify-content:space-between;gap:10px;padding:7px 10px;border-radius:10px;margin:3px 0;font-weight:800;background:'+(me&&r.name===me.name?'rgba(125,255,176,.22)':'rgba(255,255,255,.06)');
     const a=document.createElement('span');a.textContent=(['🥇','🥈','🥉'][i]||(i+1)+'.')+' '+r.name;const b=document.createElement('span');b.textContent=fmt(r.score);b.style.color='#ffe08a';d.appendChild(a);d.appendChild(b);el.appendChild(d);});}
 async function lbOpen(from,me){LB.from=from;$('menu').classList.add('hidden');$('over').classList.add('hidden');$('lbv').classList.remove('hidden');$('lbList').innerHTML='<p style="opacity:.7;text-align:center">Loading…</p>';
   try{lbRender(await lbTop(!!me),me);}catch(e){lbRender(null);}}
