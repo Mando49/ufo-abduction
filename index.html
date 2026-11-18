@@ -367,9 +367,11 @@ scene.fog=new THREE.Fog(FOG,160,820);
 scene.background=FOG.clone();const SPACE_C=new THREE.Color(0x02030a),CLOUD_C=new THREE.Color(0xa77f9e),STORM_C=new THREE.Color(0x6a6e86),ABOVE_C=new THREE.Color(0x8e88aa);
 const camera=new THREE.PerspectiveCamera(65,1,1.2,3000);
 
-let composer=null,bloom=null;
+let composer=null,bloom=null,wcF=0,NOBLOOM=false;try{NOBLOOM=localStorage.getItem('ufoNoBloom')==='1';}catch(e){}
+function whiteFrame(){try{const gl=renderer.getContext(),w=gl.drawingBufferWidth,h=gl.drawingBufferHeight,b=new Uint8Array(4);renderer.setRenderTarget(null);
+  for(const[fx,fy]of[[.5,.5],[.2,.3],[.8,.3],[.3,.75],[.7,.6],[.5,.9]]){gl.readPixels((w*fx)|0,(h*fy)|0,1,1,gl.RGBA,gl.UNSIGNED_BYTE,b);if(b[0]<225||b[1]<225||b[2]<225)return false;}return true;}catch(e){return false;}}
 try{
-  if(GFX!=='low'&&THREE.EffectComposer&&THREE.UnrealBloomPass){
+  if(GFX!=='low'&&!NOBLOOM&&THREE.EffectComposer&&THREE.UnrealBloomPass){
     composer=new THREE.EffectComposer(renderer);
     composer.addPass(new THREE.RenderPass(scene,camera));
     bloom=new THREE.UnrealBloomPass(new THREE.Vector2(innerWidth,innerHeight),0.75,0.5,0.72);
@@ -8594,7 +8596,7 @@ if(/[?&]debug\b/.test(location.search)){const d=document.createElement('div');d.
   let gpu='?',lost=0,errs=[],fps=0,fc=0;try{const gl=renderer.getContext(),x=gl.getExtension('WEBGL_debug_renderer_info');gpu=x?gl.getParameter(x.UNMASKED_RENDERER_WEBGL):gl.getParameter(gl.RENDERER);gpu+=' · WebGL'+(renderer.capabilities.isWebGL2?2:1)+' · '+renderer.capabilities.precision+' · maxTex '+renderer.capabilities.maxTextureSize;}catch(e){}
   $('c').addEventListener('webglcontextlost',()=>lost++);addEventListener('error',e=>{errs.push(String(e.message||e).slice(0,90));if(errs.length>3)errs.shift();});
   (function f(){fc++;requestAnimationFrame(f);})();setInterval(()=>{fps=fc;fc=0;try{const gl=renderer.getContext(),ge=gl.getError(),bg=scene.background&&scene.background.getHexString?scene.background.getHexString():'-';
-    d.textContent='GPU '+gpu+'\ngfx '+GFX+' · bloom '+(composer?(bloom?bloom.strength.toFixed(2):'on'):'OFF')+' · px '+PR.toFixed(2)+' · '+innerWidth+'x'+innerHeight+' · fps '+fps+' · lost '+lost+' · glErr '+ge+
+    d.textContent='GPU '+gpu+'\ngfx '+GFX+' · bloom '+(composer?(bloom?bloom.strength.toFixed(2):'on'):'OFF'+(window.__bloomOff?'(auto, was white)':NOBLOOM?'(saved)':''))+' · white '+(window.__wc==null?'?':window.__wc?'YES':'no')+' · px '+PR.toFixed(2)+' · '+innerWidth+'x'+innerHeight+' · fps '+fps+' · lost '+lost+' · glErr '+ge+
     '\n'+state+' '+mode+' '+curTown+(onFoot?' FOOT':'')+' · pos '+pos.x.toFixed(0)+','+pos.y.toFixed(0)+','+pos.z.toFixed(0)+' · cam '+camera.position.x.toFixed(0)+','+camera.position.y.toFixed(0)+','+camera.position.z.toFixed(0)+' · bg #'+bg+' · fog '+(scene.fog?scene.fog.near.toFixed(0)+'-'+scene.fog.far.toFixed(0):'-')+' · calls '+renderer.info.render.calls+' tris '+renderer.info.render.triangles+(errs.length?'\nERR '+errs.join(' | '):'');}catch(e){d.textContent='debug err '+e.message;}},1000);}
 $('playBtn').addEventListener('click',()=>startGame(false));
 $('freeBtn').addEventListener('click',()=>startGame(true));
@@ -9053,6 +9055,7 @@ function loop(now){
 
   if(state!=='menu'){hud();if(frame%2===0)drawRadar(t);}
   if(composer)composer.render();else renderer.render(scene,camera);
+  if(wcF<41&&state==='play'&&mode==='ground'&&curTown==='city'&&++wcF===40){window.__wc=whiteFrame();if(window.__wc&&composer){composer=null;bloom=null;window.__bloomOff=1;try{localStorage.setItem('ufoNoBloom','1');}catch(e){}}} // safety net: some phones draw the glow effect as a blank white screen; if the night city comes out all white, switch the effect off
 }
 fwd.set(-Math.sin(yaw),0,-Math.cos(yaw));right.set(Math.cos(yaw),0,-Math.sin(yaw));
 bootModels();setTown('city');camera.position.set(0,70,400);
