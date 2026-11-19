@@ -8546,10 +8546,11 @@ function coachSay(txt){const el=$('coach');if(!txt){el.classList.remove('on');re
 function coachStart(){let seen=false;try{seen=!!localStorage.getItem('ufoCoach');}catch(e){}COACH.on=!seen;COACH.step=-1;COACH.t=0;COACH.x=pos.x;COACH.z=pos.z;coachSay('');}
 setInterval(()=>{if(!COACH.on||state!=='play')return;const C=COACH,T=isTouch;C.t+=0.4;
   if(mode!=='ground'||curTown!=='city'){if(C.step<3){coachSay('');}}
-  if(C.step===-1&&C.t>1.6){C.step=0;C.t=0;coachSay(T?'👆 Push the <b style="color:#7dffb0">green stick</b> up to fly forward':'Hold <b style="color:#7dffb0">W</b> to fly forward · A / D to turn');}
+  if(C.step===-1&&C.t>1.2){C.step=-0.5;C.t=0;coachSay('🛸 <b style="color:#7dffb0">Your mission:</b> bring the mothership a specimen from every world');}
+  else if(C.step===-0.5&&C.t>4.4){C.step=0;C.t=0;C.x=pos.x;C.z=pos.z;coachSay(T?'👆 Push the <b style="color:#7dffb0">green stick</b> up to fly forward':'Hold <b style="color:#7dffb0">W</b> to fly forward · A / D to turn');}
   else if(C.step===0&&Math.hypot(pos.x-C.x,pos.z-C.z)>45){C.step=1;C.t=0;coachSay('🚗 Fly low over a car or a person (yellow dots on the radar) and hold <b style="color:#7dffb0">'+(T?'BEAM':'SPACE')+'</b>');}
-  else if(C.step===1&&score>0){C.step=2;C.t=0;coachSay('⏱️ Nice! Every catch adds time. Finish the <b style="color:#ffd27a">🎯 missions</b> for credits');}
-  else if(C.step===2&&C.t>7){C.step=3;C.t=0;coachSay('🚀 When you are ready, fly <b style="color:#7dffb0">straight up</b> through the clouds: space and 14 worlds are up there');}
+  else if(C.step===1&&score>0){C.step=2;C.t=0;coachSay('✅ Nice catch! Every catch adds time. The <b style="color:#ffd27a">🎯 missions</b> pay credits for upgrades');}
+  else if(C.step===2&&C.t>7){C.step=3;C.t=0;coachSay('🚀 When you are ready, fly <b style="color:#7dffb0">straight up</b> through the clouds to space. Each new world: a new specimen, +40s and a bigger score');}
   else if(C.step===3&&(C.t>10||mode!=='ground')){C.step=4;C.on=false;coachSay('');try{localStorage.setItem('ufoCoach','1');}catch(e){}}
   else if(C.step===1&&C.t>40){C.t=0;coachSay('🚗 Tip: drop down with <b style="color:#7dffb0">'+(T?'▼':'F')+'</b> until the panel says BEAM OK, then hold '+(T?'BEAM':'SPACE')+' over a car');}
 },400);
@@ -8565,7 +8566,7 @@ function worldBonusTick(){
   if(wN===1&&wTipT>=0){wTipT+=1/60;if(wTipT>30){wTipT=-1;let n=0;try{n=+localStorage.getItem('ufoWTip')||0;localStorage.setItem('ufoWTip',n+1);}catch(e){}if(n<3)pop('🚀 Tip: each new world = +40s and a bigger score multiplier','t');}}
 }
 function startGame(free){if(window.__LOCKED)return;worldBonusReset();
-  try{let n=+localStorage.getItem('ufoGoalTip')||0;if(n<5&&!save.home){localStorage.setItem('ufoGoalTip',n+1);const W=worldSamples();setTimeout(()=>{if(state==='play')pop('🛸 Mission: a specimen from every world · '+W.n+' / '+W.total,'t');},2500);}}catch(e){}coachStart();missionPeek(8);try{mechReset();if(window.MECH)MECH.cd=20;}catch(e){}try{rrReset();RR.cd=0;}catch(e){}TRIDE=null;if(BRIDE){BRIDE.ride=false;BRIDE.T.state='ground';BRIDE=null;}if(DRIVE){try{endDrive();}catch(e){DRIVE=null;}}TOMB.got=false;TOMB.in=false;JEEPS.forEach(J=>{J.g.position.set(J.x0,0,J.z0);J.g.rotation.set(0,J.y0,0);J.did=false;});if(RIDE){RIDE.state='ground';RIDE=null;}SWIM=false;if(FLYP){PILOT_G[FLYP.k].visible=false;FLYP.g.visible=true;FLYP.col.h=5;FLYP=null;applyShip();}
+  try{let n=+localStorage.getItem('ufoGoalTip')||0;if(n<5&&!save.home){localStorage.setItem('ufoGoalTip',n+1);const W=worldSamples();setTimeout(()=>{if(state==='play'&&!COACH.on)pop('🛸 Mission: a specimen from every world · '+W.n+' / '+W.total,'t');},2500);}}catch(e){}coachStart();missionPeek(8);try{mechReset();if(window.MECH)MECH.cd=20;}catch(e){}try{rrReset();RR.cd=0;}catch(e){}TRIDE=null;if(BRIDE){BRIDE.ride=false;BRIDE.T.state='ground';BRIDE=null;}if(DRIVE){try{endDrive();}catch(e){DRIVE=null;}}TOMB.got=false;TOMB.in=false;JEEPS.forEach(J=>{J.g.position.set(J.x0,0,J.z0);J.g.rotation.set(0,J.y0,0);J.did=false;});if(RIDE){RIDE.state='ground';RIDE=null;}SWIM=false;if(FLYP){PILOT_G[FLYP.k].visible=false;FLYP.g.visible=true;FLYP.col.h=5;FLYP=null;applyShip();}
   initAudio();freeMode=free===true;document.body.classList.toggle('free',freeMode);
   score=0;timer=150;shield=100;energy=100;lock=false;cows=0;cars=0;
   yaw=0;speed=0;vy=0;pos.set(0,60,400);hitCd=0;
