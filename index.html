@@ -4492,8 +4492,8 @@ beginTown('city');
       if(BT.state==='ground'){const an=-t*0.16;bl.position.set(SX+Math.cos(an)*95,52+Math.sin(t*0.6)*3,SZ+Math.sin(an)*95);bl.rotation.set(0,-an+PI/2,0);}
       if(state==='play'&&!onFoot&&tcd<=0&&TP.distanceTo(pos)<11){tcd=8;score+=200;timer+=8;mEvent('torch');pop('🗽 TORCH TOUCHED! +200 · +8s');blip(500,1600,0.35,'triangle',0.13);for(let k=0;k<20;k++)spawnFx(TP,tmpV.set(rand(-1,1),rand(-0.2,1),rand(-1,1)).multiplyScalar(11),0.8,2,3,pick([0xffc040,0xffe9a0,0x6dffd8]),true);}}});
     window.__lib={SX,SZ,TX,TY,TZ};}
-  // ⭕ giant neon ring arch just off the shore, on the way to the statue (fly through it for bonus time) — moved over from Neon City
-  {const cx=-603,cy=50,cz=230,R=36;const g=new THREE.Group();g.position.set(cx,cy,cz);g.rotation.y=PI/2;
+  // ⭕ giant neon ring arch over the river, on the way to the statue (fly through it for bonus time) — moved over from Neon City
+  {const cx=-640,cy=46,cz=230,R=36;const g=new THREE.Group();g.position.set(cx,cy,cz);g.rotation.y=PI/2;
     g.add(new THREE.Mesh(new THREE.TorusGeometry(R,2.6,14,140),new THREE.MeshStandardMaterial({color:0x3a4356,metalness:.55,roughness:.35})));
     for(const off of[-2.1,2.1]){const n=new THREE.Mesh(new THREE.TorusGeometry(R,0.35,6,140),basic(0x5ff0ff));n.position.z=off;g.add(n);}
     g.add(new THREE.Mesh(new THREE.TorusGeometry(R-2.45,0.3,6,140),basic(0x5ff0ff)));g.add(new THREE.Mesh(new THREE.TorusGeometry(R+2.45,0.28,6,140),basic(0xff5ad2)));
@@ -4518,31 +4518,35 @@ beginTown('city');
     for(const [ry,d] of[[-0.506,1],[-0.506+PI,-1]]){const m=sign('NIGHT MARKET','#ffd84a',20,3.6,X+Math.sin(-0.506)*d*0.3,11,Z+Math.cos(-0.506)*d*0.3,ry);m.material.side=THREE.FrontSide;m.userData.keep=true;}
     planetAnim.push({town:'city',f:t=>{bulbs.forEach((b,i)=>{b.material.opacity=0.6+0.35*Math.sin(t*3+i*0.7);});}});}
 
-  // 🚝 elevated sky-train: one closed loop over the river and around the statue, with two stations (rebuilt from Neon City's loop)
-  {const OX=-770,OZ=230,AX=130,AZ=170,RC=16,H=30,P=(x,z)=>new V3(OX+x,H,OZ+z),C=new THREE.CurvePath();
-    const pts=[[AX-RC,-AZ,AX,-AZ,AX,-AZ+RC],[AX,AZ-RC,AX,AZ,AX-RC,AZ],[-AX+RC,AZ,-AX,AZ,-AX,AZ-RC],[-AX,-AZ+RC,-AX,-AZ,-AX+RC,-AZ]];
-    let prev=P(-AX+RC,-AZ);pts.forEach(q=>{C.add(new THREE.LineCurve3(prev,P(q[0],q[1])));C.add(new THREE.QuadraticBezierCurve3(P(q[0],q[1]),P(q[2],q[3]),P(q[4],q[5])));prev=P(q[4],q[5]);});
+  // 🚝 elevated sky-train on the real streets: up 6th Avenue, along the bottom of Central Park, down 5th Avenue and back along 42nd Street past the library park
+  {const H=30,RC=12,K=[[-98.8,183.2],[199.8,-358.8],[322.8,-290.9],[23.5,251.0]],C=new THREE.CurvePath(),V=p=>new V3(p[0],H,p[1]),nK=K.length;
+    const along=(p,q,d)=>{const l=Math.hypot(q[0]-p[0],q[1]-p[1]);return [p[0]+(q[0]-p[0])*d/l,p[1]+(q[1]-p[1])*d/l];};
+    for(let i=0;i<nK;i++){const p=K[i],q=K[(i+1)%nK],r=K[(i+2)%nK];C.add(new THREE.LineCurve3(V(along(p,q,RC)),V(along(q,p,RC))));C.add(new THREE.QuadraticBezierCurve3(V(along(q,p,RC)),V(q),V(along(q,r,RC))));}
     const L=C.getLength();TRACK={C,L,H};
     const deck=[],rails=[],under=[],pil=[];
     for(let d=0;d<L;d+=3){const u=d/L,p=C.getPointAt(u),tg=C.getTangentAt(u),ry=Math.atan2(-tg.z,tg.x),nx=-tg.z,nz=tg.x;
-      deck.push({x:p.x,z:p.z,ry});rails.push({x:p.x+nx*3.4,z:p.z+nz*3.4,ry,c:0x45eaff},{x:p.x-nx*3.4,z:p.z-nz*3.4,ry,c:0x45eaff});under.push({x:p.x,z:p.z,ry});}
+      deck.push({x:p.x,z:p.z,ry});rails.push({x:p.x+nx*3.4,z:p.z+nz*3.4,ry,c:0x45eaff},{x:p.x-nx*3.4,z:p.z-nz*3.4,ry,c:0x45eaff});under.push({x:p.x,z:p.z,ry});
+      if(d%9===0)colliders.push({x0:p.x-4.6,x1:p.x+4.6,z0:p.z-4.6,z1:p.z+4.6,h:H+0.8,y0:H-0.8});}
     for(let d=10;d<L;d+=46){const p=C.getPointAt(d/L);pil.push({x:p.x,z:p.z});}
     inst(new THREE.BoxGeometry(3.3,1.6,7),lam(0x2c3140),deck,o=>compose(o.x,H,o.z,1,1,1,0,o.ry,0));
     inst(new THREE.BoxGeometry(3.3,0.3,0.3),basic(0xffffff),rails,o=>compose(o.x,H+0.95,o.z,1,1,1,0,o.ry,0));
     inst(new THREE.BoxGeometry(3.3,0.25,7.2),basic(0xff4fd8),under,o=>compose(o.x,H-0.9,o.z,1,1,1,0,o.ry,0));
-    inst(new THREE.CylinderGeometry(1.1,1.4,H,8),lam(0x3a3f4c),pil,o=>compose(o.x,H/2,o.z,1,1,1));
-    for(const [x0,x1,z0,z1] of[[-AX+RC,AX-RC,-AZ-3.5,-AZ+3.5],[-AX+RC,AX-RC,AZ-3.5,AZ+3.5],[-AX-3.5,-AX+3.5,-AZ+RC,AZ-RC],[AX-3.5,AX+3.5,-AZ+RC,AZ-RC]])colliders.push({x0:OX+x0,x1:OX+x1,z0:OZ+z0,z1:OZ+z1,h:H+0.8,y0:H-0.8});
+    inst(new THREE.CylinderGeometry(0.9,1.1,H,8),lam(0x3a3f4c),pil,o=>compose(o.x,H/2,o.z,1,1,1));
+    // two stations, each sitting where the line runs beside a park
     TRACK.stations=[];
-    for(const [dz,name] of[[-AZ,'HARBOR STATION'],[AZ,'STATUE STATION']]){const z=OZ+dz;
-      for(const side of[-1,1]){box(root,40,1.2,5,0x3a4050,OX,H+0.3,z+side*6.4);box(root,40,0.3,0.3,basic(0xffd84a),OX,H+0.95,z+side*4);}
-      box(root,44,0.6,18,0x1a2030,OX,H+9,z);for(const x of[-20,0,20])for(const sd of[-1,1])box(root,0.6,8.4,0.6,0x8a94a6,OX+x,H+4.6,z+sd*8.5);
-      glowSprite(0x7ff4ff,OX,H+8,z,30,0.4);
-      for(const sd of[-1,1]){const m=neonText(name,'#7ff4ff',22,3);m.material.side=THREE.FrontSide;m.position.set(OX,H+11.5,z+sd*9.2);if(sd<0)m.rotation.y=PI;root.add(m);}
-      colliders.push({x0:OX-22,x1:OX+22,z0:z-9,z1:z+9,h:H+9.3,y0:H+8.7});for(const side of[-1,1])colliders.push({x0:OX-20,x1:OX+20,z0:z+side*6.4-2.5,z1:z+side*6.4+2.5,h:H+0.9,y0:H-0.3});
-      let best=0,bd=1e9;for(let k=0;k<=400;k++){const p=C.getPointAt(k/400),dd=Math.hypot(p.x-OX,p.z-z);if(dd<bd){bd=dd;best=k/400;}}TRACK.stations.push(best);}
+    for(const [i,name] of[[3,'LIBRARY STATION'],[1,'CENTRAL PARK STATION']]){const p=K[i],q=K[(i+1)%nK],mx=(p[0]+q[0])/2,mz=(p[1]+q[1])/2,ang=Math.atan2(-(q[1]-p[1]),q[0]-p[0]),ca=Math.cos(ang),sa=Math.sin(ang),W2=(lx,lz)=>[mx+lx*ca+lz*sa,mz-lx*sa+lz*ca];
+      const G=new THREE.Group();G.position.set(mx,0,mz);G.rotation.y=ang;root.add(G);const det=[];
+      for(const side of[-1,1]){det.push(box(G,40,1.2,5,0x3a4050,0,H+0.3,side*6.4),box(G,40,0.3,0.3,basic(0xffd84a),0,H+0.95,side*4));
+        for(let k=-2;k<=2;k++){const [wx,wz]=W2(k*8,side*6.4);colliders.push({x0:wx-4.4,x1:wx+4.4,z0:wz-3.4,z1:wz+3.4,h:H+0.9,y0:H-0.3});}}
+      det.push(box(G,44,0.6,18,0x1a2030,0,H+9,0));for(const x of[-20,0,20])for(const sd of[-1,1])det.push(box(G,0.6,8.4,0.6,0x8a94a6,x,H+4.6,sd*8.5));
+      freezeStatic(det,G);glowSprite(0x7ff4ff,mx,H+8,mz,30,0.4);
+      for(const sd of[-1,1]){const m=neonText(name,'#7ff4ff',26,3);m.material.side=THREE.FrontSide;m.position.set(0,H+11.5,sd*9.2);if(sd<0)m.rotation.y=PI;m.userData.keep=true;G.add(m);}
+      let best=0,bd=1e9;for(let k=0;k<=600;k++){const pt=C.getPointAt(k/600),dd=Math.hypot(pt.x-mx,pt.z-mz);if(dd<bd){bd=dd;best=k/600;}}TRACK.stations.push(best);}
+    // two bullet trains running the loop (front car + 3 coaches + rear car); the cars get their 3D models once those load
     for(let n=0;n<2;n++){const cars=[];
       for(let k=0;k<5;k++){const g=new THREE.Group();box(g,k===0||k===4?13:11,3,3.2,0xe8eef6,0,1.6,0);box(g,9,0.9,3.3,basic(0x1a3a6a),0,2,0);root.add(g);cars.push(g);TRAIN_CARS.push({g,k});}
-      trains.push({cars,d:n*L/2,wait:0,lastSt:-1});}}
+      trains.push({cars,d:n*L/2,wait:0,lastSt:-1});}
+    TRAIN_CARS.forEach(c=>useModel(c.k===0||c.k===4?'trainF':'trainM',c.g));}
   // 🦊 foxes and 🚜 park tractors in Central Park, 🤖 robots in the small parks (so the old Neon City missions still work)
   for(let i=0;i<10;i++){const T={type:'critter',mesh:useAnim('fox',makeFox(),'city'),spawn:spawnCow,fl:fields};T.mesh.userData.T=T;T.spawn(T);targets.push(T);}
   for(let i=0;i<4;i++){const T={type:'critter',mesh:makeTractor(),spawn:spawnCow,fl:fields};T.spawn(T);targets.push(T);}
@@ -7360,7 +7364,7 @@ const MISSIONS=[
   {id:'treasure',t:"Walk or drive into the Great Pyramid and find the Pharaoh's treasure (Egypt)",ev:'treasure',g:1,r:1200},
   {id:'bigair',t:'Get 1.5 seconds of air time in a 4x4 (hit a ramp or dune in Egypt)',ev:'bigair',g:1,r:700},
   {id:'balloon30',t:'Ride a hot-air balloon for 30 seconds (Egypt)',ev:'balloon30',g:1,r:600},
-  {id:'train25',t:'Surf the roof of the sky-train for 25 seconds (it circles the statue in New York)',ev:'train25',g:1,r:500},
+  {id:'train25',t:'Surf the roof of the sky-train for 25 seconds (it loops 5th and 6th Avenue in New York)',ev:'train25',g:1,r:500},
   {id:'drive30',t:'Joyride a desert 4x4 for 30 seconds (Egypt or Area 51)',ev:'drive30',g:1,r:500},
   {id:'mayazoo',t:'Beam up 5 jungle animals in the Yucatán (toucan, macaw, monkey, coati, iguana or turkey)',ev:'abduct',m:d=>['🦜','🐒','🦝','🦎','🦃'].includes(d.emoji),g:5,r:900},
   {id:'performers',t:'Beam up 3 costumed street performers on Fremont Street (Las Vegas)',ev:'abduct',m:d=>['🦸','👹','🤠'].includes(d.emoji),g:3,r:900},
