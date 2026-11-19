@@ -214,7 +214,8 @@ body.promo #hud,body.promo #controls,body.promo #keys,body.promo #mute,body.prom
 <div id="menu" class="overlay">
   <div class="card">
     <h1>🛸 UFO ABDUCTION</h1>
-    <p>Beam up cows, cars and people before time runs out. Every catch adds time.<br>Then fly up to space and explore <b>14 worlds</b>: Las Vegas, Egypt, the Moon, Mars and more.</p>
+    <p><b>Your mothership needs a specimen from every world.</b> Beam up cows, cars and people, then fly up to space and explore <b>18 worlds</b>: Las Vegas, Egypt, the Moon, Mars and more.</p>
+    <div id="goalLine" style="font-weight:800;color:#7dffb0;margin:-4px 0 10px;font-size:14px"></div>
     <button class="play" id="playBtn">PLAY</button>
     <div><button class="hbtn" id="freeBtn" style="border-color:#7ffcff;color:#bff8ff;background:rgba(5,30,40,.6)">🌌 FREE EXPLORE <small style="font-size:11px;opacity:.8">· no timer</small></button></div>
     <details id="howMore"><summary>📋 Controls &amp; scoring</summary>
@@ -6573,7 +6574,17 @@ let LOG_CAT=null;
 function logCatalog(){if(LOG_CAT)return LOG_CAT;const C={},order=['city','desert','sub51','vegas','egypt','maya','ice','ocean','seas','moon','moonbase','mars','marscave','jupiter','lava','jungle','fifth','home'];
   order.forEach(n=>{if(!towns[n])return;const L=[];towns[n].targets.forEach(T=>{const k=logKey(T);if(k&&!C[k]){C[k]=n;L.push(k);}});});
   LOG_CAT={byTown:order.map(n=>[n,Object.keys(C).filter(k=>C[k]===n)]).filter(x=>x[1].length),total:Object.keys(C).length};return LOG_CAT;}
-function logAbduct(T){const k=logKey(T);if(!k)return;const first=!LOG[k];LOG[k]=(LOG[k]||0)+1;
+// 🛸 the long-term goal: one specimen from every world, then the mothership can go home
+function worldSamples(){const C=logCatalog();const done=C.byTown.filter(([n,L])=>L.some(k=>LOG[k]));return{n:done.length,total:C.byTown.length,left:C.byTown.filter(([n,L])=>!L.some(k=>LOG[k])).map(x=>TOWN_NAMES[x[0]])};}
+function renderGoal(){try{const W=worldSamples(),el=$('goalLine');if(W.n>=W.total){if(!save.home){save.home=true;persist();}el.textContent='👑 MISSION COMPLETE · all '+W.total+' worlds sampled';}
+  else el.textContent='🛸 Specimens: '+W.n+' / '+W.total+' worlds'+(W.left.length<=3?' · still needed: '+W.left.join(', '):'');}catch(e){}}
+function goalEnding(){save.home=true;save.bank+=10000;persist();timer+=30;const d=document.createElement('div');d.className='overlay';d.style.zIndex=60;
+  d.innerHTML='<div class="card" style="text-align:center"><h1>👑 MISSION COMPLETE</h1><p>You collected a specimen from <b>every world</b>. The mothership has what it came for.</p><p style="font-size:15px">💰 +10,000 credits · your pilot name is now legend.</p><p style="font-size:13px;opacity:.8">The galaxy is still yours to explore: finish the Abduction Log, the missions and the leaderboard.</p><button class="play" id="endKeep">KEEP FLYING</button></div>';
+  document.body.appendChild(d);d.querySelector('#endKeep').addEventListener('click',()=>d.remove());try{blip(400,1800,0.9,'triangle',0.16);}catch(e){}}
+function logAbduct(T){const k=logKey(T);if(!k)return;const first=!LOG[k];
+  let wTown=null,wHad=true;if(first){try{const C=logCatalog(),E=C.byTown.find(x=>x[1].includes(k));if(E){wTown=E[0];wHad=E[1].some(x=>LOG[x]);}}catch(e){}}
+  LOG[k]=(LOG[k]||0)+1;
+  if(first&&wTown&&!wHad){const W=worldSamples();save.bank+=200;persist();setTimeout(()=>{pop('🛸 SPECIMEN SECURED: '+TOWN_NAMES[wTown]+' · 💰 +200');pop(W.n+' / '+W.total+' worlds','t');},900);if(W.n>=W.total&&!save.home)setTimeout(goalEnding,2200);renderGoal();}
   if(first){const C=logCatalog(),n=Object.keys(LOG).filter(e=>LOG_NAMES[e]||true).length;save.bank+=50;persist();pop(`📖 NEW: ${k} ${LOG_NAMES[k]||''} · 💰 +50`,'t');
     if(n===C.total){save.bank+=5000;persist();pop('👑 ABDUCTION LOG COMPLETE! 💰 +5,000');}}
   try{localStorage.setItem('ufoLog',JSON.stringify(LOG));}catch(e){}}
@@ -6585,6 +6596,7 @@ let logFrom='menu';
 function openLog(from){logFrom=from;renderLog();['menu','over','pause'].forEach(i=>$(i).classList.add('hidden'));$('logv').classList.remove('hidden');}
 $('logBtn').addEventListener('click',()=>openLog('menu'));$('logBtn2').addEventListener('click',()=>openLog('over'));$('logBtn3').addEventListener('click',()=>openLog('pause'));
 $('logBack').addEventListener('click',()=>{$('logv').classList.add('hidden');$(logFrom).classList.remove('hidden');});
+setTimeout(renderGoal,0);
 
 // ---------- lasers + space combat ----------
 const Y_AXIS=new V3(0,1,0);
@@ -8552,7 +8564,8 @@ function worldBonusTick(){
   wLastScore=score;
   if(wN===1&&wTipT>=0){wTipT+=1/60;if(wTipT>30){wTipT=-1;let n=0;try{n=+localStorage.getItem('ufoWTip')||0;localStorage.setItem('ufoWTip',n+1);}catch(e){}if(n<3)pop('🚀 Tip: each new world = +40s and a bigger score multiplier','t');}}
 }
-function startGame(free){if(window.__LOCKED)return;worldBonusReset();coachStart();missionPeek(8);try{mechReset();if(window.MECH)MECH.cd=20;}catch(e){}try{rrReset();RR.cd=0;}catch(e){}TRIDE=null;if(BRIDE){BRIDE.ride=false;BRIDE.T.state='ground';BRIDE=null;}if(DRIVE){try{endDrive();}catch(e){DRIVE=null;}}TOMB.got=false;TOMB.in=false;JEEPS.forEach(J=>{J.g.position.set(J.x0,0,J.z0);J.g.rotation.set(0,J.y0,0);J.did=false;});if(RIDE){RIDE.state='ground';RIDE=null;}SWIM=false;if(FLYP){PILOT_G[FLYP.k].visible=false;FLYP.g.visible=true;FLYP.col.h=5;FLYP=null;applyShip();}
+function startGame(free){if(window.__LOCKED)return;worldBonusReset();
+  try{let n=+localStorage.getItem('ufoGoalTip')||0;if(n<5&&!save.home){localStorage.setItem('ufoGoalTip',n+1);const W=worldSamples();setTimeout(()=>{if(state==='play')pop('🛸 Mission: a specimen from every world · '+W.n+' / '+W.total,'t');},2500);}}catch(e){}coachStart();missionPeek(8);try{mechReset();if(window.MECH)MECH.cd=20;}catch(e){}try{rrReset();RR.cd=0;}catch(e){}TRIDE=null;if(BRIDE){BRIDE.ride=false;BRIDE.T.state='ground';BRIDE=null;}if(DRIVE){try{endDrive();}catch(e){DRIVE=null;}}TOMB.got=false;TOMB.in=false;JEEPS.forEach(J=>{J.g.position.set(J.x0,0,J.z0);J.g.rotation.set(0,J.y0,0);J.did=false;});if(RIDE){RIDE.state='ground';RIDE=null;}SWIM=false;if(FLYP){PILOT_G[FLYP.k].visible=false;FLYP.g.visible=true;FLYP.col.h=5;FLYP=null;applyShip();}
   initAudio();freeMode=free===true;document.body.classList.toggle('free',freeMode);
   score=0;timer=150;shield=100;energy=100;lock=false;cows=0;cars=0;
   yaw=0;speed=0;vy=0;pos.set(0,60,400);hitCd=0;
