@@ -14,6 +14,7 @@
 - Built-in tracks are generated live in the browser by the game's own synth.
 
 ## Map data
+- The Yucatán world (Chichén Itzá) is laid out from OpenStreetMap data (baked extract in assets/data/maya-osm.json): © OpenStreetMap contributors, ODbL.
 - The Giza world is laid out from OpenStreetMap data: © OpenStreetMap contributors, licensed under the Open Database License (ODbL), https://www.openstreetmap.org/copyright
 - The extracted layout (pyramids, tombs, temples, buildings, roads) is in assets/data/giza-osm.json and is available under the same ODbL license.
 - The Las Vegas world uses the same source for its building outlines, heights, streets, water and pools; that extract is in assets/data/vegas-osm.json, also under ODbL. No real business names are shown in the game.
