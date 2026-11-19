@@ -1946,7 +1946,24 @@ beginTown('jungle');
       for(const z of[-0.45,0.45]){const lg=new THREE.Mesh(new THREE.CylinderGeometry(0.3,0.25,1.8,6),m);lg.position.set(0,0.9,z);g.add(lg);}
       for(let k=0;k<4;k++){const sp=new THREE.Mesh(new THREE.ConeGeometry(0.25,0.7,4),lam(0xffe040));sp.position.set(-0.8+k*0.6,3.1,0);g.add(sp);}
       g.userData.emoji='🦖';g.userData.pts=120;root.add(g);return useModel('dino',compactCritter(g));};
-    for(let i=0;i<12;i++){const T={type:'critter',mesh:mkDino(),spawn:spawnCow,fl:fields};T.spawn(T);targets.push(T);}}
+    for(let i=0;i<12;i++){const T={type:'critter',mesh:mkDino(),spawn:spawnCow,fl:fields};T.spawn(T);targets.push(T);}
+    // 🦕 a few giant long-necks (the little dino, grown up)
+    for(let i=0;i<5;i++){const d=mkDino(),g=new THREE.Group();g.add(d);d.scale.multiplyScalar(2.8);g.userData.emoji='🦕';g.userData.pts=320;g.userData.heat=0.6;root.add(g);const T={type:'critter',mesh:g,spawn:spawnCow,fl:fields};T.spawn(T);targets.push(T);}}
+  // 🐌 giant glow-snails and 🍄 little mushroom folk wandering the clearings, 🐉 sky-drakes circling overhead
+  {for(let i=0;i<9;i++){const g=new THREE.Group(),c=pick([0x45eaff,0xff5ad2,0x9dff5a,0xffd84a]);const bd=new THREE.Mesh(new THREE.SphereGeometry(1,10,8),lam(0xd8c8a8,0x202018));bd.scale.set(2.2,0.6,0.9);bd.position.y=0.7;g.add(bd);
+      const sh=new THREE.Mesh(new THREE.SphereGeometry(1.5,12,10),lam(c,0x101818));sh.position.set(-0.4,2,0);g.add(sh);const sp=new THREE.Mesh(new THREE.TorusGeometry(0.8,0.16,5,14),basic(0xffffff));sp.position.set(-0.4,2,0.98);g.add(sp);
+      for(const z of[-0.3,0.3]){box(g,0.1,1.2,0.1,0xd8c8a8,1.9,1.6,z);const e=new THREE.Mesh(new THREE.SphereGeometry(0.16,6,4),basic(0xffffff));e.position.set(1.9,2.25,z);g.add(e);}
+      g.userData.emoji='🐌';g.userData.pts=110;root.add(g);const T={type:'critter',mesh:g,spawn:spawnCow,fl:fields};T.spawn(T);targets.push(T);}
+    for(let i=0;i<12;i++){const g=new THREE.Group(),c=pick([0xff4a6a,0xb44dff,0x45eaff,0xffb347]);const st=new THREE.Mesh(new THREE.CylinderGeometry(0.45,0.6,1.6,8),lam(0xf0e8d8,0x202018));st.position.y=0.8;g.add(st);
+      const cap=new THREE.Mesh(new THREE.SphereGeometry(1.3,12,7,0,2*PI,0,PI/2),lam(c,0x201020));cap.position.y=1.5;g.add(cap);for(let k=0;k<5;k++){const d=new THREE.Mesh(new THREE.SphereGeometry(0.2,6,4),basic(0xffffff));const a=k*1.26;d.position.set(Math.cos(a)*0.8,2.25,Math.sin(a)*0.8);g.add(d);}
+      for(const z of[-0.22,0.22]){const e=new THREE.Mesh(new THREE.SphereGeometry(0.11,6,4),basic(0x101010));e.position.set(0.5,1.1,z);g.add(e);}
+      g.userData.emoji='🍄';g.userData.pts=90;root.add(g);const T={type:'critter',mesh:g,spawn:spawnCow,fl:fields};T.spawn(T);targets.push(T);}
+    const wg=new THREE.BufferGeometry();wg.setAttribute('position',new THREE.Float32BufferAttribute([0,0,-1.6, 0,0,1.6, 7,0,2.4, 0,0,-1.6, 7,0,2.4, 5,0,-2.4],3));wg.computeVertexNormals();const DR=[];
+    for(let i=0;i<6;i++){const c=pick([0x2a9a7a,0x7a3aaa,0xc84a3a]),m=new THREE.MeshLambertMaterial({color:c,emissive:0x101010,side:THREE.DoubleSide}),g=new THREE.Group(),L=new THREE.Mesh(wg,m),R=new THREE.Mesh(wg,m);R.scale.x=-1;g.add(L,R);
+      const b=new THREE.Mesh(new THREE.SphereGeometry(1,8,6),m);b.scale.set(0.9,0.8,3.4);g.add(b);const hd=new THREE.Mesh(new THREE.ConeGeometry(0.7,2.6,6),m);hd.rotation.x=PI/2;hd.position.z=4.4;g.add(hd);const tl=new THREE.Mesh(new THREE.ConeGeometry(0.4,4,5),m);tl.rotation.x=-PI/2;tl.position.z=-5;g.add(tl);
+      g.traverse(o=>{o.userData.keep=true;});g.userData.emoji='🐉';g.userData.pts=260;g.userData.heat=0.8;root.add(g);const T={type:'critter',mesh:g,still:true,spawn:T=>{T.mesh.visible=true;T.state='ground';resetRot(T.mesh);}};T.spawn(T);targets.push(T);
+      DR.push({T,g,L,R,cx:rand(-300,300),cz:rand(-300,300),r:rand(90,200),y:rand(34,58),w:rand(0.12,0.2)*(i%2?1:-1),a:rand(0,7)});}
+    planetAnim.push({town:'jungle',f:(t,dt)=>{for(const d of DR){if(d.T.state!=='ground')continue;d.a+=d.w*dt;d.g.position.set(d.cx+Math.cos(d.a)*d.r,d.y+Math.sin(t*0.6+d.r)*5,d.cz+Math.sin(d.a)*d.r);d.g.rotation.set(0,-d.a+(d.w>0?0:PI),0);const f=Math.sin(t*3+d.r)*0.5;d.L.rotation.z=f;d.R.rotation.z=-f;}}});}
 })();
 // 🍄 VERDANA, part 2: glowing streams + a lily pond, colossal trees with a tree-house village, giant flowers, ferns, butterflies, lantern-jellies
 (function(){
@@ -1988,14 +2005,14 @@ beginTown('jungle');
   freezeStatic(objs,root,true);
   // --- 🦋 butterflies + floating lantern-jellies
   const wg=new THREE.BufferGeometry();wg.setAttribute('position',new THREE.Float32BufferAttribute([0,0,-0.8, 0,0,0.8, 1.8,0,1.2, 0,0,-0.8, 1.8,0,1.2, 1.5,0,-1],3));wg.computeVertexNormals();const bfs=[];
-  for(let i=0;i<22;i++){const c=pick(caps),m=new THREE.MeshBasicMaterial({color:c,side:THREE.DoubleSide}),g=new THREE.Group(),L=new THREE.Mesh(wg,m),R=new THREE.Mesh(wg,m);R.scale.x=-1;g.add(L);g.add(R);g.scale.setScalar(rand(0.9,1.6));g.traverse(o=>o.userData.keep=true);root.add(g);
-    bfs.push({g,L,R,cx:[VX,PX,0,-300,300][i%5]+rand(-50,50),cz:[VZ,PZ,60,200,-250][i%5]+rand(-50,50),r:rand(12,50),y:rand(5,34),w:rand(0.3,0.7)*(i%2?1:-1),a:rand(0,7),fl:rand(9,14)});}
+  for(let i=0;i<22;i++){const c=pick(caps),m=new THREE.MeshBasicMaterial({color:c,side:THREE.DoubleSide}),g=new THREE.Group(),L=new THREE.Mesh(wg,m),R=new THREE.Mesh(wg,m);R.scale.x=-1;g.add(L);g.add(R);g.scale.setScalar(rand(1.8,2.8));g.traverse(o=>o.userData.keep=true);root.add(g);g.userData.emoji='🦋';g.userData.pts=140;const T={type:'critter',mesh:g,still:true,spawn:T=>{T.mesh.visible=true;T.state='ground';resetRot(T.mesh);}};T.spawn(T);targets.push(T);
+    bfs.push({T,g,L,R,cx:[VX,PX,0,-300,300][i%5]+rand(-50,50),cz:[VZ,PZ,60,200,-250][i%5]+rand(-50,50),r:rand(12,50),y:rand(5,34),w:rand(0.3,0.7)*(i%2?1:-1),a:rand(0,7),fl:rand(9,14)});}
   const jel=[];for(let i=0;i<12;i++){const c=pick(caps),g=new THREE.Group(),b=new THREE.Mesh(new THREE.SphereGeometry(2.4,10,6,0,2*PI,0,PI/2),new THREE.MeshBasicMaterial({color:c,transparent:true,opacity:0.7}));g.add(b);for(let k=0;k<4;k++){const tn=new THREE.Mesh(new THREE.CylinderGeometry(0.08,0.08,5,4),new THREE.MeshBasicMaterial({color:c}));tn.position.set(Math.cos(k*1.6)*1.2,-2.5,Math.sin(k*1.6)*1.2);g.add(tn);}
-    const s=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:c,transparent:true,opacity:.5,blending:THREE.AdditiveBlending,depthWrite:false}));s.scale.set(12,12,1);g.add(s);g.traverse(o=>o.userData.keep=true);root.add(g);jel.push({g,x:rand(-420,420),z:rand(-420,420),y:rand(26,80),ph:rand(0,7)});}
+    const s=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:c,transparent:true,opacity:.5,blending:THREE.AdditiveBlending,depthWrite:false}));s.scale.set(12,12,1);g.add(s);g.traverse(o=>o.userData.keep=true);root.add(g);g.userData.emoji='🪼';g.userData.pts=180;const T={type:'critter',mesh:g,still:true,spawn:T=>{T.mesh.visible=true;T.state='ground';resetRot(T.mesh);}};T.spawn(T);targets.push(T);jel.push({T,g,x:rand(-420,420),z:rand(-420,420),y:rand(20,48),ph:rand(0,7)});}
   let seen={};
   planetAnim.push({town:'jungle',f:(t,dt)=>{rt.offset.x=-t*0.12;pondG.material.opacity=0.18+0.08*Math.sin(t*1.4);lan.forEach((s,i)=>{s.material.opacity=0.55+0.3*Math.sin(t*2.4+i);});
-    for(const B of bfs){B.a+=B.w*dt;B.g.position.set(B.cx+Math.cos(B.a)*B.r,B.y+Math.sin(t*1.7+B.r)*3,B.cz+Math.sin(B.a)*B.r);B.g.rotation.set(0,-B.a-(B.w>0?PI:0),0);const f=Math.sin(t*B.fl+B.r)*1.0;B.L.rotation.z=f;B.R.rotation.z=-f;}
-    jel.forEach(J=>{J.g.position.set(J.x+Math.sin(t*0.1+J.ph)*40,J.y+Math.sin(t*0.5+J.ph)*6,J.z+Math.cos(t*0.08+J.ph)*40);const p=1+0.12*Math.sin(t*2+J.ph);J.g.scale.set(p,1/p,p);});
+    for(const B of bfs){if(B.T.state!=='ground')continue;B.a+=B.w*dt;B.g.position.set(B.cx+Math.cos(B.a)*B.r,B.y+Math.sin(t*1.7+B.r)*3,B.cz+Math.sin(B.a)*B.r);B.g.rotation.set(0,-B.a-(B.w>0?PI:0),0);const f=Math.sin(t*B.fl+B.r)*1.0;B.L.rotation.z=f;B.R.rotation.z=-f;}
+    jel.forEach(J=>{if(J.T.state!=='ground')return;J.g.position.set(J.x+Math.sin(t*0.1+J.ph)*40,J.y+Math.sin(t*0.5+J.ph)*6,J.z+Math.cos(t*0.08+J.ph)*40);const p=1+0.12*Math.sin(t*2+J.ph);J.g.scale.set(p,1/p,p);});
     if(state!=='play'){seen={};return;}for(const [k,x,z,msg] of[['v',VX,VZ,'🌳 TREETOP VILLAGE! +120 · land and jetpack up'],['p',PX,PZ,'🪷 THE LILY POND +80']]){if(!seen[k]&&Math.hypot(pos.x-x,pos.z-z)<60){seen[k]=1;score+=k==='v'?120:80;mEvent('found',{k:'jungle'+k});pop(msg);blip(500,1300,0.4,'triangle',0.08);}}}});
 })();
 endTown('jungle',[140,850]);Object.assign(towns.jungle,{planet:true,fogC:new THREE.Color(0x2a2048),skyTint:0xc09cff,label:'🍄 VERDANA'});
@@ -3606,6 +3623,34 @@ beginTown('maya');
   }});
 })(); 
 
+// 🇲🇽 more to abduct in Yucatán: tour buses and cars on the real roads, a mariachi band, archaeologists, flamingos at the cenotes, burros at the farms, corn sellers in the hamlets, monarch butterflies round the pyramid
+(function(){const M=window.__maya,D=MAYA_MAP,anim=[];
+  const crowd=(n,emoji,pts,spots,rad,dress)=>{for(let i=0;i<n;i++){const g=makeHuman(false);g.userData.emoji=emoji;g.userData.pts=pts;g.userData.heat=0.4;if(dress)dress(g,i);const T={type:'critter',mesh:useAnim('person',g,'maya'),spawn:spawnCow,fl:spots,rad};T.mesh.userData.T=T;T.spawn(T);targets.push(T);}};
+  crowd(7,'🎺',110,[{x:M.KX+46,z:M.KZ+44}],9,g=>{const br=new THREE.Mesh(new THREE.CylinderGeometry(1.5,1.5,0.12,12),lam(0x2a2a2a));br.position.y=3.5;g.add(br);const cr=new THREE.Mesh(new THREE.ConeGeometry(0.6,0.9,10),lam(0x2a2a2a));cr.position.y=3.95;g.add(cr);const tr=new THREE.Mesh(new THREE.TorusGeometry(1.5,0.08,4,14),basic(0xffd040));tr.rotation.x=PI/2;tr.position.y=3.52;g.add(tr);});
+  crowd(8,'⛏️',90,M.lost.map(l=>({x:l[0]+14,z:l[1]+18})),10,g=>{const h=new THREE.Mesh(new THREE.SphereGeometry(0.62,8,5,0,2*PI,0,PI/2),lam(0xd8c8a0));h.position.y=3.3;g.add(h);});
+  crowd(9,'🌽',70,M.hamlets.map(h=>({x:h[0],z:h[1]})),14);
+  // 🦩 flamingos wading at the edge of both cenotes
+  {const spots=[{x:M.CX-48,z:M.CZ+34},{x:M.CX+50,z:M.CZ+30}];D.water.forEach(w=>{if(Math.hypot(w[0]-M.CX,w[1]-M.CZ)>60)spots.push({x:w[0]+w[2]+6,z:w[1]},{x:w[0]-w[2]-6,z:w[1]+6});});
+    for(let i=0;i<10;i++){const g=new THREE.Group(),pk=lam(0xff7aa8,0x3a1020);const b=new THREE.Mesh(new THREE.SphereGeometry(0.75,10,8),pk);b.scale.set(1.3,0.9,0.8);b.position.y=2.6;g.add(b);
+      const nk=new THREE.Mesh(new THREE.CylinderGeometry(0.13,0.16,1.7,6),pk);nk.position.set(0.9,3.4,0);nk.rotation.z=-0.35;g.add(nk);const hd=new THREE.Mesh(new THREE.SphereGeometry(0.28,8,6),pk);hd.position.set(1.25,4.25,0);g.add(hd);box(g,0.5,0.14,0.14,0x222222,1.6,4.15,0);
+      for(const z of[-0.2,0.2])box(g,0.08,2.1,0.08,0xff9ab8,0,1.05,z);g.userData.emoji='🦩';g.userData.pts=130;root.add(g);const T={type:'critter',mesh:g,spawn:spawnCow,fl:spots,rad:7};T.spawn(T);targets.push(T);}}
+  // 🫏 burros grazing by the farms
+  for(let i=0;i<8;i++){const g=makeHorse(0x8a8478,0.72);g.userData.emoji='🫏';g.userData.pts=90;root.add(g);const T={type:'critter',mesh:useModel('burro',g),spawn:spawnCow,fl:M.milpas.map(m=>({x:m[0]+34,z:m[1]+8})),rad:10};T.spawn(T);targets.push(T);}
+  // 🚌 tour buses and cars driving the real visitor roads
+  {const segs=D.road.map(r=>({a:[r[0],r[1]],b:[r[2],r[3]],L:Math.hypot(r[2]-r[0],r[3]-r[1])})).filter(S=>S.L>60&&Math.hypot((S.a[0]+S.b[0])/2,(S.a[1]+S.b[1])/2)<560).sort((p,q)=>q.L-p.L).slice(0,8),V=[];
+    if(segs.length)for(let i=0;i<10;i++){const S=segs[i%segs.length];let g;if(i<6){g=new THREE.Group();const c=[0xffffff,0x2a8ae8,0xffd040,0xff5a3a,0x2dc8a0,0xf4f4f8][i];box(g,9,3,2.8,c,0,2.1,0);box(g,8.4,1,2.9,0x1a2a3a,0,2.8,0);box(g,9.1,0.4,2.9,0x30343c,0,0.75,0);
+        for(const wx of[-3,3])for(const wz of[-1.45,1.45]){const w=new THREE.Mesh(new THREE.CylinderGeometry(0.6,0.6,0.3,10),lam(0x111111));w.rotation.x=PI/2;w.position.set(wx,0.6,wz);g.add(w);}g.userData.emoji='🚌';g.userData.pts=200;g.userData.heat=0.9;root.add(g);}
+      else{g=makeCar();if(!g.userData.police)g.userData.emoji='🚗';}
+      const C={S,d:rand(0,S.L),dir:i%2?1:-1,sp:rand(9,15)};const T={type:'critter',mesh:g,still:true,spawn:T=>{C.d=rand(0,S.L);T.mesh.visible=true;T.state='ground';resetRot(T.mesh);}};T.state='ground';g.userData.T=T;targets.push(T);C.T=T;V.push(C);}
+    anim.push((t,dt)=>{V.forEach(C=>{if(C.T.state!=='ground')return;C.d+=C.sp*C.dir*dt;if(C.d>C.S.L){C.d=C.S.L;C.dir=-1;}else if(C.d<0){C.d=0;C.dir=1;}const u=C.d/C.S.L,S=C.S,a=Math.atan2(S.b[1]-S.a[1],S.b[0]-S.a[0]),off=1.6*C.dir;
+      C.T.mesh.position.set(S.a[0]+(S.b[0]-S.a[0])*u-Math.sin(a)*off,0.1,S.a[1]+(S.b[1]-S.a[1])*u+Math.cos(a)*off);C.T.mesh.rotation.y=-a+(C.dir<0?PI:0);});});}
+  // 🦋 big monarch butterflies drifting round the great pyramid
+  {const wg=new THREE.BufferGeometry();wg.setAttribute('position',new THREE.Float32BufferAttribute([0,0,-0.9, 0,0,0.9, 2.2,0,1.4, 0,0,-0.9, 2.2,0,1.4, 1.8,0,-1.2],3));wg.computeVertexNormals();const B=[];
+    for(let i=0;i<12;i++){const m=new THREE.MeshBasicMaterial({color:i%3?0xff8a1a:0xffc040,side:THREE.DoubleSide}),g=new THREE.Group(),L=new THREE.Mesh(wg,m),R=new THREE.Mesh(wg,m);R.scale.x=-1;g.add(L,R);box(g,0.3,0.3,1.6,0x1a1208,0,0,0);g.scale.setScalar(1.15);g.traverse(o=>{o.userData.keep=true;});
+      g.userData.emoji='🦋';g.userData.pts=140;root.add(g);const T={type:'critter',mesh:g,still:true,spawn:T=>{T.mesh.visible=true;T.state='ground';resetRot(T.mesh);}};T.spawn(T);targets.push(T);B.push({T,g,L,R,r:rand(45,120),y:rand(8,36),w:rand(0.12,0.28)*(i%2?1:-1),a:rand(0,7),fl:rand(8,12)});}
+    anim.push((t,dt)=>{for(const b of B){if(b.T.state!=='ground')continue;b.a+=b.w*dt;b.g.position.set(M.KX+Math.cos(b.a)*b.r,b.y+Math.sin(t*1.3+b.r)*3,M.KZ+Math.sin(b.a)*b.r);b.g.rotation.set(0,-b.a-(b.w>0?PI:0),0);const f=Math.sin(t*b.fl+b.r);b.L.rotation.z=f;b.R.rotation.z=-f;}});}
+  planetAnim.push({town:'maya',f:(t,dt)=>{for(const f of anim)f(t,dt);}});
+})();
 endTown('maya',[220,1300]);Object.assign(towns.maya,{planet:true,fogC:new THREE.Color(0x8ab890),skyTint:0xa8e0b0,label:'🌴 CHICHÉN ITZÁ, YUCATÁN',bloom:0.4});
 
 // 🎰 LAS VEGAS — the neon Strip, a glass pyramid with a sky beam, fountains, a giant slot machine
@@ -7590,6 +7635,12 @@ const MISSIONS=[
   {id:'racer',t:'Catch a street racer (police chase!)',ev:'abduct',m:d=>d.emoji==='🏎️',g:1,r:600},
   {id:'news',t:'Abduct the news chopper (New York)',ev:'abduct',m:d=>d.emoji==='📺',g:1,r:600},
   {id:'yacht',t:'Beam up 2 yachts cruising off Dubai',ev:'abduct',m:d=>d.emoji==='🛥️',g:2,r:550},
+  {id:'mexbus',t:'Beam up 2 tour buses (Mexico)',ev:'abduct',m:d=>d.emoji==='🚌',g:2,r:500},
+  {id:'mariachi',t:'Abduct 3 mariachi players by the great pyramid (Mexico)',ev:'abduct',m:d=>d.emoji==='🎺',g:3,r:450},
+  {id:'flamingo',t:'Abduct 3 flamingos at a cenote (Mexico)',ev:'abduct',m:d=>d.emoji==='🦩',g:3,r:450},
+  {id:'longneck',t:'Beam up a giant long-neck dinosaur (Verdana)',ev:'abduct',m:d=>d.emoji==='🦕',g:1,r:500},
+  {id:'drake',t:'Catch a sky-drake (Verdana)',ev:'abduct',m:d=>d.emoji==='🐉',g:1,r:600},
+  {id:'snails',t:'Abduct 3 giant glow-snails (Verdana)',ev:'abduct',m:d=>d.emoji==='🐌',g:3,r:400},
   {id:'speedboat',t:'Beam up 2 speedboats (the river in New York or the Dubai coast)',ev:'abduct',m:d=>d.emoji==='🚤',g:2,r:500},
   {id:'hotdog',t:'Beam up 3 hot dog carts (street corners in New York)',ev:'abduct',m:d=>d.emoji==='🌭',g:3,r:450},
   {id:'foodtruck',t:'Beam up 2 food trucks (night market)',ev:'abduct',m:d=>d.emoji==='🌮',g:2,r:500},
