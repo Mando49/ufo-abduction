@@ -5086,6 +5086,31 @@ beginTown('nyc');
       const C={c,d:rand(0,c.L),dir:i%2?1:-1,sp:rand(12,20)};const T={type:'critter',mesh:g,still:true,spawn:T=>{C.d=rand(0,c.L);T.mesh.visible=true;T.state='ground';resetRot(T.mesh);}};T.state='ground';g.userData.T=T;targets.push(T);C.T=T;cars.push(C);}
     planetAnim.push({town:'nyc',f:(t,dt)=>{cars.forEach(C=>{if(C.T.state!=='ground')return;C.d+=C.sp*C.dir*dt;if(C.d>C.c.L){C.d=C.c.L;C.dir=-1;}else if(C.d<0){C.d=0;C.dir=1;}at(C.c,C.d);
       const off=C.c.w*0.33*C.dir;C.T.mesh.position.set(o.x-Math.sin(o.a)*off,0,o.z+Math.cos(o.a)*off);C.T.mesh.rotation.y=-o.a+(C.dir<0?PI:0);});}});}
+  // 🚁 rooftop helipad, MANDO WINDOW TINTING sign, live score billboards and a low-flying news chopper (moved over from Neon City)
+  {const pickT=(x,z)=>TALL.filter(T=>Math.hypot(T.x-x,T.z-z)<45&&T.ar>250).sort((p,q)=>q.h-p.h)[0]||TALL[0],A=pickT(179,258),B=pickT(-122,147),C=pickT(63,-38),GA=-0.506,gx=Math.cos(GA),gz=-Math.sin(GA);
+    const pad=new THREE.Mesh(new THREE.CylinderGeometry(9,9,0.6,28),lam(0x30343c));pad.position.set(A.x,A.h+0.6,A.z);root.add(pad);
+    const hT=texCanvas(128,128,g=>{g.fillStyle='#30343c';g.fillRect(0,0,128,128);g.strokeStyle='#ffd84a';g.lineWidth=8;g.beginPath();g.arc(64,64,54,0,2*PI);g.stroke();g.fillStyle='#fff';g.font='bold 80px sans-serif';g.textAlign='center';g.fillText('H',64,92);});
+    const hp=new THREE.Mesh(new THREE.CircleGeometry(8.6,28),new THREE.MeshBasicMaterial({map:hT}));hp.rotation.x=-PI/2;hp.position.set(A.x,A.h+0.95,A.z);root.add(hp);
+    const beacons=[];for(let i=0;i<8;i++){const an=i/8*2*PI;beacons.push(glowSprite(0x7dffb0,A.x+Math.cos(an)*9.5,A.h+1.4,A.z+Math.sin(an)*9.5,3,0.9));}
+    const ph=new THREE.Group();ph.position.set(A.x+1,A.h+1,A.z);ph.rotation.y=0.6;root.add(ph);useModel('heli',ph);
+    colliders.push({x0:A.x-9,x1:A.x+9,z0:A.z-9,z1:A.z+9,h:A.h+5,y0:A.h});
+    // roof signs sit square to the street grid (Manhattan is turned 29°), readable from both sides
+    const roofSign=(m,T,y,w)=>{for(const [ry,d] of[[GA,1],[GA+PI,-1]]){const k=d>0?m:m.clone();k.position.set(T.x+Math.sin(GA)*d*0.4,T.h+y,T.z+Math.cos(GA)*d*0.4);k.rotation.y=ry;k.userData.keep=true;root.add(k);}
+      for(const sd of[-1,1]){const p=box(root,1,y+2,1,0x30343c,T.x+gx*sd*w*0.42,T.h+y/2,T.z+gz*sd*w*0.42);p.userData.keep=true;}};
+    {const m=neonText('MANDO WINDOW TINTING','#ff4fd8',52,8);m.material.side=THREE.FrontSide;roofSign(m,B,9,52);}
+    {const bb=liveScreen(48,26,(g,W,H)=>drawScore(g,W,H,'🛸 UFO OVER NEW YORK','LIVE SCORE · BEST '+best));bb.position.set(C.x+Math.sin(GA)*0.5,C.h+17,C.z+Math.cos(GA)*0.5);bb.rotation.y=GA;bb.userData.keep=true;root.add(bb);
+      const bb2=liveScreen(48,26,(g,W,H)=>drawScore(g,W,H,'📺 BREAKING NEWS','CITIZENS REPORT STRANGE LIGHTS'));bb2.position.set(C.x-Math.sin(GA)*0.5,C.h+17,C.z-Math.cos(GA)*0.5);bb2.rotation.y=GA+PI;bb2.userData.keep=true;root.add(bb2);
+      for(const sd of[-1,1])box(root,1.2,6,1.2,0x30343c,C.x+gx*sd*20,C.h+3,C.z+gz*sd*20);}
+    // news chopper flies low along the longest avenue and back (catch it!)
+    const av=D.road.filter(r=>r[0]>=8).map(r=>{const p=[];for(let i=1;i+1<r.length;i+=2)p.push([r[i],r[i+1]]);const len=[0];for(let i=1;i<p.length;i++)len.push(len[i-1]+Math.hypot(p[i][0]-p[i-1][0],p[i][1]-p[i-1][1]));return{p,len,L:len[len.length-1]};}).sort((p,q)=>q.L-p.L)[0];
+    const nc=new THREE.Group();box(nc,5,2,2,0x2a5ad8,0,1,0);root.add(nc);useModel('heli',nc);const sl=glowSprite(0xffffff,0,0,0,5,0.9);nc.add(sl);sl.position.set(3,-1,0);
+    nc.userData.emoji='📺';nc.userData.pts=150;nc.userData.heat=1;
+    const NT={type:'critter',mesh:nc,still:true,spawn:T=>{T.mesh.visible=true;T.state='ground';resetRot(T.mesh);}};NT.spawn(NT);targets.push(NT);
+    let nd=av.L*0.4,ndir=1,lk=0;
+    planetAnim.push({town:'nyc',f:(t,dt)=>{lk-=dt;if(lk<=0){lk=0.5;LIVE.forEach(L=>{L.draw(L.c.getContext('2d'),L.c.width,L.c.height);L.tx.needsUpdate=true;});}beacons.forEach((b,i)=>{b.visible=((t*6)|0)%8===i;});
+      if(NT.state==='ground'){nd+=ndir*26*dt;if(nd>av.L){nd=av.L;ndir=-1;}else if(nd<0){nd=0;ndir=1;}let i=1;while(i<av.len.length-1&&av.len[i]<nd)i++;const p=av.p[i-1],q=av.p[i],u=(nd-av.len[i-1])/Math.max(0.001,av.len[i]-av.len[i-1]);
+        nc.position.set(p[0]+(q[0]-p[0])*u,46+Math.sin(t)*3,p[1]+(q[1]-p[1])*u);nc.rotation.set(0.12,Math.atan2(-(q[1]-p[1])*ndir,(q[0]-p[0])*ndir),0);}}});
+    window.__nycG1={A,B,C,av:av.L,nc};}
   window.__nyc={TALL,LOW,meadow,EDG};
   for(let i=0;i<14;i++){const T={type:'cow',mesh:makeCow(),spawn:spawnCow,fl:fields};T.spawn(T);targets.push(T);}
   for(let i=0;i<40;i++){const T={type:'critter',mesh:useAnim('person',makeHuman(false),'nyc'),spawn:spawnCow,fl:[{x:TS[0],z:TS[1],rad:12},{x:TS[0]+12,z:TS[1]-24,rad:10},{x:TS[0]-12,z:TS[1]+24,rad:10},{x:D.sp.bryant[0],z:D.sp.bryant[1]},{x:283,z:-276,rad:12},{x:-236,z:403,rad:8},{x:3.5,z:-499,rad:10},{x:138,z:354,rad:8}],rad:22};T.spawn(T);targets.push(T);}
@@ -7971,7 +7996,7 @@ const MISSIONS=[
   {id:'stadium',t:'Abduct 3 football players (stadium)',ev:'abduct',m:d=>d.emoji==='🏈',g:3,r:500},
   {id:'blimp',t:'Catch the stadium blimp (Neon City)',ev:'abduct',m:d=>d.emoji==='🎈',g:1,r:700},
   {id:'racer',t:'Catch a street racer (police chase!)',ev:'abduct',m:d=>d.emoji==='🏎️',g:1,r:600},
-  {id:'news',t:'Abduct the news chopper (Neon City)',ev:'abduct',m:d=>d.emoji==='📺',g:1,r:600},
+  {id:'news',t:'Abduct the news chopper (Neon City or New York)',ev:'abduct',m:d=>d.emoji==='📺',g:1,r:600},
   {id:'foodtruck',t:'Beam up 2 food trucks (night market)',ev:'abduct',m:d=>d.emoji==='🌮',g:2,r:500},
   {id:'invasion',t:'Survive a Mothership Invasion at Area 51',ev:'invasion',g:1,r:500},
   {id:'h18',t:'Fly into secret Hangar 18 (Area 51 hangar doors)',ev:'h18',g:1,r:500},
