@@ -13,6 +13,10 @@
 - "UFO Over the Block" (4 takes) — made by Mando with Suno.
 - Built-in tracks are generated live in the browser by the game's own synth.
 
+## Map data
+- The "Giza · Real Map" world is laid out from OpenStreetMap data: © OpenStreetMap contributors, licensed under the Open Database License (ODbL), https://www.openstreetmap.org/copyright
+- The extracted layout (pyramids, tombs, temples, buildings, roads) is in assets/data/giza-osm.json and is available under the same ODbL license.
+
 ## Code
 - three.js r128 (MIT) — https://threejs.org
 - meshoptimizer decoder (MIT, Arseny Kapoulkine) in assets/lib, used to unpack the compressed 3D models.
