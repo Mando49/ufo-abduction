@@ -4384,7 +4384,7 @@ beginTown('city');
     const lm=inst(new THREE.BoxGeometry(0.9,0.5,0.9),new THREE.MeshBasicMaterial({color:0xffd9a0}),lamps,q=>compose(q.x,5.2,q.z,1,1,1,0,0,0));lm.userData.keep=true;
     inst(new THREE.CircleGeometry(5,10),new THREE.MeshBasicMaterial({color:0x4a3c22,transparent:true,opacity:0.3,depthWrite:false,blending:THREE.AdditiveBlending,polygonOffset:true,polygonOffsetFactor:-6,polygonOffsetUnits:-6}),lamps.filter((q,i)=>i%2===0),q=>compose(q.x,0.12,q.z,1,1,1,-PI/2,0,0)).userData.keep=true;}
   // 🌆 the bright square: giant glowing billboards on the real walls around the Broadway crossing (made-up names only)
-  {const names=['COSMO COLA','STAR BURGER','ZAP!','MOON MOTORS','GALAXY TOYS','ASTRO NEWS 24','COMET PIZZA','UFO: THE MUSICAL','NEBULA PHONES','ROCKET SHOES','SATURN SODA','ORBIT GUM','LUNAR LATTE','MEGA MUNCH','PLANET POP','STARLIGHT THEATRE'],cols=['#3de1ff','#ff3fd2','#ffd040','#2dff9a','#ff8a3d','#b44dff','#ff4a5a','#ffffff'];
+  {const names=['MANDO WINDOW TINTING','COSMO COLA','STAR BURGER','ZAP!','MOON MOTORS','GALAXY TOYS','ASTRO NEWS 24','COMET PIZZA','UFO: THE MUSICAL','NEBULA PHONES','ROCKET SHOES','SATURN SODA','ORBIT GUM','LUNAR LATTE','MEGA MUNCH','PLANET POP','STARLIGHT THEATRE'],cols=['#3de1ff','#ff3fd2','#ffd040','#2dff9a','#ff8a3d','#b44dff','#ff4a5a','#ffffff'];
     const used=[],screens=[];EDG.sort((a,b)=>a.dc-b.dc);let k=0;
     for(const e of EDG){if(k>=18)break;if(used.some(u=>Math.hypot(u.mx-e.mx,u.mz-e.mz)<22))continue;used.push(e);
       let nx=-e.dz,nz=e.dx;if(nx*(TS[0]-e.mx)+nz*(TS[1]-e.mz)<0){nx=-nx;nz=-nz;}const ry=Math.atan2(nx,nz),w=Math.max(18,Math.min(e.len*0.95,38)),hh=w*0.42,y=9+hh/2+(k%2)*3,px=e.mx+nx*1.1,pz=e.mz+nz*1.1;
@@ -4420,7 +4420,8 @@ beginTown('city');
     planetAnim.push({town:'city',f:(t,dt)=>{cars.forEach(C=>{if(C.T.state!=='ground')return;C.d+=C.sp*C.dir*dt;if(C.d>C.c.L){C.d=C.c.L;C.dir=-1;}else if(C.d<0){C.d=0;C.dir=1;}at(C.c,C.d);
       const off=C.c.w*0.33*C.dir;C.T.mesh.position.set(o.x-Math.sin(o.a)*off,0,o.z+Math.cos(o.a)*off);C.T.mesh.rotation.y=-o.a+(C.dir<0?PI:0);});}});}
   // 🚁 rooftop helipad, MANDO WINDOW TINTING sign, live score billboards and a low-flying news chopper (moved over from Neon City)
-  {const pickT=(x,z)=>TALL.filter(T=>Math.hypot(T.x-x,T.z-z)<45&&T.ar>250).sort((p,q)=>q.h-p.h)[0]||TALL[0],A=pickT(179,258),B=pickT(-122,147),C=pickT(63,-38),GA=-0.506,gx=Math.cos(GA),gz=-Math.sin(GA);
+  {const pickT=(x,z)=>TALL.filter(T=>Math.hypot(T.x-x,T.z-z)<45&&T.ar>250).sort((p,q)=>q.h-p.h)[0]||TALL[0],bigT=(x,z)=>TALL.filter(T=>Math.hypot(T.x-x,T.z-z)<80&&!TALL.some(U=>U!==T&&U.h>T.h+2&&Math.hypot(U.x-T.x,U.z-T.z)<Math.sqrt(T.ar)*0.75+8)).sort((p,q)=>q.ar-p.ar)[0]||TALL[0], // the widest roof nearby that has no taller tier beside it
+      A=pickT(179,258),B=bigT(-122,147),C=bigT(63,-38),GA=-0.506,gx=Math.cos(GA),gz=-Math.sin(GA);
     const pad=new THREE.Mesh(new THREE.CylinderGeometry(9,9,0.6,28),lam(0x30343c));pad.position.set(A.x,A.h+0.6,A.z);root.add(pad);
     const hT=texCanvas(128,128,g=>{g.fillStyle='#30343c';g.fillRect(0,0,128,128);g.strokeStyle='#ffd84a';g.lineWidth=8;g.beginPath();g.arc(64,64,54,0,2*PI);g.stroke();g.fillStyle='#fff';g.font='bold 80px sans-serif';g.textAlign='center';g.fillText('H',64,92);});
     const hp=new THREE.Mesh(new THREE.CircleGeometry(8.6,28),new THREE.MeshBasicMaterial({map:hT}));hp.rotation.x=-PI/2;hp.position.set(A.x,A.h+0.95,A.z);root.add(hp);
@@ -4428,12 +4429,14 @@ beginTown('city');
     const ph=new THREE.Group();ph.position.set(A.x+1,A.h+1,A.z);ph.rotation.y=0.6;root.add(ph);useModel('heli',ph);
     colliders.push({x0:A.x-9,x1:A.x+9,z0:A.z-9,z1:A.z+9,h:A.h+5,y0:A.h});
     // roof signs sit square to the street grid (Manhattan is turned 29°), readable from both sides
-    const roofSign=(m,T,y,w)=>{for(const [ry,d] of[[GA,1],[GA+PI,-1]]){const k=d>0?m:m.clone();k.position.set(T.x+Math.sin(GA)*d*0.4,T.h+y,T.z+Math.cos(GA)*d*0.4);k.rotation.y=ry;k.userData.keep=true;root.add(k);}
-      for(const sd of[-1,1]){const p=box(root,1,y+2,1,0x30343c,T.x+gx*sd*w*0.42,T.h+y/2,T.z+gz*sd*w*0.42);p.userData.keep=true;}};
-    {const m=neonText('MANDO WINDOW TINTING','#ff4fd8',52,8);m.material.side=THREE.FrontSide;roofSign(m,B,9,52);}
-    {const bb=liveScreen(48,26,(g,W,H)=>drawScore(g,W,H,'🛸 UFO OVER NEW YORK','LIVE SCORE · BEST '+best));bb.position.set(C.x+Math.sin(GA)*0.5,C.h+17,C.z+Math.cos(GA)*0.5);bb.rotation.y=GA;bb.userData.keep=true;root.add(bb);
-      const bb2=liveScreen(48,26,(g,W,H)=>drawScore(g,W,H,'📺 BREAKING NEWS','CITIZENS REPORT STRANGE LIGHTS'));bb2.position.set(C.x-Math.sin(GA)*0.5,C.h+17,C.z-Math.cos(GA)*0.5);bb2.rotation.y=GA+PI;bb2.userData.keep=true;root.add(bb2);
-      for(const sd of[-1,1])box(root,1.2,6,1.2,0x30343c,C.x+gx*sd*20,C.h+3,C.z+gz*sd*20);}
+    // roof signs sit square to the street grid (Manhattan is turned 29°), readable from both sides, on a dark backing frame and a steel pylon so they never look like they float
+    const frame=(T,cy,w,hh)=>{const fr=new THREE.Group();fr.position.set(T.x,T.h,T.z);fr.rotation.y=GA;root.add(fr);const det=[];
+      det.push(box(fr,w+1.6,hh+1.6,0.7,0x14161e,0,cy,0),box(fr,3,cy-hh/2,3,0x30343c,0,(cy-hh/2)/2,0),box(fr,w*0.7,0.8,1.6,0x30343c,0,cy-hh/2-0.4,0),box(fr,8,1,8,0x30343c,0,0.5,0));
+      for(const sd of[-1,1]){const br=box(fr,0.6,Math.hypot(w*0.32,cy-hh/2),0.6,0x30343c,sd*w*0.16,(cy-hh/2)/2,0);br.rotation.z=sd*Math.atan2(w*0.32,cy-hh/2);det.push(br);}
+      freezeStatic(det,fr);return fr;};
+    const twoSided=(mk,T,cy,w,hh)=>{frame(T,cy,w,hh);for(const [ry,d] of[[GA,1],[GA+PI,-1]]){const k=mk(d);k.position.set(T.x+Math.sin(GA)*d*0.45,T.h+cy,T.z+Math.cos(GA)*d*0.45);k.rotation.y=ry;k.userData.keep=true;root.add(k);}};
+    {const w=Math.max(30,Math.min(46,Math.sqrt(B.ar)*1.1));twoSided(()=>{const m=neonText('MANDO WINDOW TINTING','#ff4fd8',w,w*0.16);m.material.side=THREE.FrontSide;return m;},B,5+w*0.08,w,w*0.16);}
+    twoSided(d=>d>0?liveScreen(40,22,(g,W,H)=>drawScore(g,W,H,'🛸 UFO OVER NEW YORK','LIVE SCORE · BEST '+best)):liveScreen(40,22,(g,W,H)=>drawScore(g,W,H,'📺 BREAKING NEWS','CITIZENS REPORT STRANGE LIGHTS')),C,16,40,22);
     // news chopper flies low along the longest avenue and back (catch it!)
     const av=D.road.filter(r=>r[0]>=8).map(r=>{const p=[];for(let i=1;i+1<r.length;i+=2)p.push([r[i],r[i+1]]);const len=[0];for(let i=1;i<p.length;i++)len.push(len[i-1]+Math.hypot(p[i][0]-p[i-1][0],p[i][1]-p[i-1][1]));return{p,len,L:len[len.length-1]};}).sort((p,q)=>q.L-p.L)[0];
     const nc=new THREE.Group();box(nc,5,2,2,0x2a5ad8,0,1,0);root.add(nc);useModel('heli',nc);const sl=glowSprite(0xffffff,0,0,0,5,0.9);nc.add(sl);sl.position.set(3,-1,0);
