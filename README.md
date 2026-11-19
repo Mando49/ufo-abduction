@@ -176,3 +176,7 @@ The game is site-locked: it only runs on approved addresses (this GitHub Pages s
 
 ## Leaderboard
 Top-10 online scores, stored in Firebase Firestore (collection `scores`). It stays switched off until `LB_CFG` in `index.html` has the Firebase `projectId` and `apiKey`. Security rules are in `firestore.rules`.
+
+
+## Real-map worlds (Nov 2026)
+Giza and Las Vegas are laid out from OpenStreetMap data (see CREDITS.md). Las Vegas uses the real Strip's building outlines, heights, streets, lake and pools, with made-up names on every sign. Fremont Street, Red Rock, the air base, the airport, the suburbs and the stadium sit around the real-layout area. The old hand-built Vegas was retired; Hoover Dam and Chinatown were not carried over, and the dam-bridge mission was removed (165 missions).
