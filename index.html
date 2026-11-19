@@ -5075,7 +5075,7 @@ function makeShowgirl(){
       const T={type:'critter',mesh:g,still:true,spawn:T=>{T.mesh.position.set(-1104,cy,cz);T.mesh.rotation.set(0,PI/2,0);T.mesh.visible=true;T.state='ground';}};T.spawn(T);targets.push(T);
       const rope=new THREE.Mesh(new THREE.CylinderGeometry(0.08,0.08,30,4),basic(0xffd040));rope.position.set(-1105,cy+15,cz);root.add(rope);}}
   // 🪟 MANDO WINDOW TINTING (east suburbs, next to the strip mall)
-  {const SX=560,SZ=330,objs=[],add=m=>{objs.push(m);return m;};
+  window.__tintShop=function(SX,SZ,TOWN){const objs=[],add=m=>{objs.push(m);return m;};
     add(flatPlane(70,110,0x34353a,-2,SX,SZ));
     // shop building as a hollow shell so the bays are really open and you can see the work inside
     add(box(root,1,12,70,0x2a2c34,SX+28.5,6,SZ));for(const s of[-1,1])add(box(root,30,12,1,0x2a2c34,SX+14,6,SZ+s*34.5));add(box(root,30,1,70,0x2a2c34,SX+14,11.5,SZ));
@@ -5230,12 +5230,12 @@ function makeShowgirl(){
       for(const x of[1.5,-1.5])for(const z of[-1,1]){const wh=new THREE.Mesh(new THREE.CylinderGeometry(0.42,0.42,0.3,10),lam(0x111114));wh.rotation.x=PI/2;wh.position.set(x,0.42,z);g.add(wh);}
       g.userData.emoji='🚗';g.userData.pts=60;g.userData.heat=0.3;root.add(g);const bz=SZ-22+k*22;
       const T={type:'critter',mesh:g,still:true,glass,tint:rand(0,1),spawn:T=>{T.tint=0;T.mesh.position.set(SX-6,0,bz);T.mesh.rotation.set(0,PI,0);T.mesh.visible=true;T.state='ground';}};T.spawn(T);targets.push(T);shopCars.push(T);}
-    const tinter=useAnim('person',makeHuman(false),'vegas');tinter.position.set(SX+4,0,SZ);root.add(tinter);
-    let shopMsg=0;planetAnim.push({town:'vegas',f:(t,dt)=>{shopCars.forEach(T=>{if(T.state!=='ground')return;T.tint=Math.min(1,T.tint+dt*0.05);
+    const tinter=useAnim('person',makeHuman(false),TOWN);tinter.position.set(SX+4,0,SZ);root.add(tinter);
+    let shopMsg=0;planetAnim.push({town:TOWN,f:(t,dt)=>{shopCars.forEach(T=>{if(T.state!=='ground')return;T.tint=Math.min(1,T.tint+dt*0.05);
         T.glass.color.setRGB(0.75*(1-T.tint)+0.03,0.89*(1-T.tint)+0.03,1*(1-T.tint)+0.05);T.glass.opacity=0.6+0.35*T.tint;
         if(T.tint>=1){T.tint=0;}});
       tinter.position.set(SX-10,0,SZ+Math.sin(t*0.4)*22);tinter.rotation.y=Math.cos(t*0.4)>0?0:PI;
-      shopMsg-=dt;if(state==='play'&&!onFoot&&shopMsg<=0&&Math.hypot(pos.x-SX,pos.z-SZ)<60&&pos.y<60){shopMsg=30;score+=50;mEvent('tintshop');pop('🪟 MANDO WINDOW TINTING · +50 · lasvegaswindowtintnv.com');}}});}
+      shopMsg-=dt;if(state==='play'&&!onFoot&&shopMsg<=0&&Math.hypot(pos.x-SX,pos.z-SZ)<60&&pos.y<60){shopMsg=30;score+=50;mEvent('tintshop');pop('🪟 MANDO WINDOW TINTING · +50 · lasvegaswindowtintnv.com');}}});};__tintShop(560,330,'vegas'); // built by a function so the real-map Strip can have the shop too
   // tourists everywhere
   for(let i=0;i<34;i++){const T={type:'critter',mesh:useAnim('person',makeHuman(false),'vegas'),spawn:spawnCow,fl:fields,rad:20};T.spawn(T);targets.push(T);}
   // 🕺 Elvis impersonators (100 pts) strolling the west sidewalk
@@ -5288,6 +5288,17 @@ beginTown('vegasmap');
     const bm=new THREE.Mesh(new THREE.CylinderGeometry(1.5,4,900,12,1,true),new THREE.MeshBasicMaterial({color:0xcfe4ff,transparent:true,opacity:.28,blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide}));bm.position.set(S[0],S[3]+450,S[1]);root.add(bm);}
   if(D.special.sphere){const S=D.special.sphere,r=S[2],m=new THREE.Mesh(new THREE.SphereGeometry(r,32,20),new THREE.MeshBasicMaterial({color:0xff5ad8}));m.position.set(S[0],r*0.82,S[1]);m.userData.keep=true;root.add(m);glowSprite(0xff5ad8,S[0],r*0.82,S[1],r*4.2,0.55);
     colliders.push({x0:S[0]-r*0.75,x1:S[0]+r*0.75,z0:S[1]-r*0.75,z1:S[1]+r*0.75,h:r*1.7,y0:0});planetAnim.push({town:'vegasmap',f:t=>{m.material.color.setHSL((t*0.05)%1,0.9,0.6);}});}
+  // ⛲ the fountain show, on the real lake: a line of jets down its long side, a show every 22 seconds
+  {const L=D.water.reduce((a,w)=>{let x0=1e9,x1=-1e9,z0=1e9,z1=-1e9;for(let i=0;i<w.length;i+=2){x0=Math.min(x0,w[i]);x1=Math.max(x1,w[i]);z0=Math.min(z0,w[i+1]);z1=Math.max(z1,w[i+1]);}let ar=0;const n=w.length/2;for(let i=0;i<n;i++){const k=(i+1)%n;ar+=w[2*i]*w[2*k+1]-w[2*k]*w[2*i+1];}ar=Math.abs(ar)/2;return ar>a.ar?{ar,x0,x1,z0,z1}:a;},{ar:0}); // the biggest real water area = the fountain lake
+    const FX=(L.x0+L.x1)/2+6,z0=L.z0+16,z1=L.z1-16,jets=[],mist=[];
+    for(let i=0;i<16;i++){const j=new THREE.Mesh(new THREE.CylinderGeometry(0.5,1.4,1,8,1,true),new THREE.MeshBasicMaterial({color:0xe8f4ff,transparent:true,opacity:.7,blending:THREE.AdditiveBlending,depthWrite:false}));j.position.set(FX+Math.sin(i*0.8)*5,0,z0+(z1-z0)*i/15);j.userData.keep=true;root.add(j);jets.push(j);}
+    for(let i=0;i<6;i++){const m=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:0x9beaff,transparent:true,opacity:.2,blending:THREE.AdditiveBlending,depthWrite:false}));m.position.set(FX,12,z0+(z1-z0)*i/5);m.scale.set(18,24,1);m.userData.keep=true;root.add(m);mist.push({m,ph:i*0.8});}
+    let fMsg=0;planetAnim.push({town:'vegasmap',f:(t,dt)=>{const ph=t%22,show=ph<12;jets.forEach((j,i)=>{const h=show?Math.max(0,(32+26*Math.sin(t*3+i*0.6))*Math.min(1,ph*2)*Math.min(1,(12-ph)*2)):0;j.visible=h>0.5;j.scale.set(1,Math.max(h,0.01),1);j.position.y=h/2;
+        if(show&&Math.random()<0.08)spawnFx(tmpV2.set(j.position.x,h,j.position.z),tmpV.set(rand(-3,3),rand(2,6),rand(-3,3)),0.8,2,3,0xe8f4ff,true);});
+      mist.forEach(M=>{M.m.material.opacity=show?0.08+0.2*(0.5+0.5*Math.sin(t*1.7+M.ph)):0.04;M.m.position.y=11+Math.sin(t+M.ph)*2;});
+      fMsg-=dt;if(show&&fMsg<=0&&state==='play'&&Math.hypot(pos.x-FX,pos.z-(z0+z1)/2)<110){fMsg=40;pop('⛲ FOUNTAIN SHOW!','t');}}});}
+  // 🪟 MANDO WINDOW TINTING on an empty lot east of the Strip (same shop as the classic Vegas)
+  __tintShop(385,470,'vegasmap');
   // people to beam up along the Strip
   const spots=[];D.road.forEach((s,i)=>{if(s[4]>5&&i%9===0&&Math.abs(s[0])<260)spots.push({x:s[0]+10,z:s[1]});});
   for(let i=0;i<26;i++){const T={type:'critter',mesh:useAnim('person',makeHuman(false),'vegasmap'),spawn:spawnCow,fl:spots.length?spots:[{x:0,z:0}],rad:20};T.spawn(T);targets.push(T);}
