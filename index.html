@@ -5323,6 +5323,16 @@ beginTown('vegasmap');
   for(let i=0;i<6;i++){const T={type:'critter',mesh:makeElvis(),spawn:spawnCow,fl:[{x:-84,z:24,rad:9},{x:-86,z:300,rad:9},{x:-70,z:-300,rad:9}],rad:9};T.spawn(T);targets.push(T);}
   for(let i=0;i<6;i++){const T={type:'critter',mesh:makeShowgirl(),spawn:spawnCow,fl:[{x:-84,z:-44,rad:9},{x:-85,z:700,rad:9},{x:-86,z:200,rad:9}],rad:9};T.spawn(T);targets.push(T);}
   for(let i=0;i<14;i++){const g=makeHuman(false);g.userData.emoji='📸';g.userData.pts=60;const T={type:'critter',mesh:useAnim('person',g,'vegasmap'),spawn:spawnCow,fl:[{x:-84,z:-10},{x:-84,z:842},{x:160,z:140}],rad:16};T.mesh.userData.T=T;T.spawn(T);targets.push(T);}
+  // 🚗 traffic on the real streets: cars follow the real road lines, keeping to the right, and can be beamed up
+  {const chains=[];let cur=null;D.road.forEach(s=>{if(s[4]<4.2){cur=null;return;}const e=cur&&cur.p[cur.p.length-1];
+      if(cur&&cur.w===s[4]&&Math.abs(e[0]-s[0])<0.2&&Math.abs(e[1]-s[1])<0.2)cur.p.push([s[2],s[3]]);else{cur={w:s[4],p:[[s[0],s[1]],[s[2],s[3]]]};chains.push(cur);}});
+    chains.forEach(c=>{c.len=[0];for(let i=1;i<c.p.length;i++)c.len.push(c.len[i-1]+Math.hypot(c.p[i][0]-c.p[i-1][0],c.p[i][1]-c.p[i-1][1]));c.L=c.len[c.len.length-1];});
+    const big=chains.filter(c=>c.L>140).sort((a,b)=>b.L-a.L).slice(0,26),cars=[],o={x:0,z:0,a:0};
+    const at=(c,d)=>{let i=1;while(i<c.len.length-1&&c.len[i]<d)i++;const a=c.p[i-1],b=c.p[i],t=(d-c.len[i-1])/Math.max(0.001,c.len[i]-c.len[i-1]);o.x=a[0]+(b[0]-a[0])*t;o.z=a[1]+(b[1]-a[1])*t;o.a=Math.atan2(b[1]-a[1],b[0]-a[0]);};
+    if(big.length)for(let i=0;i<34;i++){const c=big[i%big.length],g=makeCar();if(!g.userData.police)g.userData.emoji='🚗';const C={c,d:rand(0,c.L),dir:i%2?1:-1,sp:rand(14,24)};
+      const T={type:'critter',mesh:g,still:true,spawn:T=>{C.d=rand(0,c.L);T.mesh.visible=true;T.state='ground';resetRot(T.mesh);}};T.state='ground';targets.push(T);C.T=T;cars.push(C);}
+    planetAnim.push({town:'vegasmap',f:(t,dt)=>{cars.forEach(C=>{if(C.T.state!=='ground')return;C.d+=C.dir*C.sp*dt;if(C.d>C.c.L)C.d-=C.c.L;if(C.d<0)C.d+=C.c.L;at(C.c,C.d);const off=C.c.w*0.22*C.dir,m=C.T.mesh;
+      m.position.set(o.x-Math.sin(o.a)*off,0,o.z+Math.cos(o.a)*off);m.rotation.set(0,-o.a+(C.dir<0?PI:0),0);});}});}
   // people to beam up along the Strip
   const spots=[];D.road.forEach((s,i)=>{if(s[4]>5&&i%9===0&&Math.abs(s[0])<260)spots.push({x:s[0]+10,z:s[1]});});
   for(let i=0;i<26;i++){const T={type:'critter',mesh:useAnim('person',makeHuman(false),'vegasmap'),spawn:spawnCow,fl:spots.length?spots:[{x:0,z:0}],rad:20};T.spawn(T);targets.push(T);}
