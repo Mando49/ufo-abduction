@@ -14,7 +14,7 @@
 - Built-in tracks are generated live in the browser by the game's own synth.
 
 ## Map data
-- The "Giza · Real Map" world is laid out from OpenStreetMap data: © OpenStreetMap contributors, licensed under the Open Database License (ODbL), https://www.openstreetmap.org/copyright
+- The Giza world is laid out from OpenStreetMap data: © OpenStreetMap contributors, licensed under the Open Database License (ODbL), https://www.openstreetmap.org/copyright
 - The extracted layout (pyramids, tombs, temples, buildings, roads) is in assets/data/giza-osm.json and is available under the same ODbL license.
 
 ## Code
