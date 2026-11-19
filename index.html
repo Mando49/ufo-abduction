@@ -165,7 +165,7 @@ body.promo #hud,body.promo #controls,body.promo #keys,body.promo #mute,body.prom
   <div class="top">
     <div>
       <div class="panel">
-        <div class="lbl">SCORE</div>
+        <div class="lbl">SCORE <span id="wmult" style="color:#ffe08a;letter-spacing:0"></span></div>
         <div id="score" class="big">0</div>
         <div id="tally" class="small">🐄 0 &nbsp;|&nbsp; 🚗 0</div>
       </div>
@@ -8541,7 +8541,18 @@ setInterval(()=>{if(!COACH.on||state!=='play')return;const C=COACH,T=isTouch;C.t
   else if(C.step===3&&(C.t>10||mode!=='ground')){C.step=4;C.on=false;coachSay('');try{localStorage.setItem('ufoCoach','1');}catch(e){}}
   else if(C.step===1&&C.t>40){C.t=0;coachSay('🚗 Tip: drop down with <b style="color:#7dffb0">'+(T?'▼':'F')+'</b> until the panel says BEAM OK, then hold '+(T?'BEAM':'SPACE')+' over a car');}
 },400);
-function startGame(free){if(window.__LOCKED)return;coachStart();missionPeek(8);try{mechReset();if(window.MECH)MECH.cd=20;}catch(e){}try{rrReset();RR.cd=0;}catch(e){}TRIDE=null;if(BRIDE){BRIDE.ride=false;BRIDE.T.state='ground';BRIDE=null;}if(DRIVE){try{endDrive();}catch(e){DRIVE=null;}}TOMB.got=false;TOMB.in=false;JEEPS.forEach(J=>{J.g.position.set(J.x0,0,J.z0);J.g.rotation.set(0,J.y0,0);J.did=false;});if(RIDE){RIDE.state='ground';RIDE=null;}SWIM=false;if(FLYP){PILOT_G[FLYP.k].visible=false;FLYP.g.visible=true;FLYP.col.h=5;FLYP=null;applyShip();}
+// 🌍 exploring pays: each NEW world in a timed round gives +40s and raises the score multiplier (so the leaderboard rewards travel, not camping in the first city)
+let wSeen={},wN=0,wLast='',wMult=1,wLastScore=0,wTipT=0;
+function worldBonusReset(){wSeen={};wN=0;wLast='';wMult=1;wLastScore=0;wTipT=0;try{$('wmult').textContent='';}catch(e){}}
+function worldBonusTick(){
+  if(freeMode){wLastScore=score;return;}
+  if(mode!=='space'&&curTown!==wLast){wLast=curTown;if(!wSeen[curTown]){wSeen[curTown]=1;wN++;
+    if(wN>1){timer+=40;wMult=Math.min(5,1+0.25*(wN-1));$('wmult').textContent='×'+wMult;pop('🌍 NEW WORLD! +40s','t');pop('SCORE ×'+wMult+' from now on');try{blip(500,1500,0.4,'triangle',0.13);}catch(e){}}}}
+  if(score>wLastScore&&wMult>1)score+=Math.round((score-wLastScore)*(wMult-1)); // every point earned is worth more
+  wLastScore=score;
+  if(wN===1&&wTipT>=0){wTipT+=1/60;if(wTipT>30){wTipT=-1;let n=0;try{n=+localStorage.getItem('ufoWTip')||0;localStorage.setItem('ufoWTip',n+1);}catch(e){}if(n<3)pop('🚀 Tip: each new world = +40s and a bigger score multiplier','t');}}
+}
+function startGame(free){if(window.__LOCKED)return;worldBonusReset();coachStart();missionPeek(8);try{mechReset();if(window.MECH)MECH.cd=20;}catch(e){}try{rrReset();RR.cd=0;}catch(e){}TRIDE=null;if(BRIDE){BRIDE.ride=false;BRIDE.T.state='ground';BRIDE=null;}if(DRIVE){try{endDrive();}catch(e){DRIVE=null;}}TOMB.got=false;TOMB.in=false;JEEPS.forEach(J=>{J.g.position.set(J.x0,0,J.z0);J.g.rotation.set(0,J.y0,0);J.did=false;});if(RIDE){RIDE.state='ground';RIDE=null;}SWIM=false;if(FLYP){PILOT_G[FLYP.k].visible=false;FLYP.g.visible=true;FLYP.col.h=5;FLYP=null;applyShip();}
   initAudio();freeMode=free===true;document.body.classList.toggle('free',freeMode);
   score=0;timer=150;shield=100;energy=100;lock=false;cows=0;cars=0;
   yaw=0;speed=0;vy=0;pos.set(0,60,400);hitCd=0;
@@ -8865,7 +8876,7 @@ function loop(now){
     beamActive=beamBtn&&!lock&&mode==='ground'&&!FLYP;
     if(beamActive)energy-=20*dt*M.pow;if(boosting)energy-=14*dt*M.pow*(M.bpow||1);
     if(!beamActive&&!boosting)energy+=11*dt;energy=clamp(energy,0,100);
-    hitCd-=dt;ringCd-=dt;if(!freeMode){timer-=dt;if(timer<=0){timer=0;endGame('time');}}
+    hitCd-=dt;ringCd-=dt;worldBonusTick();if(!freeMode){timer-=dt;if(timer<=0){timer=0;endGame('time');}}
   }else if(state==='promo'){promoFly(dt);}
   else{
     beamActive=false;speed*=0.95;
