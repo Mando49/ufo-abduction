@@ -179,7 +179,7 @@ Top-10 online scores, stored in Firebase Firestore (collection `scores`). It sta
 
 
 ## Real-map worlds (Nov 2026)
-New York (Midtown Manhattan — the home world where every game starts; it replaced Neon City), Giza, Las Vegas and Yucatán (Chichén Itzá) are laid out from OpenStreetMap data (see CREDITS.md). Yucatán keeps the real positions of every ruin, both cenotes, the footpaths and the souvenir stalls; the villages, farms and stone causeways sit in the real jungle gaps. Las Vegas uses the real Strip's building outlines, heights, streets, lake and pools, with made-up names on every sign. Fremont Street, Red Rock, the air base, the airport, the suburbs and the stadium sit around the real-layout area. The old hand-built Vegas was retired; Hoover Dam and Chinatown were not carried over, and the dam-bridge mission was removed (165 missions).
+New York (Midtown Manhattan — the home world where every game starts; it replaced Neon City), the Dubai coast (north shore of the Open Sea world), Giza, Las Vegas and Yucatán (Chichén Itzá) are laid out from OpenStreetMap data (see CREDITS.md). Yucatán keeps the real positions of every ruin, both cenotes, the footpaths and the souvenir stalls; the villages, farms and stone causeways sit in the real jungle gaps. Las Vegas uses the real Strip's building outlines, heights, streets, lake and pools, with made-up names on every sign. Fremont Street, Red Rock, the air base, the airport, the suburbs and the stadium sit around the real-layout area. The old hand-built Vegas was retired; Hoover Dam and Chinatown were not carried over, and the dam-bridge mission was removed (165 missions).
 
 
 ### Note: Neon City is gone
