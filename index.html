@@ -597,7 +597,7 @@ const MODELS={cow:{file:'cow',len:3.0,rotY:PI/2,list:[]},car:{file:'car',len:4.4
   jaguar:{file:'jaguar',height:2.4,rotY:0,list:[]},shark:{file:'shark',len:3.8,rotY:PI/2,list:[]},turtle:{file:'turtle',len:3,rotY:PI,list:[],lift:1.3},tractor:{file:'tractor',height:3.6,rotY:0,list:[]},
   barn:{file:'barn',height:14,rotY:-PI/2,list:[]},chest:{file:'chest',height:2.6,rotY:0,list:[]},
   sr71:{file:'sr71',len:34,rotY:0,list:[],lift:2.6},bop:{file:'bop',len:15,rotY:PI/2,list:[],lift:2.6},dropship:{file:'dropship',len:22,rotY:0,list:[]},wing:{file:'wing',len:22,rotY:-PI/2,list:[],lift:2.6},
-  trainF:{file:'trainF',len:13.5,rotY:PI/2,list:[]},trainM:{file:'trainM',len:12.5,rotY:PI/2,list:[]},
+  trainF:{file:'trainF',len:13.5,rotY:PI/2,list:[]},liberty:{file:'liberty',height:86,rotY:-PI/2,list:[],yOff:7},trainM:{file:'trainM',len:12.5,rotY:PI/2,list:[]},
   whale:{file:'whale',len:3.8,rotY:-PI/2,list:[]},octopus:{file:'octopus',height:1.6,rotY:0,list:[]},sub:{file:'sub',len:6.5,rotY:0,list:[]},dolphin:{file:'dolphin',len:3.6,rotY:PI/2,rotX:0.69,list:[]},
   carrier:{file:'carrier',len:150,rotY:0,list:[]},destroyer:{file:'destroyer',len:70,rotY:0,list:[]},cargo:{file:'cargo',len:100,rotY:0,list:[]},cruise:{file:'cruise',len:90,rotY:0,list:[]},fishboat:{file:'fishboat',len:9,rotY:0,list:[]},sailboat:{file:'sailboat',len:8,rotY:0,list:[]},
   subE:{file:'sub',len:7,rotY:0,list:[],recolor:true},
@@ -4455,23 +4455,25 @@ beginTown('city');
     // star-shaped fort, stepped pedestal
     const star=new THREE.Shape();for(let i=0;i<22;i++){const an=i/22*2*PI,r=i%2?26:38;i?star.lineTo(Math.cos(an)*r,Math.sin(an)*r):star.moveTo(Math.cos(an)*r,Math.sin(an)*r);}
     const fort=new THREE.Mesh(new THREE.ExtrudeGeometry(star,{depth:7,bevelEnabled:false}),stone);fort.rotation.x=-PI/2;G.add(fort);
-    det.push(box(G,34,5,34,stone,0,9.5,0),box(G,26,5,26,stone,0,14.5,0),box(G,20,16,20,stone,0,25,0),box(G,23,2,23,stone,0,34,0),box(G,17,3,17,stone,0,36.5,0));
-    for(const sd of[-1,1])for(const f of[0,1]){const c=box(G,f?0.6:3,10,f?3:0.6,0x6a6456,f?sd*10.1:0,25,f?0:sd*10.1);det.push(c);}
+    const SG=new THREE.Group();G.add(SG); // hand-built stand-in statue: shown until the 3D model (assets/models/liberty.glb, made with Higgsfield) has loaded
+    det.push(box(SG,34,5,34,stone,0,9.5,0),box(SG,26,5,26,stone,0,14.5,0),box(SG,20,16,20,stone,0,25,0),box(SG,23,2,23,stone,0,34,0),box(SG,17,3,17,stone,0,36.5,0));
+    for(const sd of[-1,1])for(const f of[0,1]){const c=box(SG,f?0.6:3,10,f?3:0.6,0x6a6456,f?sd*10.1:0,25,f?0:sd*10.1);det.push(c);}
     // the statue: robe, shoulders, head, crown rays, tablet arm, torch arm
-    const robe=new THREE.Mesh(new THREE.CylinderGeometry(4.2,7.2,30,10),cop);robe.position.y=53;G.add(robe);
-    const fold=new THREE.Mesh(new THREE.CylinderGeometry(4.6,5.4,12,10,1,true),copD);fold.position.y=60;fold.rotation.z=0.12;G.add(fold);
-    const chest=new THREE.Mesh(new THREE.CylinderGeometry(3.6,4.4,7,10),cop);chest.position.y=71;G.add(chest);
-    const neck=new THREE.Mesh(new THREE.CylinderGeometry(1.4,1.6,2,8),cop);neck.position.y=75.4;G.add(neck);
-    const hd=new THREE.Mesh(new THREE.SphereGeometry(2.7,12,10),cop);hd.scale.set(0.95,1.15,1);hd.position.y=78.6;G.add(hd);
-    const band=new THREE.Mesh(new THREE.CylinderGeometry(2.9,2.9,0.9,12),copD);band.position.y=80.2;G.add(band);
-    for(let i=0;i<7;i++){const an=(i-3)*0.4,ray=new THREE.Mesh(new THREE.ConeGeometry(0.42,5,4),cop);ray.position.set(Math.sin(an)*4.6,81.2+Math.cos(an)*3.4,0.4);ray.rotation.z=-an;G.add(ray);}
-    for(const [x,y] of[[-0.9,79],[0.9,79]])box(G,0.5,0.3,0.3,0x1a3a34,x,y,2.5);
-    const armL=new THREE.Mesh(new THREE.CylinderGeometry(1.1,1.3,10,7),cop);armL.position.set(-4.6,66.5,2.2);armL.rotation.set(-0.5,0,-0.25);G.add(armL);det.push(box(G,4.2,6.4,1,copD,-5.6,63,5.2));
-    const armR=new THREE.Mesh(new THREE.CylinderGeometry(1.1,1.4,17,7),cop);armR.position.set(5.2,80,0);armR.rotation.z=-0.2;G.add(armR);
-    const cup=new THREE.Mesh(new THREE.CylinderGeometry(1.9,0.9,2.4,8),copD);cup.position.set(6.9,89.4,0);G.add(cup);
-    const flame=K(new THREE.Mesh(new THREE.ConeGeometry(1.5,4.4,7),basic(0xffc040)));flame.position.set(6.9,92.6,0);G.add(flame);
-    freezeStatic(det,G);
-    const TX=SX,TY=0.3+92.6,TZ=SZ-6.9,glow=glowSprite(0xffb030,TX,TY+1,TZ,22,0.8),halo=glowSprite(0x6dffd8,SX,60,SZ,90,0.12); // (the group is turned 90°, so her raised arm ends up toward -z)
+    const robe=new THREE.Mesh(new THREE.CylinderGeometry(4.2,7.2,30,10),cop);robe.position.y=53;SG.add(robe);
+    const fold=new THREE.Mesh(new THREE.CylinderGeometry(4.6,5.4,12,10,1,true),copD);fold.position.y=60;fold.rotation.z=0.12;SG.add(fold);
+    const chest=new THREE.Mesh(new THREE.CylinderGeometry(3.6,4.4,7,10),cop);chest.position.y=71;SG.add(chest);
+    const neck=new THREE.Mesh(new THREE.CylinderGeometry(1.4,1.6,2,8),cop);neck.position.y=75.4;SG.add(neck);
+    const hd=new THREE.Mesh(new THREE.SphereGeometry(2.7,12,10),cop);hd.scale.set(0.95,1.15,1);hd.position.y=78.6;SG.add(hd);
+    const band=new THREE.Mesh(new THREE.CylinderGeometry(2.9,2.9,0.9,12),copD);band.position.y=80.2;SG.add(band);
+    for(let i=0;i<7;i++){const an=(i-3)*0.4,ray=new THREE.Mesh(new THREE.ConeGeometry(0.42,5,4),cop);ray.position.set(Math.sin(an)*4.6,81.2+Math.cos(an)*3.4,0.4);ray.rotation.z=-an;SG.add(ray);}
+    for(const [x,y] of[[-0.9,79],[0.9,79]])box(SG,0.5,0.3,0.3,0x1a3a34,x,y,2.5);
+    const armL=new THREE.Mesh(new THREE.CylinderGeometry(1.1,1.3,10,7),cop);armL.position.set(-4.6,66.5,2.2);armL.rotation.set(-0.5,0,-0.25);SG.add(armL);det.push(box(SG,4.2,6.4,1,copD,-5.6,63,5.2));
+    const armR=new THREE.Mesh(new THREE.CylinderGeometry(1.1,1.4,17,7),cop);armR.position.set(5.2,80,0);armR.rotation.z=-0.2;SG.add(armR);
+    const cup=new THREE.Mesh(new THREE.CylinderGeometry(1.9,0.9,2.4,8),copD);cup.position.set(6.9,89.4,0);SG.add(cup);
+    const flame=(new THREE.Mesh(new THREE.ConeGeometry(1.5,4.4,7),basic(0xffc040)));flame.position.set(6.9,92.6,0);SG.add(flame);
+    freezeStatic(det,SG);useModel('liberty',SG);
+
+    const LR=MODELS.liberty.rotY,lx=0.0854*86,lz=0.0703*86,tx=lx*Math.cos(LR)+lz*Math.sin(LR),tz=-lx*Math.sin(LR)+lz*Math.cos(LR),TX=SX+tz,TY=0.3+7+85,TZ=SZ-tx,glow=glowSprite(0xffb030,TX,TY+1,TZ,22,0.8),halo=glowSprite(0x6dffd8,SX,60,SZ,90,0.12); // (the group is turned 90°, so her raised arm ends up toward -z)
     colliders.push({x0:SX-12,x1:SX+12,z0:SZ-12,z1:SZ+12,h:38,y0:0},{x0:SX-5,x1:SX+5,z0:SZ-5,z1:SZ+5,h:82,y0:0});
     for(let i=0;i<6;i++){const an=i/6*2*PI+0.3;const sp=K(new THREE.Mesh(new THREE.ConeGeometry(5,60,8,1,true),new THREE.MeshBasicMaterial({color:0xcff5e8,transparent:true,opacity:0.07,blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide})));sp.position.set(SX+Math.cos(an)*30,33,SZ+Math.sin(an)*30);sp.rotation.set(Math.sin(an)*0.42,0,-Math.cos(an)*0.42);root.add(sp);}
     // visitors on the island, and a ferry going round it
