@@ -7624,6 +7624,7 @@ const MISSIONS=[
   {id:'wanted',t:'Reach a 5-star wanted level',ev:'heat5',g:1,r:400},
   {id:'score',t:'Score 2,000 in one game',ev:'score2k',g:1,r:500},
   {id:'race',t:'Finish the Sky Race',ev:'race',g:1,r:500},
+  {id:'jetstream',t:'Ride a jet-stream gate above the clouds to another place on Earth',ev:'jetstream',g:1,r:400},
   {id:'aircurrent',t:'Ride the air current above the clouds',ev:'aircurrent',g:1,r:300},
   {id:'race60',t:'Finish the Sky Race in under 60s (no air current)',ev:'race',m:d=>d.t<60&&!d.cur,g:1,r:900},
   {id:'bhole',t:'Fly into the black hole',ev:'bhole',g:1,r:600}
@@ -7633,7 +7634,7 @@ let MS={active:[],done:[]};try{const v=JSON.parse(localStorage.getItem('ufoMissi
 MS.active=MS.active.filter(a=>MBYID[a.id]);
 const saveMS=()=>{try{localStorage.setItem('ufoMissions',JSON.stringify(MS));}catch(e){}};
 const STARTER=['cows','cars','walker','ring','crates','tractor','foxes','desert','vegas','egypt','moon','ocean','warps','pu'];
-const NEAR=['hotdog','cows','cars','cops','walker','sleeper','tractor','foxes','crates','pu','ring','train25','stadium','blimp','news','heli','wanted','score','jetpack','aircurrent']; // doable in New York, where every game starts
+const NEAR=['jetstream','hotdog','cows','cars','cops','walker','sleeper','tractor','foxes','crates','pu','ring','train25','stadium','blimp','news','heli','wanted','score','jetpack','aircurrent']; // doable in New York, where every game starts
 const hasNear=()=>MS.active.some(a=>NEAR.includes(a.id));
 function drawMission(at){
   const act=MS.active.map(a=>a.id),skip=MS.skip||[];let pool=MISSIONS.filter(m=>!act.includes(m.id)&&!MS.done.includes(m.id)&&!skip.includes(m.id));
@@ -7741,6 +7742,27 @@ const airCur=(function(){
   const tube=new THREE.Mesh(new THREE.TubeGeometry(curve,1400,7,12,true),mat);raceGroup.add(tube);
   const puffs=[];for(let k=0;k<90;k++){const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:0xeaf8ff,transparent:true,opacity:.35,blending:THREE.AdditiveBlending,depthWrite:false}));sp.scale.setScalar(rand(1.4,3));raceGroup.add(sp);puffs.push({sp,u:k/90,o:new V3(rand(-4,4),rand(-4,4),rand(-4,4))});}
   return {curve,samp,tan,roll,kind,N,mat,puffs,riding:false,msg:0,idx:0,LOW,HIGH,kick:0,click:0,wheeCd:0,screwCd:0,free:0,exitHold:0};})();
+// 🌬️ JET-STREAM GATES above the clouds: fly up through the clouds over New York (or Area 51) and into a swirling gate to ride the wind straight to another place on Earth
+const SKY_GATES=[];let skyGateCd=0;
+(function(){const mkLabel=(txt,css)=>{const c=document.createElement('canvas');c.width=512;c.height=128;const g=c.getContext('2d');g.font='900 58px system-ui,-apple-system,sans-serif';g.textAlign='center';g.textBaseline='middle';g.shadowColor=css;g.shadowBlur=20;g.fillStyle='#fff';g.fillText(txt,256,64);
+    const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(c),transparent:true,depthWrite:false,fog:false}));sp.scale.set(64,16,1);return sp;};
+  [['desert','AREA 51',0xffa040,'#ffa040',-130,-495],['vegas','LAS VEGAS',0xff3fd2,'#ff3fd2',20,-645],['maya','MEXICO',0x6dffb0,'#6dffb0',200,-645],['seas','DUBAI',0x2ad8ff,'#2ad8ff',350,-495]].forEach(([dest,name,c,css,x,z])=>{
+    const g=new THREE.Group();g.position.set(x,CLOUD_Y+40,z);g.rotation.y=Math.atan2(x-110,z+395);
+    g.add(new THREE.Mesh(new THREE.TorusGeometry(26,1.6,10,56),basic(c)));
+    const disc=new THREE.Mesh(new THREE.CircleGeometry(25,40),new THREE.MeshBasicMaterial({color:c,transparent:true,opacity:.2,blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide}));g.add(disc);
+    const swirl=new THREE.Group();for(let k=0;k<5;k++){const r=new THREE.Mesh(new THREE.TorusGeometry(5+k*4.4,0.4,6,36,PI*1.25),new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:.55,blending:THREE.AdditiveBlending,depthWrite:false}));r.rotation.z=k*1.9;swirl.add(r);}g.add(swirl);
+    for(let k=0;k<10;k++){const a=k/10*2*PI,sp=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:c,transparent:true,depthWrite:false}));sp.position.set(Math.cos(a)*27.5,Math.sin(a)*27.5,0);sp.scale.set(7,7,1);g.add(sp);}
+    const lab=mkLabel('🌬️ '+name,css);lab.position.set(0,38,0);g.add(lab);const home=mkLabel('🌬️ NEW YORK','#45eaff');home.position.set(0,38,0);home.visible=false;g.add(home);
+    // a column of wind puffs rising out of the clouds so the gate is easy to spot from far away
+    for(let k=0;k<6;k++){const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:0xffffff,transparent:true,opacity:.22,depthWrite:false}));sp.position.set(0,-34+k*4,0);sp.scale.set(40-k*4,10,1);g.add(sp);}
+    skyRealm.add(g);SKY_GATES.push({g,dest,name,swirl,lab,home});});
+})();
+function skyGatesUpdate(dt,t){skyGateCd-=dt;
+  for(const G of SKY_GATES){G.swirl.rotation.z=-t*1.6;const here=G.dest===curTown;if(G.home.visible!==here){G.home.visible=here;G.lab.visible=!here;}
+    if(skyGateCd>0||state!=='play'||onFoot||mode!=='ground'||towns[curTown].planet||pos.y<CLOUD_Y+6)continue;
+    if(G.g.position.distanceTo(pos)<22){const to=here?'city':G.dest;skyGateCd=6;score+=100;mEvent('jetstream');blip(300,1400,0.6,'sine',0.14);fadeIn();landAt(to);
+      if(to==='seas'){pos.set(380,120,-330);yaw=0;snapCam();}
+      pop('🌬️ RODE THE JET STREAM · +100');return;}}}
 function airCurrentUpdate(dt,t,can){
   const A=airCur;A.mat.uniforms.t.value=t;A.mat.uniforms.boost.value=A.riding?1:0;A.msg-=dt;A.wheeCd-=dt;A.screwCd-=dt;A.free-=dt;
   A.puffs.forEach(P=>{P.u=(P.u+(dt||0)*0.008*(A.riding?2:1))%1;if(!(P.u>=0))P.u=0;const f=P.u*A.N,k=Math.floor(f)%A.N;P.sp.position.copy(A.samp[k]).lerp(A.samp[(k+1)%A.N],f-Math.floor(f)).add(P.o);});
@@ -7794,7 +7816,7 @@ function raceEnd(fin){
 function raceCross(R){return pos.distanceTo(R.p)<22;}
 function raceUpdate(dt,t){
   const can=state==='play'&&mode==='ground'&&!onFoot&&!towns[curTown].planet;
-  airCurrentUpdate(dt,t,can);
+  airCurrentUpdate(dt,t,can);skyGatesUpdate(dt,t);
   raceBH.g.quaternion.copy(camera.quaternion);raceBH.disc.rotation.z-=dt*2;raceBH.disc.material.uniforms.t.value=t;raceBH.g.visible=!race.on||(race.next>=6&&race.next<=10);
   {const NR=race.rings[race.on?race.next%RACE_N:0];NR.g.scale.setScalar(1+0.1*Math.sin(t*6));}
   if(!race.on){const near=can&&pos.y>CLOUD_Y-40;raceArrow.visible=near;if(near){raceArrow.position.copy(pos).addScaledVector(fwd,9).add(new V3(0,3.5,0));raceArrow.lookAt(race.rings[0].p);raceArrow.scale.setScalar(1+0.12*Math.sin(t*8));}}
