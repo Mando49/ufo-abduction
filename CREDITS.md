@@ -16,6 +16,7 @@
 ## Map data
 - The Giza world is laid out from OpenStreetMap data: © OpenStreetMap contributors, licensed under the Open Database License (ODbL), https://www.openstreetmap.org/copyright
 - The extracted layout (pyramids, tombs, temples, buildings, roads) is in assets/data/giza-osm.json and is available under the same ODbL license.
+- The "Vegas Strip · Real Map" world uses the same source for its building outlines, heights, streets, water and pools; that extract is in assets/data/vegas-osm.json, also under ODbL. No real business names are shown in the game.
 
 ## Code
 - three.js r128 (MIT) — https://threejs.org
