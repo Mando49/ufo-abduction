@@ -4480,7 +4480,15 @@ beginTown('city');
     for(let i=0;i<10;i++){const g=makeHuman(false);g.userData.emoji='📸';g.userData.pts=60;const T={type:'critter',mesh:useAnim('person',g,'city'),spawn:T=>{const an=rand(0,2*PI),r=rand(42,56);T.mesh.position.set(SX+Math.cos(an)*r,0.3,SZ+Math.sin(an)*r);resetRot(T.mesh);T.h=rand(0,2*PI);T.wt=rand(1,4);T.sp=0;T.mesh.visible=true;T.state='ground';T.field={x:SX,z:SZ};},still:true};T.mesh.userData.T=T;T.spawn(T);targets.push(T);}
     const fe=new THREE.Group();box(fe,22,3,8,0xf0f0f0,0,1.8,0);box(fe,15,3,6.4,0xff8a3d,-1,4.8,0);box(fe,5,2.4,4,0xf0f0f0,3,7.4,0);box(fe,1.4,3,1.4,0x30343c,-4,7.8,0);for(let i=0;i<5;i++)box(fe,1.6,1,0.2,0xffe9a0,-6+i*2.6,5,3.25);
     fe.userData.emoji='⛴️';fe.userData.pts=250;fe.userData.heat=1;root.add(fe);const FT={type:'critter',mesh:fe,still:true,spawn:T=>{T.mesh.visible=true;T.state='ground';resetRot(T.mesh);}};FT.spawn(FT);targets.push(FT);
-    // 🎈 the blimp now circles the statue (catch it!)
+    // 🚤 speedboats racing around the island and up and down the river (beam-able, 180 pts)
+    {const SB=[];[[SX,SZ,105,105,0.34,0xff4a4a],[SX,SZ,150,170,-0.27,0x3de1ff],[SX-20,SZ+40,200,260,0.21,0xffd040],[-740,-150,90,330,0.16,0x2dff9a],[-720,480,110,150,-0.3,0xff8a3d],[-800,60,60,520,0.12,0xffffff]].forEach(([cx,cz,rx,rz,sp,c],i)=>{
+        const g=new THREE.Group();box(g,7,1.2,2.6,0xf4f4f8,0,0.9,0);box(g,2.4,0.9,2.2,c,2.6,1.3,0);box(g,2,1,2,0x1a2a3a,-0.4,1.9,0);box(g,7.1,0.3,2.7,c,0,0.5,0);
+        const wk=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:0xffffff,transparent:true,opacity:0.55,depthWrite:false}));wk.position.set(-5.5,0.4,0);wk.scale.set(9,2.2,1);g.add(wk);
+        g.userData.emoji='🚤';g.userData.pts=180;g.userData.heat=0.8;root.add(g);
+        const T={type:'critter',mesh:g,still:true,spawn:T=>{T.mesh.visible=true;T.state='ground';resetRot(T.mesh);}};T.spawn(T);targets.push(T);SB.push({T,g,cx,cz,rx,rz,sp,ph:i*1.3});});
+      planetAnim.push({town:'city',f:t=>{SB.forEach(B=>{if(B.T.state!=='ground')return;const an=t*B.sp+B.ph,x=Math.max(B.cx+Math.cos(an)*B.rx,-1500),z=B.cz+Math.sin(an)*B.rz,dx=-Math.sin(an)*B.rx*B.sp,dz=Math.cos(an)*B.rz*B.sp;
+        B.g.position.set(Math.min(x,-585),0.25+Math.sin(t*6+B.ph)*0.12,z);B.g.rotation.set(0,Math.atan2(-dz,dx),Math.sin(t*5+B.ph)*0.04);});}});}
+    // 🎈 the blimp circles over Central Park (catch it!)
     const bl=new THREE.Group();const env=new THREE.Mesh(new THREE.SphereGeometry(1,24,14),new THREE.MeshLambertMaterial({color:0xd8dce4,emissive:0x202428}));env.scale.set(16,5.2,5.2);bl.add(env);
     for(const [y,z] of[[4,0],[-4,0],[0,4],[0,-4]])box(bl,4,y?3:0.4,z?3:0.4,0x3de1ff,-14,y*0.8,z*0.8);
     box(bl,4,1.6,2,0x30343c,0,-5.6,0);
@@ -4491,11 +4499,11 @@ beginTown('city');
     let tcd=0;const TP=new V3(TX,TY,TZ);
     planetAnim.push({town:'city',f:(t,dt)=>{tcd-=dt;glow.material.opacity=0.6+0.3*Math.sin(t*5);glow.scale.setScalar(20+3*Math.sin(t*7));flame.scale.y=1+0.15*Math.sin(t*9);
       if(FT.state==='ground'){const an=t*0.09;fe.position.set(SX+Math.cos(an)*120,0.2,SZ+Math.sin(an)*120);fe.rotation.y=-an-PI/2;}
-      if(BT.state==='ground'){const an=-t*0.16;bl.position.set(SX+Math.cos(an)*95,52+Math.sin(t*0.6)*3,SZ+Math.sin(an)*95);bl.rotation.set(0,-an+PI/2,0);}
+      if(BT.state==='ground'){const an=-t*0.16;bl.position.set(300+Math.cos(an)*90,56+Math.sin(t*0.6)*3,-560+Math.sin(an)*90);bl.rotation.set(0,-an+PI/2,0);}
       if(state==='play'&&!onFoot&&tcd<=0&&TP.distanceTo(pos)<11){tcd=8;score+=200;timer+=8;mEvent('torch');pop('🗽 TORCH TOUCHED! +200 · +8s');blip(500,1600,0.35,'triangle',0.13);for(let k=0;k<20;k++)spawnFx(TP,tmpV.set(rand(-1,1),rand(-0.2,1),rand(-1,1)).multiplyScalar(11),0.8,2,3,pick([0xffc040,0xffe9a0,0x6dffd8]),true);}}});
     window.__lib={SX,SZ,TX,TY,TZ};}
-  // ⭕ giant neon ring arch over the river, on the way to the statue (fly through it for bonus time) — moved over from Neon City
-  {const cx=-640,cy=46,cz=230,R=36;const g=new THREE.Group();g.position.set(cx,cy,cz);g.rotation.y=PI/2;
+  // ⭕ giant neon ring arch over the river, well north of the statue (fly through it for bonus time) — moved over from Neon City
+  {const cx=-640,cy=46,cz=-320,R=36;const g=new THREE.Group();g.position.set(cx,cy,cz);g.rotation.y=PI/2;
     g.add(new THREE.Mesh(new THREE.TorusGeometry(R,2.6,14,140),new THREE.MeshStandardMaterial({color:0x3a4356,metalness:.55,roughness:.35})));
     for(const off of[-2.1,2.1]){const n=new THREE.Mesh(new THREE.TorusGeometry(R,0.35,6,140),basic(0x5ff0ff));n.position.z=off;g.add(n);}
     g.add(new THREE.Mesh(new THREE.TorusGeometry(R-2.45,0.3,6,140),basic(0x5ff0ff)));g.add(new THREE.Mesh(new THREE.TorusGeometry(R+2.45,0.28,6,140),basic(0xff5ad2)));
@@ -7446,9 +7454,10 @@ const MISSIONS=[
   {id:'orbsall',t:'Catch 5 mystery orbs in any world',ev:'abduct',m:d=>d.emoji==='🔘',g:5,r:700},
   {id:'orbs',t:'Catch 3 mystery spheres (Area 51)',ev:'abduct',m:d=>d.emoji==='🔘',g:3,r:700},
   {id:'stadium',t:'Touch the statue\'s torch 3 times (New York)',ev:'torch',g:3,r:500},
-  {id:'blimp',t:'Catch the blimp circling the statue (New York)',ev:'abduct',m:d=>d.emoji==='🎈',g:1,r:700},
+  {id:'blimp',t:'Catch the blimp circling over Central Park (New York)',ev:'abduct',m:d=>d.emoji==='🎈',g:1,r:700},
   {id:'racer',t:'Catch a street racer (police chase!)',ev:'abduct',m:d=>d.emoji==='🏎️',g:1,r:600},
   {id:'news',t:'Abduct the news chopper (New York)',ev:'abduct',m:d=>d.emoji==='📺',g:1,r:600},
+  {id:'speedboat',t:'Beam up 2 speedboats (the river in New York)',ev:'abduct',m:d=>d.emoji==='🚤',g:2,r:500},
   {id:'hotdog',t:'Beam up 3 hot dog carts (street corners in New York)',ev:'abduct',m:d=>d.emoji==='🌭',g:3,r:450},
   {id:'foodtruck',t:'Beam up 2 food trucks (night market)',ev:'abduct',m:d=>d.emoji==='🌮',g:2,r:500},
   {id:'invasion',t:'Survive a Mothership Invasion at Area 51',ev:'invasion',g:1,r:500},
