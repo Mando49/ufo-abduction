@@ -7624,10 +7624,8 @@ const MISSIONS=[
   {id:'treetop',t:'Find the Treetop Village on Verdana',ev:'found',m:d=>d.k==='junglev',g:1,r:600},
   {id:'wanted',t:'Reach a 5-star wanted level',ev:'heat5',g:1,r:400},
   {id:'score',t:'Score 2,000 in one game',ev:'score2k',g:1,r:500},
-  {id:'race',t:'Finish the Sky Race',ev:'race',g:1,r:500},
   {id:'jetstream',t:'Fly above the clouds to another city on Earth (follow a wind stream to its star)',ev:'jetstream',g:1,r:400},
   {id:'aircurrent',t:'Ride a wind stream above the clouds',ev:'aircurrent',g:1,r:300},
-  {id:'race60',t:'Finish the Sky Race in under 60s (no air current)',ev:'race',m:d=>d.t<60&&!d.cur,g:1,r:900},
   {id:'bhole',t:'Fly into the black hole',ev:'bhole',g:1,r:600}
 ];
 const MBYID={};MISSIONS.forEach(m=>MBYID[m.id]=m);
@@ -7866,6 +7864,7 @@ function raceCross(R){return pos.distanceTo(R.p)<22;}
 function raceUpdate(dt,t){
   const can=state==='play'&&mode==='ground'&&!onFoot&&(!towns[curTown].planet||towns[curTown].sky);
   airCurrentUpdate(dt,t,can);skyMapUpdate(dt,t);
+  raceGroup.visible=false;raceArrow.visible=false;raceBH.g.visible=false;if(race.on)race.on=false;return; // the Sky Race (rings, arrow and shortcut swirl) is retired: the sky is for travelling between cities now
   raceBH.g.quaternion.copy(camera.quaternion);raceBH.disc.rotation.z-=dt*2;raceBH.disc.material.uniforms.t.value=t;raceBH.g.visible=!race.on||(race.next>=6&&race.next<=10);
   {const NR=race.rings[race.on?race.next%RACE_N:0];NR.g.scale.setScalar(1+0.1*Math.sin(t*6));}
   if(!race.on){const near=can&&pos.y>CLOUD_Y-40;raceArrow.visible=near;if(near){raceArrow.position.copy(pos).addScaledVector(fwd,9).add(new V3(0,3.5,0));raceArrow.lookAt(race.rings[0].p);raceArrow.scale.setScalar(1+0.12*Math.sin(t*8));}}
