@@ -597,7 +597,7 @@ const MODELS={cow:{file:'cow',len:3.0,rotY:PI/2,list:[]},car:{file:'car',len:4.4
   jaguar:{file:'jaguar',height:2.4,rotY:0,list:[]},shark:{file:'shark',len:3.8,rotY:PI/2,list:[]},turtle:{file:'turtle',len:3,rotY:PI,list:[],lift:1.3},tractor:{file:'tractor',height:3.6,rotY:0,list:[]},
   barn:{file:'barn',height:14,rotY:-PI/2,list:[]},chest:{file:'chest',height:2.6,rotY:0,list:[]},
   sr71:{file:'sr71',len:34,rotY:0,list:[],lift:2.6},bop:{file:'bop',len:15,rotY:PI/2,list:[],lift:2.6},dropship:{file:'dropship',len:22,rotY:0,list:[]},wing:{file:'wing',len:22,rotY:-PI/2,list:[],lift:2.6},
-  trainF:{file:'trainF',len:13.5,rotY:PI/2,list:[]},liberty:{file:'liberty',height:86,rotY:-PI/2,list:[],yOff:7},trainM:{file:'trainM',len:12.5,rotY:PI/2,list:[]},
+  trainF:{file:'trainF',len:13.5,rotY:PI/2,list:[]},speedboat:{file:'speedboat',len:8.5,rotY:PI/2,list:[]},liberty:{file:'liberty',height:86,rotY:-PI/2,list:[],yOff:7},trainM:{file:'trainM',len:12.5,rotY:PI/2,list:[]},
   whale:{file:'whale',len:3.8,rotY:-PI/2,list:[]},octopus:{file:'octopus',height:1.6,rotY:0,list:[]},sub:{file:'sub',len:6.5,rotY:0,list:[]},dolphin:{file:'dolphin',len:3.6,rotY:PI/2,rotX:0.69,list:[]},
   carrier:{file:'carrier',len:150,rotY:0,list:[]},destroyer:{file:'destroyer',len:70,rotY:0,list:[]},cargo:{file:'cargo',len:100,rotY:0,list:[]},cruise:{file:'cruise',len:90,rotY:0,list:[]},fishboat:{file:'fishboat',len:9,rotY:0,list:[]},sailboat:{file:'sailboat',len:8,rotY:0,list:[]},
   subE:{file:'sub',len:7,rotY:0,list:[],recolor:true},
@@ -4449,10 +4449,13 @@ beginTown('city');
     window.__nycG1={A,B,C,av:av.L,nc};}
   // 🗽 the river on the west side, and the statue on her island (public-domain landmark; stands in for Neon City's stadium). Touch the torch for bonus time.
   {const SX=-770,SZ=230,K=m=>{m.userData.keep=true;return m;};
-    const river=K(new THREE.Mesh(new THREE.PlaneGeometry(1500,3600),new THREE.MeshPhongMaterial({color:0x123a5e,emissive:0x061826,shininess:90,polygonOffset:true,polygonOffsetFactor:-4,polygonOffsetUnits:-4})));river.rotation.x=-PI/2;river.position.set(-1315,0.1,0);root.add(river);
+    // the river is one sheet with a round hole cut for the island, so the island's lawn is never drawn under water
+    const rsh=new THREE.Shape();rsh.moveTo(-2065,-1800);rsh.lineTo(-565,-1800);rsh.lineTo(-565,1800);rsh.lineTo(-2065,1800);rsh.lineTo(-2065,-1800);const hole=new THREE.Path();hole.absarc(SX,-SZ,66,0,2*PI,true);rsh.holes.push(hole);
+    const rgeo=new THREE.ShapeGeometry(rsh,40);rgeo.rotateX(-PI/2);
+    const river=K(new THREE.Mesh(rgeo,new THREE.MeshPhongMaterial({color:0x123a5e,emissive:0x061826,shininess:90,polygonOffset:true,polygonOffsetFactor:-4,polygonOffsetUnits:-4})));river.position.y=0.1;root.add(river);
     box(root,5,2.4,3600,0x3a3c48,-566,1.2,0);
     const isl=new THREE.Mesh(new THREE.CylinderGeometry(64,70,3,40),lam(0x4a5a4a));isl.position.set(SX,-1.2,SZ);root.add(isl);
-    const lawn=new THREE.Mesh(new THREE.CircleGeometry(60,40),lam(0x2f6a2c));lawn.rotation.x=-PI/2;lawn.position.set(SX,0.36,SZ);root.add(lawn);
+    const lawn=new THREE.Mesh(new THREE.CircleGeometry(67,40),new THREE.MeshLambertMaterial({color:0x2f6a2c,polygonOffset:true,polygonOffsetFactor:-4,polygonOffsetUnits:-4}));lawn.rotation.x=-PI/2;lawn.position.set(SX,0.36,SZ);root.add(lawn);
     const G=new THREE.Group();G.position.set(SX,0.3,SZ);G.rotation.y=PI/2;root.add(G); // she faces the city
     const stone=new THREE.MeshLambertMaterial({color:0xb0a890,emissive:0x141210,flatShading:true}),cop=new THREE.MeshLambertMaterial({color:0x5fbfa8,emissive:0x0c2a24,flatShading:true}),copD=new THREE.MeshLambertMaterial({color:0x479a88,emissive:0x0a221c,flatShading:true}),det=[];
     // star-shaped fort, stepped pedestal
@@ -4486,8 +4489,8 @@ beginTown('city');
     // 🚤 speedboats racing around the island and up and down the river (beam-able, 180 pts)
     {const SB=[];[[SX,SZ,105,105,0.34,0xff4a4a],[SX,SZ,150,170,-0.27,0x3de1ff],[SX-20,SZ+40,200,260,0.21,0xffd040],[-740,-150,90,330,0.16,0x2dff9a],[-720,480,110,150,-0.3,0xff8a3d],[-800,60,60,520,0.12,0xffffff]].forEach(([cx,cz,rx,rz,sp,c],i)=>{
         const g=new THREE.Group();box(g,7,1.2,2.6,0xf4f4f8,0,0.9,0);box(g,2.4,0.9,2.2,c,2.6,1.3,0);box(g,2,1,2,0x1a2a3a,-0.4,1.9,0);box(g,7.1,0.3,2.7,c,0,0.5,0);
-        const wk=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:0xffffff,transparent:true,opacity:0.55,depthWrite:false}));wk.position.set(-5.5,0.4,0);wk.scale.set(9,2.2,1);g.add(wk);
-        g.userData.emoji='🚤';g.userData.pts=180;g.userData.heat=0.8;root.add(g);
+        const wk=new THREE.Mesh(new THREE.PlaneGeometry(11,3.2),new THREE.MeshBasicMaterial({map:GLOW,color:0xffffff,transparent:true,opacity:0.7,depthWrite:false}));wk.rotation.x=-PI/2;wk.position.set(-7,0.08,0);wk.userData.keep=true;g.add(wk); // foamy wake trailing behind
+        g.userData.emoji='🚤';g.userData.pts=180;g.userData.heat=0.8;root.add(g);useModel('speedboat',g);
         const T={type:'critter',mesh:g,still:true,spawn:T=>{T.mesh.visible=true;T.state='ground';resetRot(T.mesh);}};T.spawn(T);targets.push(T);SB.push({T,g,cx,cz,rx,rz,sp,ph:i*1.3});});
       planetAnim.push({town:'city',f:t=>{SB.forEach(B=>{if(B.T.state!=='ground')return;const an=t*B.sp+B.ph,x=Math.max(B.cx+Math.cos(an)*B.rx,-1500),z=B.cz+Math.sin(an)*B.rz,dx=-Math.sin(an)*B.rx*B.sp,dz=Math.cos(an)*B.rz*B.sp;
         B.g.position.set(Math.min(x,-585),0.25+Math.sin(t*6+B.ph)*0.12,z);B.g.rotation.set(0,Math.atan2(-dz,dx),Math.sin(t*5+B.ph)*0.04);});}});}

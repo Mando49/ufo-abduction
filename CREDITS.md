@@ -24,3 +24,4 @@
 - three.js r128 (MIT) — https://threejs.org
 - meshoptimizer decoder (MIT, Arseny Kapoulkine) in assets/lib, used to unpack the compressed 3D models.
 - The statue in New York (assets/models/liberty.glb) was generated with Higgsfield (Tripo text-to-3D) from a text description of the public-domain 1886 monument, then compressed with gltf-transform.
+- The New York speedboat (assets/models/speedboat.glb) was generated with Higgsfield (Tripo text-to-3D) for this game.
