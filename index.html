@@ -5256,7 +5256,7 @@ beginTown('vegasmap');
   // buildings: real footprints pushed up to their real heights, with lit windows
   const [wm,we]=winTex(),P=[],U=[],C=[],RP=[],RC=[],LP=[],LC=[],col=new THREE.Color(),pal=[0x2a3446,0x323c52,0x253042,0x3a4258,0x2d3a4e,0x40465a],low=[0x3a3340,0x443a46,0x33303c,0x4a4048];
   const BL=[];D.bld.forEach(b=>{const n=(b.length-2)/2;let ar=0,cx=0,cz=0;for(let i=0;i<n;i++){const x0=b[2+2*i],z0=b[3+2*i],x1=b[2+2*((i+1)%n)],z1=b[3+2*((i+1)%n)];ar+=x0*z1-x1*z0;cx+=x0;cz+=z0;}ar=Math.abs(ar)/2;cx/=n;cz/=n;
-    if(Math.abs(cx+499)<95&&Math.abs(cz-1090)<75)return; // the real stadium's spot: the game's own Desert Dome goes here instead
+    if(Math.abs(cx+595)<130&&Math.abs(cz-1080)<100)return; // the real stadium's spot: the game's own Desert Dome goes here instead
     if(b[0]>28&&ar>5200){const pod=b.slice();pod[0]=Math.min(13,b[0]*0.22);pod[1]=1;BL.push(pod);const tw=b.slice(),k=Math.max(0.42,Math.min(0.7,Math.sqrt(2600/ar)));for(let i=0;i<n;i++){tw[2+2*i]=cx+(b[2+2*i]-cx)*k;tw[3+2*i]=cz+(b[3+2*i]-cz)*k;}BL.push(tw);}else BL.push(b);
     if(b[0]>26)TALL.push({x:cx,z:cz,h:b[0],ar});});
   BL.forEach(b=>{const h=b[0],kind=b[1],n=(b.length-2)/2,pt=i=>[b[2+2*(i%n)],b[3+2*(i%n)]],hx=hash(b[2],b[3]);
@@ -5300,8 +5300,8 @@ beginTown('vegasmap');
       fMsg-=dt;if(show&&fMsg<=0&&state==='play'&&Math.hypot(pos.x-FX,pos.z-(z0+z1)/2)<110){fMsg=40;pop('⛲ FOUNTAIN SHOW!','t');}}});}
   // 💡 FREMONT STREET: the canopy, zipline and old downtown, placed just past the north end of the real map (in real life it is a couple of miles further north)
   __fremont(-1262,'vegasmap');
-  // 🏟️ the Desert Dome stadium, on the real stadium's spot south-west of the Strip
-  __dome(-499,1090,'vegasmap');
+  // 🏟️ the Desert Dome stadium, beside the real stadium's spot south-west of the Strip (nudged west so its lot clears the freeway)
+  __dome(-595,1080,'vegasmap');
   // 🎡 the big wheel, on the real observation wheel's spot east of the Strip
   {const WX=117,WZ=-255,neonC=[0x3de1ff,0xff3fd2,0xffd040,0x2dff9a,0xff8a3d,0xb44dff],wheel=new THREE.Group();wheel.position.set(WX,95,WZ);wheel.rotation.y=PI/2;wheel.userData.keep=true;root.add(wheel);
     wheel.add(new THREE.Mesh(new THREE.TorusGeometry(80,1.4,8,80),basic(0xff3fd2)));wheel.add(new THREE.Mesh(new THREE.TorusGeometry(76,0.6,6,80),basic(0x45eaff)));
