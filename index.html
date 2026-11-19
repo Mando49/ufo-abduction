@@ -4445,7 +4445,7 @@ function makeShowgirl(){
     }
   }
   // 🗼 SKY SPIRE: tall observation tower at the north end of the Strip, on the way to Fremont Street
-  {const TX=-78,TZ=-705,H=250,conc=lam(0xd8d4cc),dark=lam(0x2a2c36),K=m=>{m.userData.keep=true;return m;};
+  window.__spire=function(TX,TZ,TOWN){const H=250,conc=lam(0xd8d4cc),dark=lam(0x2a2c36),K=m=>{m.userData.keep=true;return m;};
     for(let k=0;k<3;k++){const a=k/3*2*PI+0.5,leg=new THREE.Mesh(new THREE.CylinderGeometry(3.2,6.5,H*0.8,8),conc);leg.position.set(TX+Math.cos(a)*13,H*0.4,TZ+Math.sin(a)*13);leg.rotation.set(Math.sin(a)*0.085,0,-Math.cos(a)*0.085);root.add(leg);}
     const core=new THREE.Mesh(new THREE.CylinderGeometry(4,5,H*0.82,10),conc);core.position.set(TX,H*0.41,TZ);root.add(core);
     for(const [y,r1,r2,hh,m] of[[H*0.8,10,17,7,conc],[H*0.8+6.5,21,17,6,dark],[H*0.8+12,22,21,5,conc],[H*0.8+17,15,22,5,dark],[H*0.8+22,9,15,5,conc]]){const p=new THREE.Mesh(new THREE.CylinderGeometry(r2,r1,hh,24),m);p.position.set(TX,y,TZ);root.add(p);}
@@ -4454,7 +4454,7 @@ function makeShowgirl(){
     box(root,60,10,44,0x3a2a3a,TX,5,TZ);box(root,62,1.5,46,basic(0xffd040),TX,10.6,TZ);sign('SKY SPIRE','#ffd040',40,9,TX+32,24,TZ,PI/2);
     const ride=K(new THREE.Mesh(new THREE.TorusGeometry(26,0.8,6,40),basic(0x6dff7a)));ride.rotation.x=PI/2;ride.position.set(TX,H*0.8+24.5,TZ);root.add(ride);const pods=[];for(let k=0;k<6;k++){const c=K(new THREE.Mesh(new THREE.SphereGeometry(1.6,8,6),basic(neonC[k%neonC.length])));root.add(c);pods.push(c);} // spinning thrill ride on top
     colliders.push({x0:TX-30,x1:TX+30,z0:TZ-22,z1:TZ+22,h:11,y0:0},{x0:TX-16,x1:TX+16,z0:TZ-16,z1:TZ+16,h:H*0.8,y0:0},{x0:TX-22,x1:TX+22,z0:TZ-22,z1:TZ+22,h:H*0.8+26,y0:H*0.8-4},{x0:TX-2,x1:TX+2,z0:TZ-2,z1:TZ+2,h:H*0.8+94,y0:0});
-    planetAnim.push({town:'vegas',f:t=>{pods.forEach((c,k)=>{const a=t*1.4+k/6*2*PI;c.position.set(TX+Math.cos(a)*26,H*0.8+24.5+Math.sin(t*2+k)*1.2,TZ+Math.sin(a)*26);});tip.material.opacity=0.4+0.5*Math.abs(Math.sin(t*2));}});}
+    planetAnim.push({town:TOWN,f:t=>{pods.forEach((c,k)=>{const a=t*1.4+k/6*2*PI;c.position.set(TX+Math.cos(a)*26,H*0.8+24.5+Math.sin(t*2+k)*1.2,TZ+Math.sin(a)*26);});tip.material.opacity=0.4+0.5*Math.abs(Math.sin(t*2));}});};__spire(-78,-705,'vegas');
   // 🎡 big wheel
   const wheel=new THREE.Group();wheel.position.set(SX+140,95,-260);root.add(wheel);
   wheel.add(new THREE.Mesh(new THREE.TorusGeometry(80,1.4,8,80),basic(0xff3fd2)));wheel.add(new THREE.Mesh(new THREE.TorusGeometry(76,0.6,6,80),basic(0x45eaff)));
@@ -4582,10 +4582,10 @@ function makeShowgirl(){
   const ZZ_ON=new THREE.MeshBasicMaterial({color:0xffe6a0}),ZZ_OFF=new THREE.MeshBasicMaterial({color:0x1a1c28});
   const ZZ_TEX=(()=>{const c=document.createElement('canvas');c.width=128;c.height=64;const g=c.getContext('2d');g.font='900 44px system-ui,sans-serif';g.fillStyle='#cfe4ff';g.shadowColor='#7ab0ff';g.shadowBlur=8;g.fillText('Zzz',8,48);return new THREE.CanvasTexture(c);})();
   // 🏘️ regular Las Vegas suburbs on both sides of the Strip: stucco houses, tile roofs, block walls, backyard pools, palms
-  {const objs=[],roofG=new THREE.ConeGeometry(1,1,4),RES=[];
+  window.__suburbs=function(SIDES,TOWN){const objs=[],roofG=new THREE.ConeGeometry(1,1,4),RES=[];
     const stucco=[0x8a7c66,0x90846e,0x83735a,0x948878,0x87755f,0x806b53,0x92806a],tile=[0xa0523a,0x8e4a34,0xb0644a,0x7a5a4a,0x9a6a50];
     const add=m=>{objs.push(m);return m;};
-    for(const side of[-1,1]){
+    for(const side of SIDES){
       const xs=[250,355,460].map(v=>side*v);
       // main frontage road + cross streets
       const zMax=side<0?296:465;for(const X of xs){add(flatPlane(12,zMax+435,0x3a3b42,-2,X,(zMax-435)/2));for(let z=-425;z<=zMax-10;z+=30)add(flatPlane(.4,4,0xd8d8d8,-3,X,z));}
@@ -4619,7 +4619,7 @@ function makeShowgirl(){
             const T={type:'critter',mesh:makeHuman(true),still:true},bx2=hx,bz2=z,ph=rand(0,6),top=H+5;
             T.spawn=T=>{T.mesh.position.set(bx2,1.2,bz2);T.mesh.rotation.set(0,rand(0,6),0);T.mesh.userData.body.rotation.set(0,0,PI/2);T.mesh.userData.body.position.set(1.6,0,0);T.mesh.visible=true;T.state='ground';};
             T.spawn(T);targets.push(T);
-            planetAnim.push({town:'vegas',f:(t,dt)=>{const home=T.state==='ground';win.material=home?ZZ_ON:ZZ_OFF;zz.visible=home;const k=(t*0.6+ph)%1;zz.position.set(bx2+Math.sin(t+ph)*1.2,top+k*4,bz2);zz.material.opacity=1-k;
+            planetAnim.push({town:TOWN,f:(t,dt)=>{const home=T.state==='ground';win.material=home?ZZ_ON:ZZ_OFF;zz.visible=home;const k=(t*0.6+ph)%1;zz.position.set(bx2+Math.sin(t+ph)*1.2,top+k*4,bz2);zz.material.opacity=1-k;
               if(!home)T.mesh.userData.body.rotation.z+=(0-T.mesh.userData.body.rotation.z)*Math.min(1,dt*2);}});}}}
       // street lights
       for(const X of xs)for(let z=-400;z<=(side<0?280:440);z+=60){add(box(root,0.4,7,0.4,0x55565e,X+side*7,3.5,z));glowSprite(0xffc070,X+side*7,7.2,z,7,0.6);}
@@ -4632,11 +4632,11 @@ function makeShowgirl(){
       RES.push({x:side*302,z:-310},{x:side*302,z:170},{x:side*407,z:-60},{x:side*407,z:side<0?-200:370});}
     freezeStatic(objs,root,true);
     // 🏡 locals out walking the dog / checking the mail (beam them up)
-    for(let i=0;i<16;i++){const T={type:'critter',mesh:useAnim('person',makeHuman(false),'vegas'),spawn:spawnCow,fl:RES,rad:30};T.spawn(T);targets.push(T);}}
+    for(let i=0;i<16;i++){const T={type:'critter',mesh:useAnim('person',makeHuman(false),TOWN),spawn:spawnCow,fl:RES,rad:30};T.spawn(T);targets.push(T);}};
   // 🌆 LAS VEGAS STREET LIFE: neighborhood sidewalks, crosswalks, bus shelters and utility details
-  {const objs=[],add=m=>{objs.push(m);return m;},curb=lam(0xb8ad98),walk=lam(0x77777a),metal=lam(0x454b55),glass=lam(0x6e9ca8,0x10202a),yellow=basic(0xf3c84b);
+  window.__street=function(SIDES,TOWN){const objs=[],add=m=>{objs.push(m);return m;},curb=lam(0xb8ad98),walk=lam(0x77777a),metal=lam(0x454b55),glass=lam(0x6e9ca8,0x10202a),yellow=basic(0xf3c84b);
     // Raised sidewalks and curb edges along the main neighborhood streets
-    for(const side of[-1,1]){
+    for(const side of SIDES){
       const xs=[250,355,460].map(v=>side*v),zMax=side<0?296:465;
       for(const X of xs)for(const edge of[-1,1]){
         const ex=X+edge*8.5;
@@ -4678,7 +4678,7 @@ function makeShowgirl(){
     }
     // Desert-landscape medians with low shrubs on the long cross streets
     for(const Z of[-190,50,290]){
-      for(const side of[-1,1]){
+      for(const side of SIDES){
         const mx=side*355;
         add(flatPlane(5.2,42,0x8a806f,-1.1,mx,Z));
         for(let k=0;k<5;k++){
@@ -4688,7 +4688,7 @@ function makeShowgirl(){
       }
     }
     freezeStatic(objs,root,true);
-  }
+  };__suburbs([-1,1],'vegas');__street([-1,1],'vegas');
   // 🏮 CHINATOWN DISTRICT: Las Vegas Spring Mountain Road-inspired night market
   {const CX=-590,CZ=170,objs=[],add=m=>{objs.push(m);return m;}; // by Red Rock, where the west grocery store used to be (kept clear of the race loop)
     const stone=lam(0x77716b),red=lam(0x8d2428),roof=lam(0x252a35),gold=basic(0xffd16a),jade=lam(0x477d70);
@@ -4801,7 +4801,7 @@ function makeShowgirl(){
     for(let i=0;i<16;i++){const g=makeHuman(false);g.userData.emoji='🏈';g.userData.pts=80;g.userData.heat=0.6;g.userData.team=i%2?[0x15161a,0xc0c4cc,0xc0c4cc]:[0xffffff,0x1a3a8a,0x1a3a8a];
       const T={type:'critter',mesh:useAnim('footballer',g,TOWN),spawn:spawnCow,fl:[{x:DX,z:DZ-18},{x:DX,z:DZ+18}],rad:18};T.mesh.userData.T=T;T.spawn(T);targets.push(T);}};__dome(-360,392,'vegas');
   // 🏎️ luxury cars cruising the Strip (beam them up: 150 pts)
-  {const mkLux=k=>{const g=new THREE.Group(),C=[[0xffd000,0],[0xd8141e,0],[0xff7a00,0],[0xf4f4f4,1],[0x0d0d10,2],[0x1a8a4a,0],[0x7a2ad8,0],[0xc8ccd4,1]][k%8],col=C[0],kind=C[1];
+  {const mkLux=window.__mkLux=k=>{const g=new THREE.Group(),C=[[0xffd000,0],[0xd8141e,0],[0xff7a00,0],[0xf4f4f4,1],[0x0d0d10,2],[0x1a8a4a,0],[0x7a2ad8,0],[0xc8ccd4,1]][k%8],col=C[0],kind=C[1];
       const paint=new THREE.MeshPhongMaterial({color:col,specular:0xffffff,shininess:120}),glass=new THREE.MeshPhongMaterial({color:0x0a0e16,specular:0xaaccff,shininess:150});
       if(kind===0){ // supercar: low wedge
         box(g,4.8,0.75,2.1,paint,0,0.6,0);const nose=new THREE.Mesh(new THREE.BoxGeometry(1.4,0.5,2.05),paint);nose.position.set(2.6,0.48,0);nose.rotation.z=-0.22;g.add(nose);
@@ -5300,6 +5300,15 @@ beginTown('vegasmap');
       fMsg-=dt;if(show&&fMsg<=0&&state==='play'&&Math.hypot(pos.x-FX,pos.z-(z0+z1)/2)<110){fMsg=40;pop('⛲ FOUNTAIN SHOW!','t');}}});}
   // 💡 FREMONT STREET: the canopy, zipline and old downtown, placed just past the north end of the real map (in real life it is a couple of miles further north)
   __fremont(-1262,'vegasmap');
+  // 🗼 the Sky Spire tower on an open lot at the north end of the Strip
+  __spire(-85,-1080,'vegasmap');
+  // 🏘️ suburbs on open ground east of the real-layout area. The suburb code lays houses out around x=250..460, so it is built inside a shifted group and its colliders and people are moved to match.
+  {const OX=320,OZ=200,town=root,G=new THREE.Group();G.position.set(OX,0,OZ);town.add(G);const c0=colliders.length,t0=targets.length;root=G;__suburbs([1],'vegasmap');__street([1],'vegasmap');root=town;
+    for(let i=c0;i<colliders.length;i++){const c=colliders[i];c.x0+=OX;c.x1+=OX;c.z0+=OZ;c.z1+=OZ;}
+    const moved=new Set();for(let i=t0;i<targets.length;i++){const T=targets[i];town.add(T.mesh);
+      if(T.spawn===spawnCow){(T.fl||[]).forEach(f=>{if(!moved.has(f)){moved.add(f);f.x+=OX;f.z+=OZ;}});}
+      else{const sp=T.spawn;T.spawn=T=>{sp(T);T.mesh.position.x+=OX;T.mesh.position.z+=OZ;};}
+      T.spawn(T);}}
   // 🏟️ the Desert Dome stadium, beside the real stadium's spot south-west of the Strip (nudged west so its lot clears the freeway)
   __dome(-595,1080,'vegasmap');
   // 🎡 the big wheel, on the real observation wheel's spot east of the Strip
@@ -5350,6 +5359,9 @@ beginTown('vegasmap');
     const at=(c,d)=>{let i=1;while(i<c.len.length-1&&c.len[i]<d)i++;const a=c.p[i-1],b=c.p[i],t=(d-c.len[i-1])/Math.max(0.001,c.len[i]-c.len[i-1]);o.x=a[0]+(b[0]-a[0])*t;o.z=a[1]+(b[1]-a[1])*t;o.a=Math.atan2(b[1]-a[1],b[0]-a[0]);};
     if(big.length)for(let i=0;i<34;i++){const c=big[i%big.length],g=makeCar();if(!g.userData.police)g.userData.emoji='🚗';const C={c,d:rand(0,c.L),dir:i%2?1:-1,sp:rand(14,24)};
       const T={type:'critter',mesh:g,still:true,spawn:T=>{C.d=rand(0,c.L);T.mesh.visible=true;T.state='ground';resetRot(T.mesh);}};T.state='ground';targets.push(T);C.T=T;cars.push(C);}
+    // 🏎️ luxury cars cruising the Strip itself (150 pts)
+    {const strip=chains.filter(c=>{let sx=0,sz=0;c.p.forEach(q=>{sx+=q[0];sz+=q[1];});sx/=c.p.length;sz/=c.p.length;return c.L>45&&c.w>=5.5&&sx>-120&&sx<40&&sz>-700&&sz<900&&Math.abs(c.p[0][1]-c.p[c.p.length-1][1])>Math.abs(c.p[0][0]-c.p[c.p.length-1][0]);}).sort((a,b)=>b.L-a.L).slice(0,10),use=strip.length?strip:big;
+      for(let i=0;i<14;i++){const c=use[i%use.length],g=__mkLux(i),C={c,d:rand(0,c.L),dir:i%2?1:-1,sp:rand(16,26)};const T={type:'critter',mesh:g,still:true,spawn:T=>{C.d=rand(0,c.L);T.mesh.visible=true;T.state='ground';resetRot(T.mesh);}};T.state='ground';targets.push(T);C.T=T;cars.push(C);}}
     planetAnim.push({town:'vegasmap',f:(t,dt)=>{cars.forEach(C=>{if(C.T.state!=='ground')return;C.d+=C.dir*C.sp*dt;if(C.d>C.c.L)C.d-=C.c.L;if(C.d<0)C.d+=C.c.L;at(C.c,C.d);const off=C.c.w*0.22*C.dir,m=C.T.mesh;
       m.position.set(o.x-Math.sin(o.a)*off,0,o.z+Math.cos(o.a)*off);m.rotation.set(0,-o.a+(C.dir<0?PI:0),0);});}});}
   // people to beam up along the Strip
