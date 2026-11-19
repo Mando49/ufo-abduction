@@ -3399,7 +3399,7 @@ endTown('fifth',[250,1500]);Object.assign(towns.fifth,{planet:true,fogC:new THRE
 // 🇪🇬 GIZA, EGYPT
 // shared helpers for the new Earth worlds
 // ⛰️ Egypt off-road terrain: sand dunes + stone jump ramps (jeep and on-foot follow the height)
-const EGY_BAL=[];const DUNES=[],RAMPS=[],TOMB={x:-60,z:-300,got:false,in:false};
+const EGY_BAL=[];const DUNES=[],RAMPS=[],TOMB={x:-60,z:-300,got:false,in:false},TOMB_G={x:0,z:0,got:false,in:false},TOMBS={};TOMBS.egypt=TOMB; // TOMB_G = the Great Pyramid on the real-map Giza
 function groundH(x,z){if(curTown!=='egypt')return 0;let h=0;
   for(const d of DUNES){const dx=x-d.x,dz=z-d.z,q=(dx*dx+dz*dz)/(d.r*d.r);if(q<1)h+=d.h*(1-q)*(1-q);}
   h=Math.max(0,h-0.3);
@@ -3498,7 +3498,7 @@ function buildTomb(x,z,base){const hb=base/2,ch=22,cw=7,H=16,zf=z+hb; // chamber
   P(x-e,x-ch,z-e,z+e);P(x+ch,x+e,z-e,z+e);P(x-ch,x+ch,z-e,z-ch);P(x-ch,x-cw,z+ch,z+e);P(x+cw,x+ch,z+ch,z+e);P(x-ch,x+ch,z-ch,z+e,H+1);
   colliders.push({x0:x-10.2,x1:x+10.2,z0:sz-6.6,z1:sz+6.6,h:7,y0:0},{x0:x-3.2,x1:x+3.2,z0:z-21.4,z1:z-16,h:9,y0:0});
   for(const s of[-1,1]){colliders.push({x0:x+s*15-2.3,x1:x+s*15+2.3,z0:z-20.6,z1:z-13.4,h:8,y0:0});for(const cz of[z-13,z+13])colliders.push({x0:x+s*11.5-1.6,x1:x+s*11.5+1.6,z0:cz-1.6,z1:cz+1.6,h:15,y0:0});}}
-function tombTick(){if(curTown!=='egypt'){TOMB.in=false;return;}const dx=Math.abs(pos.x-TOMB.x),dz=pos.z-TOMB.z,inn=dx<23&&Math.abs(dz)<23&&pos.y<16;
+function tombTick(){const TOMB=curTown==='egypt'?TOMBS.egypt:curTown==='gizamap'?TOMB_G:null;if(!TOMB){TOMBS.egypt.in=TOMB_G.in=false;return;}const dx=Math.abs(pos.x-TOMB.x),dz=pos.z-TOMB.z,inn=dx<23&&Math.abs(dz)<23&&pos.y<16;
   if(inn&&!TOMB.in){pop('🏺 INSIDE THE GREAT PYRAMID');blip(110,70,0.8,'sine',0.08);mEvent('tomb');}TOMB.in=inn;
   if(inn&&!TOMB.got&&dx<14&&Math.abs(dz+3)<16){TOMB.got=true;score+=1000;pop("👑 PHARAOH'S TREASURE! +1000");blip(520,1040,0.5,'triangle',0.12);for(let i=0;i<24;i++)spawnFx(tmpV2.set(TOMB.x+rand(-6,6),8,TOMB.z-6+rand(-3,3)),tmpV.set(rand(-6,6),rand(6,16),rand(-6,6)),0.7,1.2,2,0xffd040,true);mEvent('treasure');}}
 let PYR_TEX=null;
@@ -3669,7 +3669,8 @@ beginTown('gizamap');
   for(let i=0;i<36;i++)flatPlane(rand(80,220),rand(60,170),pick([0xcfa868,0xe0bf86,0xc89c5c]),-1,rand(-800,800),rand(-800,800)).rotation.z=rand(0,PI);
   makeFields(8,420);ringMountains(0xd8b07a,0xe8c890,50,120,undefined,1.35);
   const stone=new THREE.MeshLambertMaterial({color:0xd9b878,emissive:0x2a1a08,flatShading:true});
-  D.pyr.forEach(p=>bigPyramid(p[0],p[1],p[2],p[3],stone,p[3]>60?0xffd040:0));
+  const GP=D.pyr.reduce((a,p)=>p[2]>a[2]?p:a); // the Great Pyramid: you can go inside, like the one on the classic Giza
+  D.pyr.forEach(p=>bigPyramid(p[0],p[1],p[2],p[3],stone,p[3]>60?0xffd040:0,p===GP));buildTomb(GP[0],GP[1],GP[2]);TOMB_G.x=GP[0];TOMB_G.z=GP[1];
   // roads and footpaths, exactly where they really run
   const seg=s=>{const dx=s[2]-s[0],dz=s[3]-s[1];return{x:(s[0]+s[2])/2,z:(s[1]+s[3])/2,l:Math.hypot(dx,dz),a:Math.atan2(dz,dx)};};
   inst(new THREE.BoxGeometry(1,1,1),new THREE.MeshBasicMaterial({color:0xffffff,polygonOffset:true,polygonOffsetFactor:-3,polygonOffsetUnits:-3}),D.road.map(s=>Object.assign(seg(s),{w:s[4],c:s[4]>=3?0x5e5248:0xb99a68})),it=>compose(it.x,0.06,it.z,it.l+it.w*0.5,0.08,it.w,0,-it.a,0));
@@ -3687,6 +3688,28 @@ beginTown('gizamap');
     const chest=new THREE.Mesh(new THREE.BoxGeometry(12,14,8),sm);chest.position.set(0,9,13);g.add(chest);for(const x of[-4.5,4.5]){const p=new THREE.Mesh(new THREE.BoxGeometry(4,3,16),sm);p.position.set(x,1.5,20);g.add(p);}
     colliders.push({x0:S[0]-26,x1:S[0]+26,z0:S[1]-8,z1:S[1]+8,h:24,y0:0});useModel('sphinx',g);}
   for(let i=0;i<16;i++){const T={type:'critter',mesh:makeCamel(),spawn:spawnCow,fl:fields};T.spawn(T);targets.push(T);}
+  // 🧍 tourists at the Sphinx, the Great Pyramid entrance and between the pyramids
+  const SX=D.sphinx[0],SZ=D.sphinx[1];
+  for(let i=0;i<16;i++){const T={type:'critter',mesh:useAnim('person',makeHuman(false),'gizamap'),spawn:spawnCow,fl:[{x:SX+45,z:SZ+10},{x:GP[0],z:GP[1]+GP[2]/2+26},{x:-60,z:70},{x:-170,z:60},{x:60,z:-60}],rad:28};T.spawn(T);targets.push(T);}
+  // 🧟 mummies shuffling out of the real tomb fields
+  for(let i=0;i<8;i++){const T={type:'critter',mesh:useAnim('mummy',makeMummy(),'gizamap'),spawn:spawnCow,fl:[{x:170,z:-140},{x:-110,z:-270},{x:-330,z:300},{x:120,z:190}],rad:24};T.spawn(T);targets.push(T);}
+  // ⛏️ archaeology dig south of the Sphinx (tents, crates, trenches)
+  {const DX=215,DZ=215,objs=[];for(let k=0;k<3;k++){objs.push(flatPlane(26,10,0x8a6a40,-3,DX-20+k*4,DZ-18+k*16));objs.push(box(root,26,0.8,0.6,0x6a4a2a,DX-20+k*4,0.4,DZ-23+k*16));}
+    for(const [x,z,c] of[[30,-10,0xe8e0c8],[38,14,0xd8c8a0],[22,30,0xe8e0c8]]){const t=new THREE.Mesh(new THREE.ConeGeometry(9,8,4),lam(c));t.rotation.y=PI/4;t.position.set(DX+x,4,DZ+z);root.add(t);objs.push(t);}
+    for(let i=0;i<10;i++)objs.push(box(root,2,2,2,0x8a6a3a,DX+rand(-6,14),1,DZ+rand(-30,30)));freezeStatic(objs,root,true);glowSprite(0xffe0a0,DX+30,9,DZ+6,14,0.6);
+    for(let i=0;i<7;i++){const T={type:'critter',mesh:useAnim('person',makeHuman(false),'gizamap'),spawn:spawnCow,fl:[{x:DX,z:DZ}],rad:30};T.mesh.userData.emoji='⛏️';T.mesh.userData.pts=55;T.spawn(T);targets.push(T);}}
+  // 🤴👸 a pharaoh and a queen (rare, worth a lot)
+  for(const [type,em,spot] of[['pharaoh','🤴',{x:-90,z:-20}],['queen','👸',{x:SX-40,z:SZ+40}]]){const g=makeHuman(false);g.userData.emoji=em;g.userData.pts=350;g.userData.heat=0.6;
+    const au=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:0xffd040,transparent:true,opacity:.3,blending:THREE.AdditiveBlending,depthWrite:false}));au.position.y=2.4;au.scale.set(7,8,1);g.add(au);
+    const T={type:'critter',mesh:useAnim(type,g,'gizamap'),spawn:spawnCow,fl:[spot],rad:14};T.mesh.userData.T=T;T.spawn(T);targets.push(T);}
+  // 🎈 hot-air balloons you can beam up or ride
+  const bal=[];for(let i=0;i<4;i++){const g=new THREE.Group(),c1=pick([0xe83a3a,0x2a8ae8,0xf0c040,0x3ac060]),c2=0xfff4d8;
+    for(let k=0;k<8;k++){const gore=new THREE.Mesh(new THREE.SphereGeometry(7,6,12,k/8*2*PI,2*PI/8),lam(k%2?c1:c2,0x201008));gore.scale.y=1.2;gore.position.y=14;g.add(gore);}
+    box(g,2.4,2,2.4,0x8a5a2a,0,2,0);for(const [x,z] of[[1,1],[-1,1],[1,-1],[-1,-1]])box(g,0.1,6,0.1,0x3a2a1a,x,6,z);const fl=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:0xff9a30,transparent:true,blending:THREE.AdditiveBlending,depthWrite:false}));fl.position.y=6.5;fl.scale.set(4,5,1);g.add(fl);
+    compactCritter(g);g.userData.emoji='🎈';g.userData.pts=130;g.userData.heat=0.2;root.add(g);const B={town:'gizamap',g,fl,cx:rand(-200,260),cz:rand(-60,330),r:rand(60,130),sp:rand(.03,.06)*(i%2?1:-1),ph:rand(0,6),y:rand(34,52)};
+    const T={type:'critter',mesh:g,still:true,spawn:T=>{T.mesh.visible=true;T.state='ground';resetRot(T.mesh);}};T.state='ground';targets.push(T);B.T=T;bal.push(B);EGY_BAL.push(B);}
+  planetAnim.push({town:'gizamap',f:(t,dt)=>{bal.forEach(B=>{if(B.ride)return;B.fl.material.opacity=.5+.5*Math.abs(Math.sin(t*2+B.ph));if(B.T.state!=='ground')return;const a=t*B.sp+B.ph;if(B.rel){B.rel=false;B.cx=B.g.position.x-Math.cos(a)*B.r;B.cz=B.g.position.z-Math.sin(a)*B.r;B.y=Math.max(20,B.g.position.y-Math.sin(t*.4+B.ph)*4);B.fl.scale.set(4,5,1);}B.g.position.set(B.cx+Math.cos(a)*B.r,B.y+Math.sin(t*.4+B.ph)*4,B.cz+Math.sin(a)*B.r);B.g.rotation.y=t*.1;});
+    targets.forEach(T=>{const u=T.mesh.userData;if(u.legs&&!u.zombie&&T.state==='ground'){const sw=Math.sin(t*7+T.mesh.id)*0.4;u.legs[0].rotation.z=sw;u.legs[1].rotation.z=-sw;u.arms[0].rotation.z=-sw;u.arms[1].rotation.z=sw;}if(u.zombie&&T.state==='ground'){u.legs[0].rotation.z=Math.sin(t*3+T.mesh.id)*0.35;u.legs[1].rotation.z=-Math.sin(t*3+T.mesh.id)*0.35;u.body.rotation.z=Math.sin(t*1.5+T.mesh.id)*0.08;}});}});
 })();
 endTown('gizamap',[300,1700]);Object.assign(towns.gizamap,{planet:true,fogC:new THREE.Color(0xc89070),skyTint:0xffc890,label:'🇪🇬 GIZA · REAL MAP',bloom:0.35});
 
@@ -7385,7 +7408,7 @@ function boardShip(){if(BRIDE)endBalloonRide(true);if(TRIDE)endTrainRide(true);i
 }
 // 🎈 RIDE A HOT-AIR BALLOON (Egypt): fly next to one and press L / tap LAND to climb in the basket; again to jump out
 let BRIDE=null,balHint=0;
-function nearBalloon(r){if(curTown!=='egypt')return null;return EGY_BAL.find(B=>B.T.state==='ground'&&Math.hypot(B.g.position.x-pos.x,B.g.position.z-pos.z)<r&&Math.abs(B.g.position.y+8-pos.y)<(onFoot?14:45));}
+function nearBalloon(r){if(curTown!=='egypt'&&curTown!=='gizamap')return null;return EGY_BAL.find(B=>(B.town||'egypt')===curTown&&B.T.state==='ground'&&Math.hypot(B.g.position.x-pos.x,B.g.position.z-pos.z)<r&&Math.abs(B.g.position.y+8-pos.y)<(onFoot?14:45));}
 function startBalloonRide(B){BRIDE=B;B.ride=true;B.rt=0;B.rtick=0;B.rdid=false;B.vy=0;B.T.state='ridden';yaw=yaw||0;wv=0;pop('🎈 BALLOON RIDE!');pop(isTouch?'Stick = drift + turn · hold JUMP = burner (go up) · SHIP = jump out':'W/S drift · A/D turn · hold R = burner (go up) · L = jump out','t');blip(300,500,0.5,'sine',0.1);}
 function endBalloonRide(quiet){const B=BRIDE;BRIDE=null;if(!B)return;B.ride=false;B.T.state='ground';const p=B.g.position,a=performance.now()/1000;B.y=p.y;B.r=Math.min(B.r,90);
   B.rel=true;pos.set(p.x+right.x*3.5,p.y+1,p.z+right.z*3.5);wv=2;walker.rotation.set(0,yaw,0);if(!quiet)pop(`🎈 Floated for ${B.rt.toFixed(0)}s · hold JUMP to jetpack down`,'t');}
@@ -7635,7 +7658,7 @@ const VISITORS=[];
 // 🚙 DRIVABLE DESERT 4x4s (Egypt + Area 51): walk up, press L / tap SHIP to drive, again to get out
 const JEEPS=[];let DRIVE=null,jeepHint=0;
 (function(){const r0=root,c0=colliders;
-  for(const [town,x,z,yw] of[['egypt',24,290,0.4],['egypt',-60,40,2.2],['egypt',180,-60,-1],['desert',40,350,0.3],['desert',-120,120,1.5]]){if(!towns[town])continue;root=towns[town].group;
+  for(const [town,x,z,yw] of[['egypt',24,290,0.4],['egypt',-60,40,2.2],['egypt',180,-60,-1],['gizamap',40,250,0.2],['gizamap',215,70,2.4],['gizamap',-60,-130,-1],['desert',40,350,0.3],['desert',-120,120,1.5]]){if(!towns[town])continue;root=towns[town].group;
     const g=new THREE.Group();box(g,6,1.4,2.8,0xc8a040,0,1.5,0);box(g,2.2,1,2.6,0xb89030,1.6,2.5,0);box(g,0.2,1.6,2.6,0x2a2a30,-1.2,3,0);for(const wx of[-2,2])for(const wz of[-1.5,1.5]){const w=new THREE.Mesh(new THREE.CylinderGeometry(0.9,0.9,0.7,10),lam(0x1a1a1e));w.rotation.x=PI/2;w.position.set(wx,0.9,wz);g.add(w);}
     const hl=[];for(const wz of[-0.9,0.9]){const s=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:0xfff2c0,transparent:true,opacity:.0,blending:THREE.AdditiveBlending,depthWrite:false}));s.position.set(3.4,1.9,wz);s.scale.set(3,3,1);s.userData.keep=true;g.add(s);hl.push(s);}
     g.position.set(x,0,z);g.rotation.y=yw;root.add(g);useModel('jeep',g);JEEPS.push({g,town,hl,sp:0,x0:x,z0:z,y0:yw,t:0,tick:0,air:0,vy:0});}
@@ -7713,7 +7736,7 @@ function driveUpdate(dt,ix,iy,jumpBtn,run,shipBtn,t){const J=DRIVE,g=J.g;
     if(Math.random()<0.25)spawnFx(tmpV2.set(pos.x+rand(-3,3),0.3,pos.z+rand(-3,3)),tmpV.set(rand(-1,1),rand(2,5),rand(-1,1)),0.5,0.8,1.2,0xbfe8ff,true);
     if(Math.abs(J.sp)>2&&Math.random()<0.5)spawnFx(tmpV2.copy(pos).addScaledVector(fwd,-3.5).setY(0.3),tmpV.set(rand(-2,2),rand(3,7),rand(-2,2)),0.5,1,1.4,0xffffff,true);}
   else{if(J.wet){J.wet=false;pop('💦 Back on dry land','t');for(let i=0;i<10;i++)spawnFx(pos,tmpV.set(rand(-4,4),rand(3,8),rand(-4,4)),0.5,0.8,1.2,0xbfe8ff,true);}
-    if(Math.abs(J.sp)>8&&grounded&&Math.random()<0.7)spawnFx(tmpV2.copy(pos).addScaledVector(fwd,-3.5),tmpV.set(rand(-2,2),rand(2,5),rand(-2,2)),0.6,2.5,4,curTown==='egypt'?0xd8b47a:curTown==='home'?0x7ffcff:curTown==='moon'?0x3a3c44:0xc08a60,true);}
+    if(Math.abs(J.sp)>8&&grounded&&Math.random()<0.7)spawnFx(tmpV2.copy(pos).addScaledVector(fwd,-3.5),tmpV.set(rand(-2,2),rand(2,5),rand(-2,2)),0.6,2.5,4,(curTown==='egypt'||curTown==='gizamap')?0xd8b47a:curTown==='home'?0x7ffcff:curTown==='moon'?0x3a3c44:0xc08a60,true);}
   const slope=grounded&&!water?Math.atan2(groundH(pos.x+fwd.x*3,pos.z+fwd.z*3)-groundH(pos.x-fwd.x*3,pos.z-fwd.z*3),6):water?0.06+Math.sin(t*1.7)*0.04:clamp(J.vy*0.025,-0.45,0.45);
   J.pitch=(J.pitch||0)+(slope-(J.pitch||0))*Math.min(1,dt*9);if(grounded&&!water)J.sp-=Math.sin(J.pitch)*14*dt; // hills slow you going up, speed you going down
   g.position.set(pos.x,pos.y+(J.hover?0.9+Math.sin(t*3)*0.25:grounded&&!water?Math.abs(Math.sin(t*22))*Math.min(0.12,Math.abs(J.sp)*0.004):0),pos.z);g.rotation.set(0,yaw+PI/2,0);g.rotateZ(J.pitch);g.rotateX(-ix*clamp(J.sp/40,-1,1)*0.12+(water?Math.sin(t*1.3)*0.06:0));
@@ -8038,7 +8061,7 @@ const MISSIONS=[
   {id:'ice',t:'Visit Antarctica',ev:'visit',m:d=>d.town==='ice',g:1,r:500},
   {id:'lava',t:'Visit the lava planet Magmor',ev:'visit',m:d=>d.town==='lava',g:1,r:600},
   {id:'fifth',t:'Reach the 5th Dimension (black hole)',ev:'visit',m:d=>d.town==='fifth',g:1,r:1000},
-  {id:'egypt',t:'Visit the pyramids of Giza',ev:'visit',m:d=>d.town==='egypt',g:1,r:500},
+  {id:'egypt',t:'Visit the pyramids of Giza',ev:'visit',m:d=>d.town==='egypt'||d.town==='gizamap',g:1,r:500},
   {id:'mummy',t:'Abduct 3 mummies (Egypt)',ev:'abduct',m:d=>d.emoji==='🧟',g:3,r:700},
   {id:'camel',t:'Abduct 4 camels (Giza)',ev:'abduct',m:d=>d.emoji==='🐪',g:4,r:400},
   {id:'maya',t:'Visit the Mayan pyramids in Yucatán',ev:'visit',m:d=>d.town==='maya',g:1,r:500},
@@ -8226,7 +8249,7 @@ function missionTick(){
   if(heat>=5&&!runFlags.heat5){runFlags.heat5=1;mEvent('heat5');}
   if(score>=2000&&!runFlags.score2k){runFlags.score2k=1;mEvent('score2k');}
   if(onFoot&&pos.y>=100&&!runFlags.jet){runFlags.jet=1;mEvent('jetHigh');}
-  if(onFoot&&wGround&&pos.y>40&&(curTown==='egypt'||curTown==='mars')&&!runFlags.pyr){runFlags.pyr=1;mEvent('pyramid');}
+  if(onFoot&&wGround&&pos.y>40&&(curTown==='egypt'||curTown==='gizamap'||curTown==='mars')&&!runFlags.pyr){runFlags.pyr=1;mEvent('pyramid');}
 }
 let mLast='';
 function renderMissions(){
@@ -8596,7 +8619,7 @@ function worldBonusTick(){
   if(wN===1&&wTipT>=0){wTipT+=1/60;if(wTipT>30){wTipT=-1;let n=0;try{n=+localStorage.getItem('ufoWTip')||0;localStorage.setItem('ufoWTip',n+1);}catch(e){}if(n<3)pop('🚀 Tip: each new world = +40s and a bigger score multiplier','t');}}
 }
 function startGame(free){if(window.__LOCKED)return;worldBonusReset();
-  try{let n=+localStorage.getItem('ufoGoalTip')||0;if(n<5&&!save.home){localStorage.setItem('ufoGoalTip',n+1);const W=worldSamples();setTimeout(()=>{if(state==='play'&&!COACH.on)pop('🛸 Mission: a specimen from every world · '+W.n+' / '+W.total,'t');},2500);}}catch(e){}coachStart();missionPeek(8);try{mechReset();if(window.MECH)MECH.cd=20;}catch(e){}try{rrReset();RR.cd=0;}catch(e){}TRIDE=null;if(BRIDE){BRIDE.ride=false;BRIDE.T.state='ground';BRIDE=null;}if(DRIVE){try{endDrive();}catch(e){DRIVE=null;}}TOMB.got=false;TOMB.in=false;JEEPS.forEach(J=>{J.g.position.set(J.x0,0,J.z0);J.g.rotation.set(0,J.y0,0);J.did=false;});if(RIDE){RIDE.state='ground';RIDE=null;}SWIM=false;if(FLYP){PILOT_G[FLYP.k].visible=false;FLYP.g.visible=true;FLYP.col.h=5;FLYP=null;applyShip();}
+  try{let n=+localStorage.getItem('ufoGoalTip')||0;if(n<5&&!save.home){localStorage.setItem('ufoGoalTip',n+1);const W=worldSamples();setTimeout(()=>{if(state==='play'&&!COACH.on)pop('🛸 Mission: a specimen from every world · '+W.n+' / '+W.total,'t');},2500);}}catch(e){}coachStart();missionPeek(8);try{mechReset();if(window.MECH)MECH.cd=20;}catch(e){}try{rrReset();RR.cd=0;}catch(e){}TRIDE=null;if(BRIDE){BRIDE.ride=false;BRIDE.T.state='ground';BRIDE=null;}if(DRIVE){try{endDrive();}catch(e){DRIVE=null;}}TOMB.got=TOMB_G.got=false;TOMB.in=false;JEEPS.forEach(J=>{J.g.position.set(J.x0,0,J.z0);J.g.rotation.set(0,J.y0,0);J.did=false;});if(RIDE){RIDE.state='ground';RIDE=null;}SWIM=false;if(FLYP){PILOT_G[FLYP.k].visible=false;FLYP.g.visible=true;FLYP.col.h=5;FLYP=null;applyShip();}
   initAudio();freeMode=free===true;document.body.classList.toggle('free',freeMode);
   score=0;timer=150;shield=100;energy=100;lock=false;cows=0;cars=0;
   yaw=0;speed=0;vy=0;pos.set(0,60,400);hitCd=0;
@@ -9057,7 +9080,7 @@ function loop(now){
   {const ph=Math.floor(t*6)%2;policeLights.forEach(([r,b])=>{r.visible=!!ph;b.visible=!ph;});}
   if(TRACK&&curTown==='city'&&mode==='ground'&&!onFoot&&state==='play'){trainHint-=dt;if(trainHint<=0&&nearTrain(40)){trainHint=25;pop(isTouch?'🚝 Tap LAND next to the sky-train to ride it':'🚝 Press L next to the sky-train to ride it','t');}}
   flameTick(t);rrTick(dt,t);
-  if(curTown==='egypt'&&mode==='ground'&&!onFoot&&state==='play'){balHint-=dt;if(balHint<=0&&nearBalloon(55)){balHint=25;pop(isTouch?'🎈 Tap LAND next to a balloon to ride it':'🎈 Press L next to a balloon to ride it','t');}}
+  if((curTown==='egypt'||curTown==='gizamap')&&mode==='ground'&&!onFoot&&state==='play'){balHint-=dt;if(balHint<=0&&nearBalloon(55)){balHint=25;pop(isTouch?'🎈 Tap LAND next to a balloon to ride it':'🎈 Press L next to a balloon to ride it','t');}}
   if(TRACK)trains.forEach(T=>{const L=TRACK.L;
     if(T.wait>0)T.wait-=dt;else{T.d=(T.d+30*dt)%L;const u=T.d/L;TRACK.stations.forEach((su,i)=>{if(T.lastSt!==i&&Math.abs(u-su)<0.004){T.wait=4;T.lastSt=i;}});}
     T.cars.forEach((g,k)=>{const dd=((T.d-k*13.5)%L+L)%L,u=dd/L,p=TRACK.C.getPointAt(u),tg=TRACK.C.getTangentAt(u);g.position.set(p.x,TRACK.H+0.9,p.z);g.rotation.set(0,Math.atan2(-tg.z,tg.x)+(k===4?PI:0),0);});});
