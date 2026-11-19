@@ -4769,7 +4769,7 @@ function makeShowgirl(){
     planetAnim.push({town:'vegas',f:(t)=>{lanterns.forEach((l,i)=>{l.visible=true;l.material.opacity=0.58+0.2*Math.sin(t*2.4+i*0.7);});}});
   }
   // 🏟️ DESERT DOME: a sleek black stadium with a glowing see-through roof and a giant flame torch (south-west of the Strip)
-  {const DX=-360,DZ=392,RX=80,RZ=60,objs=[],add=m=>{objs.push(m);return m;};
+  window.__dome=function(DX,DZ,TOWN){const RX=80,RZ=60,objs=[],add=m=>{objs.push(m);return m;};
     add(flatPlane(250,190,0x2e2f36,-1,DX,DZ));for(let x=-115;x<=115;x+=8)for(const z of[-80,80])add(flatPlane(.4,9,0xe8e8e8,-3,DX+x,DZ+z)); // parking lot
     for(let i=0;i<70;i++){const x=DX+rand(-118,118),z=DZ+(Math.random()<.5?-1:1)*rand(70,90);add(box(root,4.2,1.4,2,pick([0x2a2a30,0xd8d8dc,0x8a1a1a,0x1a2a5a,0xc0c0c8]),x,0.8,z));}
     const shell=new THREE.Mesh(new THREE.CylinderGeometry(1,1.08,30,48,1,true),new THREE.MeshPhongMaterial({color:0x101114,emissive:0x050506,specular:0x8a8aa0,shininess:90,side:THREE.DoubleSide}));
@@ -4795,11 +4795,11 @@ function makeShowgirl(){
     const fl1=glowSprite(0xff8a2a,TX,56,TZ,26,0.7),fl2=glowSprite(0xffd060,TX,53,TZ,14,0.7),fl3=glowSprite(0xff4a1a,TX,62,TZ,18,0.45);
     colliders.push({x0:TX-7,x1:TX+7,z0:TZ-7,z1:TZ+7,h:52,y0:0});
     freezeStatic(objs,root,true);
-    planetAnim.push({town:'vegas',f:t=>{const f=Math.sin(t*9)*.5+Math.sin(t*13.7)*.5;fl1.scale.set(16+f*3,24+f*5,1);fl2.scale.set(9+f*2,13+f*3,1);fl3.position.y=62+Math.sin(t*5)*3;fl3.scale.setScalar(16+f*4);
+    planetAnim.push({town:TOWN,f:t=>{const f=Math.sin(t*9)*.5+Math.sin(t*13.7)*.5;fl1.scale.set(16+f*3,24+f*5,1);fl2.scale.set(9+f*2,13+f*3,1);fl3.position.y=62+Math.sin(t*5)*3;fl3.scale.setScalar(16+f*4);
       lanai.material.opacity=.45+.15*Math.sin(t*1.2);}});
     // players on the field: silver & black vs white & blue
     for(let i=0;i<16;i++){const g=makeHuman(false);g.userData.emoji='🏈';g.userData.pts=80;g.userData.heat=0.6;g.userData.team=i%2?[0x15161a,0xc0c4cc,0xc0c4cc]:[0xffffff,0x1a3a8a,0x1a3a8a];
-      const T={type:'critter',mesh:useAnim('footballer',g,'vegas'),spawn:spawnCow,fl:[{x:DX,z:DZ-18},{x:DX,z:DZ+18}],rad:18};T.mesh.userData.T=T;T.spawn(T);targets.push(T);}}
+      const T={type:'critter',mesh:useAnim('footballer',g,TOWN),spawn:spawnCow,fl:[{x:DX,z:DZ-18},{x:DX,z:DZ+18}],rad:18};T.mesh.userData.T=T;T.spawn(T);targets.push(T);}};__dome(-360,392,'vegas');
   // 🏎️ luxury cars cruising the Strip (beam them up: 150 pts)
   {const mkLux=k=>{const g=new THREE.Group(),C=[[0xffd000,0],[0xd8141e,0],[0xff7a00,0],[0xf4f4f4,1],[0x0d0d10,2],[0x1a8a4a,0],[0x7a2ad8,0],[0xc8ccd4,1]][k%8],col=C[0],kind=C[1];
       const paint=new THREE.MeshPhongMaterial({color:col,specular:0xffffff,shininess:120}),glass=new THREE.MeshPhongMaterial({color:0x0a0e16,specular:0xaaccff,shininess:150});
@@ -5256,6 +5256,7 @@ beginTown('vegasmap');
   // buildings: real footprints pushed up to their real heights, with lit windows
   const [wm,we]=winTex(),P=[],U=[],C=[],RP=[],RC=[],LP=[],LC=[],col=new THREE.Color(),pal=[0x2a3446,0x323c52,0x253042,0x3a4258,0x2d3a4e,0x40465a],low=[0x3a3340,0x443a46,0x33303c,0x4a4048];
   const BL=[];D.bld.forEach(b=>{const n=(b.length-2)/2;let ar=0,cx=0,cz=0;for(let i=0;i<n;i++){const x0=b[2+2*i],z0=b[3+2*i],x1=b[2+2*((i+1)%n)],z1=b[3+2*((i+1)%n)];ar+=x0*z1-x1*z0;cx+=x0;cz+=z0;}ar=Math.abs(ar)/2;cx/=n;cz/=n;
+    if(Math.abs(cx+499)<95&&Math.abs(cz-1090)<75)return; // the real stadium's spot: the game's own Desert Dome goes here instead
     if(b[0]>28&&ar>5200){const pod=b.slice();pod[0]=Math.min(13,b[0]*0.22);pod[1]=1;BL.push(pod);const tw=b.slice(),k=Math.max(0.42,Math.min(0.7,Math.sqrt(2600/ar)));for(let i=0;i<n;i++){tw[2+2*i]=cx+(b[2+2*i]-cx)*k;tw[3+2*i]=cz+(b[3+2*i]-cz)*k;}BL.push(tw);}else BL.push(b);
     if(b[0]>26)TALL.push({x:cx,z:cz,h:b[0],ar});});
   BL.forEach(b=>{const h=b[0],kind=b[1],n=(b.length-2)/2,pt=i=>[b[2+2*(i%n)],b[3+2*(i%n)]],hx=hash(b[2],b[3]);
@@ -5299,6 +5300,20 @@ beginTown('vegasmap');
       fMsg-=dt;if(show&&fMsg<=0&&state==='play'&&Math.hypot(pos.x-FX,pos.z-(z0+z1)/2)<110){fMsg=40;pop('⛲ FOUNTAIN SHOW!','t');}}});}
   // 💡 FREMONT STREET: the canopy, zipline and old downtown, placed just past the north end of the real map (in real life it is a couple of miles further north)
   __fremont(-1262,'vegasmap');
+  // 🏟️ the Desert Dome stadium, on the real stadium's spot south-west of the Strip
+  __dome(-499,1090,'vegasmap');
+  // 🎡 the big wheel, on the real observation wheel's spot east of the Strip
+  {const WX=117,WZ=-255,neonC=[0x3de1ff,0xff3fd2,0xffd040,0x2dff9a,0xff8a3d,0xb44dff],wheel=new THREE.Group();wheel.position.set(WX,95,WZ);wheel.rotation.y=PI/2;wheel.userData.keep=true;root.add(wheel);
+    wheel.add(new THREE.Mesh(new THREE.TorusGeometry(80,1.4,8,80),basic(0xff3fd2)));wheel.add(new THREE.Mesh(new THREE.TorusGeometry(76,0.6,6,80),basic(0x45eaff)));
+    for(let k=0;k<16;k++){const a=k/16*2*PI;const sp=new THREE.Mesh(new THREE.BoxGeometry(0.5,80,0.5),lam(0xd8d8e8));sp.position.set(Math.cos(a)*40,Math.sin(a)*40,0);sp.rotation.z=a-PI/2;wheel.add(sp);}
+    const cabs=[];for(let k=0;k<16;k++){const c=new THREE.Mesh(new THREE.SphereGeometry(4,12,8),new THREE.MeshBasicMaterial({color:neonC[k%neonC.length],transparent:true,opacity:.8}));wheel.add(c);cabs.push(c);}
+    box(root,4,95,4,0xb8b8c8,WX+2,47.5,WZ);colliders.push({x0:WX-2,x1:WX+6,z0:WZ-4,z1:WZ+4,h:95,y0:0});
+    planetAnim.push({town:'vegasmap',f:t=>{wheel.rotation.z=t*0.08;cabs.forEach((c,k)=>{const a=k/16*2*PI;c.position.set(Math.cos(a)*80,Math.sin(a)*80,0);});}});}
+  // 🔦 Sky Beam ride: fly into the light above the pyramid and it shoots you up toward space
+  if(D.special.pyramid){const PX=D.special.pyramid[0],PZ=D.special.pyramid[1],PH=D.special.pyramid[3];let beamMsg=0;
+    planetAnim.push({town:'vegasmap',f:(t,dt)=>{beamMsg-=dt;if(state==='play'&&mode==='ground'&&!onFoot&&Math.hypot(pos.x-PX,pos.z-PZ)<7&&pos.y>PH+8){pos.y+=140*dt;pos.x+=(PX-pos.x)*dt*3;pos.z+=(PZ-pos.z)*dt*3;
+      if(beamMsg<=0){beamMsg=6;pop('🔦 RIDING THE SKY BEAM!');mEvent('skybeam');blip(200,2400,1.2,'sine',0.12);}
+      if(Math.random()<0.5)spawnFx(pos,tmpV.set(rand(-4,4),-20,rand(-4,4)),0.6,2,2,0xffffff,true);}}});}
   // 🏜️ RED ROCK CANYON in the far west and ✈️ the air base in the north-east, both outside the real-layout area
   __redRock('vegasmap');__airBase(760,-720,'vegasmap');
   // 🪟 MANDO WINDOW TINTING on an empty lot east of the Strip (same shop as the classic Vegas)
