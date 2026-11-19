@@ -7760,9 +7760,19 @@ function skySpot(d,c){const o=SKYOFF[d]||[0,0];return [SKYMAP[d][0]+o[0]-SKYMAP[
     const ring=new THREE.Mesh(new THREE.RingGeometry(250,262,48),new THREE.MeshBasicMaterial({color:c,transparent:true,opacity:.5,side:THREE.DoubleSide,depthWrite:false,fog:false}));ring.rotation.x=-PI/2;ring.position.y=6;g.add(ring);
     g.position.y=CLOUD_Y;skyRealm.add(g);SKY_B[k]={g,star,l};}
   // wind streams: lines of fast-moving puffs from the city you are over toward every other city
-  for(let i=0;i<5;i++){const puffs=[];for(let k=0;k<34;k++){const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:0xeaf8ff,transparent:true,opacity:.5,blending:THREE.AdditiveBlending,depthWrite:false}));sp.scale.set(rand(26,46),rand(5,9),1);skyRealm.add(sp);puffs.push({sp,u:k/34,o:new V3(rand(-28,28),rand(-10,14),rand(-28,28))});}SKY_S.push({puffs,to:'',dx:0,dz:0,L:1});}
+  for(let i=0;i<5;i++){const puffs=[];for(let k=0;k<14;k++){const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:0xeaf8ff,transparent:true,opacity:.4,blending:THREE.AdditiveBlending,depthWrite:false}));sp.scale.set(rand(3,6),rand(3,6),1);skyRealm.add(sp);puffs.push({sp,u:k/14,o:new V3(rand(-7,7),rand(-5,5),rand(-7,7))});}SKY_S.push({puffs,to:'',dx:0,dz:0,L:1});}
 })();
+// the wind streams are drawn as glowing wind tubes (like the sky-race air current), one from the city you are over to each other city, tinted in that city's colour
+const SKY_T=[];let skyTubeFor='';
+function skyTubesBuild(c){SKY_T.forEach(T=>{skyRealm.remove(T.m);T.m.geometry.dispose();T.m.material.dispose();});SKY_T.length=0;skyTubeFor=c;const o0=skySpot(c,c);
+  for(const k in SKYMAP){if(k===c)continue;const p=skySpot(k,c),dx=p[0]-o0[0],dz=p[1]-o0[1],L=Math.hypot(dx,dz),ux=dx/L,uz=dz/L,pts=[],a=150,b=L-230,n=Math.max(6,Math.round((b-a)/260));
+    for(let i=0;i<=n;i++){const w=a+(b-a)*i/n,e=Math.sin(i/n*PI),lat=Math.sin(i*1.7+L)*16*e,y=CLOUD_Y+34+Math.sin(i*1.1+L*0.3)*9*e;pts.push(new V3(o0[0]+ux*w+uz*lat,y,o0[1]+uz*w-ux*lat));}
+    const col=new THREE.Color(SKYCOL[k]),mat=new THREE.ShaderMaterial({uniforms:{t:{value:0},boost:{value:0},rep:{value:(b-a)/13},tint:{value:new THREE.Vector3(col.r,col.g,col.b)}},transparent:true,depthWrite:false,side:THREE.DoubleSide,
+      vertexShader:'varying vec2 vUv;void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}',
+      fragmentShader:'uniform float t,boost,rep;uniform vec3 tint;varying vec2 vUv;void main(){float s=fract(vUv.x*rep-t*(2.0+boost*3.0)+sin(vUv.y*12.566)*0.15);float streak=smoothstep(0.55,1.0,s)*(0.5+0.5*sin(vUv.y*37.7));float rim=0.35+0.65*abs(sin(vUv.y*3.1416));vec3 c=mix(mix(vec3(0.55,0.85,1.0),tint,0.45),vec3(1.0),streak);float ends=smoothstep(0.0,0.03,vUv.x)*smoothstep(1.0,0.97,vUv.x);gl_FragColor=vec4(c,(0.14+streak*0.55)*rim*ends);}'});
+    const m=new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts),Math.min(420,Math.round((b-a)/14)),11,12,false),mat);m.frustumCulled=false;skyRealm.add(m);SKY_T.push({m,to:k});}}
 function skyMapUpdate(dt,t){skyCd-=dt;skyMsg-=dt;skyEdge-=dt;const c=curTown;if(!SKYMAP[c]||mode!=='ground')return;
+  if(skyTubeFor!==c)skyTubesBuild(c);SKY_T.forEach(T=>{T.m.material.uniforms.t.value=t;T.m.material.uniforms.boost.value=skyStream===T.to?1:0;});
   const up=pos.y>CLOUD_Y+4,o0=skySpot(c,c);let si=0,near='',nd=1e9;
   for(const k in SKY_B){const B=SKY_B[k],p=skySpot(k,c),dx=p[0]-pos.x,dz=p[1]-pos.z,d=Math.hypot(dx,dz)||1,f=Math.min(1,2300/d); // far stars are drawn closer and smaller so they stay inside the view distance
     B.g.position.set(pos.x+dx*f,CLOUD_Y,pos.z+dz*f);B.g.scale.setScalar(f);B.star.material.opacity=0.7+0.3*Math.sin(t*3+p[0]);
@@ -7775,7 +7785,7 @@ function skyMapUpdate(dt,t){skyCd-=dt;skyMsg-=dt;skyEdge-=dt;const c=curTown;if(
     if(near!=='desert')setTimeout(()=>{if(curTown===near)pop('🗺️ Real layout · map data © OpenStreetMap contributors','t');},4000);return;}
   // ride: inside a wind stream you are carried toward that city (steer out of it to leave)
   let rode='';for(const S of SKY_S){if(!S.to)continue;const rx=pos.x-o0[0],rz=pos.z-o0[1],w=(rx*S.dx+rz*S.dz)/S.L,lat=(rx*S.dz-rz*S.dx)/S.L;
-    if(w>170&&w<S.L-240&&Math.abs(lat)<75&&pos.y<CLOUD_Y+120){const ux=S.dx/S.L,uz=S.dz/S.L;pos.x+=ux*170*dt;pos.z+=uz*170*dt;pos.x-=uz*lat*Math.min(1,dt*0.6);pos.z+=ux*lat*Math.min(1,dt*0.6);
+    if(w>170&&w<S.L-240&&Math.abs(lat)<75&&pos.y<CLOUD_Y+120){const ux=S.dx/S.L,uz=S.dz/S.L;pos.x+=ux*170*dt;pos.z+=uz*170*dt;pos.x-=uz*lat*Math.min(1,dt*0.6);pos.z+=ux*lat*Math.min(1,dt*0.6);if(!(inp.up||inp.down||keys.r||keys.f||keys.e||keys.q))pos.y+=(CLOUD_Y+36-pos.y)*Math.min(1,dt*1.2);
       const want=Math.atan2(-ux,-uz);let dy=want-yaw;dy=Math.atan2(Math.sin(dy),Math.cos(dy));yaw+=dy*Math.min(1,dt*0.8);rode=S.to;break;}}
   if(rode&&rode!==skyStream){pop('🌬️ WIND STREAM → '+SKYNAME[rode]);pop('Steer sideways to leave it','t');blip(300,1200,0.4,'sine',0.1);}skyStream=rode;
   if(!rode&&skyMsg<=0&&Math.hypot(pos.x,pos.z)<townHL(c)){skyMsg=45;pop('☁️ Above the clouds: fly toward a star to reach another city','t');}}
