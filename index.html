@@ -4916,7 +4916,7 @@ function makeShowgirl(){
       riders.forEach(T=>{if(T.state!=='ground')return;T.u+=dt*0.05;if(T.u>1)T.u=0;T.mesh.position.lerpVectors(Z0,Z1,T.u);T.mesh.position.y-=4.2;T.mesh.rotation.set(0,0,0);});}});
   };__fremont(-860,'vegas'); // a function, so the real-map Strip gets Fremont Street too
   // ✈️ NELLIS AIR FORCE BASE (north-east)
-  {const NX=640,NZ=-860,objs=[],add=m=>{objs.push(m);return m;};
+  window.__airBase=function(NX,NZ,TOWN){const objs=[],add=m=>{objs.push(m);return m;};
     add(flatPlane(640,330,0x5e5650,-1.2,NX,NZ+20));
     add(flatPlane(560,30,0x2a2b30,-2,NX,NZ-70));for(let x=-260;x<=260;x+=20)add(flatPlane(10,1,0xf0f0f0,-3,NX+x,NZ-70)); // runway
     add(flatPlane(560,14,0x34353a,-2,NX,NZ-25));add(flatPlane(300,70,0x3a3b40,-2,NX,NZ+30)); // taxiway + apron
@@ -4930,16 +4930,16 @@ function makeShowgirl(){
     for(let i=0;i<6;i++){const g=new THREE.Group();useModel('jet',g);g.userData.emoji='🛩️';g.userData.pts=220;g.userData.heat=2;root.add(g);const px=NX-120+i*48,pz=NZ+40;
       const T={type:'critter',mesh:g,still:true,spawn:T=>{T.mesh.position.set(px,1.2,pz);T.mesh.rotation.set(0,PI/2,0);T.mesh.visible=true;T.state='ground';}};T.spawn(T);targets.push(T);}
     // airmen on the flight line
-    for(let i=0;i<8;i++){const g=makeHuman(false);g.userData.emoji='🪖';g.userData.pts=70;g.userData.heat=1.2;const T={type:'critter',mesh:useAnim('soldier',g,'vegas'),spawn:spawnCow,fl:[{x:NX-60,z:NZ+60},{x:NX+80,z:NZ+60}],rad:40};T.spawn(T);targets.push(T);}
+    for(let i=0;i<8;i++){const g=makeHuman(false);g.userData.emoji='🪖';g.userData.pts=70;g.userData.heat=1.2;const T={type:'critter',mesh:useAnim('soldier',g,TOWN),spawn:spawnCow,fl:[{x:NX-60,z:NZ+60},{x:NX+80,z:NZ+60}],rad:40};T.spawn(T);targets.push(T);}
     // air show: 4 jets in diamond formation looping overhead with smoke trails + one jet taking off every so often
     const show=new THREE.Group();root.add(show);const four=[[0,0],[-14,-10],[-14,10],[-28,0]].map(([dx,dz])=>{const g=new THREE.Group();g.position.set(dx,0,dz);show.add(g);useModel('jet',g);engines(g,'jet');
       const tr=[];for(let k=0;k<10;k++){const s=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:0xffffff,transparent:true,opacity:.35*(1-k/10),depthWrite:false}));s.scale.setScalar(5+k*1.6);root.add(s);tr.push(s);}return {g,tr,hist:[]};});
     const tko=new THREE.Group();root.add(tko);useModel('jet',tko);engines(tko,'jet');const burner=glowSprite(0xff8a3a,0,0,0,8,0.9);tko.add(burner);burner.position.set(-7,0,0);
-    planetAnim.push({town:'vegas',f:(t,dt)=>{
+    planetAnim.push({town:TOWN,f:(t,dt)=>{
       const a=t*0.22,lp=Math.sin(t*0.5);show.position.set(NX+Math.cos(a)*260,150+lp*45,NZ-40+Math.sin(a)*170);show.rotation.set(0,-a-PI/2,0);show.rotateZ(lp*0.25);show.updateMatrixWorld(true);
       four.forEach(F=>{const w=new V3();F.g.getWorldPosition(w);F.hist.unshift(w);if(F.hist.length>30)F.hist.pop();F.tr.forEach((s,k)=>{const h=F.hist[Math.min(F.hist.length-1,k*3)];s.position.copy(h);});});
       const c=(t%26)/26;if(c<0.55){const k=c/0.55,x=NX-260+k*k*720,y=k<0.35?1.4:1.4+(k-0.35)*(k-0.35)*900;tko.position.set(x,y,NZ-70);tko.rotation.set(0,0,k<0.35?0:Math.min(0.5,(k-0.35)*3));tko.visible=true;burner.scale.setScalar(6+Math.random()*4);}else tko.visible=false;}});
-  }
+  };__airBase(640,-860,'vegas');
   // 🏞️ HOOVER DAM + LAKE MEAD + the canyon (east of the city)
   {const DX=1040,DZ=300,objs=[],add=m=>{objs.push(m);return m;},rock=[0x8a5a3a,0x7a4a30,0x9a6a48,0x6a4028];
     // canyon walls (north + south), stacked rough rocks
@@ -5015,7 +5015,7 @@ function makeShowgirl(){
       if(b<0.55){const k=b/0.55,x=AX-300+k*k*760,y=k<0.45?0:(k-0.45)*(k-0.45)*900;dep.position.set(x,y,860);dep.rotation.set(0,0,k<0.45?0:Math.min(0.28,(k-0.45)*1.5));dep.visible=true;}else dep.visible=false;}});
   }
   // 🏜️ RED ROCK CANYON (far west): striped red/cream sandstone cliffs, Joshua trees, hikers, climbers, wild burros
-  {const objs=[],add=m=>{objs.push(m);return m;},bands=[0xb0442a,0xc85a34,0xe0a070,0xa83a24,0xe8b888,0xc0502e];
+  window.__redRock=function(TOWN){const objs=[],add=m=>{objs.push(m);return m;},bands=[0xb0442a,0xc85a34,0xe0a070,0xa83a24,0xe8b888,0xc0502e];
     for(let i=0;i<46;i++){const x=rand(-1130,-860),z=rand(-420,320),lv=(i%3);const r=new THREE.Mesh(new THREE.DodecahedronGeometry(rand(26,44),0),lam(pick(bands)));r.material.flatShading=true;
       r.position.set(x-lv*30,rand(4,26)+lv*26,z);r.scale.set(rand(1,1.6),rand(0.7,1.3),rand(1,1.6));r.rotation.y=rand(0,6);root.add(r);add(r);
       // exposed sandstone bedding on the cliff-facing side of each outcrop
@@ -5068,12 +5068,12 @@ function makeShowgirl(){
     for(let i=0;i<60;i++){const b=new THREE.Mesh(new THREE.SphereGeometry(rand(0.8,1.6),6,4),lam(pick([0x6a7a40,0x7a7a4a])));{let x=rand(-1080,-620),z=rand(-440,340);while(onLoop(x,z)){x=rand(-1080,-620);z=rand(-440,340);}b.position.set(x,0.5,z);}b.scale.y=0.6;root.add(b);add(b);}
     sign('RED ROCK CANYON','#ffb070',46,6,-640,5,-50,-PI/2);
     freezeStatic(objs,root,true);
-    for(let i=0;i<10;i++){const T={type:'critter',mesh:useAnim('person',makeHuman(false),'vegas'),spawn:spawnCow,fl:[{x:-800,z:-250},{x:-800,z:150},{x:-900,z:-50}],rad:60};T.mesh.userData.emoji='🥾';T.mesh.userData.pts=50;T.spawn(T);targets.push(T);}
+    for(let i=0;i<10;i++){const T={type:'critter',mesh:useAnim('person',makeHuman(false),TOWN),spawn:spawnCow,fl:[{x:-800,z:-250},{x:-800,z:150},{x:-900,z:-50}],rad:60};T.mesh.userData.emoji='🥾';T.mesh.userData.pts=50;T.spawn(T);targets.push(T);}
     for(let i=0;i<8;i++){const g=makeHorse(0x8a8078,0.85);g.userData.emoji='🫏';g.userData.pts=50;const T={type:'critter',mesh:useModel('burro',g),spawn:spawnCow,fl:[{x:-720,z:-300},{x:-720,z:200}],rad:60};T.spawn(T);targets.push(T);}
     // rock climbers clinging to the cliffs
     for(let i=0;i<6;i++){const g=makeHuman(false);g.userData.emoji='🧗';g.userData.pts=110;g.userData.heat=0.3;root.add(g);const cz=-380+i*130,cy=rand(18,48);
       const T={type:'critter',mesh:g,still:true,spawn:T=>{T.mesh.position.set(-1104,cy,cz);T.mesh.rotation.set(0,PI/2,0);T.mesh.visible=true;T.state='ground';}};T.spawn(T);targets.push(T);
-      const rope=new THREE.Mesh(new THREE.CylinderGeometry(0.08,0.08,30,4),basic(0xffd040));rope.position.set(-1105,cy+15,cz);root.add(rope);}}
+      const rope=new THREE.Mesh(new THREE.CylinderGeometry(0.08,0.08,30,4),basic(0xffd040));rope.position.set(-1105,cy+15,cz);root.add(rope);}};__redRock('vegas');
   // 🪟 MANDO WINDOW TINTING (east suburbs, next to the strip mall)
   window.__tintShop=function(SX,SZ,TOWN){const objs=[],add=m=>{objs.push(m);return m;};
     add(flatPlane(70,110,0x34353a,-2,SX,SZ));
@@ -5299,6 +5299,8 @@ beginTown('vegasmap');
       fMsg-=dt;if(show&&fMsg<=0&&state==='play'&&Math.hypot(pos.x-FX,pos.z-(z0+z1)/2)<110){fMsg=40;pop('⛲ FOUNTAIN SHOW!','t');}}});}
   // 💡 FREMONT STREET: the canopy, zipline and old downtown, placed just past the north end of the real map (in real life it is a couple of miles further north)
   __fremont(-1262,'vegasmap');
+  // 🏜️ RED ROCK CANYON in the far west and ✈️ the air base in the north-east, both outside the real-layout area
+  __redRock('vegasmap');__airBase(760,-720,'vegasmap');
   // 🪟 MANDO WINDOW TINTING on an empty lot east of the Strip (same shop as the classic Vegas)
   __tintShop(385,470,'vegasmap');
   // 🎰 the giant slot machine on an empty lot east of the Strip: fly through the glowing red handle to spin
