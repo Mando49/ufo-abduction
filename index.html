@@ -5566,13 +5566,14 @@ const stormTowers=[],bolts=[],volcanoFx=[];let boltT=2,flashLvl=0;
   for(let i=0;i<420;i++){const x=rand(0,512),y=rand(0,512),r=rand(10,48);const gr=g.createRadialGradient(x-r*0.3,y-r*0.3,1,x,y,r);
     const lit=Math.random();gr.addColorStop(0,lit>0.5?'rgba(255,255,255,.75)':'rgba(240,242,250,.6)');gr.addColorStop(1,'rgba(180,186,205,0)');g.fillStyle=gr;
     for(const ox of[-512,0,512])for(const oy of[-512,0,512]){g.beginPath();g.arc(x+ox,y+oy,r,0,2*PI);g.fill();}}
-  const t=new THREE.CanvasTexture(c);t.wrapS=t.wrapT=THREE.RepeatWrapping;t.repeat.set(10,10);t.anisotropy=renderer.capabilities.getMaxAnisotropy();
-  const floor=new THREE.Mesh(new THREE.PlaneGeometry(4200,4200),new THREE.MeshBasicMaterial({map:t,color:0x9894b6,side:THREE.DoubleSide}));
+  const t=new THREE.CanvasTexture(c);t.wrapS=t.wrapT=THREE.RepeatWrapping;t.repeat.set(36,36);t.anisotropy=renderer.capabilities.getMaxAnisotropy();
+  const floor=new THREE.Mesh(new THREE.PlaneGeometry(15000,15000),new THREE.MeshBasicMaterial({map:t,color:0x9894b6,side:THREE.DoubleSide}));
   floor.rotation.x=-PI/2;floor.position.y=CLOUD_Y;skyRealm.add(floor);
-  const under=new THREE.Mesh(new THREE.PlaneGeometry(4200,4200),new THREE.MeshBasicMaterial({color:0x6e7088,side:THREE.BackSide}));
+  const under=new THREE.Mesh(new THREE.PlaneGeometry(15000,15000),new THREE.MeshBasicMaterial({color:0x6e7088,side:THREE.BackSide}));
   under.rotation.x=-PI/2;under.position.y=CLOUD_Y-1.5;skyRealm.add(under);
   // fluffy white cloud heaps on top of the cloud sea
   for(let i=0;i<60;i++){const a=rand(0,2*PI),R=rand(0,900),sc=rand(90,220);const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:PUFF.sun,color:0xaaa6c8,transparent:true,depthWrite:false}));sp.position.set(Math.cos(a)*R,CLOUD_Y+sc*0.18,Math.sin(a)*R);sp.scale.set(sc,sc*0.6,1);skyRealm.add(sp);}
+  for(let i=0;i<150;i++){const a=rand(0,2*PI),R=rand(900,5600),sc=rand(120,300);const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:PUFF.sun,color:0xaaa6c8,transparent:true,depthWrite:false}));sp.position.set(Math.cos(a)*R,CLOUD_Y+sc*0.18,Math.sin(a)*R);sp.scale.set(sc,sc*0.6,1);skyRealm.add(sp);}
 })();
 // sun rays above the clouds (live in the sky dome, which follows the camera)
 const raysMat=(function(){const c=document.createElement('canvas');c.width=c.height=512;const g=c.getContext('2d');g.translate(256,256);
@@ -6317,7 +6318,7 @@ function planetTex(kind){
 }
 const SECTORS={
   earth:{name:'EARTH ORBIT',tex:planet.material.map,atm:[0.35,0.7,1],emis:0x0a1430,rock:[0x6a6058,0x5a5048],bg:0x02030a,home:'city',
-    portals:[{dest:'city',c:0x45eaff,label:'🗽 NEW YORK'},{dest:'sector:ice',c:0xd8f4ff,label:'FROST SECTOR ➜'},{dest:'desert',c:0xffa040,label:'AREA 51 DESERT'},{dest:'ocean',c:0x2ad8ff,label:'🌊 THE OCEAN'},{dest:'egypt',c:0xffc850,label:'🇪🇬 GIZA, EGYPT'},{dest:'maya',c:0x6dffb0,label:'🌴 YUCATÁN, MEXICO'},{dest:'vegas',c:0xff3fd2,label:'🎰 LAS VEGAS'},{dest:'lava',c:0xff5a1a,label:'🔥 MAGMOR'},{dest:'jungle',c:0x6dff7a,label:'🍄 VERDANA'},{dest:'sector:home',c:0xb07aff,label:'🏠 GO HOME · ZETA NEBULA ➜'}]},
+    portals:[{dest:'city',c:0x45eaff,label:'🌍 EARTH · NEW YORK'},{dest:'sector:ice',c:0xd8f4ff,label:'FROST SECTOR ➜'},{dest:'ocean',c:0x2ad8ff,label:'🌊 THE OCEAN'},{dest:'lava',c:0xff5a1a,label:'🔥 MAGMOR'},{dest:'jungle',c:0x6dff7a,label:'🍄 VERDANA'},{dest:'sector:home',c:0xb07aff,label:'🏠 GO HOME · ZETA NEBULA ➜'}]},
   ice:{name:'FROST SECTOR',tex:planetTex('ice'),atm:[0.7,0.9,1],emis:0x1a2a40,rock:[0xbfe6ff,0x9fc8ef],bg:0x020a14,home:'ice',
     portals:[{dest:'ice',c:0x9fe8ff,label:'LAND: ANTARCTICA'},{dest:'sector:lava',c:0xff7a30,label:'INFERNO SECTOR ➜'},{dest:'sector:earth',c:0x45eaff,label:'⟲ EARTH ORBIT'}]},
   lava:{name:'INFERNO SECTOR',tex:planetTex('lava'),atm:[1,0.4,0.15],emis:0x2a0800,rock:[0x2a1a1a,0x5a2010],bg:0x0a0202,home:'lava',
@@ -7624,7 +7625,7 @@ const MISSIONS=[
   {id:'wanted',t:'Reach a 5-star wanted level',ev:'heat5',g:1,r:400},
   {id:'score',t:'Score 2,000 in one game',ev:'score2k',g:1,r:500},
   {id:'race',t:'Finish the Sky Race',ev:'race',g:1,r:500},
-  {id:'jetstream',t:'Ride a jet-stream gate above the clouds to another place on Earth',ev:'jetstream',g:1,r:400},
+  {id:'jetstream',t:'Fly above the clouds to another city on Earth (follow a wind stream to its star)',ev:'jetstream',g:1,r:400},
   {id:'aircurrent',t:'Ride the air current above the clouds',ev:'aircurrent',g:1,r:300},
   {id:'race60',t:'Finish the Sky Race in under 60s (no air current)',ev:'race',m:d=>d.t<60&&!d.cur,g:1,r:900},
   {id:'bhole',t:'Fly into the black hole',ev:'bhole',g:1,r:600}
@@ -7742,27 +7743,42 @@ const airCur=(function(){
   const tube=new THREE.Mesh(new THREE.TubeGeometry(curve,1400,7,12,true),mat);raceGroup.add(tube);
   const puffs=[];for(let k=0;k<90;k++){const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:0xeaf8ff,transparent:true,opacity:.35,blending:THREE.AdditiveBlending,depthWrite:false}));sp.scale.setScalar(rand(1.4,3));raceGroup.add(sp);puffs.push({sp,u:k/90,o:new V3(rand(-4,4),rand(-4,4),rand(-4,4))});}
   return {curve,samp,tan,roll,kind,N,mat,puffs,riding:false,msg:0,idx:0,LOW,HIGH,kick:0,click:0,wheeCd:0,screwCd:0,free:0,exitHold:0};})();
-// 🌬️ JET-STREAM GATES above the clouds: fly up through the clouds over New York (or Area 51) and into a swirling gate to ride the wind straight to another place on Earth
-const SKY_GATES=[];let skyGateCd=0;
-(function(){const mkLabel=(txt,css)=>{const c=document.createElement('canvas');c.width=512;c.height=128;const g=c.getContext('2d');g.font='900 58px system-ui,-apple-system,sans-serif';g.textAlign='center';g.textBaseline='middle';g.shadowColor=css;g.shadowBlur=20;g.fillStyle='#fff';g.fillText(txt,256,64);
-    const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(c),transparent:true,depthWrite:false,fog:false}));sp.scale.set(64,16,1);return sp;};
-  [['desert','AREA 51',0xffa040,'#ffa040',-130,-495],['vegas','LAS VEGAS',0xff3fd2,'#ff3fd2',20,-645],['maya','MEXICO',0x6dffb0,'#6dffb0',200,-645],['seas','DUBAI',0x2ad8ff,'#2ad8ff',350,-495]].forEach(([dest,name,c,css,x,z])=>{
-    const g=new THREE.Group();g.position.set(x,CLOUD_Y+40,z);g.rotation.y=Math.atan2(x-110,z+395);
-    g.add(new THREE.Mesh(new THREE.TorusGeometry(26,1.6,10,56),basic(c)));
-    const disc=new THREE.Mesh(new THREE.CircleGeometry(25,40),new THREE.MeshBasicMaterial({color:c,transparent:true,opacity:.2,blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide}));g.add(disc);
-    const swirl=new THREE.Group();for(let k=0;k<5;k++){const r=new THREE.Mesh(new THREE.TorusGeometry(5+k*4.4,0.4,6,36,PI*1.25),new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:.55,blending:THREE.AdditiveBlending,depthWrite:false}));r.rotation.z=k*1.9;swirl.add(r);}g.add(swirl);
-    for(let k=0;k<10;k++){const a=k/10*2*PI,sp=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:c,transparent:true,depthWrite:false}));sp.position.set(Math.cos(a)*27.5,Math.sin(a)*27.5,0);sp.scale.set(7,7,1);g.add(sp);}
-    const lab=mkLabel('🌬️ '+name,css);lab.position.set(0,38,0);g.add(lab);const home=mkLabel('🌬️ NEW YORK','#45eaff');home.position.set(0,38,0);home.visible=false;g.add(home);
-    // a column of wind puffs rising out of the clouds so the gate is easy to spot from far away
-    for(let k=0;k<6;k++){const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:0xffffff,transparent:true,opacity:.22,depthWrite:false}));sp.position.set(0,-34+k*4,0);sp.scale.set(40-k*4,10,1);g.add(sp);}
-    skyRealm.add(g);SKY_GATES.push({g,dest,name,swirl,lab,home});});
+// 🌬️ THE SKY MAP: Earth's cities sit far apart under one sea of clouds. Fly up through the clouds, follow a wind stream toward a city's star, and drop back down through the clouds when you are over it. (Wormholes are for other planets and galaxies.)
+const SKYMAP={city:[0,0],desert:[-2200,200],vegas:[-2500,1100],maya:[-1100,2100],egypt:[2100,600],seas:[3100,1200]},SKYOFF={seas:[150,-800],city:[60,-150]},
+  SKYNAME={city:'NEW YORK',desert:'AREA 51',vegas:'LAS VEGAS',maya:'MEXICO',egypt:'EGYPT',seas:'DUBAI'},SKYCOL={city:0x45eaff,desert:0xffa040,vegas:0xff3fd2,maya:0x6dffb0,egypt:0xffc850,seas:0x2ad8ff};
+const SKY_B={},SKY_S=[];let skyCd=0,skyMsg=0,skyEdge=0,skyStream='';
+const townHL=n=>n==='ice'?930:n==='seas'?1560:n==='city'?950:n==='vegas'?1490:n==='egypt'?950:620;
+function skySpot(d,c){const o=SKYOFF[d]||[0,0];return [SKYMAP[d][0]+o[0]-SKYMAP[c][0],SKYMAP[d][1]+o[1]-SKYMAP[c][1]];} // where city d's star is, seen from city c
+(function(){for(const k in SKYMAP)if(towns[k])towns[k].sky=true;
+  const lab=(txt,css)=>{const c=document.createElement('canvas');c.width=512;c.height=128;const g=c.getContext('2d');g.font='900 60px system-ui,-apple-system,sans-serif';g.textAlign='center';g.textBaseline='middle';g.shadowColor=css;g.shadowBlur=22;g.fillStyle='#fff';g.fillText(txt,256,64);
+    const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(c),transparent:true,depthWrite:false,fog:false}));sp.scale.set(300,75,1);return sp;};
+  for(const k in SKYMAP){const c=SKYCOL[k],css='#'+c.toString(16).padStart(6,'0'),g=new THREE.Group();
+    const beam=new THREE.Mesh(new THREE.CylinderGeometry(9,22,420,12,1,true),new THREE.MeshBasicMaterial({color:c,transparent:true,opacity:.4,blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide,fog:false}));beam.position.y=210;g.add(beam);
+    const star=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:c,transparent:true,depthWrite:false,fog:false,blending:THREE.AdditiveBlending}));star.position.y=440;star.scale.set(260,260,1);g.add(star);
+    const core=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:0xffffff,transparent:true,depthWrite:false,fog:false}));core.position.y=440;core.scale.set(90,90,1);g.add(core);
+    const l=lab('⬇ '+SKYNAME[k],css);l.position.y=540;g.add(l);
+    const ring=new THREE.Mesh(new THREE.RingGeometry(250,262,48),new THREE.MeshBasicMaterial({color:c,transparent:true,opacity:.5,side:THREE.DoubleSide,depthWrite:false,fog:false}));ring.rotation.x=-PI/2;ring.position.y=6;g.add(ring);
+    g.position.y=CLOUD_Y;skyRealm.add(g);SKY_B[k]={g,star,l};}
+  // wind streams: lines of fast-moving puffs from the city you are over toward every other city
+  for(let i=0;i<5;i++){const puffs=[];for(let k=0;k<34;k++){const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:0xeaf8ff,transparent:true,opacity:.5,blending:THREE.AdditiveBlending,depthWrite:false}));sp.scale.set(rand(26,46),rand(5,9),1);skyRealm.add(sp);puffs.push({sp,u:k/34,o:new V3(rand(-28,28),rand(-10,14),rand(-28,28))});}SKY_S.push({puffs,to:'',dx:0,dz:0,L:1});}
 })();
-function skyGatesUpdate(dt,t){skyGateCd-=dt;
-  for(const G of SKY_GATES){G.swirl.rotation.z=-t*1.6;const here=G.dest===curTown;if(G.home.visible!==here){G.home.visible=here;G.lab.visible=!here;}
-    if(skyGateCd>0||state!=='play'||onFoot||mode!=='ground'||towns[curTown].planet||pos.y<CLOUD_Y+6)continue;
-    if(G.g.position.distanceTo(pos)<22){const to=here?'city':G.dest;skyGateCd=6;score+=100;mEvent('jetstream');blip(300,1400,0.6,'sine',0.14);fadeIn();landAt(to);
-      if(to==='seas'){pos.set(380,120,-330);yaw=0;snapCam();}
-      pop('🌬️ RODE THE JET STREAM · +100');return;}}}
+function skyMapUpdate(dt,t){skyCd-=dt;skyMsg-=dt;skyEdge-=dt;const c=curTown;if(!SKYMAP[c]||mode!=='ground')return;
+  const up=pos.y>CLOUD_Y+4,o0=skySpot(c,c);let si=0,near='',nd=1e9;
+  for(const k in SKY_B){const B=SKY_B[k],p=skySpot(k,c),dx=p[0]-pos.x,dz=p[1]-pos.z,d=Math.hypot(dx,dz)||1,f=Math.min(1,2300/d); // far stars are drawn closer and smaller so they stay inside the view distance
+    B.g.position.set(pos.x+dx*f,CLOUD_Y,pos.z+dz*f);B.g.scale.setScalar(f);B.star.material.opacity=0.7+0.3*Math.sin(t*3+p[0]);
+    if(k!==c){if(d<nd){nd=d;near=k;}const S=SKY_S[si++];S.to=k;S.dx=p[0]-o0[0];S.dz=p[1]-o0[1];S.L=Math.hypot(S.dx,S.dz);
+      S.puffs.forEach(Pf=>{Pf.u=(Pf.u+dt*190/S.L)%1;const w=Math.min(1,Math.max(0,(pos.x-o0[0])*S.dx/S.L/S.L+(pos.z-o0[1])*S.dz/S.L/S.L)),u=w+(Pf.u-0.5)*Math.min(1,900/S.L);Pf.sp.visible=u>0.06&&u<0.97;Pf.sp.position.set(o0[0]+S.dx*u+Pf.o.x,CLOUD_Y+34+Pf.o.y,o0[1]+S.dz*u+Pf.o.z);});}}
+  if(!up||state!=='play'||onFoot||FLYP){skyStream='';return;}
+  // arrive: close to another city's star -> you are now over that city (same sky, new ground below)
+  if(near&&nd<300&&skyCd<=0){const dx=SKYMAP[near][0]-SKYMAP[c][0],dz=SKYMAP[near][1]-SKYMAP[c][1];clearEnemies();heat=0;setTown(near);pos.x-=dx;pos.z-=dz;camera.position.x-=dx;camera.position.z-=dz;skyCd=3;skyStream='';
+    mEvent('visit',{town:near});mEvent('jetstream');score+=100;pop('☁️ OVER '+SKYNAME[near]+' · +100');pop('Fly down through the clouds ⬇','t');blip(300,1400,0.6,'sine',0.14);
+    if(near!=='desert')setTimeout(()=>{if(curTown===near)pop('🗺️ Real layout · map data © OpenStreetMap contributors','t');},4000);return;}
+  // ride: inside a wind stream you are carried toward that city (steer out of it to leave)
+  let rode='';for(const S of SKY_S){if(!S.to)continue;const rx=pos.x-o0[0],rz=pos.z-o0[1],w=(rx*S.dx+rz*S.dz)/S.L,lat=(rx*S.dz-rz*S.dx)/S.L;
+    if(w>170&&w<S.L-240&&Math.abs(lat)<75&&pos.y<CLOUD_Y+120){const ux=S.dx/S.L,uz=S.dz/S.L;pos.x+=ux*170*dt;pos.z+=uz*170*dt;pos.x-=uz*lat*Math.min(1,dt*0.6);pos.z+=ux*lat*Math.min(1,dt*0.6);
+      const want=Math.atan2(-ux,-uz);let dy=want-yaw;dy=Math.atan2(Math.sin(dy),Math.cos(dy));yaw+=dy*Math.min(1,dt*0.8);rode=S.to;break;}}
+  if(rode&&rode!==skyStream){pop('🌬️ WIND STREAM → '+SKYNAME[rode]);pop('Steer sideways to leave it','t');blip(300,1200,0.4,'sine',0.1);}skyStream=rode;
+  if(!rode&&skyMsg<=0&&Math.hypot(pos.x,pos.z)<townHL(c)){skyMsg=45;pop('☁️ Above the clouds: fly toward a star to reach another city','t');}}
 function airCurrentUpdate(dt,t,can){
   const A=airCur;A.mat.uniforms.t.value=t;A.mat.uniforms.boost.value=A.riding?1:0;A.msg-=dt;A.wheeCd-=dt;A.screwCd-=dt;A.free-=dt;
   A.puffs.forEach(P=>{P.u=(P.u+(dt||0)*0.008*(A.riding?2:1))%1;if(!(P.u>=0))P.u=0;const f=P.u*A.N,k=Math.floor(f)%A.N;P.sp.position.copy(A.samp[k]).lerp(A.samp[(k+1)%A.N],f-Math.floor(f)).add(P.o);});
@@ -7815,8 +7831,8 @@ function raceEnd(fin){
 }
 function raceCross(R){return pos.distanceTo(R.p)<22;}
 function raceUpdate(dt,t){
-  const can=state==='play'&&mode==='ground'&&!onFoot&&!towns[curTown].planet;
-  airCurrentUpdate(dt,t,can);skyGatesUpdate(dt,t);
+  const can=state==='play'&&mode==='ground'&&!onFoot&&(!towns[curTown].planet||towns[curTown].sky);
+  airCurrentUpdate(dt,t,can);skyMapUpdate(dt,t);
   raceBH.g.quaternion.copy(camera.quaternion);raceBH.disc.rotation.z-=dt*2;raceBH.disc.material.uniforms.t.value=t;raceBH.g.visible=!race.on||(race.next>=6&&race.next<=10);
   {const NR=race.rings[race.on?race.next%RACE_N:0];NR.g.scale.setScalar(1+0.1*Math.sin(t*6));}
   if(!race.on){const near=can&&pos.y>CLOUD_Y-40;raceArrow.visible=near;if(near){raceArrow.position.copy(pos).addScaledVector(fwd,9).add(new V3(0,3.5,0));raceArrow.lookAt(race.rings[0].p);raceArrow.scale.setScalar(1+0.12*Math.sin(t*8));}}
@@ -8159,7 +8175,7 @@ function mechReset(){const B=window.MECH;if(B&&(B.st==='fight'||B.st==='rise')){
 function setTown(n){
   if(n!=='desert')mechReset();curTown=n;needModels(n);const T=towns[n];for(const k in towns)towns[k].group.visible=(k===n);
   colliders=T.colliders;fields=T.fields;targets=T.targets;torusCols=T.torusCols;
-  scene.fog.near=T.fog[0];scene.fog.far=T.fog[1];cloudLayer.visible=!T.planet;skyRealm.visible=!T.planet;sky.children.forEach(c=>{if(c.isSprite)c.visible=!T.planet;if(c.isPoints)c.visible=n!=='ocean';});sky.material.color.setHex(T.skyTint||0xffffff);
+  scene.fog.near=T.fog[0];scene.fog.far=T.fog[1];cloudLayer.visible=!T.planet||!!T.sky;skyRealm.visible=!T.planet||!!T.sky;sky.children.forEach(c=>{if(c.isSprite)c.visible=!T.planet||!!T.sky;if(c.isPoints)c.visible=n!=='ocean';});sky.material.color.setHex(T.skyTint||0xffffff);
 }
 function enterSpace(sec){try{mechReset();}catch(e){}
   sec=sec||TOWN_SECTOR[curTown]||'earth';applySector(sec);
@@ -8330,7 +8346,7 @@ function hud(){
   if(key!==lastHud){lastHud=key;
     $('bBeam').textContent=onFoot?'🛸 SHIP':mode==='space'?'FIRE':'BEAM';$('bBoost').textContent=onFoot?'RUN':'BOOST';$('bUp').innerHTML=onFoot?'<span style="font-size:11px;line-height:1.1">JUMP<br>hold=FLY</span>':'▲';$('bFire').textContent=onFoot?'👀 ZAP':'FIRE';$('score').textContent=score;$('time').textContent=ts;$('time').classList.toggle('low',timer<10);
     $('tally').innerHTML=`🐄 ${cows} &nbsp;|&nbsp; 🚗 ${cars}`;
-    $('alt').innerHTML=altTxt+' · '+(onFoot?'<b>HOLD JUMP = JETPACK</b>':mode!=='ground'?(mode==='warp'?'<b>HOLD ON!</b>':'<b>FIND A PORTAL</b>'):towns[curTown].planet?(pos.y>150?'<b class="no">⬆ SPACE ABOVE</b>':reach?'<b>BEAM OK</b>':'<b class="no">TOO HIGH</b>'):pos.y>CLOUD_Y+10?'<b class="no">☁️ SKY REALM</b>':pos.y>120?'<b class="no">⬆ CLOUDS ABOVE</b>':reach?'<b>BEAM OK</b>':'<b class="no">TOO HIGH</b>');
+    $('alt').innerHTML=altTxt+' · '+(onFoot?'<b>HOLD JUMP = JETPACK</b>':mode!=='ground'?(mode==='warp'?'<b>HOLD ON!</b>':'<b>FIND A PORTAL</b>'):(towns[curTown].planet&&!towns[curTown].sky)?(pos.y>150?'<b class="no">⬆ SPACE ABOVE</b>':reach?'<b>BEAM OK</b>':'<b class="no">TOO HIGH</b>'):pos.y>CLOUD_Y+10?'<b class="no">☁️ SKY REALM</b>':pos.y>120?'<b class="no">⬆ CLOUDS ABOVE</b>':reach?'<b>BEAM OK</b>':'<b class="no">TOO HIGH</b>');
   }
   $('shieldBar').style.width=shield+'%';
   const pb=$('powerBar');pb.style.width=energy+'%';pb.classList.toggle('lock',lock);
@@ -8372,7 +8388,7 @@ function loop(now){
     pos.addScaledVector(fwd,speed*dt);pos.y+=vy*dt;
     if(mode==='ground'){
       if(pos.y<3){pos.y=3;if(vy<0)vy=0;}
-      const hd=Math.hypot(pos.x,pos.z),HL=curTown==='ice'?930:curTown==='seas'?1560:curTown==='city'?950:curTown==='vegas'?1490:curTown==='egypt'?950:620;if(hd>HL){pos.x*=HL/hd;pos.z*=HL/hd;} // Vegas is a big map: Red Rock, Fremont, Nellis and Hoover Dam sit outside the old 620 limit
+      const hd=Math.hypot(pos.x,pos.z),HL=townHL(curTown);if(hd>HL){if(towns[curTown].sky&&pos.y>CLOUD_Y-3&&state==='play'){if(pos.y<CLOUD_Y+12){pos.y=CLOUD_Y+12;if(vy<0)vy=0;if(skyEdge<=0&&down){skyEdge=6;pop('☁️ Open sky here · fly to a city star to go down','t');}}if(hd>5600){pos.x*=5600/hd;pos.z*=5600/hd;}}else{pos.x*=HL/hd;pos.z*=HL/hd;}} // Vegas is a big map: Red Rock, Fremont, Nellis and Hoover Dam sit outside the old 620 limit
       if(curTown==='ice')iceWallBlock(3);
       if(FLYP&&pos.y>SPACE_Y-30){pos.y=SPACE_Y-30;if(vy>0)vy=0;}
       if(curTown==='desert'&&state==='play'&&!FLYP&&pos.z<-406&&pos.z>-440&&Math.abs(pos.x-420)<44&&pos.y<34)enterHangar18();
@@ -8559,19 +8575,19 @@ function loop(now){
   sky.position.copy(camera.position);
   if(mode==='ground')visitorTick(t,dt);
   if(window.shipTick)shipTick(t,dt);
-  if(mode==='ground'&&towns[curTown].planet){const T=towns[curTown],k=clamp((pos.y-260)/90,0,1);
+  if(mode==='ground'&&towns[curTown].planet&&!towns[curTown].sky){const T=towns[curTown],k=clamp((pos.y-260)/90,0,1);
     sky.material.opacity=1-k*0.9;scene.fog.near=T.fog[0];scene.fog.far=T.fog[1]+(1500-T.fog[1])*clamp((pos.y-120)/140,0,1);
     scene.background.copy(T.fogC).lerp(SPACE_C,k);scene.fog.color.copy(scene.background);raysMat.opacity=0;if(bloom)bloom.strength=T.bloom!=null?T.bloom+(0.75-T.bloom)*k:0.75;
     planetAnim.forEach(a=>{if(a.town===curTown)a.f(t,dt);});cullTick();}
-  else if(mode==='ground'){cullTick();if(curTown==='city')cityAnim.forEach(f=>f(t,dt));skyRealm.visible=cloudLayer.visible=Math.max(pos.y,camera.position.y)>115;const y=pos.y,TF=towns[curTown].fog,below=clamp((y-110)/70,0,1),inF=clamp(1-Math.abs(y-CLOUD_Y)/18,0,1),above=clamp((y-CLOUD_Y-6)/22,0,1),k=clamp((y-300)/55,0,1);
+  else if(mode==='ground'){cullTick();if(curTown==='city')cityAnim.forEach(f=>f(t,dt));if(towns[curTown].planet)planetAnim.forEach(a=>{if(a.town===curTown)a.f(t,dt);});skyRealm.visible=cloudLayer.visible=Math.max(pos.y,camera.position.y)>115;const y=pos.y,TF=towns[curTown].fog,below=clamp((y-110)/70,0,1),inF=clamp(1-Math.abs(y-CLOUD_Y)/18,0,1),above=clamp((y-CLOUD_Y-6)/22,0,1),k=clamp((y-300)/55,0,1);
     sky.material.opacity=1-k*0.9;
     let far=TF[1]+(330-TF[1])*below;far+=(1900-far)*above;far+=(30-far)*inF;
     scene.fog.far=far;scene.fog.near=Math.min(TF[0],far*0.15);
-    scene.background.copy(FOG).lerp(STORM_C,below).lerp(ABOVE_C,above).lerp(SPACE_C,k);scene.fog.color.copy(scene.background);
+    scene.background.copy(towns[curTown].fogC||FOG).lerp(STORM_C,below*(towns[curTown].planet?0.55:1)).lerp(ABOVE_C,above).lerp(SPACE_C,k);scene.fog.color.copy(scene.background);
     raysMat.opacity=above*(1-k)*0.4;
     skyAnim(dt,t);
     cloudLayer.position.set(Math.round(pos.x/300)*300,0,Math.round(pos.z/300)*300);
-    if(bloom)bloom.strength=0.75*(1-0.5*inF)*(1-0.35*above);}
+    if(bloom)bloom.strength=(towns[curTown].bloom!=null?towns[curTown].bloom+(0.75-towns[curTown].bloom)*above:0.75)*(1-0.5*inF)*(1-0.35*above);}
 
   musicTick(dt);
   if(AC&&hum){hum.frequency.setTargetAtTime(50+Math.abs(speed)*0.9,AC.currentTime,0.1);beamGain.gain.setTargetAtTime(beamActive?0.05:0,AC.currentTime,0.05);}
