@@ -4579,7 +4579,7 @@ function makeShowgirl(){
         else{const t=new THREE.Mesh(new THREE.ConeGeometry(1.4,5,8),lam(0x2a6e2e));t.position.set(x,2.5,z);root.add(t);add(t);}}} // cypress
     freezeStatic(objs,root,true);}
   const POOL_W=new THREE.MeshBasicMaterial({color:0x35d4f0});
-  const ZZ_ON=new THREE.MeshBasicMaterial({color:0xffe6a0}),ZZ_OFF=new THREE.MeshBasicMaterial({color:0x1a1c28});
+  window.__ZZ=()=>ZZ_TEX;const ZZ_ON=new THREE.MeshBasicMaterial({color:0xffe6a0}),ZZ_OFF=new THREE.MeshBasicMaterial({color:0x1a1c28});
   const ZZ_TEX=(()=>{const c=document.createElement('canvas');c.width=128;c.height=64;const g=c.getContext('2d');g.font='900 44px system-ui,sans-serif';g.fillStyle='#cfe4ff';g.shadowColor='#7ab0ff';g.shadowBlur=8;g.fillText('Zzz',8,48);return new THREE.CanvasTexture(c);})();
   // 🏘️ regular Las Vegas suburbs on both sides of the Strip: stucco houses, tile roofs, block walls, backyard pools, palms
   window.__suburbs=function(SIDES,TOWN){const objs=[],roofG=new THREE.ConeGeometry(1,1,4),RES=[];
@@ -4973,6 +4973,7 @@ function makeShowgirl(){
     let bmsg=0;planetAnim.push({town:'vegas',f:(t,dt)=>{bmsg-=dt;if(state==='play'&&!onFoot&&bmsg<=0&&Math.abs(pos.x-BX)<8&&Math.abs(pos.z-DZ)<90&&pos.y<80){bmsg=5;score+=100;mEvent('dambridge');pop('🌉 UNDER THE DAM BRIDGE! +100');blip(800,2000,0.3,'sine',0.12);}}});
   }
   // ✈️ HARRY REID AIRPORT (south-east of the Strip): two runways, terminal + gates, jets landing and taking off
+  window.__airport=function(TOWN){
   const mkAirliner=(tail)=>{const g=new THREE.Group(),wht=lam(0xf2f2f4),gry=lam(0xb8bcc4);
     const fus=new THREE.Mesh(new THREE.CylinderGeometry(2.2,2.2,30,14),wht);fus.rotation.z=PI/2;fus.position.y=4;g.add(fus);
     const nose=new THREE.Mesh(new THREE.SphereGeometry(2.2,14,10),wht);nose.scale.set(2,1,1);nose.position.set(15,4,0);g.add(nose);
@@ -5002,11 +5003,11 @@ function makeShowgirl(){
     for(let k=0;k<5;k++){const g=mkAirliner(tails[k]);g.userData.emoji='🛫';g.userData.pts=300;g.userData.heat=1.6;root.add(g);const gx=AX-120+k*60;
       const T={type:'critter',mesh:g,still:true,spawn:T=>{T.mesh.position.set(gx,0,684);T.mesh.rotation.set(0,PI/2,0);T.mesh.visible=true;T.state='ground';}};T.spawn(T);targets.push(T);}
     // travelers with luggage outside the terminal
-    for(let i=0;i<10;i++){const T={type:'critter',mesh:useAnim('person',makeHuman(false),'vegas'),spawn:spawnCow,fl:[{x:AX-60,z:600},{x:AX+60,z:600}],rad:30};T.spawn(T);targets.push(T);}
+    for(let i=0;i<10;i++){const T={type:'critter',mesh:useAnim('person',makeHuman(false),TOWN),spawn:spawnCow,fl:[{x:AX-60,z:600},{x:AX+60,z:600}],rad:30};T.spawn(T);targets.push(T);}
     // one jet landing on the north runway, one taking off on the south runway (loops)
     const land=mkAirliner(tails[4]),dep=mkAirliner(tails[5]);root.add(land,dep);
     const lightL=glowSprite(0xffffff,0,0,0,8,0.9);land.add(lightL);lightL.position.set(17,3,0);
-    planetAnim.push({town:'vegas',f:(t,dt)=>{[land,dep].forEach(p=>p.userData.blink.visible=(t*2%1)<0.5);
+    planetAnim.push({town:TOWN,f:(t,dt)=>{[land,dep].forEach(p=>p.userData.blink.visible=(t*2%1)<0.5);
       const a=(t%30)/30; // landing: comes in from the east, flares, rolls out
       if(a<0.6){const k=a/0.6,x=AX+900-k*900,y=Math.max(0,180*(1-k)*(1-k)*1.4-6);land.position.set(x,y,740);land.rotation.set(0,PI,y>0?0.06:0);land.visible=true;}
       else if(a<0.85){const k=(a-0.6)/0.25;land.position.set(AX-k*(2-k)*230,0,740);land.rotation.set(0,PI,0);}
@@ -5014,6 +5015,7 @@ function makeShowgirl(){
       const b=((t+12)%30)/30; // takeoff: rolls west -> east and climbs out
       if(b<0.55){const k=b/0.55,x=AX-300+k*k*760,y=k<0.45?0:(k-0.45)*(k-0.45)*900;dep.position.set(x,y,860);dep.rotation.set(0,0,k<0.45?0:Math.min(0.28,(k-0.45)*1.5));dep.visible=true;}else dep.visible=false;}});
   }
+  };__airport('vegas');
   // 🏜️ RED ROCK CANYON (far west): striped red/cream sandstone cliffs, Joshua trees, hikers, climbers, wild burros
   window.__redRock=function(TOWN){const objs=[],add=m=>{objs.push(m);return m;},bands=[0xb0442a,0xc85a34,0xe0a070,0xa83a24,0xe8b888,0xc0502e];
     for(let i=0;i<46;i++){const x=rand(-1130,-860),z=rand(-420,320),lv=(i%3);const r=new THREE.Mesh(new THREE.DodecahedronGeometry(rand(26,44),0),lam(pick(bands)));r.material.flatShading=true;
@@ -5248,16 +5250,17 @@ const VEGAS_MAP={"bld":[[4.9,2,-95.0,-91.5,-97.3,-88.5,-96.7,-83.6,-113,-78.5,-1
 // ---------- 🗺️ LAS VEGAS STRIP (REAL MAP TEST): layout from OpenStreetMap data (© OpenStreetMap contributors, ODbL) ----------
 beginTown('vegasmap');
 (function(){const D=VEGAS_MAP,hash=(x,z)=>{const s=Math.sin(x*12.9898+z*78.233)*43758.5453;return s-Math.floor(s);};
-  flatPlane(4200,4200,0x1b1828,0,0,0);ringMountains(0x2a2238,0x4a3250,70,150,undefined,2.05);
+  flatPlane(4200,4200,0x1b1828,0,0,0);ringMountains(0x2a2238,0x4a3250,70,150,undefined,2.35);
   // streets
   const seg=s=>{const dx=s[2]-s[0],dz=s[3]-s[1];return{x:(s[0]+s[2])/2,z:(s[1]+s[3])/2,l:Math.hypot(dx,dz),a:Math.atan2(dz,dx),w:s[4]};};
   inst(new THREE.BoxGeometry(1,1,1),new THREE.MeshBasicMaterial({color:0xffffff,polygonOffset:true,polygonOffsetFactor:-3,polygonOffsetUnits:-3}),D.road.map(s=>Object.assign(seg(s),{c:s[4]>5?0x57526a:s[4]>3.5?0x454156:s[4]>2?0x363342:0x2b2936})),it=>compose(it.x,0.05,it.z,it.l+it.w*0.6,0.06,it.w,0,-it.a,0));
-  const TALL=[];
+  const TALL=[],SLP=[]; // SLP = rooftops low enough for the beam to reach (casino floors and mid-rise hotels)
   // buildings: real footprints pushed up to their real heights, with lit windows
   const [wm,we]=winTex(),P=[],U=[],C=[],RP=[],RC=[],LP=[],LC=[],col=new THREE.Color(),pal=[0x2a3446,0x323c52,0x253042,0x3a4258,0x2d3a4e,0x40465a],low=[0x3a3340,0x443a46,0x33303c,0x4a4048];
   const BL=[];D.bld.forEach(b=>{const n=(b.length-2)/2;let ar=0,cx=0,cz=0;for(let i=0;i<n;i++){const x0=b[2+2*i],z0=b[3+2*i],x1=b[2+2*((i+1)%n)],z1=b[3+2*((i+1)%n)];ar+=x0*z1-x1*z0;cx+=x0;cz+=z0;}ar=Math.abs(ar)/2;cx/=n;cz/=n;
-    if(Math.abs(cx+595)<130&&Math.abs(cz-1080)<100)return; // the real stadium's spot: the game's own Desert Dome goes here instead
-    if(b[0]>28&&ar>5200){const pod=b.slice();pod[0]=Math.min(13,b[0]*0.22);pod[1]=1;BL.push(pod);const tw=b.slice(),k=Math.max(0.42,Math.min(0.7,Math.sqrt(2600/ar)));for(let i=0;i<n;i++){tw[2+2*i]=cx+(b[2+2*i]-cx)*k;tw[3+2*i]=cz+(b[3+2*i]-cz)*k;}BL.push(tw);}else BL.push(b);
+    if(Math.abs(cx+595)<130&&Math.abs(cz-1080)<100)return;
+    if(cx>295&&cz>700&&cz<1100)return; // airport land // the real stadium's spot: the game's own Desert Dome goes here instead
+    if(b[0]>28&&ar>5200){const pod=b.slice();pod[0]=Math.min(13,b[0]*0.22);pod[1]=1;BL.push(pod);for(const i of[0,Math.floor(n/2)])SLP.push({x:cx+(b[2+2*i]-cx)*0.84,z:cz+(b[3+2*i]-cz)*0.84,h:pod[0]});const tw=b.slice(),k=Math.max(0.42,Math.min(0.7,Math.sqrt(2600/ar)));for(let i=0;i<n;i++){tw[2+2*i]=cx+(b[2+2*i]-cx)*k;tw[3+2*i]=cz+(b[3+2*i]-cz)*k;}BL.push(tw);}else{BL.push(b);if(b[0]>9&&b[0]<42&&ar>700&&ar<5200)SLP.push({x:cx,z:cz,h:b[0]});}
     if(b[0]>26)TALL.push({x:cx,z:cz,h:b[0],ar});});
   BL.forEach(b=>{const h=b[0],kind=b[1],n=(b.length-2)/2,pt=i=>[b[2+2*(i%n)],b[3+2*(i%n)]],hx=hash(b[2],b[3]);
     col.setHex(h>14?pal[Math.floor(hx*pal.length)]:low[Math.floor(hx*low.length)]);if(kind===2)col.multiplyScalar(1.25);
@@ -5309,6 +5312,15 @@ beginTown('vegasmap');
       if(T.spawn===spawnCow){(T.fl||[]).forEach(f=>{if(!moved.has(f)){moved.add(f);f.x+=OX;f.z+=OZ;}});}
       else{const sp=T.spawn;T.spawn=T=>{sp(T);T.mesh.position.x+=OX;T.mesh.position.z+=OZ;};}
       T.spawn(T);}}
+  // ✈️ the airport in the south-east corner, about where the real one is. Built in a shifted group like the suburbs; its moving planes are converted between the group's coordinates and world coordinates around each animation step.
+  {const OX=230,OZ=90,town=root,G=new THREE.Group();G.position.set(OX,0,OZ);town.add(G);const c0=colliders.length,t0=targets.length,p0=planetAnim.length;root=G;__airport('vegasmap');root=town;
+    for(let i=c0;i<colliders.length;i++){const c=colliders[i];c.x0+=OX;c.x1+=OX;c.z0+=OZ;c.z1+=OZ;}
+    const mine=targets.slice(t0),moved=new Set();mine.forEach(T=>{town.add(T.mesh);
+      if(T.spawn===spawnCow){(T.fl||[]).forEach(f=>{if(!moved.has(f)){moved.add(f);f.x+=OX;f.z+=OZ;}});}
+      else{const sp=T.spawn;T.spawn=T=>{sp(T);T.mesh.position.x+=OX;T.mesh.position.z+=OZ;};}
+      T.spawn(T);});
+    const fixed=mine.filter(T=>T.spawn!==spawnCow);
+    for(let i=p0;i<planetAnim.length;i++){const f=planetAnim[i].f;planetAnim[i].f=(t,dt)=>{fixed.forEach(T=>{T.mesh.position.x-=OX;T.mesh.position.z-=OZ;});f(t,dt);fixed.forEach(T=>{T.mesh.position.x+=OX;T.mesh.position.z+=OZ;});};}}
   // 🏟️ the Desert Dome stadium, beside the real stadium's spot south-west of the Strip (nudged west so its lot clears the freeway)
   __dome(-595,1080,'vegasmap');
   // 🎡 the big wheel, on the real observation wheel's spot east of the Strip
@@ -5347,6 +5359,15 @@ beginTown('vegasmap');
       if(state==='play'&&!onFoot&&slot.cd<=0&&slot.spin<=0&&knob.getWorldPosition(tmpV).distanceTo(pos)<16){slot.cd=6;slot.spin=2.4;
         const r=Math.random();slot.res=r<0.12?[6,6,6]:r<0.25?[5,5,5]:r<0.38?(()=>{const s=(Math.random()*5)|0;return[s,s,s];})():[(Math.random()*7)|0,(Math.random()*7)|0,(Math.random()*7)|0];
         pop('🎰 SPINNING…');blip(800,1200,0.15,'square',0.08);}}});}
+  // 😴 sleepers on casino and hotel rooftops around the city: a lit bed, a floating "Zzz", beam them up
+  {const ZT=__ZZ(),bedOn=new THREE.MeshBasicMaterial({color:0xffe6a0}),bedOff=new THREE.MeshBasicMaterial({color:0x1a1c28}),S=[];let k=0;
+    SLP.sort((a,b)=>hash(a.x,a.z)-hash(b.x,b.z));for(const P of SLP){if(S.length>=44)break;if(S.some(o=>Math.hypot(o.P.x-P.x,o.P.z-P.z)<38))continue;
+      const bed=new THREE.Mesh(new THREE.BoxGeometry(4.4,0.5,2.6),bedOn);bed.position.set(P.x+1.2,P.h+0.3,P.z);bed.userData.keep=true;root.add(bed);
+      const zz=new THREE.Sprite(new THREE.SpriteMaterial({map:ZT,transparent:true,depthWrite:false}));zz.scale.set(6,3,1);zz.userData.keep=true;root.add(zz);
+      const T={type:'critter',mesh:makeHuman(true),still:true};T.spawn=T=>{T.mesh.position.set(P.x,P.h+1.2,P.z);T.mesh.rotation.set(0,0,0);T.mesh.userData.body.rotation.set(0,0,PI/2);T.mesh.userData.body.position.set(1.6,0,0);T.mesh.visible=true;T.state='ground';};
+      T.spawn(T);targets.push(T);S.push({P,T,bed,zz,ph:(k++)*0.37});}
+    planetAnim.push({town:'vegasmap',f:(t,dt)=>{S.forEach(o=>{const home=o.T.state==='ground';o.bed.material=home?bedOn:bedOff;o.zz.visible=home;const q=(t*0.6+o.ph)%1;o.zz.position.set(o.P.x+Math.sin(t+o.ph)*1.2,o.P.h+4+q*4,o.P.z);o.zz.material.opacity=1-q;
+      if(!home)o.T.mesh.userData.body.rotation.z+=(0-o.T.mesh.userData.body.rotation.z)*Math.min(1,dt*2);});}});}
   // 🕺 Elvis impersonators, 💃 showgirls and 📸 photographers on the real Strip (by the fountain lake, mid-Strip and down by the pyramid)
   for(let i=0;i<6;i++){const T={type:'critter',mesh:makeElvis(),spawn:spawnCow,fl:[{x:-84,z:24,rad:9},{x:-86,z:300,rad:9},{x:-70,z:-300,rad:9}],rad:9};T.spawn(T);targets.push(T);}
   for(let i=0;i<6;i++){const T={type:'critter',mesh:makeShowgirl(),spawn:spawnCow,fl:[{x:-84,z:-44,rad:9},{x:-85,z:700,rad:9},{x:-86,z:200,rad:9}],rad:9};T.spawn(T);targets.push(T);}
@@ -5369,7 +5390,7 @@ beginTown('vegasmap');
   for(let i=0;i<26;i++){const T={type:'critter',mesh:useAnim('person',makeHuman(false),'vegasmap'),spawn:spawnCow,fl:spots.length?spots:[{x:0,z:0}],rad:20};T.spawn(T);targets.push(T);}
   planetAnim.push({town:'vegasmap',f:t=>{targets.forEach(T=>{const u=T.mesh.userData;if(u.legs&&T.state==='ground'){const sw=Math.sin(t*7+T.mesh.id)*0.4;u.legs[0].rotation.z=sw;u.legs[1].rotation.z=-sw;u.arms[0].rotation.z=-sw;u.arms[1].rotation.z=sw;}});}});
 })();
-endTown('vegasmap',[300,1900]);Object.assign(towns.vegasmap,{planet:true,fogC:new THREE.Color(0x1a1030),skyTint:0x6a3a8a,label:'🎰 LAS VEGAS STRIP · REAL MAP',bloom:0.7});
+endTown('vegasmap',[300,2100]);Object.assign(towns.vegasmap,{planet:true,fogC:new THREE.Color(0x1a1030),skyTint:0x6a3a8a,label:'🎰 LAS VEGAS STRIP · REAL MAP',bloom:0.7});
 
 // 🔴 MARS
 beginTown('mars');
@@ -7545,7 +7566,7 @@ function walkUpdate(dt,ix,iy,jumpBtn,run,shipBtn,t){
   const jetting=jumpBtn&&!wGround&&wv<6&&energy>1&&pos.y<140;
   if(jetting){wv=Math.min(wv+48*dt,9);energy-=16*dt;if(Math.random()<0.6)spawnFx(pos.clone().add(new V3(0,1.1,0)).addScaledVector(fwd,-0.7),tmpV.set(rand(-1,1),-8,rand(-1,1)),0.35,1.6,2.5,pick([0x7ffcff,0xffa040]),true);}
   pos.y+=wv*dt;wv-=grav*dt;
-  const hd=Math.hypot(pos.x,pos.z),HL=curTown==='ice'?930:(curTown==='vegas'||curTown==='vegasmap')?1400:curTown==='egypt'?950:620;if(hd>HL){pos.x*=HL/hd;pos.z*=HL/hd;}
+  const hd=Math.hypot(pos.x,pos.z),HL=curTown==='ice'?930:curTown==='vegasmap'?1500:curTown==='vegas'?1400:curTown==='egypt'?950:620;if(hd>HL){pos.x*=HL/hd;pos.z*=HL/hd;}
   if(curTown==='ice')iceWallBlock(1.2);
   let gh=groundH(pos.x,pos.z);const R=0.7;if(onDeck(pos.x,pos.z)){gh=carrierDeckY();if(pos.y<gh-2.5&&wv<=0)pos.y=gh;} // walk/climb onto the carrier deck
   for(const b of colliders){if(b.ramp)continue;
@@ -7804,7 +7825,7 @@ function driveUpdate(dt,ix,iy,jumpBtn,run,shipBtn,t){const J=DRIVE,g=J.g;
   const top=(run?46:30)*(J.top||1),want=iy>0?iy*top:iy*12;J.sp+=(want-J.sp)*Math.min(1,dt*(Math.abs(want)>Math.abs(J.sp)?1.6:2.6));
   yaw-=ix*dt*1.9*clamp(J.sp/14,-1,1);fwd.set(-Math.sin(yaw),0,-Math.cos(yaw));right.set(Math.cos(yaw),0,-Math.sin(yaw));
   const ox=pos.x,oz=pos.z;pos.addScaledVector(fwd,J.sp*dt);
-  const hd=Math.hypot(pos.x,pos.z),DL=(curTown==='vegas'||curTown==='vegasmap')?1300:curTown==='egypt'?930:620;if(hd>DL){pos.x*=DL/hd;pos.z*=DL/hd;}
+  const hd=Math.hypot(pos.x,pos.z),DL=curTown==='vegasmap'?1470:curTown==='vegas'?1300:curTown==='egypt'?930:620;if(hd>DL){pos.x*=DL/hd;pos.z*=DL/hd;}
   for(const b of colliders){if(b.y0>3||b.h<1.2)continue;if(pos.y<b.h-0.5&&pos.x>b.x0-2.2&&pos.x<b.x1+2.2&&pos.z>b.z0-2.2&&pos.z<b.z1+2.2){pos.x=ox;pos.z=oz;if(Math.abs(J.sp)>10){blip(160,60,0.2,'square',0.1);shake=Math.max(shake,0.3);}J.sp*=-0.3;break;}}
   const gh=groundH(pos.x,pos.z),py=pos.y,water=curTown==='egypt'&&Math.abs(pos.x-NILE_X)<38,wl=water?-1.5:gh;let grounded=false;
   J.vy-=28*dt;pos.y+=J.vy*dt;
@@ -9012,7 +9033,7 @@ function loop(now){
     pos.addScaledVector(fwd,speed*dt);pos.y+=vy*dt;
     if(mode==='ground'){
       if(pos.y<3){pos.y=3;if(vy<0)vy=0;}
-      const hd=Math.hypot(pos.x,pos.z),HL=curTown==='ice'?930:(curTown==='vegas'||curTown==='vegasmap')?1380:curTown==='egypt'?950:620;if(hd>HL){pos.x*=HL/hd;pos.z*=HL/hd;} // Vegas is a big map: Red Rock, Fremont, Nellis and Hoover Dam sit outside the old 620 limit
+      const hd=Math.hypot(pos.x,pos.z),HL=curTown==='ice'?930:curTown==='vegasmap'?1490:curTown==='vegas'?1380:curTown==='egypt'?950:620;if(hd>HL){pos.x*=HL/hd;pos.z*=HL/hd;} // Vegas is a big map: Red Rock, Fremont, Nellis and Hoover Dam sit outside the old 620 limit
       if(curTown==='ice')iceWallBlock(3);
       if(FLYP&&pos.y>SPACE_Y-30){pos.y=SPACE_Y-30;if(vy>0)vy=0;}
       if(curTown==='desert'&&state==='play'&&!FLYP&&pos.z<-406&&pos.z>-440&&Math.abs(pos.x-420)<44&&pos.y<34)enterHangar18();
