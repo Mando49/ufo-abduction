@@ -25,3 +25,4 @@
 - meshoptimizer decoder (MIT, Arseny Kapoulkine) in assets/lib, used to unpack the compressed 3D models.
 - The statue in New York (assets/models/liberty.glb) was generated with Higgsfield (Tripo text-to-3D) from a text description of the public-domain 1886 monument, then compressed with gltf-transform.
 - The New York speedboat (assets/models/speedboat.glb) was generated with Higgsfield (Tripo text-to-3D) for this game.
+- The Phantom Disc and Mothership player ships (assets/models/ufoA.glb, ufoB.glb) are original designs generated with Higgsfield (Tripo text-to-3D) from text descriptions for this game.

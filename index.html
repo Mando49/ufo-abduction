@@ -597,7 +597,7 @@ const MODELS={cow:{file:'cow',len:3.0,rotY:PI/2,list:[]},car:{file:'car',len:4.4
   jaguar:{file:'jaguar',height:2.4,rotY:0,list:[]},shark:{file:'shark',len:3.8,rotY:PI/2,list:[]},turtle:{file:'turtle',len:3,rotY:PI,list:[],lift:1.3},tractor:{file:'tractor',height:3.6,rotY:0,list:[]},
   barn:{file:'barn',height:14,rotY:-PI/2,list:[]},chest:{file:'chest',height:2.6,rotY:0,list:[]},
   sr71:{file:'sr71',len:34,rotY:0,list:[],lift:2.6},bop:{file:'bop',len:15,rotY:PI/2,list:[],lift:2.6},dropship:{file:'dropship',len:22,rotY:0,list:[]},wing:{file:'wing',len:22,rotY:-PI/2,list:[],lift:2.6},
-  trainF:{file:'trainF',len:13.5,rotY:PI/2,list:[]},speedboat:{file:'speedboat',len:8.5,rotY:PI/2,list:[]},liberty:{file:'liberty',height:86,rotY:-PI/2,list:[],yOff:7},trainM:{file:'trainM',len:12.5,rotY:PI/2,list:[]},
+  trainF:{file:'trainF',len:13.5,rotY:PI/2,list:[]},speedboat:{file:'speedboat',len:8.5,rotY:PI/2,list:[]},ufoA:{file:'ufoA',len:10.6,rotY:0,list:[],yOff:-1.1,glow:1.1},ufoB:{file:'ufoB',len:10.6,rotY:0,list:[],yOff:-1.3,glow:1.2},liberty:{file:'liberty',height:86,rotY:-PI/2,list:[],yOff:7},trainM:{file:'trainM',len:12.5,rotY:PI/2,list:[]},
   whale:{file:'whale',len:3.8,rotY:-PI/2,list:[]},octopus:{file:'octopus',height:1.6,rotY:0,list:[]},sub:{file:'sub',len:6.5,rotY:0,list:[]},dolphin:{file:'dolphin',len:3.6,rotY:PI/2,rotX:0.69,list:[]},
   carrier:{file:'carrier',len:150,rotY:0,list:[]},destroyer:{file:'destroyer',len:70,rotY:0,list:[]},cargo:{file:'cargo',len:100,rotY:0,list:[]},cruise:{file:'cruise',len:90,rotY:0,list:[]},fishboat:{file:'fishboat',len:9,rotY:0,list:[]},sailboat:{file:'sailboat',len:8,rotY:0,list:[]},
   subE:{file:'sub',len:7,rotY:0,list:[],recolor:true},
@@ -624,7 +624,7 @@ function flameTick(t){for(const g of FLAMES){if(!g.parent||!g.parent.visible)con
 function loadModel(k){const M=MODELS[k];if(!M||M.loading)return;M.loading=true;
     const onLoad=gl=>{
       const holder=new THREE.Group(),inner=gl.scene;inner.rotation.set(M.rotX||0,M.rotY,0,'YXZ');holder.add(inner);
-      inner.traverse(o=>{if(o.isMesh&&M.recolor){o.material=new THREE.MeshStandardMaterial({color:0x3a4252,metalness:0.6,roughness:0.28,emissive:0x0c1018,normalMap:o.material.normalMap||null});return;}if(o.isMesh&&M.lift){const mt=o.material=o.material.clone();mt.color.multiplyScalar(M.lift);if(mt.metalness!==undefined){mt.metalness=Math.min(mt.metalness,0.2);mt.roughness=Math.max(mt.roughness,0.55);}mt.emissive=new THREE.Color(0x2a303c);mt.emissiveMap=null;mt.emissiveIntensity=1;mt.needsUpdate=true;return;}if(o.isMesh){const mt=o.material;if(mt&&mt.map){mt.emissive=new THREE.Color(0xffffff);mt.emissiveMap=mt.map;mt.emissiveIntensity=0.22;mt.needsUpdate=true;}}});
+      inner.traverse(o=>{if(o.isMesh&&M.recolor){o.material=new THREE.MeshStandardMaterial({color:0x3a4252,metalness:0.6,roughness:0.28,emissive:0x0c1018,normalMap:o.material.normalMap||null});return;}if(o.isMesh&&M.lift){const mt=o.material=o.material.clone();mt.color.multiplyScalar(M.lift);if(mt.metalness!==undefined){mt.metalness=Math.min(mt.metalness,0.2);mt.roughness=Math.max(mt.roughness,0.55);}mt.emissive=new THREE.Color(0x2a303c);mt.emissiveMap=null;mt.emissiveIntensity=1;mt.needsUpdate=true;return;}if(o.isMesh){const mt=o.material;if(mt&&mt.map){mt.emissive=new THREE.Color(0xffffff);mt.emissiveMap=mt.map;mt.emissiveIntensity=M.glow||0.22;if(M.glow){mt.metalness=Math.min(mt.metalness,0.35);mt.roughness=Math.max(mt.roughness,0.5);}mt.needsUpdate=true;}}});
       holder.updateMatrixWorld(true);let b=new THREE.Box3().setFromObject(holder),sz=b.getSize(new V3());
       const sc=M.height?M.height/Math.max(sz.y,0.001):M.len/Math.max(sz.x,0.001);holder.scale.setScalar(sc);holder.updateMatrixWorld(true);
       b=new THREE.Box3().setFromObject(holder);const c=b.getCenter(new V3());
@@ -4576,6 +4576,10 @@ beginTown('city');
       box(g,0.12,2.6,0.12,0x8a94a6,0,3.6,0);const um=new THREE.Mesh(new THREE.ConeGeometry(2.4,1.1,8),lam(i%2?0xffd040:0xff4a4a,0x201008));um.position.y=5.3;g.add(um);box(g,0.9,0.35,0.3,0xc87a3a,-0.6,2.75,0.3);
       g.userData.emoji='🌭';g.userData.pts=90;g.userData.heat=0.5;root.add(g);const ry=rand(0,6);
       const T={type:'critter',mesh:g,still:true,spawn:T=>{T.mesh.position.set(x,0,z);resetRot(T.mesh);T.mesh.rotation.y=ry;T.mesh.visible=true;T.state='ground';}};T.spawn(T);targets.push(T);});}
+  // ✈️ Area 51's secret jets on test flights over New York: the recon jet and the flying wing circle high over Midtown, two stealth fighters patrol low over the river
+  {const flyers=[],fly=(k,r,y,sp,cx,cz,bank)=>{const g=new THREE.Group();root.add(g);useModel(k,g);engines(g,k);flyers.push({g,r,y,sp,cx,cz,bank,ph:rand(0,6)});};
+    fly('sr71',560,142,0.3,0,0,0.35);fly('wing',400,128,-0.12,60,-60,0.2);fly('bop',150,56,0.5,-790,-90,0.6);fly('bop',130,50,-0.42,-770,540,0.55);
+    planetAnim.push({town:'city',f:t=>{flyers.forEach(F=>{const a=t*F.sp+F.ph;F.g.position.set(F.cx+Math.cos(a)*F.r,F.y+Math.sin(t*0.5+F.ph)*5,F.cz+Math.sin(a)*F.r);const dir=Math.sign(F.sp);F.g.rotation.set(0,-a-dir*PI/2,0);F.g.rotateX(-dir*F.bank);});}});}
   window.__nyc={TALL,LOW,meadow,EDG};
   for(let i=0;i<14;i++){const T={type:'cow',mesh:makeCow(),spawn:spawnCow,fl:fields};T.spawn(T);targets.push(T);}
   for(let i=0;i<40;i++){const T={type:'critter',mesh:useAnim('person',makeHuman(false),'city'),spawn:spawnCow,fl:[{x:TS[0],z:TS[1],rad:12},{x:TS[0]+12,z:TS[1]-24,rad:10},{x:TS[0]-12,z:TS[1]+24,rad:10},{x:D.sp.bryant[0],z:D.sp.bryant[1]},{x:283,z:-276,rad:12},{x:-236,z:403,rad:8},{x:3.5,z:-499,rad:10},{x:138,z:354,rad:8}],rad:22};T.spawn(T);targets.push(T);}
@@ -5850,9 +5854,9 @@ function makeShadowShip(){
 }
 const SHIPS={
   stealth:{name:'Stealth Triangle',cost:0,g:stealthCraft,spd:1,beam:1,armor:1,r:1,desc:'Balanced all-rounder'},
-  saucer:{name:'Classic Saucer',cost:1500,g:makeSaucer(1,0x3de1ff,0xb44dff),spd:1.08,beam:1.25,armor:1,r:1,desc:'Faster, bigger beam'},
+  saucer:{name:'Phantom Disc',model:'ufoA',cost:1500,g:makeSaucer(1,0x3de1ff,0xb44dff),spd:1.08,beam:1.25,armor:1,r:1,desc:'Faster, bigger beam'},
   shadow:{name:'Shadow Triangle',cost:2500,g:makeShadowShip(),spd:1.15,beam:1.1,armor:0.9,r:1.05,desc:'Fastest ship, made from your picture'},
-  mother:{name:'Mothership',cost:4000,g:makeSaucer(1.6,0xff8a3d,0xff3fd2),spd:0.92,beam:1.45,armor:0.65,r:1.45,desc:'Huge beam, heavy armor, slower'}
+  mother:{name:'Mothership',model:'ufoB',cost:4000,g:makeSaucer(1.6,0xff8a3d,0xff3fd2),spd:0.92,beam:1.45,armor:0.65,r:1.45,desc:'Huge beam, heavy armor, slower'}
 };
 const UPG={engine:{name:'⚡ Engine',desc:'+8% speed'},beam:{name:'🛸 Tractor Beam',desc:'+12% beam size'},armor:{name:'🛡️ Shield Armor',desc:'-10% damage'},power:{name:'🔋 Power Cell',desc:'-12% power use'},boost:{name:'🚀 Turbo Boost',desc:'+10% boost speed, -8% boost power use'},pull:{name:'🧲 Beam Pull',desc:'+15% faster lift'}};
 const upgCost=l=>200*(l+1);
@@ -5860,7 +5864,8 @@ let save={bank:0,upg:{engine:0,beam:0,armor:0,power:0,boost:0,pull:0},ship:'stea
 try{const sv=JSON.parse(localStorage.getItem('ufoSave')||'null');if(sv)save=Object.assign(save,sv,{upg:Object.assign(save.upg,sv.upg||{}),owned:Object.assign({stealth:true},sv.owned||{})});}catch(e){}
 function persist(){try{localStorage.setItem('ufoSave',JSON.stringify(save));}catch(e){}}
 let M={spd:1,beam:1,armor:1,pow:1,r:1};
-function applyShip(){const S=SHIPS[save.ship]||SHIPS.stealth,u=save.upg;for(const k in SHIPS)SHIPS[k].g.visible=(SHIPS[k]===S);
+for(const k in SHIPS)if(SHIPS[k].model)useModel(SHIPS[k].model,SHIPS[k].g); // the two disc ships wear a detailed 3D model (made with Higgsfield); the hand-built saucer underneath is the stand-in until it loads
+function applyShip(){const S=SHIPS[save.ship]||SHIPS.stealth,u=save.upg;for(const k in SHIPS)SHIPS[k].g.visible=(SHIPS[k]===S);if(S.model&&MODELS_BOOTED)loadModel(S.model);
   M={spd:S.spd*(1+0.08*u.engine),beam:S.beam*(1+0.12*u.beam),armor:S.armor*(1-0.1*u.armor),pow:1-0.12*u.power,r:S.r,boost:1+0.1*(u.boost||0),bpow:1-0.08*(u.boost||0),pull:1+0.15*(u.pull||0)};}
 applyShip();
 const fmt=n=>Math.floor(n).toLocaleString();
@@ -8433,7 +8438,7 @@ function loop(now){
   if(wcF<41&&state==='play'&&mode==='ground'&&curTown==='city'&&++wcF===40){window.__wc=whiteFrame();if(window.__wc&&composer){composer=null;bloom=null;window.__bloomOff=1;try{localStorage.setItem('ufoNoBloom','1');}catch(e){}}} // safety net: some phones draw the glow effect as a blank white screen; if the night city comes out all white, switch the effect off
 }
 fwd.set(-Math.sin(yaw),0,-Math.cos(yaw));right.set(Math.cos(yaw),0,-Math.sin(yaw));
-bootModels();setTown('city');camera.position.set(CITY_START.x,70,CITY_START.z);
+bootModels();applyShip();setTown('city');camera.position.set(CITY_START.x,70,CITY_START.z);
 hud();drawRadar(0);
 try{__load(100,'Ready!');const L=document.getElementById('loader');setTimeout(()=>{L.style.opacity=0;setTimeout(()=>L.remove(),550);},150);}catch(e){}
 requestAnimationFrame(loop);
