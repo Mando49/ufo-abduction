@@ -5111,6 +5111,54 @@ beginTown('nyc');
       if(NT.state==='ground'){nd+=ndir*26*dt;if(nd>av.L){nd=av.L;ndir=-1;}else if(nd<0){nd=0;ndir=1;}let i=1;while(i<av.len.length-1&&av.len[i]<nd)i++;const p=av.p[i-1],q=av.p[i],u=(nd-av.len[i-1])/Math.max(0.001,av.len[i]-av.len[i-1]);
         nc.position.set(p[0]+(q[0]-p[0])*u,46+Math.sin(t)*3,p[1]+(q[1]-p[1])*u);nc.rotation.set(0.12,Math.atan2(-(q[1]-p[1])*ndir,(q[0]-p[0])*ndir),0);}}});
     window.__nycG1={A,B,C,av:av.L,nc};}
+  // 🗽 the river on the west side, and the statue on her island (public-domain landmark; stands in for Neon City's stadium). Touch the torch for bonus time.
+  {const SX=-770,SZ=230,K=m=>{m.userData.keep=true;return m;};
+    const river=K(new THREE.Mesh(new THREE.PlaneGeometry(1500,3600),new THREE.MeshPhongMaterial({color:0x123a5e,emissive:0x061826,shininess:90,polygonOffset:true,polygonOffsetFactor:-4,polygonOffsetUnits:-4})));river.rotation.x=-PI/2;river.position.set(-1315,0.1,0);root.add(river);
+    box(root,5,2.4,3600,0x3a3c48,-566,1.2,0);
+    const isl=new THREE.Mesh(new THREE.CylinderGeometry(64,70,3,40),lam(0x4a5a4a));isl.position.set(SX,-1.2,SZ);root.add(isl);
+    const lawn=new THREE.Mesh(new THREE.CircleGeometry(60,40),lam(0x2f6a2c));lawn.rotation.x=-PI/2;lawn.position.set(SX,0.36,SZ);root.add(lawn);
+    const G=new THREE.Group();G.position.set(SX,0.3,SZ);G.rotation.y=PI/2;root.add(G); // she faces the city
+    const stone=new THREE.MeshLambertMaterial({color:0xb0a890,emissive:0x141210,flatShading:true}),cop=new THREE.MeshLambertMaterial({color:0x5fbfa8,emissive:0x0c2a24,flatShading:true}),copD=new THREE.MeshLambertMaterial({color:0x479a88,emissive:0x0a221c,flatShading:true}),det=[];
+    // star-shaped fort, stepped pedestal
+    const star=new THREE.Shape();for(let i=0;i<22;i++){const an=i/22*2*PI,r=i%2?26:38;i?star.lineTo(Math.cos(an)*r,Math.sin(an)*r):star.moveTo(Math.cos(an)*r,Math.sin(an)*r);}
+    const fort=new THREE.Mesh(new THREE.ExtrudeGeometry(star,{depth:7,bevelEnabled:false}),stone);fort.rotation.x=-PI/2;G.add(fort);
+    det.push(box(G,34,5,34,stone,0,9.5,0),box(G,26,5,26,stone,0,14.5,0),box(G,20,16,20,stone,0,25,0),box(G,23,2,23,stone,0,34,0),box(G,17,3,17,stone,0,36.5,0));
+    for(const sd of[-1,1])for(const f of[0,1]){const c=box(G,f?0.6:3,10,f?3:0.6,0x6a6456,f?sd*10.1:0,25,f?0:sd*10.1);det.push(c);}
+    // the statue: robe, shoulders, head, crown rays, tablet arm, torch arm
+    const robe=new THREE.Mesh(new THREE.CylinderGeometry(4.2,7.2,30,10),cop);robe.position.y=53;G.add(robe);
+    const fold=new THREE.Mesh(new THREE.CylinderGeometry(4.6,5.4,12,10,1,true),copD);fold.position.y=60;fold.rotation.z=0.12;G.add(fold);
+    const chest=new THREE.Mesh(new THREE.CylinderGeometry(3.6,4.4,7,10),cop);chest.position.y=71;G.add(chest);
+    const neck=new THREE.Mesh(new THREE.CylinderGeometry(1.4,1.6,2,8),cop);neck.position.y=75.4;G.add(neck);
+    const hd=new THREE.Mesh(new THREE.SphereGeometry(2.7,12,10),cop);hd.scale.set(0.95,1.15,1);hd.position.y=78.6;G.add(hd);
+    const band=new THREE.Mesh(new THREE.CylinderGeometry(2.9,2.9,0.9,12),copD);band.position.y=80.2;G.add(band);
+    for(let i=0;i<7;i++){const an=(i-3)*0.4,ray=new THREE.Mesh(new THREE.ConeGeometry(0.42,5,4),cop);ray.position.set(Math.sin(an)*4.6,81.2+Math.cos(an)*3.4,0.4);ray.rotation.z=-an;G.add(ray);}
+    for(const [x,y] of[[-0.9,79],[0.9,79]])box(G,0.5,0.3,0.3,0x1a3a34,x,y,2.5);
+    const armL=new THREE.Mesh(new THREE.CylinderGeometry(1.1,1.3,10,7),cop);armL.position.set(-4.6,66.5,2.2);armL.rotation.set(-0.5,0,-0.25);G.add(armL);det.push(box(G,4.2,6.4,1,copD,-5.6,63,5.2));
+    const armR=new THREE.Mesh(new THREE.CylinderGeometry(1.1,1.4,17,7),cop);armR.position.set(5.2,80,0);armR.rotation.z=-0.2;G.add(armR);
+    const cup=new THREE.Mesh(new THREE.CylinderGeometry(1.9,0.9,2.4,8),copD);cup.position.set(6.9,89.4,0);G.add(cup);
+    const flame=K(new THREE.Mesh(new THREE.ConeGeometry(1.5,4.4,7),basic(0xffc040)));flame.position.set(6.9,92.6,0);G.add(flame);
+    freezeStatic(det,G);
+    const TX=SX,TY=0.3+92.6,TZ=SZ-6.9,glow=glowSprite(0xffb030,TX,TY+1,TZ,22,0.8),halo=glowSprite(0x6dffd8,SX,60,SZ,90,0.12); // (the group is turned 90°, so her raised arm ends up toward -z)
+    colliders.push({x0:SX-12,x1:SX+12,z0:SZ-12,z1:SZ+12,h:38,y0:0},{x0:SX-5,x1:SX+5,z0:SZ-5,z1:SZ+5,h:82,y0:0});
+    for(let i=0;i<6;i++){const an=i/6*2*PI+0.3;const sp=K(new THREE.Mesh(new THREE.ConeGeometry(5,60,8,1,true),new THREE.MeshBasicMaterial({color:0xcff5e8,transparent:true,opacity:0.07,blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide})));sp.position.set(SX+Math.cos(an)*30,33,SZ+Math.sin(an)*30);sp.rotation.set(Math.sin(an)*0.42,0,-Math.cos(an)*0.42);root.add(sp);}
+    // visitors on the island, and a ferry going round it
+    for(let i=0;i<10;i++){const g=makeHuman(false);g.userData.emoji='📸';g.userData.pts=60;const T={type:'critter',mesh:useAnim('person',g,'nyc'),spawn:T=>{const an=rand(0,2*PI),r=rand(42,56);T.mesh.position.set(SX+Math.cos(an)*r,0.3,SZ+Math.sin(an)*r);resetRot(T.mesh);T.h=rand(0,2*PI);T.wt=rand(1,4);T.sp=0;T.mesh.visible=true;T.state='ground';T.field={x:SX,z:SZ};},still:true};T.mesh.userData.T=T;T.spawn(T);targets.push(T);}
+    const fe=new THREE.Group();box(fe,22,3,8,0xf0f0f0,0,1.8,0);box(fe,15,3,6.4,0xff8a3d,-1,4.8,0);box(fe,5,2.4,4,0xf0f0f0,3,7.4,0);box(fe,1.4,3,1.4,0x30343c,-4,7.8,0);for(let i=0;i<5;i++)box(fe,1.6,1,0.2,0xffe9a0,-6+i*2.6,5,3.25);
+    fe.userData.emoji='⛴️';fe.userData.pts=250;fe.userData.heat=1;root.add(fe);const FT={type:'critter',mesh:fe,still:true,spawn:T=>{T.mesh.visible=true;T.state='ground';resetRot(T.mesh);}};FT.spawn(FT);targets.push(FT);
+    // 🎈 the blimp now circles the statue (catch it!)
+    const bl=new THREE.Group();const env=new THREE.Mesh(new THREE.SphereGeometry(1,24,14),new THREE.MeshLambertMaterial({color:0xd8dce4,emissive:0x202428}));env.scale.set(16,5.2,5.2);bl.add(env);
+    for(const [y,z] of[[4,0],[-4,0],[0,4],[0,-4]])box(bl,4,y?3:0.4,z?3:0.4,0x3de1ff,-14,y*0.8,z*0.8);
+    box(bl,4,1.6,2,0x30343c,0,-5.6,0);
+    const ban=texCanvas(512,96,g=>{g.fillStyle='#0a0c18';g.fillRect(0,0,512,96);g.fillStyle='#7dffb0';g.font='bold 60px sans-serif';g.textAlign='center';g.fillText('🛸 UFO ABDUCTION',256,70);});
+    for(const sd of[-1,1]){const b=new THREE.Mesh(new THREE.PlaneGeometry(18,3.4),new THREE.MeshBasicMaterial({map:ban}));b.position.set(0,0,sd*5.25);if(sd<0)b.rotation.y=PI;bl.add(b);}
+    bl.userData.emoji='🎈';bl.userData.pts=300;bl.userData.heat=1;root.add(bl);
+    const BT={type:'critter',mesh:bl,still:true,spawn:T=>{T.mesh.visible=true;T.state='ground';resetRot(T.mesh);}};BT.spawn(BT);targets.push(BT);
+    let tcd=0;const TP=new V3(TX,TY,TZ);
+    planetAnim.push({town:'nyc',f:(t,dt)=>{tcd-=dt;glow.material.opacity=0.6+0.3*Math.sin(t*5);glow.scale.setScalar(20+3*Math.sin(t*7));flame.scale.y=1+0.15*Math.sin(t*9);
+      if(FT.state==='ground'){const an=t*0.09;fe.position.set(SX+Math.cos(an)*120,0.2,SZ+Math.sin(an)*120);fe.rotation.y=-an-PI/2;}
+      if(BT.state==='ground'){const an=-t*0.16;bl.position.set(SX+Math.cos(an)*95,52+Math.sin(t*0.6)*3,SZ+Math.sin(an)*95);bl.rotation.set(0,-an+PI/2,0);}
+      if(state==='play'&&!onFoot&&tcd<=0&&TP.distanceTo(pos)<11){tcd=8;score+=200;timer+=8;mEvent('torch');pop('🗽 TORCH TOUCHED! +200 · +8s');blip(500,1600,0.35,'triangle',0.13);for(let k=0;k<20;k++)spawnFx(TP,tmpV.set(rand(-1,1),rand(-0.2,1),rand(-1,1)).multiplyScalar(11),0.8,2,3,pick([0xffc040,0xffe9a0,0x6dffd8]),true);}}});
+    window.__lib={SX,SZ,TX,TY,TZ};}
   window.__nyc={TALL,LOW,meadow,EDG};
   for(let i=0;i<14;i++){const T={type:'cow',mesh:makeCow(),spawn:spawnCow,fl:fields};T.spawn(T);targets.push(T);}
   for(let i=0;i<40;i++){const T={type:'critter',mesh:useAnim('person',makeHuman(false),'nyc'),spawn:spawnCow,fl:[{x:TS[0],z:TS[1],rad:12},{x:TS[0]+12,z:TS[1]-24,rad:10},{x:TS[0]-12,z:TS[1]+24,rad:10},{x:D.sp.bryant[0],z:D.sp.bryant[1]},{x:283,z:-276,rad:12},{x:-236,z:403,rad:8},{x:3.5,z:-499,rad:10},{x:138,z:354,rad:8}],rad:22};T.spawn(T);targets.push(T);}
@@ -7994,7 +8042,7 @@ const MISSIONS=[
   {id:'orbsall',t:'Catch 5 mystery orbs in any world',ev:'abduct',m:d=>d.emoji==='🔘',g:5,r:700},
   {id:'orbs',t:'Catch 3 mystery spheres (Area 51)',ev:'abduct',m:d=>d.emoji==='🔘',g:3,r:700},
   {id:'stadium',t:'Abduct 3 football players (stadium)',ev:'abduct',m:d=>d.emoji==='🏈',g:3,r:500},
-  {id:'blimp',t:'Catch the stadium blimp (Neon City)',ev:'abduct',m:d=>d.emoji==='🎈',g:1,r:700},
+  {id:'blimp',t:'Catch the blimp (Neon City stadium or the statue in New York)',ev:'abduct',m:d=>d.emoji==='🎈',g:1,r:700},
   {id:'racer',t:'Catch a street racer (police chase!)',ev:'abduct',m:d=>d.emoji==='🏎️',g:1,r:600},
   {id:'news',t:'Abduct the news chopper (Neon City or New York)',ev:'abduct',m:d=>d.emoji==='📺',g:1,r:600},
   {id:'foodtruck',t:'Beam up 2 food trucks (night market)',ev:'abduct',m:d=>d.emoji==='🌮',g:2,r:500},
