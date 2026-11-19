@@ -4387,7 +4387,7 @@ beginTown('city');
   {const names=['MANDO WINDOW TINTING','COSMO COLA','STAR BURGER','ZAP!','MOON MOTORS','GALAXY TOYS','ASTRO NEWS 24','COMET PIZZA','UFO: THE MUSICAL','NEBULA PHONES','ROCKET SHOES','SATURN SODA','ORBIT GUM','LUNAR LATTE','MEGA MUNCH','PLANET POP','STARLIGHT THEATRE'],cols=['#3de1ff','#ff3fd2','#ffd040','#2dff9a','#ff8a3d','#b44dff','#ff4a5a','#ffffff'];
     const used=[],screens=[];EDG.sort((a,b)=>a.dc-b.dc);let k=0;
     for(const e of EDG){if(k>=18)break;if(used.some(u=>Math.hypot(u.mx-e.mx,u.mz-e.mz)<22))continue;used.push(e);
-      let nx=-e.dz,nz=e.dx;if(nx*(TS[0]-e.mx)+nz*(TS[1]-e.mz)<0){nx=-nx;nz=-nz;}const ry=Math.atan2(nx,nz),w=Math.max(18,Math.min(e.len*0.95,38)),hh=w*0.42,y=9+hh/2+(k%2)*3,px=e.mx+nx*1.1,pz=e.mz+nz*1.1;
+      let nx=-e.dz,nz=e.dx;if(nx*(TS[0]-e.mx)+nz*(TS[1]-e.mz)<0){nx=-nx;nz=-nz;}const ry=Math.atan2(nx,nz),w=Math.min(e.len*0.96,38),hh=w*0.42,y=9+hh/2+(k%2)*3,px=e.mx+nx*1.1,pz=e.mz+nz*1.1;
       const m=sign(names[k%names.length],cols[k%cols.length],w,hh,px,y,pz,ry);m.userData.keep=true;m.material.side=THREE.FrontSide;
       if(e.h>y+hh*2+6){const sc=new THREE.Mesh(new THREE.PlaneGeometry(w,hh*1.3),new THREE.MeshBasicMaterial({color:0xffffff}));sc.position.set(px,y+hh*1.2+1.5,pz);sc.rotation.y=ry;sc.userData.keep=true;root.add(sc);screens.push({m:sc,ph:k*1.3});
         if(e.h>y+hh*3.6+8){const m2=sign(names[(k+7)%names.length],cols[(k+3)%cols.length],w,hh,px,y+hh*2.4+3,pz,ry);m2.userData.keep=true;m2.material.side=THREE.FrontSide;}}
