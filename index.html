@@ -5299,6 +5299,30 @@ beginTown('vegasmap');
       fMsg-=dt;if(show&&fMsg<=0&&state==='play'&&Math.hypot(pos.x-FX,pos.z-(z0+z1)/2)<110){fMsg=40;pop('⛲ FOUNTAIN SHOW!','t');}}});}
   // 🪟 MANDO WINDOW TINTING on an empty lot east of the Strip (same shop as the classic Vegas)
   __tintShop(385,470,'vegasmap');
+  // 🎰 the giant slot machine on an empty lot east of the Strip: fly through the glowing red handle to spin
+  {const MX=190,MZ=105,SYM=['🍒','🍋','🔔','⭐','💎','7️⃣','🛸'],reels=[],slot={spin:0,cd:0,res:[0,0,0]};
+    box(root,40,46,18,lam(0xc81a3a,0x2a0408),MX,23,MZ);box(root,42,4,20,basic(0xffd040),MX,47,MZ);box(root,42,3,20,basic(0xffd040),MX,1.5,MZ);colliders.push({x0:MX-20,x1:MX+20,z0:MZ-9,z1:MZ+9,h:49,y0:0});
+    for(let k=0;k<3;k++){const c=document.createElement('canvas');c.width=128;c.height=128;const tex=new THREE.CanvasTexture(c);const m=new THREE.Mesh(new THREE.PlaneGeometry(10,11),new THREE.MeshBasicMaterial({map:tex}));m.position.set(MX-12+k*12,28,MZ+9.1);m.userData.keep=true;root.add(m);reels.push({c,tex,sym:6});}
+    const drawReel=R=>{const g=R.c.getContext('2d');g.fillStyle='#fffaf0';g.fillRect(0,0,128,128);g.font='84px system-ui,"Apple Color Emoji","Segoe UI Emoji"';g.textAlign='center';g.textBaseline='middle';g.fillText(SYM[R.sym],64,70);R.tex.needsUpdate=true;};reels.forEach(drawReel);
+    sign('SPIN TO WIN','#ffd040',30,7,MX,40,MZ+9.2,0);
+    const lever=new THREE.Group();lever.position.set(MX+27,30,MZ);lever.userData.keep=true;root.add(lever);const stick=new THREE.Mesh(new THREE.CylinderGeometry(0.6,0.6,16,8),lam(0xd8d8e8));stick.position.y=8;lever.add(stick);const knob=new THREE.Mesh(new THREE.SphereGeometry(3,12,8),basic(0xff2a4a));knob.position.y=16;lever.add(knob);
+    const knobGlow=glowSprite(0xff2a4a,MX+27,46,MZ,22,0.7);box(root,7,3,3,0xd8d8e8,MX+23,30,MZ);
+    planetAnim.push({town:'vegasmap',f:(t,dt)=>{knobGlow.material.opacity=slot.cd>0?0.15:0.5+0.3*Math.sin(t*5);slot.cd-=dt;
+      if(slot.spin>0){slot.spin-=dt;lever.rotation.x=-Math.min(1,slot.spin)*0.9;
+        reels.forEach((R,k)=>{if(slot.spin>0.6*(3-k)/3+0.2||slot.spin>2.2-k*0.5){R.sym=(R.sym+1)%SYM.length;drawReel(R);}else if(R.sym!==slot.res[k]){R.sym=slot.res[k];drawReel(R);}});
+        if(slot.spin<=0){reels.forEach((R,k)=>{R.sym=slot.res[k];drawReel(R);});const [a,b,c]=slot.res;
+          if(a===b&&b===c){const big=a===6||a===5;const pts=big?777:300,cr=big?500:150;score+=pts;save.bank+=cr;persist();mEvent('jackpot');pop(big?'🎰 MEGA JACKPOT!!!':'🎰 JACKPOT!');pop(`+${pts} · 💰 +${cr}`,'t');
+            for(let k=0;k<40;k++)spawnFx(tmpV2.set(MX,48,MZ+10),tmpV.set(rand(-1,1),rand(0.4,1.5),rand(-1,1)).multiplyScalar(18),1.4,rand(2,4),5,pick([0xffd040,0xfff0a0,0xff3fd2]),true);blip(523,1046,0.3,'square',0.12);setTimeout(()=>blip(784,1568,0.5,'square',0.12),200);}
+          else if(a===b||b===c||a===c){score+=50;pop('🎰 Two of a kind! +50','t');blip(660,990,0.2,'triangle',0.1);}
+          else{pop('🎰 No luck… try again in a few seconds','t');blip(300,150,0.3,'triangle',0.08);}}}
+      else lever.rotation.x*=0.9;
+      if(state==='play'&&!onFoot&&slot.cd<=0&&slot.spin<=0&&knob.getWorldPosition(tmpV).distanceTo(pos)<16){slot.cd=6;slot.spin=2.4;
+        const r=Math.random();slot.res=r<0.12?[6,6,6]:r<0.25?[5,5,5]:r<0.38?(()=>{const s=(Math.random()*5)|0;return[s,s,s];})():[(Math.random()*7)|0,(Math.random()*7)|0,(Math.random()*7)|0];
+        pop('🎰 SPINNING…');blip(800,1200,0.15,'square',0.08);}}});}
+  // 🕺 Elvis impersonators, 💃 showgirls and 📸 photographers on the real Strip (by the fountain lake, mid-Strip and down by the pyramid)
+  for(let i=0;i<6;i++){const T={type:'critter',mesh:makeElvis(),spawn:spawnCow,fl:[{x:-84,z:24,rad:9},{x:-86,z:300,rad:9},{x:-70,z:-300,rad:9}],rad:9};T.spawn(T);targets.push(T);}
+  for(let i=0;i<6;i++){const T={type:'critter',mesh:makeShowgirl(),spawn:spawnCow,fl:[{x:-84,z:-44,rad:9},{x:-85,z:700,rad:9},{x:-86,z:200,rad:9}],rad:9};T.spawn(T);targets.push(T);}
+  for(let i=0;i<14;i++){const g=makeHuman(false);g.userData.emoji='📸';g.userData.pts=60;const T={type:'critter',mesh:useAnim('person',g,'vegasmap'),spawn:spawnCow,fl:[{x:-84,z:-10},{x:-84,z:842},{x:160,z:140}],rad:16};T.mesh.userData.T=T;T.spawn(T);targets.push(T);}
   // people to beam up along the Strip
   const spots=[];D.road.forEach((s,i)=>{if(s[4]>5&&i%9===0&&Math.abs(s[0])<260)spots.push({x:s[0]+10,z:s[1]});});
   for(let i=0;i<26;i++){const T={type:'critter',mesh:useAnim('person',makeHuman(false),'vegasmap'),spawn:spawnCow,fl:spots.length?spots:[{x:0,z:0}],rad:20};T.spawn(T);targets.push(T);}
