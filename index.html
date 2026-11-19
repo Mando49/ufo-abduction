@@ -4825,9 +4825,9 @@ function makeShowgirl(){
   // ===================== GREATER LAS VEGAS: Fremont Street, Nellis AFB, Hoover Dam =====================
   for(let i=0;i<40;i++){const a=rand(0,2*PI),r=rand(700,1250);flatPlane(rand(120,260),rand(120,260),pick([0x7a5a44,0x5e4636,0x846450,0x6e5242]),-1,Math.cos(a)*r,Math.sin(a)*r).rotation.z=rand(0,PI);}
   // 💡 FREMONT STREET (old downtown, north end of Las Vegas Blvd)
-  {const FZ=-860,FL=300,FW=32,objs=[],add=m=>{objs.push(m);return m;}; // Fremont: 600 long, 64 wide, open down the middle so the UFO can fly it end to end
-    add(flatPlane(46,240,0x22232a,-2,0,-790)); // Las Vegas Blvd continues downtown
-    for(let z=-780;z<=-680;z+=33)add(palmTree(-27,z,1));
+  window.__fremont=function(FZ,TOWN){const FL=300,FW=32,objs=[],add=m=>{objs.push(m);return m;}; // Fremont: 600 long, 64 wide, open down the middle so the UFO can fly it end to end
+    if(TOWN==='vegas'){add(flatPlane(46,240,0x22232a,-2,0,-790)); // Las Vegas Blvd continues downtown
+    for(let z=-780;z<=-680;z+=33)add(palmTree(-27,z,1));}
     add(flatPlane(FL*2+20,FW*2,0x5a4a52,-2,0,FZ)); // pedestrian mall
     for(let x=-FL;x<=FL;x+=12)add(flatPlane(1.2,FW*2-4,0x7a6a72,-3,x,FZ));
     for(const sd of[-1,1])add(flatPlane(FL*2,1,0xffd040,-3,0,FZ+sd*21)); // gold lines marking the open fly-through lane
@@ -4905,16 +4905,16 @@ function makeShowgirl(){
     freezeStatic(objs,root,true);
     // downtown crowd: tourists the whole length of the street
     const FLD=[];for(let x=-250;x<=250;x+=100)FLD.push({x,z:FZ});
-    for(let i=0;i<40;i++){const g=makeHuman(false);g.userData.emoji='📸';g.userData.pts=60;const T={type:'critter',mesh:useAnim('person',g,'vegas'),spawn:spawnCow,fl:FLD,rad:23};T.mesh.userData.T=T;T.spawn(T);targets.push(T);}
+    for(let i=0;i<40;i++){const g=makeHuman(false);g.userData.emoji='📸';g.userData.pts=60;const T={type:'critter',mesh:useAnim('person',g,TOWN),spawn:spawnCow,fl:FLD,rad:23};T.mesh.userData.T=T;T.spawn(T);targets.push(T);}
     // 🦸 made-up costumed street performers (beam them up for big points)
     const PERF=[['fhero','🦸',250],['fmonster','👹',250],['fstatue','🤠',300]];
     for(let i=0;i<10;i++){const [ty,em,pts]=PERF[i%3],sx=SPOTS[i%4],g=makeHuman(false);g.userData.emoji=em;g.userData.pts=pts;g.userData.heat=0.5;
-      const T={type:'critter',mesh:useAnim(ty,g,'vegas'),fl:[{x:sx,z:FZ-6}],rad:ty==='fstatue'?4:8,still:ty==='fstatue',
+      const T={type:'critter',mesh:useAnim(ty,g,TOWN),fl:[{x:sx,z:FZ-6}],rad:ty==='fstatue'?4:8,still:ty==='fstatue',
         spawn:T=>{spawnCow(T);if(T.still){T.mesh.position.set(sx+rand(-4,4),0,FZ-6+rand(-4,4));T.mesh.rotation.set(0,rand(0,2*PI),0);}}};
       T.mesh.userData.T=T;T.spawn(T);targets.push(T);}
-    planetAnim.push({town:'vegas',f:(t,dt)=>{ct-=dt;if(ct<=0&&Math.abs(pos.z-FZ)<600){ct=0.08;drawCanopy(t);}arm.rotation.z=Math.sin(t*3)*0.6;
+    planetAnim.push({town:TOWN,f:(t,dt)=>{ct-=dt;if(ct<=0&&Math.abs(pos.z-FZ)<600){ct=0.08;drawCanopy(t);}arm.rotation.z=Math.sin(t*3)*0.6;
       riders.forEach(T=>{if(T.state!=='ground')return;T.u+=dt*0.05;if(T.u>1)T.u=0;T.mesh.position.lerpVectors(Z0,Z1,T.u);T.mesh.position.y-=4.2;T.mesh.rotation.set(0,0,0);});}});
-  }
+  };__fremont(-860,'vegas'); // a function, so the real-map Strip gets Fremont Street too
   // ✈️ NELLIS AIR FORCE BASE (north-east)
   {const NX=640,NZ=-860,objs=[],add=m=>{objs.push(m);return m;};
     add(flatPlane(640,330,0x5e5650,-1.2,NX,NZ+20));
@@ -5297,6 +5297,8 @@ beginTown('vegasmap');
         if(show&&Math.random()<0.08)spawnFx(tmpV2.set(j.position.x,h,j.position.z),tmpV.set(rand(-3,3),rand(2,6),rand(-3,3)),0.8,2,3,0xe8f4ff,true);});
       mist.forEach(M=>{M.m.material.opacity=show?0.08+0.2*(0.5+0.5*Math.sin(t*1.7+M.ph)):0.04;M.m.position.y=11+Math.sin(t+M.ph)*2;});
       fMsg-=dt;if(show&&fMsg<=0&&state==='play'&&Math.hypot(pos.x-FX,pos.z-(z0+z1)/2)<110){fMsg=40;pop('⛲ FOUNTAIN SHOW!','t');}}});}
+  // 💡 FREMONT STREET: the canopy, zipline and old downtown, placed just past the north end of the real map (in real life it is a couple of miles further north)
+  __fremont(-1262,'vegasmap');
   // 🪟 MANDO WINDOW TINTING on an empty lot east of the Strip (same shop as the classic Vegas)
   __tintShop(385,470,'vegasmap');
   // 🎰 the giant slot machine on an empty lot east of the Strip: fly through the glowing red handle to spin
