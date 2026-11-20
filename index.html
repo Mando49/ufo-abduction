@@ -4434,14 +4434,18 @@ beginTown('vegas');
   {const chains=[];let cur=null;D.road.forEach(s=>{if(s[4]<4.2){cur=null;return;}const e=cur&&cur.p[cur.p.length-1];
       if(cur&&cur.w===s[4]&&Math.abs(e[0]-s[0])<0.2&&Math.abs(e[1]-s[1])<0.2)cur.p.push([s[2],s[3]]);else{cur={w:s[4],p:[[s[0],s[1]],[s[2],s[3]]]};chains.push(cur);}});
     chains.forEach(c=>{c.len=[0];for(let i=1;i<c.p.length;i++)c.len.push(c.len[i-1]+Math.hypot(c.p[i][0]-c.p[i-1][0],c.p[i][1]-c.p[i-1][1]));c.L=c.len[c.len.length-1];});
+    // which road pieces join end to end (so a car can keep driving down the freeway instead of vanishing where one piece stops)
+    const EK=q=>Math.round(q[0]*2)+','+Math.round(q[1]*2),ENDS={};chains.forEach(c=>{if(c.L<8)return;[[c.p[0],1],[c.p[c.p.length-1],-1]].forEach(([q,dir])=>{(ENDS[EK(q)]=ENDS[EK(q)]||[]).push([c,dir]);});});
+    const nextRoad=(c,end,keep)=>{const q=end?c.p[c.p.length-1]:c.p[0],q0=end?c.p[c.p.length-2]:c.p[1],hx=q[0]-q0[0],hz=q[1]-q0[1],L=(ENDS[EK(q)]||[]).filter(e=>e[0]!==c&&(!keep||keep(e[0])));let best=null,bd=-0.2;
+      for(const e of L){const n=e[0],a=e[1]>0?n.p[0]:n.p[n.p.length-1],b=e[1]>0?n.p[1]:n.p[n.p.length-2],dx=b[0]-a[0],dz=b[1]-a[1],dot=(hx*dx+hz*dz)/Math.max(0.001,Math.hypot(hx,hz)*Math.hypot(dx,dz))+(n.w===c.w?0.3:0)+Math.random()*0.15;if(dot>bd){bd=dot;best=e;}}return best;};
     const big=chains.filter(c=>c.L>140).sort((a,b)=>b.L-a.L).slice(0,26),cars=[],o={x:0,z:0,a:0};
     const at=(c,d)=>{let i=1;while(i<c.len.length-1&&c.len[i]<d)i++;const a=c.p[i-1],b=c.p[i],t=(d-c.len[i-1])/Math.max(0.001,c.len[i]-c.len[i-1]);o.x=a[0]+(b[0]-a[0])*t;o.z=a[1]+(b[1]-a[1])*t;o.a=Math.atan2(b[1]-a[1],b[0]-a[0]);};
     if(big.length)for(let i=0;i<34;i++){const c=big[i%big.length],g=makeCar();if(!g.userData.police)g.userData.emoji='🚗';const C={c,d:rand(0,c.L),dir:i%2?1:-1,sp:rand(14,24)};
-      const T={type:'critter',mesh:g,still:true,spawn:T=>{C.d=rand(0,c.L);T.mesh.visible=true;T.state='ground';resetRot(T.mesh);}};T.state='ground';targets.push(T);C.T=T;cars.push(C);}
+      const T={type:'critter',mesh:g,still:true,spawn:T=>{C.d=rand(0,C.c.L);T.mesh.visible=true;T.state='ground';resetRot(T.mesh);}};T.state='ground';targets.push(T);C.T=T;cars.push(C);}
     // 🏎️ luxury cars cruising the Strip itself (150 pts)
     {const strip=chains.filter(c=>{let sx=0,sz=0;c.p.forEach(q=>{sx+=q[0];sz+=q[1];});sx/=c.p.length;sz/=c.p.length;return c.L>45&&c.w>=5.5&&sx>-120&&sx<40&&sz>-700&&sz<900&&Math.abs(c.p[0][1]-c.p[c.p.length-1][1])>Math.abs(c.p[0][0]-c.p[c.p.length-1][0]);}).sort((a,b)=>b.L-a.L).slice(0,10),use=strip.length?strip:big;
-      for(let i=0;i<14;i++){const c=use[i%use.length],g=__mkLux(i),C={c,d:rand(0,c.L),dir:i%2?1:-1,sp:rand(16,26)};const T={type:'critter',mesh:g,still:true,spawn:T=>{C.d=rand(0,c.L);T.mesh.visible=true;T.state='ground';resetRot(T.mesh);}};T.state='ground';targets.push(T);C.T=T;cars.push(C);}}
-    planetAnim.push({town:'vegas',f:(t,dt)=>{cars.forEach(C=>{if(C.T.state!=='ground')return;C.d+=C.dir*C.sp*dt;if(C.d>C.c.L)C.d-=C.c.L;if(C.d<0)C.d+=C.c.L;at(C.c,C.d);const off=C.c.w*0.22*C.dir,m=C.T.mesh;
+      for(let i=0;i<14;i++){const c=use[i%use.length],g=__mkLux(i),C={c,d:rand(0,c.L),dir:i%2?1:-1,sp:rand(16,26),keep:n=>use.includes(n)};const T={type:'critter',mesh:g,still:true,spawn:T=>{C.d=rand(0,C.c.L);T.mesh.visible=true;T.state='ground';resetRot(T.mesh);}};T.state='ground';targets.push(T);C.T=T;cars.push(C);}}
+    planetAnim.push({town:'vegas',f:(t,dt)=>{cars.forEach(C=>{if(C.T.state!=='ground')return;C.d+=C.dir*C.sp*dt;if(C.d>C.c.L||C.d<0){const n=nextRoad(C.c,C.d>0?1:0,C.keep);if(n){C.c=n[0];C.dir=n[1];C.d=n[1]>0?0.01:n[0].L-0.01;}else{C.dir=-C.dir;C.d=clamp(C.d,0.01,C.c.L-0.01);}}at(C.c,C.d);const off=C.c.w*0.22*C.dir,m=C.T.mesh;
       m.position.set(o.x-Math.sin(o.a)*off,0,o.z+Math.cos(o.a)*off);m.rotation.set(0,-o.a+(C.dir<0?PI:0),0);});}});}
   // crowds at the Sphere and under the big wheel (only on open ground, never inside a building)
   {const inB=(x,z)=>BL.some(b=>{const n=(b.length-2)/2;let c=false;for(let i=0,j=n-1;i<n;j=i++){const xi=b[2+2*i],zi=b[3+2*i],xj=b[2+2*j],zj=b[3+2*j];if((zi>z)!==(zj>z)&&x<(xj-xi)*(z-zi)/(zj-zi)+xi)c=!c;}return c;});
@@ -7416,6 +7420,17 @@ inTown('desert',()=>{
     const pod=mk(sh,5,5,9,drk,0,-14,2);for(const dx of[-1.2,1.2])for(const dy of[-1.2,1.2])mk(sh,1.4,1.4,0.5,red,dx,-14+dy,6.6);arms.push(sh);
     const hp=new THREE.Group();hp.position.set(s*5,18,0);g.add(hp);mk(hp,4.6,10,4.6,arm,0,-5,0);const kn=new THREE.Group();kn.position.y=-10;hp.add(kn);mk(kn,4,9,4,drk,0,-4.5,0);mk(kn,6,2.4,9,arm,0,-9,1.5);legs.push({hp,kn});}
   g.traverse(o=>{if(o.isMesh)o.frustumCulled=false;});useAnim('mech',g,'desert');
+  // the pit it climbs out of: black hole, concrete rim, hazard ring, two sliding doors and a red glow from below
+  const pit=new THREE.Group();pit.position.set(MX,0,MZ);pit.visible=false;root.add(pit);
+  {const hole=new THREE.Mesh(new THREE.CircleGeometry(25,24),new THREE.MeshBasicMaterial({color:0x020203,polygonOffset:true,polygonOffsetFactor:-6,polygonOffsetUnits:-6}));hole.rotation.x=-PI/2;hole.position.y=0.22;pit.add(hole);
+    const rim=new THREE.Mesh(new THREE.CylinderGeometry(27.5,29,2.4,24,1,true),new THREE.MeshLambertMaterial({color:0x5a5e58,side:THREE.DoubleSide}));rim.position.y=1.2;pit.add(rim);
+    const lip=new THREE.Mesh(new THREE.RingGeometry(25,27.6,24),new THREE.MeshLambertMaterial({color:0x777b72}));lip.rotation.x=-PI/2;lip.position.y=2.4;pit.add(lip);
+    const well=new THREE.Mesh(new THREE.CylinderGeometry(25,25,2.3,24,1,true),new THREE.MeshBasicMaterial({color:0x101214,side:THREE.BackSide}));well.position.y=1.25;pit.add(well);
+    for(let k=0;k<12;k++){const a=k/12*2*PI,st=new THREE.Mesh(new THREE.BoxGeometry(6,0.3,2.6),basic(k%2?0xffc020:0x1a1a1a));st.position.set(Math.cos(a)*31.5,0.25,Math.sin(a)*31.5);st.rotation.y=-a+PI/2;pit.add(st);}
+    pit.userData.doors=[-1,1].map(sd=>{const d=new THREE.Mesh(new THREE.BoxGeometry(25,0.8,50),new THREE.MeshLambertMaterial({color:0x3a3e38}));d.position.set(sd*12.5,2.1,0);pit.add(d);const s2=new THREE.Mesh(new THREE.BoxGeometry(1.2,0.9,50),basic(0xffc020));s2.position.set(-sd*11.8,0,0);d.add(s2);return d;});
+    const gl=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:0xff3a20,transparent:true,opacity:0.5,blending:THREE.AdditiveBlending,depthWrite:false}));gl.scale.set(70,70,1);gl.position.y=3;pit.add(gl);pit.userData.gl=gl;pit.traverse(o=>{o.userData.keep=true;});}
+  const pitDoors=k=>{pit.userData.doors.forEach((d,i)=>{d.position.x=(i?1:-1)*(12.5+k*27);});pit.userData.gl.material.opacity=0.55*k;};
+  const DC=towns.desert.colliders,blocked=(x,z,r)=>{for(const c of DC){if(c.x0===undefined||(c.h||0)<9||(c.y0||0)>12)continue;if(x>c.x0-r&&x<c.x1+r&&z>c.z0-r&&z<c.z1+r)return true;}return false;};
   // hatch it rises out of
   const hatch=new THREE.Mesh(new THREE.CircleGeometry(26,8),new THREE.MeshLambertMaterial({color:0x2a2c26}));hatch.rotation.x=-PI/2;hatch.position.set(MX,0.15,MZ);root.add(hatch);
   const hz=new THREE.Mesh(new THREE.RingGeometry(24,26,8),new THREE.MeshBasicMaterial({color:0xffc020,side:THREE.DoubleSide}));hz.rotation.x=-PI/2;hz.position.set(MX,0.2,MZ);root.add(hz);hatch.visible=hz.visible=false;
@@ -7424,20 +7439,20 @@ inTown('desert',()=>{
   const B={town:'desert',p:new V3(),r:9,hp:140,max:140,st:'sleep',cd:20,rise:0,mcd:4,lcd:7,lt:-1,aim:new V3(),lastHp:140,flash:0,touch:0,walk:0,
     alive(){return this.st==='fight';},
     onKill(){const p=this.p.clone();for(let i=0;i<7;i++)setTimeout(()=>explode(p.clone().add(new V3(rand(-10,10),rand(-30,4),rand(-10,10))),true),i*160);
-      this.st='dead';this.cd=120;beam.visible=false;$('bossbar').style.display='none';score+=800;timer+=15;shield=100;save.bank+=400;persist();heat=0;mEvent('mech');
+      this.st='dead';this.cd=120;pit.position.set(g.position.x,0,g.position.z);pit.visible=true;pitDoors(1);this.shut=0;beam.visible=false;$('bossbar').style.display='none';score+=800;timer+=15;shield=100;save.bank+=400;persist();heat=0;mEvent('mech');
       pop('🤖 MECH-51 DESTROYED!');pop('+800 · +15s · 💰 +400 · shield restored','t');blip(90,40,1.4,'sawtooth',0.2);}};
   EXTRA_TARGETS.push(B);window.MECH=B;
   const eyeW=new V3(),up=new V3(0,1,0),d=new V3();
   desertAnim.push((dt,t)=>{if(curTown!=='desert')return;const play=state==='play'&&mode==='ground'&&!onFoot;
-    if(B.st==='sleep'||B.st==='dead'){B.cd-=dt;if(B.st==='dead'){if(g.position.y<=-45)hatch.visible=hz.visible=false;g.position.y=Math.max(-46,g.position.y-dt*14);g.rotation.z=Math.min(0.5,g.rotation.z+dt*0.4);}
-      if(play&&B.cd<=0&&heat>=2&&pos.y<200){B.st='rise';B.rise=0;B.hp=B.max;B.lastHp=B.max;B.mcd=4.5;B.lcd=6;B.lt=-1;MX=clamp(pos.x+fwd.x*110,-560,560);MZ=clamp(pos.z+fwd.z*110,-560,560);hatch.position.set(MX,0.15,MZ);hz.position.set(MX,0.2,MZ);hatch.visible=hz.visible=true;g.position.set(MX,-46,MZ);g.rotation.set(0,0,0);
+    if(B.st==='sleep'||B.st==='dead'){B.cd-=dt;if(B.st==='dead'){if(g.position.y<=-45){if(pit.visible){B.shut=(B.shut||0)+dt;pitDoors(Math.max(0,1-B.shut/1.5));if(B.shut>4)pit.visible=false;}}g.position.y=Math.max(-46,g.position.y-dt*14);g.rotation.z=Math.min(0.5,g.rotation.z+dt*0.4);}
+      if(play&&B.cd<=0&&heat>=2&&pos.y<200){B.st='rise';B.rise=0;B.hp=B.max;B.lastHp=B.max;B.mcd=4.5;B.lcd=6;B.lt=-1;{const a0=Math.atan2(fwd.x,fwd.z);let ok=false;for(const rr of[110,140,80,170,210]){for(const da of[0,0.5,-0.5,1,-1,1.6,-1.6,2.4,-2.4,PI]){const x=clamp(pos.x+Math.sin(a0+da)*rr,-560,560),z=clamp(pos.z+Math.cos(a0+da)*rr,-560,560);if(!blocked(x,z,34)){MX=x;MZ=z;ok=true;break;}}if(ok)break;}if(!ok){MX=clamp(pos.x+fwd.x*110,-560,560);MZ=clamp(pos.z+fwd.z*110,-560,560);}}pit.position.set(MX,0,MZ);pit.visible=true;B.shut=0;pitDoors(0);g.position.set(MX,-46,MZ);g.rotation.set(0,0,0);
         pop('⚠️ MECH-51 ACTIVATED!');pop('Shoot its HEAD with FIRE · dodge the red laser','t');shake=Math.max(shake,0.9);blip(60,30,1.6,'sawtooth',0.2);
         $('bossbar').querySelector('.lbl').textContent='MECH-51';$('bossbar').style.display='block';}
       return;}
-    if(B.st==='rise'){B.rise+=dt;g.position.y=-46+Math.min(1,B.rise/3)*46;shake=Math.max(shake,0.25);if(B.rise>=3)B.st='fight';}
+    if(B.st==='rise'){B.rise+=dt;pitDoors(Math.min(1,B.rise/0.9));g.position.y=-46+clamp((B.rise-0.7)/2.3,0,1)*46;shake=Math.max(shake,0.25);if(B.rise>=3)B.st='fight';}
     // walk toward the UFO
     const dx=pos.x-g.position.x,dz=pos.z-g.position.z,dist=Math.hypot(dx,dz),want=Math.atan2(dx,dz);let da=want-g.rotation.y;while(da>PI)da-=2*PI;while(da<-PI)da+=2*PI;g.rotation.y+=da*Math.min(1,dt*1.5);
-    if(B.st==='fight'&&dist>60&&B.lt<0){g.position.x+=Math.sin(g.rotation.y)*9*dt;g.position.z+=Math.cos(g.rotation.y)*9*dt;B.walk+=dt*2.2;
+    if(B.st==='fight'&&dist>60&&B.lt<0){{const h=g.rotation.y,st=9*dt,px=g.position.x,pz=g.position.z;B.dodge=Math.max(0,(B.dodge||0)-dt);if(B.dodge<=0)B.side=0;let mv=null;const sd=B.side||1,tries=[0,sd*0.7,sd*1.3,sd*1.9,sd*2.5,-sd*0.7,-sd*1.3,-sd*1.9];for(const da of tries){const nx=px+Math.sin(h+da)*st,nz=pz+Math.cos(h+da)*st,ax=px+Math.sin(h+da)*14,az=pz+Math.cos(h+da)*14;if(!blocked(nx,nz,9)&&!blocked(ax,az,9)){mv=[nx,nz];if(da){if(!B.side)B.side=Math.sign(da);B.dodge=10;}break;}}if(!mv&&blocked(px,pz,9))mv=[px+Math.sin(h)*st,pz+Math.cos(h)*st];if(mv){g.position.x=mv[0];g.position.z=mv[1];}}B.walk+=dt*2.2;
       if(Math.sin(B.walk)*Math.sin(B.walk-dt*2.2)<0){shake=Math.max(shake,dist<200?0.35:0);blip(70,40,0.15,'sine',0.08);}}
     legs.forEach((L,i)=>{const s=Math.sin(B.walk+i*PI);L.hp.rotation.x=s*0.45;L.kn.rotation.x=Math.max(0,-s)*0.7;});
     torso.rotation.y=Math.sin(t*0.8)*0.12;arms.forEach((a,i)=>{a.rotation.x=-clamp(Math.atan2(pos.y-35,Math.max(20,dist)),-0.2,1.2)-0.3+Math.sin(t*2+i)*0.05;});
@@ -7455,7 +7470,7 @@ inTown('desert',()=>{
       if(fire){const v=tmpV.copy(pos).sub(eyeW),along=clamp(v.dot(d),0,len),off=v.addScaledVector(d,-along).length();if(off<5&&B.touch<=0){B.touch=0.6;hurt(18);pop('🔴 LASER HIT!','t');}}
       if(B.lt>1.9){B.lt=-1;beam.visible=false;}}
     B.touch-=dt;if(dist<14&&pos.y<46&&B.touch<=0){B.touch=0.8;hurt(10);pop('🤖 CRUSHED!','t');}
-    if(dist>700){B.st='sleep';B.cd=30;g.position.set(MX,-46,MZ);beam.visible=false;$('bossbar').style.display='none';pop('🤖 MECH-51 powers down…','t');}});
+    if(dist>700){B.st='sleep';B.cd=30;pit.visible=false;g.position.set(MX,-46,MZ);beam.visible=false;$('bossbar').style.display='none';pop('🤖 MECH-51 powers down…','t');}});
   // (the pit closes after it sinks)
 });
 // 🛸 UNLOCKABLE SHIPS: Jellyfish UFO, Chrome Orb, Gold High Roller
