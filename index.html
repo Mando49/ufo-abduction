@@ -4447,7 +4447,10 @@ beginTown('city');
   const inWater=(x,z)=>D.water.some(w=>inP(x,z,w));
   // Central Park: meadows for the cows and a lot of trees
   const tr=[],meadow=[];
-  for(let i=0;i<9000&&tr.length<900;i++){const x=rand(0,760),z=rand(-900,-300);if(!inP(x,z,D.cpark)||inWater(x,z))continue;if(hash(Math.floor(x/70),Math.floor(z/70))>0.72){if(meadow.length<10&&Math.hypot(x,z)<760&&!meadow.some(m=>Math.hypot(m.x-x,m.z-z)<90))meadow.push({x,z});continue;}tr.push({x,z,s:rand(0.7,1.3),c:[0x1f5a22,0x2a6a26,0x356e2a,0x3a6a22][Math.floor(Math.random()*4)]});}
+  {const ux=0.482,uz=-0.876,vx=0.876,vz=0.482;let u1=-1e9,v0=1e9,v1=-1e9;for(let i=0;i<D.cpark.length;i+=2){const x=D.cpark[i],z=D.cpark[i+1],u=x*ux+z*uz,v=x*vx+z*vz;u1=Math.max(u1,u);v0=Math.min(v0,v);v1=Math.max(v1,v);}
+    const L=1100,uc=u1+L/2-14,vc=(v0+v1)/2,W=v1-v0-6,ext=new THREE.Mesh(new THREE.PlaneGeometry(W,L),new THREE.MeshBasicMaterial({color:0x2c5a2a,polygonOffset:true,polygonOffsetFactor:-5,polygonOffsetUnits:-5}));ext.rotation.x=-PI/2;ext.rotation.z=Math.atan2(vz,vx)*-1;ext.position.set(ux*uc+vx*vc,0.1,uz*uc+vz*vc);ext.userData.keep=true;root.add(ext);
+    for(let i=0;i<260;i++){const a=rand(-W/2+6,W/2-6),b=rand(-L/2,L/2),x=ux*(uc+b)+vx*(vc+a),z=uz*(uc+b)+vz*(vc+a);tr.push({x,z,s:rand(0.7,1.3),c:[0x1f5a22,0x2a6a26,0x356e2a,0x3a6a22][i%4]});}}
+  for(let i=0;i<9000&&tr.length<900;i++){const x=rand(0,760),z=rand(-900,-300);if(!inP(x,z,D.cpark)||inWater(x,z))continue;if(hash(Math.floor(x/70),Math.floor(z/70))>0.72){if(meadow.length<10&&Math.hypot(x,z)<760&&!meadow.some(m=>Math.hypot(m.x-x,m.z-z)<90)&&[[46,0],[-46,0],[0,46],[0,-46],[33,33],[-33,33],[33,-33],[-33,-33]].every(o=>inP(x+o[0],z+o[1],D.cpark)&&!inWater(x+o[0],z+o[1])))meadow.push({x,z});continue;}tr.push({x,z,s:rand(0.7,1.3),c:[0x1f5a22,0x2a6a26,0x356e2a,0x3a6a22][Math.floor(Math.random()*4)]});}
   D.park.forEach(p=>{let x0=1e9,x1=-1e9,z0=1e9,z1=-1e9;for(let i=0;i<p.length;i+=2){x0=Math.min(x0,p[i]);x1=Math.max(x1,p[i]);z0=Math.min(z0,p[i+1]);z1=Math.max(z1,p[i+1]);}const n=Math.min(40,Math.round((x1-x0)*(z1-z0)/260));for(let i=0;i<n;i++){const x=rand(x0,x1),z=rand(z0,z1);if(inP(x,z,p)&&!inWater(x,z)&&Math.hypot(x-D.sp.bryant[0],z-D.sp.bryant[1])>26)tr.push({x,z,s:rand(0.6,1),c:0x2f6e2a});}});
   for(let i=tr.length-1;i>=0;i--)if(meadow.some(m=>Math.hypot(m.x-tr[i].x,m.z-tr[i].z)<52))tr.splice(i,1); // keep the cow meadows (and their crop circles) clear of trees
   inst(new THREE.CylinderGeometry(0.4,0.6,5,4,1,true),new THREE.MeshLambertMaterial({color:0x4a3422}),tr,t=>compose(t.x,2.5*t.s,t.z,t.s,t.s,t.s,0,0,0));
@@ -4642,8 +4645,8 @@ beginTown('city');
       trains.push({cars,d:n*L/2,wait:0,lastSt:-1});}
     TRAIN_CARS.forEach(c=>useModel(c.k===0||c.k===4?'trainF':'trainM',c.g));}
   // 🦊 foxes and 🚜 park tractors in Central Park, 🤖 robots in the small parks (so the old Neon City missions still work)
-  for(let i=0;i<10;i++){const T={type:'critter',mesh:useAnim('fox',makeFox(),'city'),spawn:spawnCow,fl:fields};T.mesh.userData.T=T;T.spawn(T);targets.push(T);}
-  for(let i=0;i<4;i++){const T={type:'critter',mesh:makeTractor(),spawn:spawnCow,fl:fields};T.spawn(T);targets.push(T);}
+  for(let i=0;i<10;i++){const T={type:'critter',mesh:useAnim('fox',makeFox(),'city'),spawn:spawnCow,fl:fields,rad:30};T.mesh.userData.T=T;T.spawn(T);targets.push(T);}
+  for(let i=0;i<4;i++){const T={type:'critter',mesh:makeTractor(),spawn:spawnCow,fl:fields,rad:26};T.spawn(T);targets.push(T);}
   {const sp=[[283,-276],[138,354],[-236,403],[437,294],[3.5,-499],[-472,-442]];for(let i=0;i<8;i++){const q=sp[i%sp.length],T={type:'critter',mesh:useAnim('robot',makeRobot(),'city'),spawn:spawnCow,fl:[{x:q[0],z:q[1]}],rad:12};T.mesh.userData.T=T;T.spawn(T);targets.push(T);}}
   window.__cityBF=[{x:130,z:-640},{x:420,z:-650}]; // Bigfoot's two patches of pine woods, deep in Central Park
   // 🌭 hot dog carts on the busy corners (beam-able, 90 pts)
@@ -4659,7 +4662,7 @@ beginTown('city');
     fly('sr71',560,142,0.3,0,0,0.35);fly('wing',400,128,-0.12,60,-60,0.2);fly('bop',150,56,0.5,-790,-90,0.6);fly('bop',130,50,-0.42,-770,540,0.55);
     planetAnim.push({town:'city',f:t=>{flyers.forEach(F=>{const a=t*F.sp+F.ph;F.g.position.set(F.cx+Math.cos(a)*F.r,F.y+Math.sin(t*0.5+F.ph)*5,F.cz+Math.sin(a)*F.r);const dir=Math.sign(F.sp);F.g.rotation.set(0,-a-dir*PI/2,0);F.g.rotateX(-dir*F.bank);});}});}
   window.__nyc={TALL,LOW,meadow,EDG};
-  for(let i=0;i<14;i++){const T={type:'cow',mesh:makeCow(),spawn:spawnCow,fl:fields};T.spawn(T);targets.push(T);}
+  for(let i=0;i<14;i++){const T={type:'cow',mesh:makeCow(),spawn:spawnCow,fl:fields,rad:30};T.spawn(T);targets.push(T);}
   for(let i=0;i<40;i++){const T={type:'critter',mesh:useAnim('person',makeHuman(false),'city'),spawn:spawnCow,fl:[{x:TS[0],z:TS[1],rad:12},{x:TS[0]+12,z:TS[1]-24,rad:10},{x:TS[0]-12,z:TS[1]+24,rad:10},{x:D.sp.bryant[0],z:D.sp.bryant[1]},{x:283,z:-276,rad:12},{x:-236,z:403,rad:8},{x:3.5,z:-499,rad:10},{x:138,z:354,rad:8}],rad:22};T.spawn(T);targets.push(T);}
 })();
 endTown('city',[300,1700]);Object.assign(towns.city,{fogC:new THREE.Color(0x141a30),skyTint:0x3a4a8a,label:'🗽 NEW YORK',bloom:0.5});
