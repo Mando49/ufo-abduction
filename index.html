@@ -4378,9 +4378,9 @@ beginTown('vegas');
   // 😴 sleepers on casino and hotel rooftops around the city: a lit bed, a floating "Zzz", beam them up
   {const ZT=__ZZ(),bedOn=new THREE.MeshBasicMaterial({color:0xffe6a0}),bedOff=new THREE.MeshBasicMaterial({color:0x1a1c28}),S=[];let k=0;
     SLP.sort((a,b)=>hash(a.x,a.z)-hash(b.x,b.z));for(const P of SLP){if(S.length>=44)break;if(S.some(o=>Math.hypot(o.P.x-P.x,o.P.z-P.z)<38))continue;
-      const bed=new THREE.Mesh(new THREE.BoxGeometry(4.4,0.5,2.6),bedOn);bed.position.set(P.x+1.2,P.h+0.3,P.z);bed.userData.keep=true;root.add(bed);
+      const bed=new THREE.Mesh(new THREE.BoxGeometry(4.4,0.12,2.6),bedOn);bed.position.set(P.x+1.2,P.h+0.08,P.z);bed.userData.keep=true;root.add(bed); // a lit skylight: the sleeper is in bed in the room below, out of sight, and comes up through the roof when beamed
       const zz=new THREE.Sprite(new THREE.SpriteMaterial({map:ZT,transparent:true,depthWrite:false}));zz.scale.set(6,3,1);zz.userData.keep=true;root.add(zz);
-      const T={type:'critter',mesh:makeHuman(true),still:true};T.spawn=T=>{T.mesh.position.set(P.x,P.h+1.2,P.z);T.mesh.rotation.set(0,0,0);T.mesh.userData.body.rotation.set(0,0,PI/2);T.mesh.userData.body.position.set(1.6,0,0);T.mesh.visible=true;T.state='ground';};
+      const T={type:'critter',mesh:makeHuman(true),still:true};T.spawn=T=>{T.mesh.position.set(P.x,P.h-3.2,P.z);T.mesh.rotation.set(0,0,0);T.mesh.userData.body.rotation.set(0,0,PI/2);T.mesh.userData.body.position.set(1.6,0,0);T.mesh.visible=true;T.state='ground';};
       T.spawn(T);targets.push(T);S.push({P,T,bed,zz,ph:(k++)*0.37});}
     planetAnim.push({town:'vegas',f:(t,dt)=>{S.forEach(o=>{const home=o.T.state==='ground';o.bed.material=home?bedOn:bedOff;o.zz.visible=home;const q=(t*0.6+o.ph)%1;o.zz.position.set(o.P.x+Math.sin(t+o.ph)*1.2,o.P.h+4+q*4,o.P.z);o.zz.material.opacity=1-q;
       if(!home)o.T.mesh.userData.body.rotation.z+=(0-o.T.mesh.userData.body.rotation.z)*Math.min(1,dt*2);});}});}
@@ -4476,9 +4476,9 @@ beginTown('city');
   // 😴 sleepers on low rooftops all over Midtown: a lit bed, a floating "Zzz", beam them up
   {const ZT=__ZZ(),bedOn=new THREE.MeshBasicMaterial({color:0xffe6a0}),bedOff=new THREE.MeshBasicMaterial({color:0x1a1c28}),S=[];let k=0;
     LOW.sort((a,b)=>hash(a.x,a.z)-hash(b.x,b.z));for(const P of LOW){if(S.length>=36)break;if(P.h<8||S.some(o=>Math.hypot(o.P.x-P.x,o.P.z-P.z)<120))continue;
-      const bed=new THREE.Mesh(new THREE.BoxGeometry(4.4,0.5,2.6),bedOn);bed.position.set(P.x+1.2,P.h+0.3,P.z);bed.userData.keep=true;root.add(bed);
+      const bed=new THREE.Mesh(new THREE.BoxGeometry(4.4,0.12,2.6),bedOn);bed.position.set(P.x+1.2,P.h+0.08,P.z);bed.userData.keep=true;root.add(bed); // a lit skylight: the sleeper is in bed in the room below, out of sight, and comes up through the roof when beamed
       const zz=new THREE.Sprite(new THREE.SpriteMaterial({map:ZT,transparent:true,depthWrite:false}));zz.scale.set(6,3,1);zz.userData.keep=true;root.add(zz);
-      const T={type:'critter',mesh:makeHuman(true),still:true};T.spawn=T=>{T.mesh.position.set(P.x,P.h+1.2,P.z);T.mesh.rotation.set(0,0,0);T.mesh.userData.body.rotation.set(0,0,PI/2);T.mesh.userData.body.position.set(1.6,0,0);T.mesh.visible=true;T.state='ground';};
+      const T={type:'critter',mesh:makeHuman(true),still:true};T.spawn=T=>{T.mesh.position.set(P.x,P.h-3.2,P.z);T.mesh.rotation.set(0,0,0);T.mesh.userData.body.rotation.set(0,0,PI/2);T.mesh.userData.body.position.set(1.6,0,0);T.mesh.visible=true;T.state='ground';};
       T.spawn(T);targets.push(T);S.push({P,T,bed,zz,ph:(k++)*0.37});}
     planetAnim.push({town:'city',f:(t,dt)=>{S.forEach(o=>{const home=o.T.state==='ground';o.bed.material=home?bedOn:bedOff;o.zz.visible=home;const q=(t*0.6+o.ph)%1;o.zz.position.set(o.P.x+Math.sin(t+o.ph)*1.2,o.P.h+4+q*4,o.P.z);o.zz.material.opacity=1-q;
       if(!home)o.T.mesh.userData.body.rotation.z+=(0-o.T.mesh.userData.body.rotation.z)*Math.min(1,dt*2);});}});}
