@@ -1049,191 +1049,7 @@ beginTown('desert');
     barriers.forEach(B=>{B.pivot.rotation.z=(.5+.5*Math.sin(t*.35+B.side))*.95;});
     sentry.forEach(S=>{S.head.rotation.y=Math.sin(t*.22+S.phase)*.95;S.beam.material.opacity=.055+.045*(.5+.5*Math.sin(t*1.3+S.phase));S.lamp.material.opacity=.55+.35*(.5+.5*Math.sin(t*2+S.phase));});
   });
-  // ---- SUBLEVEL 9: underground xenobiology laboratory ----
-  const LABX=-300,LABZ=150; // moved out of the main base onto open desert (it overlapped the old buildings)
-  // Surface bunker and elevator access
-  const labShell=new THREE.Group();labShell.position.set(LABX,0,LABZ);root.add(labShell);colliders.push({x0:LABX-49,x1:LABX+49,z0:LABZ-34,z1:LABZ+34,h:21,y0:0});
-  const concrete=lam(0x59636b),darkMetal=lam(0x202a34);
-  const labBody=new THREE.Mesh(new THREE.BoxGeometry(92,18,62),concrete);labBody.position.y=8;labShell.add(labBody);
-  const labRoof=new THREE.Mesh(new THREE.BoxGeometry(98,3,68),darkMetal);labRoof.position.y=18.5;labShell.add(labRoof);
-  const roofStripe=new THREE.Mesh(new THREE.BoxGeometry(82,.35,.5),new THREE.MeshBasicMaterial({color:0xffb83f}));roofStripe.position.set(0,20.1,0);labShell.add(roofStripe);
-  const labSign=neonText('SUBLEVEL 9', '#53dfff',36,7);labSign.position.set(0,15,-31.2);labShell.add(labSign);
-  // Large glass observation windows on the front face
-  const glassMat=new THREE.MeshPhongMaterial({color:0x4bdcff,transparent:true,opacity:.22,shininess:120,side:THREE.DoubleSide,depthWrite:false});
-  for(let i=0;i<3;i++){
-    const wx=-29+i*29;
-    const frame=new THREE.Mesh(new THREE.BoxGeometry(23,9,1.5),darkMetal);frame.position.set(wx,8,-31.5);labShell.add(frame);
-    const pane=new THREE.Mesh(new THREE.BoxGeometry(20,7,.35),glassMat);pane.position.set(wx,8,-32.35);labShell.add(pane);
-    const glow=new THREE.Mesh(new THREE.BoxGeometry(.4,7,.5),new THREE.MeshBasicMaterial({color:i===1?0xff4d6d:0x43ddff}));glow.position.set(wx-9.5,8,-32.65);labShell.add(glow);
-  }
-  // Recessed access ramp with luminous floor strips
-  const ramp=new THREE.Mesh(new THREE.BoxGeometry(24,1,54),lam(0x303943));ramp.position.set(LABX+67,0.3,LABZ+5);root.add(ramp);
-  for(let i=0;i<5;i++){
-    const strip=box(root,18,.18,.45,basic(i%2?0x42dfff:0xffb83f),LABX+67,0.9,LABZ-18+i*10);
-  }
-  const rampRails=[];
-  for(let side of[-1,1]){
-    const rail=box(root,.8,5,54,0x66717c,LABX+67+side*13,2,LABZ+5);rampRails.push(rail);
-  }
-  // Sunken, open-top containment court: the interior is deliberately visible from above
-  const courtFloor=new THREE.Mesh(new THREE.BoxGeometry(124,2,92),lam(0x171f2a));courtFloor.position.set(LABX,0.2,LABZ+112);courtFloor.scale.y=0.2;root.add(courtFloor);
-  const wallMat=lam(0x3c4855);
-  for(const [x,z,w,d] of [[LABX,LABZ+65,124,5],[LABX,LABZ+159,124,5],[LABX-60,LABZ+112,5,94],[LABX+60,LABZ+112,5,94]]){
-    const wall=new THREE.Mesh(new THREE.BoxGeometry(w,15,d),wallMat);wall.position.set(x,7.5,z);root.add(wall);colliders.push({x0:x-w/2,x1:x+w/2,z0:z-d/2,z1:z+d/2,h:15.6,y0:0});
-    const edge=new THREE.Mesh(new THREE.BoxGeometry(w,.6,d),lam(0x647483));edge.position.set(x,15.3,z);root.add(edge);
-  }
-  // Four individual glass containment cells, each with a specimen
-  const specLift=(g,k,em)=>g.traverse(o=>{if(o.isMesh&&o.material&&o.material.color){o.material=o.material.clone();o.material.color.multiplyScalar(k);if(o.material.emissive)o.material.emissive.setHex(em);}});
-  const cells=[],cellLights=[];
-  const specimenColors=[0x6dff9a,0x9c78ff,0xff6d83,0x55dcff];
-  for(let i=0;i<4;i++){
-    const x=LABX-42+i*28,z=LABZ+112;
-    const cage=new THREE.Group();cage.position.set(x,0.4,z);root.add(cage);colliders.push({x0:x-11,x1:x+11,z0:z-14,z1:z+14,h:15,y0:0});
-    const floor=new THREE.Mesh(new THREE.BoxGeometry(24,.8,31),lam(0x263440));floor.position.y=.5;cage.add(floor);
-    const glass=new THREE.Mesh(new THREE.BoxGeometry(21,13,27),new THREE.MeshPhongMaterial({color:specimenColors[i],transparent:true,opacity:.12,shininess:120,side:THREE.DoubleSide,depthWrite:false}));glass.position.y=7;cage.add(glass);
-    for(let xx of[-11,11])for(let zz of[-14,14]){
-      const post=new THREE.Mesh(new THREE.BoxGeometry(.7,14,.7),darkMetal);post.position.set(xx,7,zz);cage.add(post);
-    }
-    const top=new THREE.Mesh(new THREE.BoxGeometry(22,.8,28),darkMetal);top.position.y=14;cage.add(top);
-    for(let k=0;k<4;k++){
-      const beam=new THREE.Mesh(new THREE.BoxGeometry(.3,12,.3),new THREE.MeshBasicMaterial({color:specimenColors[i],transparent:true,opacity:.65}));beam.position.set(-10+k*6,7,-14.3);cage.add(beam);
-    }
-    const core=new THREE.Group();
-    const body=new THREE.Mesh(new THREE.SphereGeometry(2.8,16,12),new THREE.MeshLambertMaterial({color:specimenColors[i],emissive:specimenColors[i],emissiveIntensity:.35}));body.scale.set(.85,1.4,.75);body.position.y=4.2;core.add(body);
-    const head=new THREE.Mesh(new THREE.SphereGeometry(2.1,16,12),new THREE.MeshPhongMaterial({color:specimenColors[i],emissive:specimenColors[i],shininess:90}));head.position.y=8;core.add(head);
-    for(let ex of[-.85,.85]){
-      const eye=new THREE.Mesh(new THREE.SphereGeometry(.48,10,8),basic(0x050b12));eye.position.set(ex,8.2,-1.65);eye.scale.set(1,1.6,.45);core.add(eye);
-    }
-    for(let limb of[-1.8,1.8]){
-      const arm=new THREE.Mesh(new THREE.CylinderGeometry(.28,.42,4,8),lam(specimenColors[i]));arm.position.set(limb,4.5,0);arm.rotation.z=limb<0?-.25:.25;core.add(arm);
-    }
-    const K=[['alien',4],['reptilian',2.2],['jelly',1.16],['mantis',2]][i],spec=new THREE.Group();spec.position.set(x,1.6,z);spec.scale.setScalar(K[1]);core.scale.setScalar(1/K[1]);spec.add(core);root.add(spec);
-    if(K[0]==='jelly')useModel('jelly',spec);else useAnim(K[0],spec,'desert');
-    const field=new THREE.Mesh(new THREE.CylinderGeometry(10,10,.3,32),new THREE.MeshBasicMaterial({color:specimenColors[i],transparent:true,opacity:.55,blending:THREE.AdditiveBlending}));field.position.y=1;cage.add(field);
-    cells.push({cage,core:spec,field,phase:i*1.7,lift:i===1||i===3});
-    const lamp=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:specimenColors[i],transparent:true,opacity:.55,blending:THREE.AdditiveBlending,depthWrite:false}));lamp.position.set(x,11,z-16);lamp.scale.set(15,15,1);root.add(lamp);cellLights.push(lamp);
-  }
-  // Escaped specimen in a damaged chamber at the end of the court
-  const breach=new THREE.Group();breach.position.set(LABX+38,0.4,LABZ+145);root.add(breach);
-  const brokenPane=new THREE.Mesh(new THREE.BoxGeometry(18,12,.35),new THREE.MeshPhongMaterial({color:0x6beaff,transparent:true,opacity:.16,side:THREE.DoubleSide,depthWrite:false}));brokenPane.position.y=7;breach.add(brokenPane);
-  for(let i=0;i<9;i++){
-    const shard=new THREE.Mesh(new THREE.TetrahedronGeometry(rand(1,2.2)),new THREE.MeshBasicMaterial({color:0x7eeeff,transparent:true,opacity:.65}));shard.position.set(rand(-12,12),rand(1,12),rand(-5,5));shard.rotation.set(rand(0,6),rand(0,6),rand(0,6));breach.add(shard);
-  }
-  const escaped=new THREE.Group();escaped.position.set(0,0,5);breach.add(escaped);
-  const escapeBody=new THREE.Mesh(new THREE.SphereGeometry(3.6,18,12),new THREE.MeshLambertMaterial({color:0x77ffb0,emissive:0x1a6b4a,emissiveIntensity:.5}));escapeBody.scale.set(.9,1.5,.8);escaped.add(escapeBody);
-  const escapeHead=new THREE.Mesh(new THREE.SphereGeometry(2.6,18,12),new THREE.MeshPhongMaterial({color:0x9bffc5,emissive:0x267f59,shininess:100}));escapeHead.position.y=6;escaped.add(escapeHead);
-  for(let ex of[-1,1]){
-    const eye=new THREE.Mesh(new THREE.SphereGeometry(.7,12,8),basic(0x07131a));eye.position.set(ex,6.3,-2.1);escaped.add(eye);
-    const tendril=new THREE.Mesh(new THREE.CylinderGeometry(.12,.28,5,7),lam(0x65dba1));tendril.position.set(ex*1.7,9,0);tendril.rotation.z=ex*.38;escaped.add(tendril);
-  }
-  const escapeAura=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:0x62ffac,transparent:true,opacity:.5,blending:THREE.AdditiveBlending,depthWrite:false}));escapeAura.position.y=5;escapeAura.scale.set(20,20,1);escaped.add(escapeAura);
-  const esc=new THREE.Group();esc.position.set(LABX+38,0.5,LABZ+152);esc.scale.setScalar(1.7);root.add(esc);escaped.scale.setScalar(1/1.7);escaped.position.set(0,3.4,0);esc.add(escaped);useAnim('tallwhite',esc,'desert');
-  glowSprite(0x62ffac,LABX+38,6,LABZ+152,18,0.35);
-  // Scientists in lab coats moving between the containment cells
-  const scientists=[];
-  for(let i=0;i<3;i++){
-    const person=new THREE.Group(),coat=lam(0xd9e3e8),skin=lam(0x9aa9b3);
-    const torso=new THREE.Mesh(new THREE.CylinderGeometry(.9,1.2,3.4,8),coat);torso.position.y=3;person.add(torso);
-    const head=new THREE.Mesh(new THREE.SphereGeometry(.85,10,8),skin);head.position.y=5.2;person.add(head);
-    const visor=new THREE.Mesh(new THREE.BoxGeometry(1.2,.38,.15),basic(0x1b2d3d));visor.position.set(0,5.35,-.72);person.add(visor);
-    for(let side of[-1,1]){
-      const arm=new THREE.Mesh(new THREE.CylinderGeometry(.25,.3,2.6,7),coat);arm.position.set(side*1.1,3.2,0);arm.rotation.z=side*.2;person.add(arm);
-      const leg=new THREE.Mesh(new THREE.CylinderGeometry(.32,.38,2.2,7),lam(0x263440));leg.position.set(side*.45,1,0);person.add(leg);
-    }
-    const badge=new THREE.Mesh(new THREE.BoxGeometry(.42,.5,.08),new THREE.MeshBasicMaterial({color:0x42dfff}));badge.position.set(.48,3.6,-.92);person.add(badge);
-    person.position.set(LABX-35+i*34,0.4,LABZ+76);root.add(person);
-    scientists.push({person,phase:i*2.2,baseX:person.position.x});
-  }
-  // Pulsing cell fields, floating specimens, scientist patrol, and emergency breach alarm
-  const alarmLamp=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:0xff334f,transparent:true,opacity:.2,blending:THREE.AdditiveBlending,depthWrite:false}));
-  alarmLamp.position.set(LABX+38,17,LABZ+145);alarmLamp.scale.set(38,38,1);root.add(alarmLamp);
-  desertAnim.push((dt,t)=>{
-    cells.forEach(C=>{if(C.lift&&C.core.children.length>1){C.lift=0;specLift(C.core,2.6,0x333a44);}
-      C.core.position.y=1.9+Math.sin(t*1.6+C.phase)*.5;C.core.rotation.y=t*.35+C.phase;
-      C.field.material.opacity=.3+.28*(.5+.5*Math.sin(t*2.4+C.phase));
-    });
-    cellLights.forEach((L,i)=>{L.material.opacity=.35+.3*(.5+.5*Math.sin(t*1.5+i));});
-    scientists.forEach(S=>{
-      S.person.position.x=S.baseX+Math.sin(t*.35+S.phase)*3;
-      S.person.rotation.y=Math.sin(t*.4+S.phase)*.35;
-    });
-    {const a=t*.28;esc.position.x=LABX+38+Math.sin(a)*7;esc.rotation.y=Math.cos(a)>0?0:PI;}
-    escapeAura.material.opacity=.32+.25*(.5+.5*Math.sin(t*2));
-    alarmLamp.material.opacity=.12+.6*(.5+.5*Math.sin(t*5));
-  });
-  // ---- SUBLEVEL 9B: interrogation, autopsy, command and titan containment ----
-  // A second exposed underground wing, connected visually to the main xenobiology block.
-  const WINGX=LABX-10,WINGZ=LABZ-115; // moved: the original spot overlapped the radar dome
-  const wingFloor=new THREE.Mesh(new THREE.BoxGeometry(142,2,108),lam(0x111a24));
-  wingFloor.position.set(WINGX,-0.9,WINGZ);root.add(wingFloor);
-  const wingWallMat=lam(0x354451),wingTrim=lam(0x71818d);
-  for(const [x,z,w,d] of [[WINGX,WINGZ-53,142,4],[WINGX,WINGZ+53,142,4],[WINGX-69,WINGZ,4,108],[WINGX+69,WINGZ,4,108]]){
-    const wall=new THREE.Mesh(new THREE.BoxGeometry(w,14,d),wingWallMat);wall.position.set(x,7,z);root.add(wall);
-    const rim=new THREE.Mesh(new THREE.BoxGeometry(w,.45,d),wingTrim);rim.position.set(x,14.2,z);root.add(rim);
-  }
-  const roomGlow=[],screenMats=[];
-  function wingRoom(x,z,w,d,name,color){
-    const g=new THREE.Group();g.position.set(x,0.2,z);root.add(g);
-    const floor=new THREE.Mesh(new THREE.BoxGeometry(w,.7,d),lam(0x263440));floor.position.y=.1;g.add(floor);
-    for(const [xx,zz,ww,dd] of [[0,-d/2,w,.7],[0,d/2,w,.7],[-w/2,0,.7,d],[w/2,0,.7,d]]){
-      const p=new THREE.Mesh(new THREE.BoxGeometry(ww,10,dd),darkMetal);p.position.set(xx,5,zz);g.add(p);
-    }
-    // (no ceiling: the rooms are open on top so you can look in from the UFO)
-    const sign=neonText(name,'#'+color.toString(16).padStart(6,'0'),25,5);sign.position.set(0,8,-d/2-.5);g.add(sign);
-    const strip=new THREE.Mesh(new THREE.BoxGeometry(w-3,.25,.35),new THREE.MeshBasicMaterial({color}));strip.position.set(0,9.5,-d/2+1);g.add(strip);
-    return g;
-  }
-  // Interrogation room: bolted table, two seats and a one-way observation pane.
-  const interview=wingRoom(WINGX-43,WINGZ-25,48,42,'INTERROGATION',0xffb84d);
-  const interviewTable=new THREE.Mesh(new THREE.BoxGeometry(12,1.2,6),lam(0x59636b));interviewTable.position.set(0,2,0);interview.add(interviewTable);
-  for(const x of[-8,8]){const seat=new THREE.Mesh(new THREE.BoxGeometry(3,3,3),lam(0x394653));seat.position.set(x,1.8,0);interview.add(seat);}
-  const oneWay=new THREE.Mesh(new THREE.BoxGeometry(17,6,.35),new THREE.MeshPhongMaterial({color:0x5bdfff,transparent:true,opacity:.28,shininess:130}));oneWay.position.set(0,5,-20);interview.add(oneWay);
-  const interviewLamp=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:0xffd18a,transparent:true,opacity:.7,blending:THREE.AdditiveBlending,depthWrite:false}));interviewLamp.position.set(WINGX-43,12,WINGZ-25);interviewLamp.scale.set(17,17,1);root.add(interviewLamp);roomGlow.push(interviewLamp);
-  // Autopsy lab: surgical table, alien form and articulated examination lamps.
-  const autopsy=wingRoom(WINGX+43,WINGZ-25,48,42,'XENOPATHOLOGY',0x57dcff);
-  const slab=new THREE.Mesh(new THREE.BoxGeometry(17,1.2,7),lam(0x9aaab2));slab.position.set(0,2,0);autopsy.add(slab);
-  const bodyForm=new THREE.Mesh(new THREE.SphereGeometry(2.4,14,10),new THREE.MeshLambertMaterial({color:0x74a99c,emissive:0x153b39,emissiveIntensity:.25}));bodyForm.scale.set(1.6,.55,.8);bodyForm.position.set(0,3.2,0);autopsy.add(bodyForm);
-  for(const x of[-8,8]){
-    const arm=new THREE.Mesh(new THREE.CylinderGeometry(.25,.25,8,8),lam(0x8796a0));arm.position.set(x,7,-5);arm.rotation.z=x*.025;autopsy.add(arm);
-    const lamp=new THREE.Mesh(new THREE.CylinderGeometry(1.1,1.7,.5,12),new THREE.MeshBasicMaterial({color:0x9defff}));lamp.position.set(x,10,-5);autopsy.add(lamp);
-  }
-  const autoG=new THREE.Group();autoG.position.set(WINGX+43+3.6,3.9,WINGZ-25);autoG.rotation.z=PI/2;autoG.scale.setScalar(3.1);root.add(autoG);useAnim('alien',autoG,'desert');
-  // Security control room: console banks and individually lit surveillance screens.
-  const command=wingRoom(WINGX-43,WINGZ+30,48,42,'SECURITY CONTROL',0x62ffad);
-  for(let i=0;i<4;i++){
-    const console=box(command,8,2,3,0x34434e,-16+i*10,1.5,-12);
-    const monitor=new THREE.Mesh(new THREE.BoxGeometry(7,4,.45),new THREE.MeshBasicMaterial({color:[0x39dfff,0x63ffad,0xff526c,0xffc45e][i],transparent:true,opacity:.85}));
-    monitor.position.set(-16+i*10,5,-15);command.add(monitor);screenMats.push(monitor.material);
-  }
-  const controlPulse=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:0x57ffb1,transparent:true,opacity:.55,blending:THREE.AdditiveBlending,depthWrite:false}));controlPulse.position.set(WINGX-43,11,WINGZ+30);controlPulse.scale.set(24,24,1);root.add(controlPulse);roomGlow.push(controlPulse);
-  // Titan containment: a massive specimen suspended inside a reinforced cylindrical vault.
-  const titan=wingRoom(WINGX+43,WINGZ+30,48,42,'TITAN CONTAINMENT',0xff526c);
-  const tube=new THREE.Mesh(new THREE.CylinderGeometry(10,10,17,24,1,true),new THREE.MeshPhongMaterial({color:0x70eaff,transparent:true,opacity:.16,shininess:150,side:THREE.DoubleSide,depthWrite:false}));tube.position.set(0,8.5,0);titan.add(tube);
-  for(let a=0;a<8;a++){
-    const ang=a*PI/4,bar=new THREE.Mesh(new THREE.BoxGeometry(.7,18,.7),lam(0x73828d));bar.position.set(Math.cos(ang)*10,8.5,Math.sin(ang)*10);titan.add(bar);
-  }
-  const titanCore=new THREE.Group();titanCore.position.set(0,2,0);titan.add(titanCore);
-  const titanBody=new THREE.Mesh(new THREE.SphereGeometry(4.5,18,14),new THREE.MeshLambertMaterial({color:0x7b9b8d,emissive:0x245c4a,emissiveIntensity:.35}));titanBody.scale.set(1.05,1.65,.8);titanCore.add(titanBody);
-  const titanHead=new THREE.Mesh(new THREE.SphereGeometry(3.2,18,12),new THREE.MeshPhongMaterial({color:0x9dc8b5,emissive:0x285d4d,shininess:100}));titanHead.position.set(0,8,-.4);titanCore.add(titanHead);
-  for(const x of[-1.25,1.25]){
-    const eye=new THREE.Mesh(new THREE.SphereGeometry(.75,12,8),basic(0xff334f));eye.position.set(x,8.2,-3.1);titanCore.add(eye);
-    const arm=new THREE.Mesh(new THREE.CylinderGeometry(.8,1.15,8,10),lam(0x688b7e));arm.position.set(x*3,2,-.1);arm.rotation.z=x*.22;titanCore.add(arm);
-  }
-  const titanField=new THREE.Mesh(new THREE.CylinderGeometry(11,11,.35,32),new THREE.MeshBasicMaterial({color:0xff526c,transparent:true,opacity:.5,blending:THREE.AdditiveBlending}));titanField.position.y=1;titan.add(titanField);
-  const titanGlow=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:0xff526c,transparent:true,opacity:.55,blending:THREE.AdditiveBlending,depthWrite:false}));titanGlow.position.set(WINGX+43,13,WINGZ+30);titanGlow.scale.set(35,35,1);root.add(titanGlow);roomGlow.push(titanGlow);
-  [interview,autopsy,command,titan].forEach(g=>g.traverse(o=>{o.userData.keep=true;}));colliders.push({x0:WINGX-71,x1:WINGX+71,z0:WINGZ-55,z1:WINGZ+55,h:14,y0:0});
-  {const tg=new THREE.Group();tg.position.y=-1.4;tg.userData.onAttach=()=>{titanCore.children.forEach(c=>{if(c!==tg)c.visible=false;});specLift(tg,2.6,0x4a3440);};titanCore.add(tg);useModel('titan',tg);}
-  // Small overhead warning beacons and restrained room lighting animation.
-  const wingBeacons=[];
-  for(const [x,z] of [[WINGX-43,WINGZ-48],[WINGX+43,WINGZ-48],[WINGX-43,WINGZ+48],[WINGX+43,WINGZ+48]]){
-    const beacon=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:0xff425f,transparent:true,opacity:.45,blending:THREE.AdditiveBlending,depthWrite:false}));beacon.position.set(x,17,z);beacon.scale.set(10,10,1);root.add(beacon);wingBeacons.push(beacon);
-  }
-  desertAnim.push((dt,t)=>{
-    titanCore.position.y=2+Math.sin(t*.8)*.5;titanCore.rotation.y=Math.sin(t*.22)*.3;if(bodyForm.visible&&autoG.children.length)bodyForm.visible=false;
-    titanField.material.opacity=.28+.3*(.5+.5*Math.sin(t*2.1));
-    roomGlow.forEach((L,i)=>{L.material.opacity=.35+.3*(.5+.5*Math.sin(t*1.4+i));});
-    wingBeacons.forEach((B,i)=>{B.material.opacity=.18+.65*(.5+.5*Math.sin(t*3.5+i*1.7));});
-  });
+  // (the Sublevel 9 lab now lives underground: see beginTown('sub9'); fly low through a rock arch to reach it)
   // ---- cacti + rocks ----
   const cac=[],rocks=[];
   const bad=(x,z)=>(x>-370&&x<-220&&z>105&&z<320)||Math.abs(z-80)<16||(x>40&&x<350&&z>86&&z<155)||(x>-515&&x<-5&&z>-385&&z<-125)||fields.some(f=>Math.abs(f.x-x)<62&&Math.abs(f.z-z)<62)||Math.hypot(x,z)>660;
@@ -1253,9 +1069,6 @@ beginTown('desert');
 for(let i=0;i<24;i++){const T={type:'cow',mesh:makeCow(),spawn:spawnCow,fl:fields};T.spawn(T);targets.push(T);}
 for(let i=0;i<10;i++){const T={type:'car',mesh:makeCar(),spawn:spawnHwy};T.spawn(T);targets.push(T);}
 for(let i=0;i<6;i++){const T={type:'truck',mesh:makeTruck(),spawn:spawnTruck};T.spawn(T);targets.push(T);}
-// 👽 lost crew: escaped aliens wander outside the Sublevel 9 lab, beam them home
-for(let i=0;i<4;i++){const g=new THREE.Group();box(g,0.8,1.2,0.6,0x6dff7a,0,1,0);box(g,1,0.9,0.9,0x8aff9a,0,2.1,0);g.userData.emoji='👽';g.userData.pts=150;g.userData.heat=0.6;root.add(g);
-  const T={type:'critter',mesh:useAnim('alien',g,'desert'),spawn:spawnCow,fl:[{x:-200,z:370},{x:-330,z:375}],rad:22};T.mesh.userData.T=T;T.spawn(T);targets.push(T);}
 // 🏃 STORM AREA 51: a crowd rushing the front gate (beam them up fast for a combo bonus)
 for(let i=0;i<22;i++){const g=makeHuman(false);g.userData.emoji='🏃';g.userData.pts=30;g.userData.heat=0.35;g.userData.combo=true;
   const T={type:'critter',mesh:useAnim('person',g,'desert'),spawn:spawnCow,fl:[{x:-82,z:-246}],rad:20};T.mesh.userData.T=T;T.spawn(T);targets.push(T);}
@@ -1409,7 +1222,7 @@ for(let i=0;i<8;i++){const g=makeHorse(0x8a8078,0.85);g.userData.emoji='🫏';g.
   for(let i=0;i<46;i++){const [x,z]=[rand(-600,600),rand(-600,600)];if(Math.abs(z-80)<16||colliders.some(c=>x+8>c.x0&&x-8<c.x1&&z+8>c.z0&&z-8<c.z1)||used.some(u=>Math.hypot(u[0]-x,u[1]-z)<u[2]))continue;const s=rand(0.8,1.5),h=7*s;
     cylM(0.6*s,0.9*s,h,jb,x,h/2,z,6);const n=2+(Math.random()*3|0);for(let k=0;k<n;k++){const a=rand(0,7),l=rand(3,5.5)*s,br=add(new THREE.Mesh(new THREE.CylinderGeometry(0.4*s,0.5*s,l,5),jb));br.position.set(x+Math.cos(a)*l*0.33,h+l*0.33,z+Math.sin(a)*l*0.33);br.rotation.set(Math.sin(a)*0.7,0,-Math.cos(a)*0.7);root.add(br);
       const tp=add(new THREE.Mesh(new THREE.IcosahedronGeometry(1.5*s,0),jl));tp.position.set(x+Math.cos(a)*l*0.7,h+l*0.72,z+Math.sin(a)*l*0.7);root.add(tp);}const tp=add(new THREE.Mesh(new THREE.IcosahedronGeometry(1.6*s,0),jl));tp.position.set(x,h+1,z);root.add(tp);}
-  for(let i=0;i<3;i++){const [x,z]=clearAt([520,-80,-520][i],[-200,470,480][i],34);const ar=add(new THREE.Mesh(new THREE.TorusGeometry(22,6.5,6,14,PI),rock));ar.position.set(x,-2,z);ar.rotation.y=rand(0,3);ar.scale.set(1,1.15,1.3);root.add(ar);for(let k=0;k<4;k++){const s=rand(4,9),m=add(new THREE.Mesh(new THREE.DodecahedronGeometry(s,0),rock));m.position.set(x+rand(-30,30),s*0.3,z+rand(-30,30));root.add(m);}}
+  for(let i=0;i<3;i++){const [x,z]=clearAt([520,-80,-520][i],[-200,470,480][i],34);const ar=add(new THREE.Mesh(new THREE.TorusGeometry(22,6.5,6,14,PI),rock));ar.position.set(x,-2,z);ar.rotation.y=rand(0,3);ar.scale.set(1,1.15,1.3);root.add(ar);{const ry=ar.rotation.y,f=new THREE.Mesh(new THREE.CircleGeometry(15.8,24),new THREE.MeshBasicMaterial({color:0x53ffb0,transparent:true,opacity:0.3,blending:THREE.AdditiveBlending,side:THREE.DoubleSide,depthWrite:false}));f.position.set(x,-2,z);f.rotation.y=ry;f.scale.y=1.15;f.userData.keep=true;root.add(f);const gs=glowSprite(0x53ffb0,x,9,z,30,0.5);const sg=sign('SUBLEVEL 9 ▼','#53ffb0',24,4,x,34,z,ry);sg.material.side=THREE.DoubleSide;(window.ARCHES=window.ARCHES||[]).push({x,z,ry});desertAnim.push((dt,t)=>{f.material.opacity=0.22+0.14*Math.sin(t*3+i);gs.material.opacity=0.35+0.2*Math.sin(t*3+i);});}for(let k=0;k<4;k++){const s=rand(4,9),m=add(new THREE.Mesh(new THREE.DodecahedronGeometry(s,0),rock));m.position.set(x+rand(-30,30),s*0.3,z+rand(-30,30));root.add(m);}}
   {const dn=[];for(let i=0;i<150;i++){const x=rand(-620,620),z=rand(-620,620);if(Math.abs(z-80)<20||colliders.some(c=>x+16>c.x0&&x-16<c.x1&&z+8>c.z0&&z-8<c.z1)||used.some(u=>Math.hypot(u[0]-x,u[1]-z)<u[2]+10))continue;dn.push({x,z,l:rand(12,30),w:rand(4,9),h:rand(0.7,2)});}
     inst(new THREE.SphereGeometry(1,10,6,0,2*PI,0,PI/2),lam(0xb88458),dn,d=>compose(d.x,0,d.z,d.l,d.h,d.w,0,0.4+rand(-0.15,0.15),0));}
   freezeStatic(objs,root,true);
@@ -5515,6 +5328,218 @@ beginTown('sub51');
   planetAnim.push({town:'sub51',f:(t,dt)=>{tubes.forEach((L,i)=>{L.material.opacity=0.28+0.12*Math.sin(t*2+i);});saucers.forEach((g,i)=>{g.rotation.y=t*0.25*(i%2?1:-1);g.position.y=14+Math.sin(t+i)*1.2;});exG.material.opacity=0.35+0.25*Math.sin(t*3);ex.rotation.z=t;}});
 })();
 endTown('sub51',[140,620]);Object.assign(towns.sub51,{planet:true,fogC:new THREE.Color(0x0a0e14),skyTint:0x000000,label:'🛸 HANGAR 18',bloom:0.6});
+// 🧪 SUBLEVEL 9 — the alien lab, deep under Area 51. Fly low through any rock arch in the desert to drop into it.
+beginTown('sub9');
+(function(){const desertAnim=[];root.add(new THREE.HemisphereLight(0xcfe0ff,0x3a2a20,0.9));
+  const rockM=new THREE.MeshLambertMaterial({color:0x4a3026,flatShading:true}),rockD=new THREE.MeshLambertMaterial({color:0x2a1c18,flatShading:true});
+  box(root,272,1,436,lam(0x1e1c20),0,-1.42,-15); // cavern floor
+  for(let z=-220;z<=190;z+=20)box(root,262,0.1,0.5,basic(z%40?0x1a3a4a:0x2a7a90),0,-0.85,z);
+  box(root,6,86,436,rockM,-134,41,-15);box(root,6,86,436,rockM,134,41,-15);box(root,272,86,6,rockM,0,41,-232);box(root,272,86,6,rockM,0,41,202);box(root,272,5,436,rockD,0,84,-15);
+  // rough rock: boulders along the walls, stalactites from the roof, hanging work lamps
+  {const bg=new THREE.DodecahedronGeometry(1,0),L=[];for(let i=0;i<70;i++){const side=i%4,t=rand(-1,1),s=rand(7,16);L.push(side<2?{x:(side?1:-1)*(128-rand(0,5)),z:-15+t*212,s,y:rand(0,60)}:{x:t*128,z:side===2?-226+rand(0,5):196-rand(0,5),s,y:rand(0,60)});}
+    inst(bg,rockM,L,o=>compose(o.x,o.y,o.z,o.s,o.s*rand(0.8,1.5),o.s,rand(0,6),rand(0,6),0));
+    const cg=new THREE.ConeGeometry(1,1,6);cg.rotateX(PI);cg.translate(0,-0.5,0);const C=[];for(let i=0;i<60;i++)C.push({x:rand(-125,125),z:rand(-225,195),r:rand(2,5),h:rand(6,20)});
+    inst(cg,rockD,C,o=>compose(o.x,81.5,o.z,o.r,o.h,o.r,0,rand(0,6),0));
+    for(let z=-200;z<=180;z+=76)for(const x of[-75,0,75]){glowSprite(0xcfe8ff,x,74,z,26,0.4);box(root,0.3,7,0.3,0x202a34,x,78,z);}}
+  sign('SUBLEVEL 9','#53dfff',44,8,0,58,198,PI);sign('XENOBIOLOGY · AUTHORISED STAFF ONLY','#ff4c9b',40,3.4,0,48,198,PI);
+  // ---- SUBLEVEL 9: underground xenobiology laboratory ----
+  const LABX=0,LABZ=-10; // moved out of the main base onto open desert (it overlapped the old buildings)
+  // Surface bunker and elevator access
+  const labShell=new THREE.Group();labShell.position.set(LABX,0,LABZ);root.add(labShell);colliders.push({x0:LABX-49,x1:LABX+49,z0:LABZ-34,z1:LABZ+34,h:21,y0:0});
+  const concrete=lam(0x59636b),darkMetal=lam(0x202a34);
+  const labBody=new THREE.Mesh(new THREE.BoxGeometry(92,18,62),concrete);labBody.position.y=8;labShell.add(labBody);
+  const labRoof=new THREE.Mesh(new THREE.BoxGeometry(98,3,68),darkMetal);labRoof.position.y=18.5;labShell.add(labRoof);
+  const roofStripe=new THREE.Mesh(new THREE.BoxGeometry(82,.35,.5),new THREE.MeshBasicMaterial({color:0xffb83f}));roofStripe.position.set(0,20.1,0);labShell.add(roofStripe);
+  const labSign=neonText('SUBLEVEL 9', '#53dfff',36,7);labSign.position.set(0,15,-31.2);labShell.add(labSign);
+  // Large glass observation windows on the front face
+  const glassMat=new THREE.MeshPhongMaterial({color:0x4bdcff,transparent:true,opacity:.22,shininess:120,side:THREE.DoubleSide,depthWrite:false});
+  for(let i=0;i<3;i++){
+    const wx=-29+i*29;
+    const frame=new THREE.Mesh(new THREE.BoxGeometry(23,9,1.5),darkMetal);frame.position.set(wx,8,-31.5);labShell.add(frame);
+    const pane=new THREE.Mesh(new THREE.BoxGeometry(20,7,.35),glassMat);pane.position.set(wx,8,-32.35);labShell.add(pane);
+    const glow=new THREE.Mesh(new THREE.BoxGeometry(.4,7,.5),new THREE.MeshBasicMaterial({color:i===1?0xff4d6d:0x43ddff}));glow.position.set(wx-9.5,8,-32.65);labShell.add(glow);
+  }
+  // Recessed access ramp with luminous floor strips
+  const ramp=new THREE.Mesh(new THREE.BoxGeometry(24,1,54),lam(0x303943));ramp.position.set(LABX+67,0.3,LABZ+5);root.add(ramp);
+  for(let i=0;i<5;i++){
+    const strip=box(root,18,.18,.45,basic(i%2?0x42dfff:0xffb83f),LABX+67,0.9,LABZ-18+i*10);
+  }
+  const rampRails=[];
+  for(let side of[-1,1]){
+    const rail=box(root,.8,5,54,0x66717c,LABX+67+side*13,2,LABZ+5);rampRails.push(rail);
+  }
+  // Sunken, open-top containment court: the interior is deliberately visible from above
+  const courtFloor=new THREE.Mesh(new THREE.BoxGeometry(124,2,92),lam(0x171f2a));courtFloor.position.set(LABX,0.2,LABZ+112);courtFloor.scale.y=0.2;root.add(courtFloor);
+  const wallMat=lam(0x3c4855);
+  for(const [x,z,w,d] of [[LABX,LABZ+65,124,5],[LABX,LABZ+159,124,5],[LABX-60,LABZ+112,5,94],[LABX+60,LABZ+112,5,94]]){
+    const wall=new THREE.Mesh(new THREE.BoxGeometry(w,15,d),wallMat);wall.position.set(x,7.5,z);root.add(wall);colliders.push({x0:x-w/2,x1:x+w/2,z0:z-d/2,z1:z+d/2,h:15.6,y0:0});
+    const edge=new THREE.Mesh(new THREE.BoxGeometry(w,.6,d),lam(0x647483));edge.position.set(x,15.3,z);root.add(edge);
+  }
+  // Four individual glass containment cells, each with a specimen
+  const specLift=(g,k,em)=>g.traverse(o=>{if(o.isMesh&&o.material&&o.material.color){o.material=o.material.clone();o.material.color.multiplyScalar(k);if(o.material.emissive)o.material.emissive.setHex(em);}});
+  const cells=[],cellLights=[];
+  const specimenColors=[0x6dff9a,0x9c78ff,0xff6d83,0x55dcff];
+  for(let i=0;i<4;i++){
+    const x=LABX-42+i*28,z=LABZ+112;
+    const cage=new THREE.Group();cage.position.set(x,0.4,z);root.add(cage);colliders.push({x0:x-11,x1:x+11,z0:z-14,z1:z+14,h:15,y0:0});
+    const floor=new THREE.Mesh(new THREE.BoxGeometry(24,.8,31),lam(0x263440));floor.position.y=.5;cage.add(floor);
+    const glass=new THREE.Mesh(new THREE.BoxGeometry(21,13,27),new THREE.MeshPhongMaterial({color:specimenColors[i],transparent:true,opacity:.12,shininess:120,side:THREE.DoubleSide,depthWrite:false}));glass.position.y=7;cage.add(glass);
+    for(let xx of[-11,11])for(let zz of[-14,14]){
+      const post=new THREE.Mesh(new THREE.BoxGeometry(.7,14,.7),darkMetal);post.position.set(xx,7,zz);cage.add(post);
+    }
+    const top=new THREE.Mesh(new THREE.BoxGeometry(22,.8,28),darkMetal);top.position.y=14;cage.add(top);
+    for(let k=0;k<4;k++){
+      const beam=new THREE.Mesh(new THREE.BoxGeometry(.3,12,.3),new THREE.MeshBasicMaterial({color:specimenColors[i],transparent:true,opacity:.65}));beam.position.set(-10+k*6,7,-14.3);cage.add(beam);
+    }
+    const core=new THREE.Group();
+    const body=new THREE.Mesh(new THREE.SphereGeometry(2.8,16,12),new THREE.MeshLambertMaterial({color:specimenColors[i],emissive:specimenColors[i],emissiveIntensity:.35}));body.scale.set(.85,1.4,.75);body.position.y=4.2;core.add(body);
+    const head=new THREE.Mesh(new THREE.SphereGeometry(2.1,16,12),new THREE.MeshPhongMaterial({color:specimenColors[i],emissive:specimenColors[i],shininess:90}));head.position.y=8;core.add(head);
+    for(let ex of[-.85,.85]){
+      const eye=new THREE.Mesh(new THREE.SphereGeometry(.48,10,8),basic(0x050b12));eye.position.set(ex,8.2,-1.65);eye.scale.set(1,1.6,.45);core.add(eye);
+    }
+    for(let limb of[-1.8,1.8]){
+      const arm=new THREE.Mesh(new THREE.CylinderGeometry(.28,.42,4,8),lam(specimenColors[i]));arm.position.set(limb,4.5,0);arm.rotation.z=limb<0?-.25:.25;core.add(arm);
+    }
+    const K=[['alien',4],['reptilian',2.2],['jelly',1.16],['mantis',2]][i],spec=new THREE.Group();spec.position.set(x,1.6,z);spec.scale.setScalar(K[1]);core.scale.setScalar(1/K[1]);spec.add(core);root.add(spec);
+    if(K[0]==='jelly')useModel('jelly',spec);else useAnim(K[0],spec,'sub9');
+    const field=new THREE.Mesh(new THREE.CylinderGeometry(10,10,.3,32),new THREE.MeshBasicMaterial({color:specimenColors[i],transparent:true,opacity:.55,blending:THREE.AdditiveBlending}));field.position.y=1;cage.add(field);
+    cells.push({cage,core:spec,field,phase:i*1.7,lift:i===1||i===3});
+    const lamp=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:specimenColors[i],transparent:true,opacity:.55,blending:THREE.AdditiveBlending,depthWrite:false}));lamp.position.set(x,11,z-16);lamp.scale.set(15,15,1);root.add(lamp);cellLights.push(lamp);
+  }
+  // Escaped specimen in a damaged chamber at the end of the court
+  const breach=new THREE.Group();breach.position.set(LABX+38,0.4,LABZ+145);root.add(breach);
+  const brokenPane=new THREE.Mesh(new THREE.BoxGeometry(18,12,.35),new THREE.MeshPhongMaterial({color:0x6beaff,transparent:true,opacity:.16,side:THREE.DoubleSide,depthWrite:false}));brokenPane.position.y=7;breach.add(brokenPane);
+  for(let i=0;i<9;i++){
+    const shard=new THREE.Mesh(new THREE.TetrahedronGeometry(rand(1,2.2)),new THREE.MeshBasicMaterial({color:0x7eeeff,transparent:true,opacity:.65}));shard.position.set(rand(-12,12),rand(1,12),rand(-5,5));shard.rotation.set(rand(0,6),rand(0,6),rand(0,6));breach.add(shard);
+  }
+  const escaped=new THREE.Group();escaped.position.set(0,0,5);breach.add(escaped);
+  const escapeBody=new THREE.Mesh(new THREE.SphereGeometry(3.6,18,12),new THREE.MeshLambertMaterial({color:0x77ffb0,emissive:0x1a6b4a,emissiveIntensity:.5}));escapeBody.scale.set(.9,1.5,.8);escaped.add(escapeBody);
+  const escapeHead=new THREE.Mesh(new THREE.SphereGeometry(2.6,18,12),new THREE.MeshPhongMaterial({color:0x9bffc5,emissive:0x267f59,shininess:100}));escapeHead.position.y=6;escaped.add(escapeHead);
+  for(let ex of[-1,1]){
+    const eye=new THREE.Mesh(new THREE.SphereGeometry(.7,12,8),basic(0x07131a));eye.position.set(ex,6.3,-2.1);escaped.add(eye);
+    const tendril=new THREE.Mesh(new THREE.CylinderGeometry(.12,.28,5,7),lam(0x65dba1));tendril.position.set(ex*1.7,9,0);tendril.rotation.z=ex*.38;escaped.add(tendril);
+  }
+  const escapeAura=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:0x62ffac,transparent:true,opacity:.5,blending:THREE.AdditiveBlending,depthWrite:false}));escapeAura.position.y=5;escapeAura.scale.set(20,20,1);escaped.add(escapeAura);
+  const esc=new THREE.Group();esc.position.set(LABX+38,0.5,LABZ+152);esc.scale.setScalar(1.7);root.add(esc);escaped.scale.setScalar(1/1.7);escaped.position.set(0,3.4,0);esc.add(escaped);useAnim('tallwhite',esc,'sub9');
+  glowSprite(0x62ffac,LABX+38,6,LABZ+152,18,0.35);
+  // Scientists in lab coats moving between the containment cells
+  const scientists=[];
+  for(let i=0;i<3;i++){
+    const person=new THREE.Group(),coat=lam(0xd9e3e8),skin=lam(0x9aa9b3);
+    const torso=new THREE.Mesh(new THREE.CylinderGeometry(.9,1.2,3.4,8),coat);torso.position.y=3;person.add(torso);
+    const head=new THREE.Mesh(new THREE.SphereGeometry(.85,10,8),skin);head.position.y=5.2;person.add(head);
+    const visor=new THREE.Mesh(new THREE.BoxGeometry(1.2,.38,.15),basic(0x1b2d3d));visor.position.set(0,5.35,-.72);person.add(visor);
+    for(let side of[-1,1]){
+      const arm=new THREE.Mesh(new THREE.CylinderGeometry(.25,.3,2.6,7),coat);arm.position.set(side*1.1,3.2,0);arm.rotation.z=side*.2;person.add(arm);
+      const leg=new THREE.Mesh(new THREE.CylinderGeometry(.32,.38,2.2,7),lam(0x263440));leg.position.set(side*.45,1,0);person.add(leg);
+    }
+    const badge=new THREE.Mesh(new THREE.BoxGeometry(.42,.5,.08),new THREE.MeshBasicMaterial({color:0x42dfff}));badge.position.set(.48,3.6,-.92);person.add(badge);
+    person.position.set(LABX-35+i*34,0.4,LABZ+76);root.add(person);
+    scientists.push({person,phase:i*2.2,baseX:person.position.x});
+  }
+  // Pulsing cell fields, floating specimens, scientist patrol, and emergency breach alarm
+  const alarmLamp=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:0xff334f,transparent:true,opacity:.2,blending:THREE.AdditiveBlending,depthWrite:false}));
+  alarmLamp.position.set(LABX+38,17,LABZ+145);alarmLamp.scale.set(38,38,1);root.add(alarmLamp);
+  desertAnim.push((dt,t)=>{
+    cells.forEach(C=>{if(C.lift&&C.core.children.length>1){C.lift=0;specLift(C.core,2.6,0x333a44);}
+      C.core.position.y=1.9+Math.sin(t*1.6+C.phase)*.5;C.core.rotation.y=t*.35+C.phase;
+      C.field.material.opacity=.3+.28*(.5+.5*Math.sin(t*2.4+C.phase));
+    });
+    cellLights.forEach((L,i)=>{L.material.opacity=.35+.3*(.5+.5*Math.sin(t*1.5+i));});
+    scientists.forEach(S=>{
+      S.person.position.x=S.baseX+Math.sin(t*.35+S.phase)*3;
+      S.person.rotation.y=Math.sin(t*.4+S.phase)*.35;
+    });
+    {const a=t*.28;esc.position.x=LABX+38+Math.sin(a)*7;esc.rotation.y=Math.cos(a)>0?0:PI;}
+    escapeAura.material.opacity=.32+.25*(.5+.5*Math.sin(t*2));
+    alarmLamp.material.opacity=.12+.6*(.5+.5*Math.sin(t*5));
+  });
+  // ---- SUBLEVEL 9B: interrogation, autopsy, command and titan containment ----
+  // A second exposed underground wing, connected visually to the main xenobiology block.
+  const WINGX=LABX-10,WINGZ=LABZ-115; // moved: the original spot overlapped the radar dome
+  const wingFloor=new THREE.Mesh(new THREE.BoxGeometry(142,2,108),lam(0x111a24));
+  wingFloor.position.set(WINGX,-0.9,WINGZ);root.add(wingFloor);
+  const wingWallMat=lam(0x354451),wingTrim=lam(0x71818d);
+  for(const [x,z,w,d] of [[WINGX,WINGZ-53,142,4],[WINGX,WINGZ+53,142,4],[WINGX-69,WINGZ,4,108],[WINGX+69,WINGZ,4,108]]){
+    const wall=new THREE.Mesh(new THREE.BoxGeometry(w,14,d),wingWallMat);wall.position.set(x,7,z);root.add(wall);
+    const rim=new THREE.Mesh(new THREE.BoxGeometry(w,.45,d),wingTrim);rim.position.set(x,14.2,z);root.add(rim);
+  }
+  const roomGlow=[],screenMats=[];
+  function wingRoom(x,z,w,d,name,color){
+    const g=new THREE.Group();g.position.set(x,0.2,z);root.add(g);
+    const floor=new THREE.Mesh(new THREE.BoxGeometry(w,.7,d),lam(0x263440));floor.position.y=.1;g.add(floor);
+    for(const [xx,zz,ww,dd] of [[0,-d/2,w,.7],[0,d/2,w,.7],[-w/2,0,.7,d],[w/2,0,.7,d]]){
+      const p=new THREE.Mesh(new THREE.BoxGeometry(ww,10,dd),darkMetal);p.position.set(xx,5,zz);g.add(p);
+    }
+    // (no ceiling: the rooms are open on top so you can look in from the UFO)
+    const sign=neonText(name,'#'+color.toString(16).padStart(6,'0'),25,5);sign.position.set(0,8,-d/2-.5);g.add(sign);
+    const strip=new THREE.Mesh(new THREE.BoxGeometry(w-3,.25,.35),new THREE.MeshBasicMaterial({color}));strip.position.set(0,9.5,-d/2+1);g.add(strip);
+    return g;
+  }
+  // Interrogation room: bolted table, two seats and a one-way observation pane.
+  const interview=wingRoom(WINGX-43,WINGZ-25,48,42,'INTERROGATION',0xffb84d);
+  const interviewTable=new THREE.Mesh(new THREE.BoxGeometry(12,1.2,6),lam(0x59636b));interviewTable.position.set(0,2,0);interview.add(interviewTable);
+  for(const x of[-8,8]){const seat=new THREE.Mesh(new THREE.BoxGeometry(3,3,3),lam(0x394653));seat.position.set(x,1.8,0);interview.add(seat);}
+  const oneWay=new THREE.Mesh(new THREE.BoxGeometry(17,6,.35),new THREE.MeshPhongMaterial({color:0x5bdfff,transparent:true,opacity:.28,shininess:130}));oneWay.position.set(0,5,-20);interview.add(oneWay);
+  const interviewLamp=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:0xffd18a,transparent:true,opacity:.7,blending:THREE.AdditiveBlending,depthWrite:false}));interviewLamp.position.set(WINGX-43,12,WINGZ-25);interviewLamp.scale.set(17,17,1);root.add(interviewLamp);roomGlow.push(interviewLamp);
+  // Autopsy lab: surgical table, alien form and articulated examination lamps.
+  const autopsy=wingRoom(WINGX+43,WINGZ-25,48,42,'XENOPATHOLOGY',0x57dcff);
+  const slab=new THREE.Mesh(new THREE.BoxGeometry(17,1.2,7),lam(0x9aaab2));slab.position.set(0,2,0);autopsy.add(slab);
+  const bodyForm=new THREE.Mesh(new THREE.SphereGeometry(2.4,14,10),new THREE.MeshLambertMaterial({color:0x74a99c,emissive:0x153b39,emissiveIntensity:.25}));bodyForm.scale.set(1.6,.55,.8);bodyForm.position.set(0,3.2,0);autopsy.add(bodyForm);
+  for(const x of[-8,8]){
+    const arm=new THREE.Mesh(new THREE.CylinderGeometry(.25,.25,8,8),lam(0x8796a0));arm.position.set(x,7,-5);arm.rotation.z=x*.025;autopsy.add(arm);
+    const lamp=new THREE.Mesh(new THREE.CylinderGeometry(1.1,1.7,.5,12),new THREE.MeshBasicMaterial({color:0x9defff}));lamp.position.set(x,10,-5);autopsy.add(lamp);
+  }
+  const autoG=new THREE.Group();autoG.position.set(WINGX+43+3.6,3.9,WINGZ-25);autoG.rotation.z=PI/2;autoG.scale.setScalar(3.1);root.add(autoG);useAnim('alien',autoG,'sub9');
+  // Security control room: console banks and individually lit surveillance screens.
+  const command=wingRoom(WINGX-43,WINGZ+30,48,42,'SECURITY CONTROL',0x62ffad);
+  for(let i=0;i<4;i++){
+    const console=box(command,8,2,3,0x34434e,-16+i*10,1.5,-12);
+    const monitor=new THREE.Mesh(new THREE.BoxGeometry(7,4,.45),new THREE.MeshBasicMaterial({color:[0x39dfff,0x63ffad,0xff526c,0xffc45e][i],transparent:true,opacity:.85}));
+    monitor.position.set(-16+i*10,5,-15);command.add(monitor);screenMats.push(monitor.material);
+  }
+  const controlPulse=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:0x57ffb1,transparent:true,opacity:.55,blending:THREE.AdditiveBlending,depthWrite:false}));controlPulse.position.set(WINGX-43,11,WINGZ+30);controlPulse.scale.set(24,24,1);root.add(controlPulse);roomGlow.push(controlPulse);
+  // Titan containment: a massive specimen suspended inside a reinforced cylindrical vault.
+  const titan=wingRoom(WINGX+43,WINGZ+30,48,42,'TITAN CONTAINMENT',0xff526c);
+  const tube=new THREE.Mesh(new THREE.CylinderGeometry(10,10,17,24,1,true),new THREE.MeshPhongMaterial({color:0x70eaff,transparent:true,opacity:.16,shininess:150,side:THREE.DoubleSide,depthWrite:false}));tube.position.set(0,8.5,0);titan.add(tube);
+  for(let a=0;a<8;a++){
+    const ang=a*PI/4,bar=new THREE.Mesh(new THREE.BoxGeometry(.7,18,.7),lam(0x73828d));bar.position.set(Math.cos(ang)*10,8.5,Math.sin(ang)*10);titan.add(bar);
+  }
+  const titanCore=new THREE.Group();titanCore.position.set(0,2,0);titan.add(titanCore);
+  const titanBody=new THREE.Mesh(new THREE.SphereGeometry(4.5,18,14),new THREE.MeshLambertMaterial({color:0x7b9b8d,emissive:0x245c4a,emissiveIntensity:.35}));titanBody.scale.set(1.05,1.65,.8);titanCore.add(titanBody);
+  const titanHead=new THREE.Mesh(new THREE.SphereGeometry(3.2,18,12),new THREE.MeshPhongMaterial({color:0x9dc8b5,emissive:0x285d4d,shininess:100}));titanHead.position.set(0,8,-.4);titanCore.add(titanHead);
+  for(const x of[-1.25,1.25]){
+    const eye=new THREE.Mesh(new THREE.SphereGeometry(.75,12,8),basic(0xff334f));eye.position.set(x,8.2,-3.1);titanCore.add(eye);
+    const arm=new THREE.Mesh(new THREE.CylinderGeometry(.8,1.15,8,10),lam(0x688b7e));arm.position.set(x*3,2,-.1);arm.rotation.z=x*.22;titanCore.add(arm);
+  }
+  const titanField=new THREE.Mesh(new THREE.CylinderGeometry(11,11,.35,32),new THREE.MeshBasicMaterial({color:0xff526c,transparent:true,opacity:.5,blending:THREE.AdditiveBlending}));titanField.position.y=1;titan.add(titanField);
+  const titanGlow=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:0xff526c,transparent:true,opacity:.55,blending:THREE.AdditiveBlending,depthWrite:false}));titanGlow.position.set(WINGX+43,13,WINGZ+30);titanGlow.scale.set(35,35,1);root.add(titanGlow);roomGlow.push(titanGlow);
+  [interview,autopsy,command,titan].forEach(g=>g.traverse(o=>{o.userData.keep=true;}));colliders.push({x0:WINGX-71,x1:WINGX+71,z0:WINGZ-55,z1:WINGZ+55,h:14,y0:0});
+  {const tg=new THREE.Group();tg.position.y=-1.4;tg.userData.onAttach=()=>{titanCore.children.forEach(c=>{if(c!==tg)c.visible=false;});specLift(tg,2.6,0x4a3440);};titanCore.add(tg);useModel('titan',tg);}
+  // Small overhead warning beacons and restrained room lighting animation.
+  const wingBeacons=[];
+  for(const [x,z] of [[WINGX-43,WINGZ-48],[WINGX+43,WINGZ-48],[WINGX-43,WINGZ+48],[WINGX+43,WINGZ+48]]){
+    const beacon=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:0xff425f,transparent:true,opacity:.45,blending:THREE.AdditiveBlending,depthWrite:false}));beacon.position.set(x,17,z);beacon.scale.set(10,10,1);root.add(beacon);wingBeacons.push(beacon);
+  }
+  desertAnim.push((dt,t)=>{
+    titanCore.position.y=2+Math.sin(t*.8)*.5;titanCore.rotation.y=Math.sin(t*.22)*.3;if(bodyForm.visible&&autoG.children.length)bodyForm.visible=false;
+    titanField.material.opacity=.28+.3*(.5+.5*Math.sin(t*2.1));
+    roomGlow.forEach((L,i)=>{L.material.opacity=.35+.3*(.5+.5*Math.sin(t*1.4+i));});
+    wingBeacons.forEach((B,i)=>{B.material.opacity=.18+.65*(.5+.5*Math.sin(t*3.5+i*1.7));});
+  });
+
+  // 👽 lost crew + 🥼 scientists to beam up, in the corridors between the lab blocks
+  const FL=[{x:-100,z:70},{x:100,z:110},{x:0,z:-56},{x:-20,z:38},{x:100,z:-120},{x:-105,z:-60}];
+  for(let i=0;i<6;i++){const g=new THREE.Group();box(g,0.8,1.2,0.6,0x6dff7a,0,1,0);box(g,1,0.9,0.9,0x8aff9a,0,2.1,0);g.userData.emoji='👽';g.userData.pts=150;g.userData.heat=0;g.scale.setScalar(1.5);root.add(g);
+    const T={type:'critter',mesh:useAnim('alien',g,'sub9'),spawn:spawnCow,fl:FL,rad:7};T.mesh.userData.T=T;T.spawn(T);targets.push(T);}
+  for(let i=0;i<10;i++){const g=makeHuman(false);g.userData.emoji='🥼';g.userData.pts=60;g.userData.heat=0;g.userData.tintHex=0xf2f4f6;
+    const T={type:'critter',mesh:useAnim('person',g,'sub9'),spawn:spawnCow,fl:FL,rad:7};T.mesh.userData.T=T;T.spawn(T);targets.push(T);}
+  // exit lift ring at the far end
+  const ex=new THREE.Mesh(new THREE.TorusGeometry(24,2.4,10,48),new THREE.MeshBasicMaterial({color:0x7dffb0}));ex.position.set(0,40,-224);root.add(ex);
+  const exG=glowSprite(0x7dffb0,0,40,-222,58,0.5);sign('EXIT ▲ SURFACE','#7dffb0',24,3.4,0,70,-228,0);
+  planetAnim.push({town:'sub9',f:(t,dt)=>{for(const f of desertAnim)f(dt,t);exG.material.opacity=0.35+0.25*Math.sin(t*3);ex.rotation.z=t;}});
+})();
+endTown('sub9',[150,600]);Object.assign(towns.sub9,{planet:true,fogC:new THREE.Color(0x0c0a0c),skyTint:0x000000,label:'🧪 SUBLEVEL 9',bloom:0.6});
 // ================= UNDERGROUND WORLDS: the hidden Mars cave + the Moon's inner world =================
 const INTERIOR={marscave:{from:'mars',bx:92,z0:-296,z1:292,top:60},moonbase:{from:'moon',bx:146,z0:-296,z1:292,top:74}};
 function tagSprite(txt,col){const c=document.createElement('canvas');c.width=256;c.height=64;const g=c.getContext('2d');g.font='900 30px system-ui,sans-serif';g.textAlign='center';g.fillStyle=col;g.shadowColor='#000';g.shadowBlur=6;g.fillText(txt,128,42);
@@ -6180,7 +6205,7 @@ const LOG_NAMES={'🐄':'Cow','🚗':'Car','🚓':'Police Car','🚚':'Truck','�
 let LOG={};try{LOG=JSON.parse(localStorage.getItem('ufoLog')||'{}');}catch(e){}
 const logKey=T=>{const u=T.mesh.userData;return u.emoji||(u.police?'🚓':{cow:'🐄',car:'🚗',truck:'🚚'}[T.type]);};
 let LOG_CAT=null;
-function logCatalog(){if(LOG_CAT)return LOG_CAT;const C={},order=['city','desert','sub51','vegas','egypt','maya','ice','ocean','seas','moon','moonbase','mars','marscave','jupiter','lava','jungle','fifth','home'];
+function logCatalog(){if(LOG_CAT)return LOG_CAT;const C={},order=['city','desert','sub51','sub9','vegas','egypt','maya','ice','ocean','seas','moon','moonbase','mars','marscave','jupiter','lava','jungle','fifth','home'];
   order.forEach(n=>{if(!towns[n])return;const L=[];towns[n].targets.forEach(T=>{const k=logKey(T);if(k&&!C[k]){C[k]=n;L.push(k);}});});
   LOG_CAT={byTown:order.map(n=>[n,Object.keys(C).filter(k=>C[k]===n)]).filter(x=>x[1].length),total:Object.keys(C).length};return LOG_CAT;}
 // 🛸 the long-term goal: one specimen from every world, then the mothership can go home
@@ -6881,7 +6906,7 @@ function pilotPlay(k){if(!PILOT.mixer)return;if(!PILOT.acts[k])k=PILOT.acts.walk
 // relics
 const RELICS={};let relicFx=[];
 let badges={};try{badges=JSON.parse(localStorage.getItem('ufoBadges')||'{}');}catch(e){}
-const TOWN_NAMES={home:'Zeta Prime (Home)',jupiter:'Jupiter',marscave:'Mars: Hidden Cave',moonbase:'Moon: Inner World',seas:'Dubai & the Open Sea',sub51:'Hangar 18',egypt:'Giza, Egypt',maya:'Yucatán, Mexico',vegas:'Las Vegas',fifth:'The 5th Dimension',ocean:'The Ocean',city:'New York',desert:'Area 51',ice:'Antarctica',lava:'Magmor',jungle:'Verdana',moon:'The Moon',mars:'Mars'};
+const TOWN_NAMES={home:'Zeta Prime (Home)',jupiter:'Jupiter',marscave:'Mars: Hidden Cave',moonbase:'Moon: Inner World',seas:'Dubai & the Open Sea',sub51:'Hangar 18',sub9:'Sublevel 9',egypt:'Giza, Egypt',maya:'Yucatán, Mexico',vegas:'Las Vegas',fifth:'The 5th Dimension',ocean:'The Ocean',city:'New York',desert:'Area 51',ice:'Antarctica',lava:'Magmor',jungle:'Verdana',moon:'The Moon',mars:'Mars'};
 function makeRelic(){const g=new THREE.Group();const c=new THREE.Mesh(new THREE.OctahedronGeometry(0.9),new THREE.MeshBasicMaterial({color:0xc58bff}));c.scale.y=1.5;g.add(c);
   const gl=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:0xb46bff,transparent:true,depthWrite:false}));gl.scale.set(6,6,1);g.add(gl);
   const pil=new THREE.Mesh(new THREE.CylinderGeometry(0.25,0.25,60,6,1,true),new THREE.MeshBasicMaterial({color:0xc58bff,transparent:true,opacity:.22,blending:THREE.AdditiveBlending,depthWrite:false}));pil.position.y=30;g.add(pil);
@@ -7758,6 +7783,7 @@ const MISSIONS=[
   {id:'foodtruck',t:'Beam up 2 food trucks (night market)',ev:'abduct',m:d=>d.emoji==='🌮',g:2,r:500},
   {id:'invasion',t:'Survive a Mothership Invasion at Area 51',ev:'invasion',g:1,r:500},
   {id:'h18',t:'Fly into secret Hangar 18 (Area 51 hangar doors)',ev:'h18',g:1,r:500},
+  {id:'sub9',t:'Fly low through a rock arch into Sublevel 9 (Area 51)',ev:'sub9',g:1,r:500},
   {id:'raiders',t:'Beam up 8 Area 51 raiders (combo!)',ev:'abduct',m:d=>d.emoji==='🏃',g:8,r:500},
   {id:'specimens',t:'Free 4 alien specimens in Hangar 18',ev:'abduct',m:d=>d.emoji==='👾',g:4,r:700},
   {id:'soldiers',t:'Abduct 4 soldiers (Area 51)',ev:'abduct',m:d=>d.emoji==='🪖',g:4,r:600},
@@ -8197,7 +8223,7 @@ function wantTrack(){
   if(boss&&mode==='space')return 'boss';
   if(mode==='space')return 'space';
   if(heat>=3&&state==='play'&&!towns[curTown].planet)return 'boss';
-  if(curTown==='sub51')return 'desert';
+  if(curTown==='sub51'||curTown==='sub9')return 'desert';
   if(curTown==='home')return TRACKS.fifth?'fifth':'jungle';
   if(INTERIOR[curTown])return INTERIOR[curTown].from;
   if(curTown==='seas')return 'ocean';
@@ -8388,6 +8414,9 @@ function enterSeas(){fadeIn();setTown('seas');mEvent('visit',{town:'seas'});setT
 function diveSea(){fadeIn();setTown('ocean');pos.set(0,SURF-15,0);vy=-6;snapCam();pop('🌊 UNDER THE SEA');blip(900,200,0.6,'sine',0.12);}
 function enterHangar18(){clearEnemies();heat=0;fadeIn();setTown('sub51');pos.set(0,22,270);yaw=0;speed=Math.min(speed,22);vy=0;snapCam();
   pop('🛸 HANGAR 18');pop('Top-secret underground base · fly into the far elevator to leave','t');blip(300,90,0.8,'sawtooth',0.08);mEvent('h18');}
+function enterSub9(k){clearEnemies();heat=0;fadeIn();window.SUB9_FROM=k;setTown('sub9');pos.set(0,44,180);yaw=0;speed=Math.min(speed,22);vy=0;snapCam();
+  pop('🧪 SUBLEVEL 9');pop('The alien lab under Area 51 · fly into the green ring at the far end to leave','t');blip(300,90,0.8,'sawtooth',0.08);mEvent('sub9');}
+function exitSub9(){const A=(window.ARCHES||[])[window.SUB9_FROM||0]||{x:0,z:0,ry:0};fadeIn();setTown('desert');pos.set(clamp(A.x+Math.sin(A.ry)*55,-580,580),28,clamp(A.z+Math.cos(A.ry)*55,-580,580));yaw=0;speed=Math.min(speed,22);vy=0;snapCam();pop('🏜️ BACK TO AREA 51');blip(90,300,0.6,'sine',0.1);}
 function exitHangar18(){fadeIn();setTown('desert');pos.set(420,26,-385);yaw=PI;speed=Math.min(speed,22);vy=0;snapCam();pop('🏜️ BACK TO AREA 51');blip(90,300,0.6,'sine',0.1);}
 function iceWallBlock(R){const RW=600,r=Math.hypot(pos.x,pos.z);if(pos.y>=111||r<RW-15-R||r>RW+15+R)return;const k=(r<RW?RW-15-R:RW+15+R)/r;pos.x*=k;pos.z*=k;if(typeof speed!=='undefined'&&!onFoot)speed=Math.min(speed,8);}
 function landAt(n){
@@ -8587,9 +8616,11 @@ function loop(now){
       if(curTown==='ice')iceWallBlock(3);
       if(FLYP&&pos.y>SPACE_Y-30){pos.y=SPACE_Y-30;if(vy>0)vy=0;}
       if(curTown==='desert'&&state==='play'&&!FLYP&&pos.z<-406&&pos.z>-440&&Math.abs(pos.x-420)<44&&pos.y<34)enterHangar18();
+      if(curTown==='desert'&&state==='play'&&!FLYP&&pos.y<19&&window.ARCHES){const k=ARCHES.findIndex(A=>Math.hypot(pos.x-A.x,pos.z-A.z)<11);if(k>=0)enterSub9(k);}
       collide();
       interiorTick(dt);
       if(curTown==='sub51'){pos.y=Math.min(pos.y,60);pos.x=clamp(pos.x,-88,88);pos.z=clamp(pos.z,-300,292);if(pos.z<-282&&Math.abs(pos.x)<34&&pos.y<46)exitHangar18();}
+      if(curTown==='sub9'){pos.y=Math.min(pos.y,68);pos.x=clamp(pos.x,-122,122);pos.z=clamp(pos.z,-222,190);if(pos.z<-210&&Math.abs(pos.x)<30&&pos.y>14)exitSub9();}
       if(curTown==='ocean'&&pos.y>SURF-3)enterSeas();else if(curTown==='seas'&&down&&pos.y<6&&!seaSolid(pos.x,pos.z))diveSea();
       if(curTown==='seas'&&onDeck(pos.x,pos.z)&&pos.y<carrierDeckY()+3){pos.y=carrierDeckY()+3;if(vy<0)vy=0;} // hover above the carrier deck
       if(pos.y>SPACE_Y&&mode==='ground')enterSpace();
