@@ -1685,6 +1685,26 @@ beginTown('ice');
 endTown('ice',[220,1500]);Object.assign(towns.ice,{planet:true,fogC:new THREE.Color(0x9fb8d8),skyTint:0x9fc4ff,label:'🧊 ANTARCTICA',bloom:0.3});
 
 // 🔥 MAGMOR
+// ---------- extra wildlife kit: simple hand-built creatures used to fill out the quieter worlds ----------
+function mkCreature(kind,c){const g=new THREE.Group(),m=lam(c,0x181818),S=(r,x,y,z,sx,sy,sz,mat)=>{const o=new THREE.Mesh(new THREE.SphereGeometry(r,10,8),mat||m);o.position.set(x,y,z);o.scale.set(sx||1,sy||1,sz||1);g.add(o);return o;},eye=(x,y,z,r)=>{const e=new THREE.Mesh(new THREE.SphereGeometry(r||0.16,6,5),basic(0xffffff));e.position.set(x,y,z);g.add(e);const p=new THREE.Mesh(new THREE.SphereGeometry((r||0.16)*0.5,5,4),basic(0x101010));p.position.set(x+(r||0.16)*0.7,y,z);g.add(p);};
+  if(kind==='scorpion'){S(1,0,0.8,0,1.6,0.5,0.9);for(let k=0;k<4;k++){const t=S(0.38,-1.6-k*0.45,1+k*0.55,0);if(k===3){const st=new THREE.Mesh(new THREE.ConeGeometry(0.22,0.9,5),basic(0xffd040));st.position.set(-2.7,3,0);st.rotation.z=1.2;g.add(st);}}for(const z of[-1,1]){box(g,1.6,0.25,0.25,c,1.6,0.9,z*0.8);S(0.42,2.5,0.9,z*0.9,1.3,0.8,0.8);for(let k=0;k<3;k++)box(g,0.14,0.8,0.14,c,-0.6+k*0.6,0.4,z*1);}eye(1.5,1.25,0.25,0.12);eye(1.5,1.25,-0.25,0.12);}
+  else if(kind==='beetle'){S(1.1,0,1,0,1.4,0.8,1);S(0.5,1.6,0.9,0);const sh=S(1.14,0,1.12,0,1.3,0.7,0.96,basic(0xff7a20));sh.material.transparent=true;sh.material.opacity=0.55;for(const z of[-1,1])for(let k=0;k<3;k++)box(g,0.14,0.9,0.14,0x202020,-0.7+k*0.7,0.45,z*0.95);eye(1.95,1.05,0.2,0.1);eye(1.95,1.05,-0.2,0.1);}
+  else if(kind==='rabbit'){S(0.8,0,1.1,0,1.2,1,0.9);S(0.55,0.9,1.9,0);for(const z of[-0.22,0.22]){box(g,0.2,1.3,0.12,c,0.85,2.9,z);}S(0.3,-1,1.2,0,1,1,1,basic(0xffffff));for(const z of[-0.4,0.4]){box(g,0.9,0.3,0.3,c,0.1,0.25,z);}eye(1.3,2.05,0.25,0.11);eye(1.3,2.05,-0.25,0.11);}
+  else if(kind==='blob'){const b=S(1.3,0,1.2,0,1,0.85,1,new THREE.MeshPhongMaterial({color:c,transparent:true,opacity:0.8,shininess:120,emissive:c,emissiveIntensity:0.3}));eye(0.95,1.6,0.4,0.24);eye(0.95,1.6,-0.4,0.24);for(let k=0;k<3;k++)S(0.3,rand(-0.6,0.6),2.3+k*0.5,rand(-0.6,0.6),1,1,1,b.material);}
+  else if(kind==='worm'){for(let k=0;k<7;k++)S(0.9-k*0.08,-k*1.2,0.8+Math.sin(k*1.1)*0.5,0,1,1,1,k%2?lam(0xffffff&(c>>1),0x101010):m);const mo=new THREE.Mesh(new THREE.TorusGeometry(0.5,0.16,5,10),basic(0x2a0a0a));mo.rotation.y=PI/2;mo.position.set(0.8,0.9,0);g.add(mo);eye(0.5,1.6,0.35,0.14);eye(0.5,1.6,-0.35,0.14);}
+  else if(kind==='crawler'){S(1,0,0.7,0,1.8,0.45,1.1);for(let k=0;k<5;k++){const sp=new THREE.Mesh(new THREE.ConeGeometry(0.22,0.9,4),lam(0xffffff&~(c>>2),0x101010));sp.position.set(-1.2+k*0.6,1.3,0);g.add(sp);}for(const z of[-1,1])for(let k=0;k<4;k++)box(g,0.12,0.6,0.12,0x202020,-1+k*0.65,0.3,z*1);eye(1.7,0.95,0.3,0.12);eye(1.7,0.95,-0.3,0.12);}
+  else if(kind==='cat'){S(0.6,0,1.1,0,1.7,0.85,0.75);S(0.5,1.25,1.7,0);for(const z of[-0.25,0.25]){const ea=new THREE.Mesh(new THREE.ConeGeometry(0.2,0.45,4),m);ea.position.set(1.25,2.25,z);g.add(ea);}const tl=new THREE.Mesh(new THREE.CylinderGeometry(0.09,0.12,1.6,5),m);tl.position.set(-1.2,1.8,0);tl.rotation.z=0.5;g.add(tl);for(const x of[-0.6,0.6])for(const z of[-0.3,0.3])box(g,0.16,0.9,0.16,c,x,0.45,z);eye(1.65,1.8,0.18,0.09);eye(1.65,1.8,-0.18,0.09);}
+  else if(kind==='orb'){const b=S(1.6,0,0,0,1,1,1,new THREE.MeshPhongMaterial({color:c,transparent:true,opacity:0.75,shininess:140,emissive:c,emissiveIntensity:0.5}));const rg=new THREE.Mesh(new THREE.TorusGeometry(2.4,0.12,5,24),basic(0xffffff));rg.rotation.x=1.1;g.add(rg);const gl=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:c,transparent:true,opacity:0.5,blending:THREE.AdditiveBlending,depthWrite:false}));gl.scale.set(9,9,1);g.add(gl);}
+  else if(kind==='eye'){S(1.5,0,0,0,1,1,1,lam(0xf4f4f8,0x202020));S(0.75,0,0,1.05,1,1,0.5,basic(c));S(0.36,0,0,1.42,1,1,0.5,basic(0x101010));for(const sd of[-1,1]){const w=new THREE.Mesh(new THREE.ConeGeometry(0.9,3.4,3),lam(c,0x181818));w.rotation.z=sd*1.3;w.position.set(sd*2.6,0.3,0);w.scale.z=0.2;g.add(w);}}
+  else if(kind==='squid'){S(1.6,0,3,0,0.9,1.5,0.9,new THREE.MeshPhongMaterial({color:c,transparent:true,opacity:0.85,emissive:c,emissiveIntensity:0.3}));for(let k=0;k<6;k++){const a=k/6*2*PI,t=new THREE.Mesh(new THREE.CylinderGeometry(0.18,0.05,4.5,5),m);t.position.set(Math.cos(a)*0.9,-0.6,Math.sin(a)*0.9);g.add(t);}eye(0.9,3,0.6,0.3);eye(0.9,3,-0.6,0.3);}
+  else if(kind==='bird'){S(0.6,0,0,0,0.7,0.6,1.8);for(const sd of[-1,1]){const w=new THREE.Mesh(new THREE.ConeGeometry(0.9,3.6,3),m);w.rotation.z=sd*1.45;w.position.set(sd*1.9,0.1,0);w.scale.z=0.25;g.add(w);}const bk=new THREE.Mesh(new THREE.ConeGeometry(0.2,0.7,4),basic(0xffc040));bk.rotation.x=PI/2;bk.position.z=1.4;g.add(bk);}
+  else if(kind==='twister'){for(let k=0;k<6;k++){const r=0.6+k*0.55,o=new THREE.Mesh(new THREE.CylinderGeometry(r+0.3,r,1.2,10,1,true),new THREE.MeshBasicMaterial({color:c,transparent:true,opacity:0.5,side:THREE.DoubleSide,depthWrite:false}));o.position.y=0.6+k*1.2;g.add(o);}}
+  else if(kind==='probe'){box(g,2.2,1.6,2.2,0xd8b040,0,2,0);for(const sd of[-1,1])box(g,3.4,0.12,1.6,basic(0x1a2a6a),sd*2.9,2.2,0);for(const [x,z] of[[-1,-1],[1,-1],[-1,1],[1,1]])box(g,0.14,1.6,0.14,0x8a94a6,x*1.2,0.7,z*1.2);const d=new THREE.Mesh(new THREE.CylinderGeometry(1,0.2,0.5,10),lam(0xe8e8ec));d.position.y=3.2;g.add(d);}
+  return g;}
+function addWalkers(n,kind,cols,emoji,pts,fl,rad,sc){for(let i=0;i<n;i++){const g=mkCreature(kind,pick(cols));if(sc)g.scale.setScalar(sc*rand(0.85,1.2));g.userData.emoji=emoji;g.userData.pts=pts;root.add(g);const T={type:'critter',mesh:g,spawn:spawnCow,fl:fl||fields,rad};T.spawn(T);targets.push(T);}}
+function addFlyers(town,n,kind,cols,emoji,pts,R,y0,y1,sc,spin){const F=[];for(let i=0;i<n;i++){const g=mkCreature(kind,pick(cols));if(sc)g.scale.setScalar(sc*rand(0.85,1.2));g.traverse(o=>{o.userData.keep=true;});g.userData.emoji=emoji;g.userData.pts=pts;g.userData.heat=0.3;root.add(g);
+    const T={type:'critter',mesh:g,still:true,spawn:T=>{T.mesh.visible=true;T.state='ground';resetRot(T.mesh);}};T.state='ground';targets.push(T);F.push({T,g,cx:rand(-R,R),cz:rand(-R,R),r:rand(20,70),y:rand(y0,y1),w:rand(0.1,0.3)*(i%2?1:-1),a:rand(0,7)});}
+  planetAnim.push({town,f:(t,dt)=>{for(const f of F){if(f.T.state!=='ground')continue;f.a+=f.w*dt;f.g.position.set(f.cx+Math.cos(f.a)*f.r,f.y+Math.sin(t*0.8+f.r)*2,f.cz+Math.sin(f.a)*f.r);if(spin)f.g.rotation.y=t*4+f.r;else f.g.rotation.set(0,-f.a+(f.w>0?0:PI),0);}}});}
 beginTown('lava');
 (function(){
   flatPlane(3000,3000,0x24181a,0,0,0);makeFields(8,480);
@@ -1840,6 +1860,10 @@ beginTown('lava');
     bt-=dt;if(bt<=0){bt=rand(3,9);const a=rand(0,7);bolt.position.set(pos.x+Math.cos(a)*900,rand(260,420),pos.z+Math.sin(a)*900);bolt.material.opacity=0.8;}else bolt.material.opacity*=0.86;
     if(state!=='play'){seen={};return;}for(const [k,x,z,msg] of[['l',LX,LZ,'🌋 THE LAVA LAKE! +120'],['f',FX,FZ,'⚒️ THE FORGE OF MAGMOR! +120']]){if(!seen[k]&&Math.hypot(pos.x-x,pos.z-z)<60){seen[k]=1;score+=120;mEvent('found',{k:'lava'+k});pop(msg);blip(260,900,0.4,'sawtooth',0.07);}}}});
 })();
+// 🌋 more life on Magmor: giant scorpions, ember beetles, alien miners, and fire sprites drifting over the lava
+addWalkers(10,'scorpion',[0x8a2a1a,0x5a1a10,0xa84a1a],'🦂',130,null,null,1.3);addWalkers(12,'beetle',[0x2a2a30,0x3a2a2a],'🪲',90);
+for(let i=0;i<8;i++){const g=makeHuman(false);g.userData.emoji='👷';g.userData.pts=100;const T={type:'critter',mesh:useAnim('person',g,'lava'),spawn:spawnCow,fl:fields};T.mesh.userData.T=T;T.spawn(T);targets.push(T);}
+addFlyers('lava',12,'orb',[0xff5a1a,0xffa020,0xff3a3a],'🔥',150,420,7,24,0.8,true);
 endTown('lava',[120,800]);Object.assign(towns.lava,{planet:true,fogC:new THREE.Color(0x4a1810),skyTint:0xff8060,label:'🔥 MAGMOR'});
 
 // 🍄 VERDANA
@@ -2474,6 +2498,9 @@ beginTown('moon');
       if(mU>=1){mU=-1;mT=rand(4,10);for(let i=0;i<16;i++)spawnFx(mB,tmpV.set(rand(-1,1),rand(0.4,1.6),rand(-1,1)).multiplyScalar(rand(5,14)),1.3,2.4,3.4,i%4?0xb0b2ba:0xffe0a0,i%4===0);if(Math.hypot(pos.x-mB.x,pos.z-mB.z)<200)blip(140,50,0.25,'sawtooth',0.05);}}
     if(state!=='play'){iceSeen=false;return;}if(!iceSeen&&Math.hypot(pos.x-IX,pos.z-IZ)<45&&pos.y<70){iceSeen=true;score+=120;mEvent('found',{k:'moonice'});pop('🧊 WATER ICE FOUND ON THE MOON! +120');blip(600,1500,0.4,'triangle',0.1);}}});
 })();
+// 🌕 more life on the Moon: moon rabbits, bubble blobs, old landers, drifting star-eyes
+addWalkers(12,'rabbit',[0xe8e8f0,0xc8c8d8],'🐇',110);addWalkers(10,'blob',[0x7fe8ff,0xb8a0ff,0x9dffb0],'🫧',120);addWalkers(5,'probe',[0xd8b040],'📡',220,null,60);
+addFlyers('moon',8,'eye',[0x45eaff,0xff5ad2,0xffd84a],'👁️',180,420,8,26,0.9);
 endTown('moon',[260,1400]);Object.assign(towns.moon,{planet:true,fogC:new THREE.Color(0x05060a),skyTint:0x000000,label:'🌕 THE MOON'});
 
 // ✨ THE 5TH DIMENSION (only reachable through the black hole)
@@ -2731,6 +2758,8 @@ beginTown('fifth');
     echoT+=dt;if(echoT>.1){echoT=0;trail.push([pos.x,pos.y,pos.z,yaw]);if(trail.length>40)trail.shift();}
     echoes.forEach((e,k)=>{const s=trail[trail.length-1-(k+1)*10];e.visible=!!s&&mode==='ground'&&!onFoot&&state==='play';if(s){e.position.set(s[0],s[1],s[2]);e.rotation.y=s[3];}});}});
 })();
+// 🌀 more life in the 5th Dimension: energy orbs, watching eyes, prism blobs
+addFlyers('fifth',12,'orb',[0xff5ad2,0x45eaff,0xffd84a,0x9dff5a],'🔮',160,420,8,28,1,true);addFlyers('fifth',10,'eye',[0xb44dff,0x45eaff,0xff4a6a],'👁️',180,420,10,30,1);addWalkers(12,'blob',[0xff5ad2,0x45eaff,0xffd84a],'🫧',120);
 endTown('fifth',[250,1500]);Object.assign(towns.fifth,{planet:true,fogC:new THREE.Color(0x12002a),skyTint:0x000000,label:'✨ THE 5TH DIMENSION'});
 
 // 🇪🇬 GIZA, EGYPT
@@ -3004,6 +3033,10 @@ beginTown('egypt');
   const tombs=[{x:170,z:-140},{x:-110,z:-270},{x:-330,z:300},{x:120,z:190}];
   for(let i=0;i<8;i++){const T={type:'critter',mesh:useAnim('mummy',makeMummy(),'egypt'),spawn:spawnCow,fl:tombs,rad:24};T.spawn(T);targets.push(T);}
 })();
+// 🇪🇬 more life at Giza: temple cats, scarab beetles, tourists, and falcons circling the pyramids
+addWalkers(12,'cat',[0xd8a860,0x3a3a3a,0xe8dcc0],'🐈',100);addWalkers(10,'beetle',[0x1a4a8a,0x2a8a6a],'🪲',90);
+for(let i=0;i<14;i++){const g=makeHuman(false);g.userData.emoji='📸';g.userData.pts=60;const T={type:'critter',mesh:useAnim('person',g,'egypt'),spawn:spawnCow,fl:fields};T.mesh.userData.T=T;T.spawn(T);targets.push(T);}
+addFlyers('egypt',8,'bird',[0x8a6a48,0x5a4a3a],'🦅',160,380,22,46,1.5);
 endTown('egypt',[300,1700]);Object.assign(towns.egypt,{planet:true,fogC:new THREE.Color(0xc89070),skyTint:0xffc890,label:'🇪🇬 GIZA, EGYPT',bloom:0.35});
 
 // 🌴 YUCATÁN, MEXICO — Mayan step pyramids in the jungle
@@ -4755,6 +4788,9 @@ beginTown('mars');
     if(!seenF&&Math.hypot(pos.x-FX,pos.z-FZ)<70){seenF=true;score+=150;mEvent('found',{k:'marsface'});pop('🗿 THE FACE ON MARS! +150');blip(300,1200,0.5,'triangle',0.1);}
     if(!seenU&&Math.hypot(pos.x-UX,pos.z-UZ)<50){seenU=true;score+=150;mEvent('found',{k:'marsruins'});pop('🏛️ ANCIENT MARTIAN RUINS! +150');blip(500,1500,0.5,'triangle',0.1);}}});
 })();
+// 🔴 more life on Mars: sand worms, dust crawlers, old probes, and dust devils to catch
+addWalkers(8,'worm',[0xc86a3a,0xa8502a],'🪱',160,null,null,1.3);addWalkers(12,'crawler',[0x8a4a2a,0x6a3a2a,0xb8603a],'🐛',100);addWalkers(5,'probe',[0xd8b040],'📡',220,null,60);
+addFlyers('mars',8,'twister',[0xd8a070,0xc88a5a],'🌪️',170,430,0,1,1.4,true);
 endTown('mars',[200,1200]);Object.assign(towns.mars,{planet:true,fogC:new THREE.Color(0xc87a52),skyTint:0xffb08a,label:'🔴 MARS'});
 // 🌊 THE OCEAN (underwater world)
 const SURF=130;
@@ -5564,6 +5600,8 @@ beginTown('jupiter');
     // no ground: too deep = crushing pressure
     crush-=dt;if(pos.y<24){pos.y=24;if(vy<0)vy=0;if(crush<=0){crush=1.2;hurt(5);pop('⚠️ CRUSHING PRESSURE · PULL UP!','t');}}}});
 })();
+// 🪐 more life in Jupiter's clouds: gas squids, storm birds and lightning orbs (dive low to beam them)
+addFlyers('jupiter',12,'squid',[0xff9a6a,0xffd890,0xd8b0ff],'🦑',160,480,7,16,1);addFlyers('jupiter',12,'bird',[0xf4e8d8,0xc89464],'🪽',130,480,9,20,1.6);addFlyers('jupiter',8,'orb',[0xffe9a0,0x9fd8ff],'⚡',200,480,8,18,0.8,true);
 endTown('jupiter',[150,950]);Object.assign(towns.jupiter,{planet:true,fogC:new THREE.Color(0xc89468),skyTint:0xffc890,label:'🪐 JUPITER · STORM CLOUDS',bloom:0.55});
 function enterInterior(n){clearEnemies();heat=0;fadeIn();setTown(n);pos.set(0,24,262);yaw=0;speed=Math.min(speed,22);vy=0;snapCam();mEvent(n);
   if(n==='marscave'){pop('🕳️ THE HIDDEN CAVE');pop('Something is frozen at the back… · fly back out the bright exit to leave','t');}else{pop('🌑 THE INNER WORLD');pop('A city inside the Moon · fly back out the bright exit to leave','t');}blip(300,90,0.8,'sine',0.1);}
@@ -7641,6 +7679,14 @@ const MISSIONS=[
   {id:'longneck',t:'Beam up a giant long-neck dinosaur (Verdana)',ev:'abduct',m:d=>d.emoji==='🦕',g:1,r:500},
   {id:'drake',t:'Catch a sky-drake (Verdana)',ev:'abduct',m:d=>d.emoji==='🐉',g:1,r:600},
   {id:'snails',t:'Abduct 3 giant glow-snails (Verdana)',ev:'abduct',m:d=>d.emoji==='🐌',g:3,r:400},
+  {id:'scorpion',t:'Abduct 3 giant scorpions (Magmor)',ev:'abduct',m:d=>d.emoji==='🦂',g:3,r:500},
+  {id:'firesprite',t:'Catch 3 fire sprites over the lava (Magmor)',ev:'abduct',m:d=>d.emoji==='🔥',g:3,r:500},
+  {id:'moonrabbit',t:'Abduct 3 moon rabbits (the Moon)',ev:'abduct',m:d=>d.emoji==='🐇',g:3,r:450},
+  {id:'sandworm',t:'Beam up 2 sand worms (Mars)',ev:'abduct',m:d=>d.emoji==='🪱',g:2,r:500},
+  {id:'dustdevil',t:'Catch a dust devil (Mars)',ev:'abduct',m:d=>d.emoji==='🌪️',g:1,r:450},
+  {id:'orbs5',t:'Collect 3 energy orbs (5th Dimension)',ev:'abduct',m:d=>d.emoji==='🔮',g:3,r:500},
+  {id:'gassquid',t:'Catch 2 gas squids in the clouds (Jupiter)',ev:'abduct',m:d=>d.emoji==='🦑',g:2,r:550},
+  {id:'templecat',t:'Abduct 3 temple cats (Egypt)',ev:'abduct',m:d=>d.emoji==='🐈',g:3,r:450},
   {id:'speedboat',t:'Beam up 2 speedboats (the river in New York or the Dubai coast)',ev:'abduct',m:d=>d.emoji==='🚤',g:2,r:500},
   {id:'hotdog',t:'Beam up 3 hot dog carts (street corners in New York)',ev:'abduct',m:d=>d.emoji==='🌭',g:3,r:450},
   {id:'foodtruck',t:'Beam up 2 food trucks (night market)',ev:'abduct',m:d=>d.emoji==='🌮',g:2,r:500},
