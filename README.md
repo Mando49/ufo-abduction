@@ -184,3 +184,12 @@ New York (Midtown Manhattan — the home world where every game starts; it repla
 
 ### Note: Neon City is gone
 New York replaced Neon City as the home world (it keeps the world id `city`). Older sections above that describe Neon City's stadium, farms, suburbs, canal and shop fronts are history: the helipad, tint sign, scoreboards, news chopper, blimp, ring arch, night market, street racers, sky-train, Bigfoot, crop circles and crashed saucer all moved to New York; the stadium became the statue (touch her torch for bonus time). The shared helpers that used to sit inside the Neon City section (models, makeHuman, makeCar, winTex…) are still defined there, between `beginTown('oldcity')` and `endTown('oldcity'…)`; that throw-away group is now nearly empty and is discarded at load.
+
+## Realistic daylight look + Kansas Farmland (Nov 2026)
+
+Some worlds now use a "real look" instead of the neon night style: one strong sun with real soft shadows, a day sky with clouds, haze in the distance, photo-style ground textures (painted in code, no downloads), grass and wheat that blow in the wind and get pushed flat under the UFO, and a colour-grading filter.
+
+- **🌾 Kansas Farmland (new world):** fly up through the clouds and follow the green-gold **KANSAS** star. Red barn, silos, farmhouse, windmills, pond, wheat and plowed fields, a county road with power lines and a Mando Window Tinting billboard. Beam up cows, tractors, pigs 🐖, sheep 🐑, chickens 🐔, farmers 👨‍🌾, hay bales 🌾 and pickup trucks 🛻. Hold the beam low over a wheat field to press a **crop circle** into it (+150; all four fields = +500 and 💰 300). Two new missions.
+- **🏜️ Area 51:** now golden hour: sandy ground, a real cracked dry lake, gravel under the base, sagebrush, layered red rock on the mesas and long sunset shadows.
+- **Graphics setting:** Low turns shadows and grass off. Phones get smaller shadows and less grass automatically.
+- For agents: a world opts in with `towns[n].look={...}`; helpers are `realGround`, `realGrass`, `REAL_TREE` and `rtex` near the top of `index.html`.
