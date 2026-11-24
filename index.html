@@ -5658,7 +5658,7 @@ beginTown('sub9');
   alarmLamp.position.set(LABX+38,17,LABZ+145);alarmLamp.scale.set(38,38,1);root.add(alarmLamp);
   desertAnim.push((dt,t)=>{
     cells.forEach(C=>{if(C.lift&&C.core.children.length>1){C.lift=0;specLift(C.core,2.6,0x333a44);}
-      C.core.position.y=1.9+Math.sin(t*1.6+C.phase)*.5;C.core.rotation.y=t*.35+C.phase;
+      if(C.T&&C.T.state!=='ground')return;C.core.position.y=1.9+Math.sin(t*1.6+C.phase)*.5;C.core.rotation.y=t*.35+C.phase;
       C.field.material.opacity=.3+.28*(.5+.5*Math.sin(t*2.4+C.phase));
     });
     cellLights.forEach((L,i)=>{L.material.opacity=.35+.3*(.5+.5*Math.sin(t*1.5+i));});
@@ -5733,12 +5733,17 @@ beginTown('sub9');
   [interview,autopsy,command,titan].forEach(g=>g.traverse(o=>{o.userData.keep=true;}));colliders.push({x0:WINGX-71,x1:WINGX+71,z0:WINGZ-55,z1:WINGZ+55,h:14,y0:0});
   {const tg=new THREE.Group();tg.position.y=-1.4;tg.userData.onAttach=()=>{titanCore.children.forEach(c=>{if(c!==tg)c.visible=false;});specLift(tg,2.6,0x4a3440);};titanCore.add(tg);useModel('titan',tg);}
   // Small overhead warning beacons and restrained room lighting animation.
+  // 🛸 the caged specimens and the titan can be beamed out of their cells (the glass roof is no match for the beam)
+  const caged=(mesh,emoji,pts)=>{mesh.userData.emoji=emoji;mesh.userData.pts=pts;mesh.userData.heat=1.2;const home=mesh.position.clone();
+    const T={type:'critter',mesh,still:true,home,spawn:T=>{T.mesh.position.copy(T.home);T.mesh.rotation.set(0,0,0);T.mesh.visible=true;T.state='ground';}};mesh.userData.T=T;T.state='ground';targets.push(T);return T;};
+  cells.forEach((C,i)=>{C.T=caged(C.core,['👽','🦎','🪼','🦗'][i],250);});
+  root.attach(titanCore);const titanT=caged(titanCore,'🧌',600);
   const wingBeacons=[];
   for(const [x,z] of [[WINGX-43,WINGZ-48],[WINGX+43,WINGZ-48],[WINGX-43,WINGZ+48],[WINGX+43,WINGZ+48]]){
     const beacon=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:0xff425f,transparent:true,opacity:.45,blending:THREE.AdditiveBlending,depthWrite:false}));beacon.position.set(x,17,z);beacon.scale.set(10,10,1);root.add(beacon);wingBeacons.push(beacon);
   }
   desertAnim.push((dt,t)=>{
-    titanCore.position.y=2+Math.sin(t*.8)*.5;titanCore.rotation.y=Math.sin(t*.22)*.3;if(bodyForm.visible&&autoG.children.length)bodyForm.visible=false;
+    if(titanT.state==='ground'){titanCore.position.y=titanT.home.y+Math.sin(t*.8)*.5;titanCore.rotation.y=Math.sin(t*.22)*.3;}if(bodyForm.visible&&autoG.children.length)bodyForm.visible=false;
     titanField.material.opacity=.28+.3*(.5+.5*Math.sin(t*2.1));
     roomGlow.forEach((L,i)=>{L.material.opacity=.35+.3*(.5+.5*Math.sin(t*1.4+i));});
     wingBeacons.forEach((B,i)=>{B.material.opacity=.18+.65*(.5+.5*Math.sin(t*3.5+i*1.7));});
@@ -6589,7 +6594,7 @@ renderShop();
 })();
 
 // ---------- 📖 Abduction Log: a collection book of everything ever beamed up ----------
-const LOG_NAMES={'🐖':'Pig','🐑':'Sheep','🐔':'Chicken','👨‍🌾':'Farmer','🌾':'Hay Bale','🛻':'Pickup Truck','🐄':'Cow','🚗':'Car','🚓':'Police Car','🚚':'Truck','😴':'Sleeper','🚶':'Walker','🚜':'Tractor','🦊':'Fox','🤖':'Robot','📣':'Cheerleader','🏈':'Football Player','🎈':'Balloon','🏎️':'Luxury / Race Car','📺':'News Van','🌮':'Taco Truck','🍔':'Diner Guest','🔘':'Mystery Orb','🌑':'Jellyfish UFO',
+const LOG_NAMES={'🧌':'Caged Titan','🐖':'Pig','🐑':'Sheep','🐔':'Chicken','👨‍🌾':'Farmer','🌾':'Hay Bale','🛻':'Pickup Truck','🐄':'Cow','🚗':'Car','🚓':'Police Car','🚚':'Truck','😴':'Sleeper','🚶':'Walker','🚜':'Tractor','🦊':'Fox','🤖':'Robot','📣':'Cheerleader','🏈':'Football Player','🎈':'Balloon','🏎️':'Luxury / Race Car','📺':'News Van','🌮':'Taco Truck','🍔':'Diner Guest','🔘':'Mystery Orb','🌑':'Jellyfish UFO',
   '👽':'Little Alien','🏃':'Area 51 Raider','🤳':'Streamer','🪖':'Soldier','🐎':'Mustang','🫏':'Burro','🔩':'Secret Tech','🕴️':'Man in Black','❄️':'Yeti','🐧':'Penguin','🦍':'Ice Ape','🦕':'Dinosaur','🦀':'Lava Crab','🦖':'T-Rex','🚙':'Moon Rover','🧊':'Hypercube','🪼':'Glitch Jelly','🤍':'Tall White','💙':'Nordic',
   '🐪':'Camel','🧟':'Mummy','🐆':'Jaguar','🧗':'Climber / Zipliner','💠':'Saucer Power Core','🪨':'Lava Golem','🌿':'Treetop Villager','🦪':'Giant Pearl','💰':'Treasure Chest','🏝️':'Islander','🧑‍🚀':'Astronaut','🐾':'Whitefoot','🧙':'Lost City Citizen','🦅':'Pterodactyl','🦸':'Captain Zap (street performer)','👹':'Fuzzy Monster Mascot','🤠':'Golden Cowboy Statue','📸':'Fremont Tourist','🛩️':'Fighter Jet','🚤':'Speedboat','🛫':'Airliner','🥾':'Hiker','🕺':'Elvis','💃':'Showgirl','🚢':'Submarine','🐟':'Fish','🐢':'Sea Turtle','🦈':'Shark','🐋':'Whale','🐬':'Dolphin','🐙':'Octopus','🎣':'Fishing Boat','⛵':'Sailboat','👾':'Alien Specimen','🥼':'Scientist','🛞':'Mars Rover','🚁':'Mars Helicopter','💎':'Cave Crystal','🦇':'Cave Bat','👑':'Sleeping King','🛶':'Nile Boat','🦜':'Toucan / Macaw','🐒':'Spider Monkey','🦝':'Coati','🦎':'Iguana','🦃':'Wild Turkey','🪶':'Aztec Warrior','🌺':'Aztec Woman','💚':'Family & Friends','🪼':'Sky Jelly','🎤':'Zeta Live Band','🤴':'Pharaoh','👸':'Queen of the Nile','⚱️':'Golden Sarcophagus','⛏️':'Archaeologist','🐊':'Crocodile','👻':'Ghost Ship','🦌':'Reindeer','🎅':'Santa\'s Sleigh','🎁':'Present','🦶':'Bigfoot','🦄':'Unicorn','🎐':'Gas Floater','🛰️':'Lost Probe','🩶':'Grey','🙌':'Sphere Fan','🎟️':'Wheel Rider','🦎':'Reptilian','🦗':'Mantis'};
 let LOG={};try{LOG=JSON.parse(localStorage.getItem('ufoLog')||'{}');}catch(e){}
