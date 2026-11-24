@@ -476,6 +476,21 @@ function rtex(k){if(RTEX[k])return RTEX[k];const F=RN.fbm,V=RN.vn,H=RN.hash;let 
   else if(k==='shingle')t=paintTex(256,(u,v,o)=>{const row=(v*20)|0,b=(v*20)%1,x=(u*10+(row%2)*0.5)%1,n=F(u*16,v*16,16,3,39),p=H(((u*10+(row%2)*0.5)|0),row,40);let c=52+n*24+p*20;if(b<0.12||x<0.05)c-=22;o[0]=c+4;o[1]=c;o[2]=c-2;});
   else if(k==='metal')t=paintTex(256,(u,v,o)=>{const r=0.5+0.5*Math.sin(u*2*PI*24),n=F(u*6,v*6,6,4,41),rust=Math.max(0,F(u*5,v*5,5,4,42)-0.62)*2;let c=[150+r*60+n*20,150+r*60+n*20,156+r*60+n*20];c=mixc(c,[130,84,54],rust);o[0]=c[0];o[1]=c[1];o[2]=c[2];});
   else if(k==='straw')t=paintTex(256,(u,v,o)=>{const s=V(u*200,v*20,200,43),n=F(u*8,v*8,8,3,44);const c=mixc([170,138,70],[214,186,112],s*0.6+n*0.4);o[0]=c[0];o[1]=c[1];o[2]=c[2];});
+  else if(k==='snow')t=paintTex(512,(u,v,o)=>{const n=F(u*5,v*5,5,5,50),q=F(u*40,v*40,40,2,51),w=Math.sin((u*18+F(u*3,v*3,3,3,52)*5)*2*PI),sp=H((u*256)|0,(v*256)|0,53);
+    let c=mixc([206,218,234],[246,250,255],n);const k2=0.93+0.04*w+0.06*q+(sp>0.985?0.08:0);o[0]=Math.min(255,c[0]*k2);o[1]=Math.min(255,c[1]*k2);o[2]=Math.min(255,c[2]*k2);});
+  else if(k==='icesheet')t=paintTex(512,(u,v,o)=>{const n=F(u*4,v*4,4,4,54),cr=RN.crack(u*10,v*10,10,55),q=F(u*30,v*30,30,2,56);
+    let c=mixc([120,170,210],[188,222,244],n);let k2=0.9+0.15*q;if(cr<0.04)k2=1.25;o[0]=Math.min(255,c[0]*k2);o[1]=Math.min(255,c[1]*k2);o[2]=Math.min(255,c[2]*k2);});
+  else if(k==='greyrock')t=paintTex(512,(u,v,o)=>{const n=F(u*7,v*7,7,5,57),p=H((u*140)|0,(v*140)|0,58),q=F(u*50,v*50,50,2,59);
+    let c=mixc([74,78,84],[128,132,138],n);if(p>0.88)c=mixc(c,[50,52,56],0.6);const k2=0.85+0.25*q;o[0]=c[0]*k2;o[1]=c[1]*k2;o[2]=c[2]*k2;});
+  else if(k==='regolith'||k==='mare')t=paintTex(512,(u,v,o)=>{const dk=k==='mare',n=F(u*6,v*6,6,5,dk?60:61),q=F(u*64,v*64,64,2,62),cr=RN.crack(u*24,v*24,24,dk?63:64),p=H((u*220)|0,(v*220)|0,65);
+    let g=(dk?92:132)+n*(dk?40:56);if(cr<0.07)g*=0.8+cr*2.5;if(p>0.97)g+=30;g*=0.88+0.24*q;o[0]=g;o[1]=g;o[2]=g*1.03;});
+  else if(k==='moonrock')t=paintTex(256,(u,v,o)=>{const n=F(u*8,v*8,8,4,66),p=H((u*90)|0,(v*90)|0,67);let g=96+n*60;if(p>0.8)g-=30;else if(p<0.1)g+=34;o[0]=g;o[1]=g;o[2]=g;});
+  else if(k==='marsdust')t=paintTex(512,(u,v,o)=>{const n=F(u*5,v*5,5,5,68),q=F(u*48,v*48,48,2,69),rp=Math.sin((v*20+F(u*3,v*3,3,3,70)*5)*2*PI);
+    let c=mixc([150,72,40],[206,118,72],n);const k2=0.9+0.05*rp+0.14*q;o[0]=c[0]*k2;o[1]=c[1]*k2;o[2]=c[2]*k2;});
+  else if(k==='marsrock')t=paintTex(512,(u,v,o)=>{const n=F(u*7,v*7,7,5,71),p=H((u*120)|0,(v*120)|0,72),q=F(u*40,v*40,40,2,73);
+    let c=mixc([92,44,30],[142,72,46],n);if(p>0.85)c=mixc(c,[60,30,22],0.7);else if(p<0.06)c=mixc(c,[190,120,84],0.5);const k2=0.85+0.25*q;o[0]=c[0]*k2;o[1]=c[1]*k2;o[2]=c[2]*k2;});
+  else if(k==='forest')t=paintTex(512,(u,v,o)=>{const n=F(u*7,v*7,7,4,74),p=H((u*160)|0,(v*160)|0,75),q=F(u*40,v*40,40,2,76);
+    let c=mixc([62,52,32],[96,84,52],n);if(p>0.8)c=mixc(c,[120,96,48],0.6);else if(p<0.15)c=mixc(c,[52,74,32],0.6);const k2=0.85+0.25*q;o[0]=c[0]*k2;o[1]=c[1]*k2;o[2]=c[2]*k2;});
   return RTEX[k]=t;}
 // splat maps: grayscale layers drawn with 2D canvas, packed into two RGB textures (s1: r,g,b  s2: r,g,b)
 function splatMaps(N,size,draw){const L=[];for(let i=0;i<6;i++){const c=document.createElement('canvas');c.width=c.height=N;const g=c.getContext('2d');g.fillStyle='#000';g.fillRect(0,0,N,N);
@@ -6078,6 +6093,57 @@ beginTown('farm');
 })();
 endTown('farm',[260,1600]);Object.assign(towns.farm,{planet:true,fogC:new THREE.Color(0xc4d2de),skyTint:0xffffff,label:'🌾 KANSAS FARMLAND',bloom:0.12,
   look:{daySky:[0x3a74c4,0xfff0d0],hemi:[0xc4dcff,0x6a5a3c,0.62],sun:[0xfff2dc,1.05],dir:[0.55,0.72,-0.42],grade:{sat:1.12,con:0.32,warm:0.035,vig:0.32}}});
+// 🌞 REAL LOOK for the older worlds: swap each world's flat-colour ground for textured ground, give it a sun with real shadows and a colour grade.
+// Each world keeps its own mood (time of day, sky). Called once after all worlds are built.
+// old low-poly tree tops (green icosahedron/dodecahedron blobs) become leafy leaf-card crowns
+let REAL_UNIT=null;
+function fitCrown(geo){if(!geo.boundingBox)geo.computeBoundingBox();const b=geo.boundingBox,c=b.getCenter(new V3()),z=b.getSize(new V3());
+  return [REAL_UNIT.g,REAL_UNIT.f].map(g=>g.clone().scale(z.x/2,z.y/2/0.8,z.z/2).translate(c.x,c.y,c.z));}
+function realTrees(T){if(!REAL_UNIT){const C=REAL_TREE.crown(70,1,5);C.g.translate(0,-0.78,0);C.f.translate(0,-0.78,0);REAL_UNIT=C;}
+  const green=c=>c&&c.g>c.r*1.15&&c.g>c.b*1.05,col=new THREE.Color();
+  const L=[];T.group.traverse(m=>{if(m.isMesh)L.push(m);});L.forEach(m=>{if(!m.geometry||m.userData.keep||!m.parent)return;const ty=m.geometry.type;if(ty!=='IcosahedronGeometry'&&ty!=='DodecahedronGeometry')return;const M=m.material;if(!M||Array.isArray(M)||M.transparent)return;
+    if(m.isInstancedMesh){const ic=m.instanceColor;if(!(ic?(()=>{let g=0;for(let i=0;i<Math.min(m.count,20);i++){col.fromArray(ic.array,i*3);if(green(col))g++;}return g>Math.min(m.count,20)/2;})():green(M.color)))return;
+      const [G,F]=fitCrown(m.geometry);
+      const leaf=new THREE.InstancedMesh(G,REAL_TREE.leafM,m.count),fill=new THREE.InstancedMesh(F,REAL_TREE.fillM,m.count);leaf.instanceMatrix.array.set(m.instanceMatrix.array);fill.instanceMatrix.array.set(m.instanceMatrix.array);
+      if(ic){const a=new Float32Array(m.count*3);for(let i=0;i<m.count;i++){col.fromArray(ic.array,i*3);const l=(col.r+col.g+col.b)/3;a[i*3]=0.75+l*0.3;a[i*3+1]=0.8+l*0.3;a[i*3+2]=0.7+l*0.2;}leaf.instanceColor=new THREE.InstancedBufferAttribute(a,3);}
+      leaf.customDepthMaterial=REAL_TREE.leafDepth;m.parent.add(leaf);m.parent.add(fill);m.parent.remove(m);}
+    else{if(!green(M.color))return;const [G,F]=fitCrown(m.geometry),leaf=new THREE.Mesh(G,REAL_TREE.leafM),fill=new THREE.Mesh(F,REAL_TREE.fillM);
+      leaf.customDepthMaterial=REAL_TREE.leafDepth;for(const q of[leaf,fill]){q.position.copy(m.position);q.rotation.copy(m.rotation);q.scale.copy(m.scale);m.parent.add(q);}m.parent.remove(m);}});}
+function realize(n,o){const T=towns[n];if(!T)return;const r0=root,c0=colliders;root=T.group;colliders=T.colliders;
+  try{const PS=o.plane||3000,SZ=o.size||1600,PAD=[],bx=new THREE.Box3();
+    // remove the old flat ground and its colour patches
+    root.children.slice().forEach(m=>{if(!m.isMesh||!m.geometry||m.geometry.type!=='PlaneGeometry'||Math.abs(m.rotation.x+PI/2)>0.01||Math.abs(m.position.y)>0.5)return;const p=m.geometry.parameters,c=m.material&&m.material.color&&m.material.color.getHex();
+      if(p.width>=2900&&p.width===p.height&&!(m.material.transparent))root.remove(m);else if(o.patches&&o.patches.includes(c)&&m.material.polygonOffsetFactor===-1)root.remove(m);});
+    root.updateMatrixWorld(true);
+    root.children.forEach(m=>{if(!(m.isMesh||m.isGroup)||m.isInstancedMesh)return;bx.setFromObject(m);if(bx.isEmpty())return;const w=bx.max.x-bx.min.x,d=bx.max.z-bx.min.z;if(bx.max.y<1&&w>3&&d>0.3&&w<1500&&d<1500)PAD.push([bx.min.x,bx.min.z,w,d]);});
+    const S=splatMaps(1024,SZ,L=>{const [l1,grav,l3,l4,dark,none]=L;
+      const blobs=(g,n,r0,r1,a)=>{for(let i=0;i<n;i++){const x=rand(-SZ/2,SZ/2),z=rand(-SZ/2,SZ/2),r=rand(r0,r1),gr=g.createRadialGradient(x,z,r*0.15,x,z,r);gr.addColorStop(0,`rgba(255,255,255,${a})`);gr.addColorStop(1,'rgba(255,255,255,0)');g.fillStyle=gr;g.beginPath();g.arc(x,z,r,0,2*PI);g.fill();}};
+      blobs(l1,o.b1||50,20,90,0.85);blobs(l3,o.b3||40,15,70,0.8);blobs(l4,o.b4||25,25,110,0.7);blobs(dark,30,20,90,0.3);
+      if(o.pads!==false)colliders.forEach(c=>{const m=5;if(c.x1-c.x0>300||c.z1-c.z0>300)return;grav.globalAlpha=o.padA||0.8;grav.fillRect(c.x0-m,c.z0-m,c.x1-c.x0+2*m,c.z1-c.z0+2*m);grav.globalAlpha=1;none.fillRect(c.x0-m-2,c.z0-m-2,c.x1-c.x0+2*m+4,c.z1-c.z0+2*m+4);});
+      PAD.forEach(([x,z,w,d])=>none.fillRect(x-3,z-3,w+6,d+6));
+      if(o.splat)o.splat(L,T);});
+    realGround(T,{sp:S,plane:PS,base:o.base,l:o.l,tile:o.tile||7,tint:o.tint});
+    if(o.grass)realGrass(T,Object.assign({sp:S},o.grass));
+    if(o.trees!==false)realTrees(T);
+    if(o.after)o.after(T);
+    Object.assign(T,{look:o.look},o.set||{});
+  }catch(e){console.warn('realize '+n,e);}
+  root=r0;colliders=c0;}
+(function(){
+  const roads=(D,L)=>{const [,grav,,,,none]=L;(D.road||[]).forEach(r=>{grav.lineWidth=none.lineWidth=(r[4]||3)+3;for(const g of[grav,none]){g.beginPath();g.moveTo(r[0],r[1]);g.lineTo(r[2],r[3]);g.stroke();}});};
+  realize('egypt',{plane:3600,size:1800,base:'sand',l:['rocky','gravel','lakebed','dirt'],patches:[0xcfa868,0xe0bf86,0xc89c5c],b1:40,b3:22,b4:12,tint:0xfff2e0,splat:L=>roads(GIZA_MAP,L),
+    look:{daySky:[0x4a88cc,0xfff0d0],hemi:[0xc8d8f0,0x8a6a48,0.6],sun:[0xfff6ea,1.05],dir:[0.45,0.62,0.6],grade:{sat:0.92,con:0.3,warm:0.0,vig:0.32}},set:{fogC:new THREE.Color(0xdcc8a8),bloom:0.15}});
+  realize('maya',{base:'grass',l:['forest','gravel','dirt','grass'],patches:[0x2f5e22,0x467a30,0x5a6a2a],b1:45,b3:25,b4:20,splat:L=>roads(MAYA_MAP,L),
+    grass:{R:62,step:0.55,h:0.45,w:0.12,cB:0x2e5420,cT:0x8aac48},
+    look:{daySky:[0x3f80c8,0xfff0d0],hemi:[0xc0dcff,0x4a5a30,0.62],sun:[0xfff4e0,1.05],dir:[0.5,0.7,-0.5],grade:{sat:1.1,con:0.3,warm:0.03,vig:0.32}},set:{fogC:new THREE.Color(0xb4c8bc),bloom:0.15}});
+  realize('moon',{base:'regolith',l:['mare','gravel','moonrock','mare'],b1:35,b3:30,b4:10,padA:0.4,
+    look:{hemi:[0x8890a0,0x202024,0.22],sun:[0xffffff,1.45],dir:[0.6,0.45,-0.4],grade:{sat:0.9,con:0.35,warm:0,vig:0.45}}});
+  realize('mars',{base:'marsdust',l:['marsrock','gravel','marsrock','dirt'],b1:40,b3:20,b4:15,padA:0.5,
+    after:T=>T.group.children.forEach(m=>{if(m.isInstancedMesh&&m.geometry.type==='CylinderGeometry'&&m.geometry.parameters.radialSegments===8&&m.geometry.parameters.radiusBottom===1.25){const t=rtex('strata').clone();t.needsUpdate=true;t.repeat.set(2,1);m.material=new THREE.MeshLambertMaterial({map:t,color:0xd09080});}}),
+    look:{hemi:[0xd8a890,0x5a2a18,0.55],sun:[0xffe0c8,1.15],dir:[-0.4,0.55,-0.6],grade:{sat:1.0,con:0.3,warm:0.03,vig:0.38}}});
+  realize('ice',{base:'snow',l:['icesheet','gravel','snow','greyrock'],b1:30,b3:30,b4:10,padA:0.35,size:2000,
+    look:{daySky:[0x4a7cc0,0xffffff],hemi:[0xd0e4ff,0x8a9ab0,0.7],sun:[0xfff8f0,1.0],dir:[0.5,0.35,0.6],grade:{sat:1.0,con:0.28,warm:-0.02,vig:0.32}}});
+})();
 function enterInterior(n){clearEnemies();heat=0;fadeIn();setTown(n);pos.set(0,24,262);yaw=0;speed=Math.min(speed,22);vy=0;snapCam();mEvent(n);
   if(n==='marscave'){pop('🕳️ THE HIDDEN CAVE');pop('Something is frozen at the back… · fly back out the bright exit to leave','t');}else{pop('🌑 THE INNER WORLD');pop('A city inside the Moon · fly back out the bright exit to leave','t');}blip(300,90,0.8,'sine',0.1);}
 function exitInterior(){const I=INTERIOR[curTown],E=CAVE_IN[I.from];fadeIn();setTown(I.from);if(I.from==='mars'){pos.set(E.x-45,30,E.z+45);yaw=PI/4;}else{pos.set(E.x,48,E.z);}speed=Math.min(speed,22);vy=I.from==='moon'?10:0;caveCd=3;snapCam();pop(I.from==='mars'?'🔴 BACK ON MARS':'🌕 BACK ON THE MOON');blip(90,300,0.6,'sine',0.1);}
