@@ -194,3 +194,5 @@ Some worlds now use a "real look" instead of the neon night style: one strong su
 - **Every Earth city and most planets (Nov 23):** Egypt, Yucatán, Antarctica and the Open Sea are now sunny and realistic; the Moon, Mars, Magmor, Verdana and Zeta Prime keep their own skies but get real shadows and textured ground; New York and Las Vegas stay at night with textured ground and leafy park trees (no shadows there, to keep phones smooth). Old low-poly tree tops are swapped for leafy ones. The 5th Dimension, Jupiter, the Ocean and the underground levels keep their stylised look.
 - **Graphics setting:** Low turns shadows and grass off. Phones get smaller shadows and less grass automatically.
 - For agents: a world opts in with `towns[n].look={...}`; helpers are `realGround`, `realGrass`, `REAL_TREE` and `rtex` near the top of `index.html`.
+
+🐧 **Animated penguins:** the igloo-village penguins in Antarctica are now three animated characters (Pebble, Slate and Tuft, by Out of Tokens Studio). They waddle around, belly-slide when they run, flap when you beam them up, and Slate and Tuft dance when they stand still.
