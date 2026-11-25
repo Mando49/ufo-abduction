@@ -841,7 +841,7 @@ function loadModel(k){const M=MODELS[k];if(!M||M.loading)return;M.loading=true;
 const ANIM={alien:{file:'alien',height:2.3,rotY:PI/2,clips:{walk:0},list:[]},
   footballer:{file:'footballer',height:3.8,rotY:PI/2,clips:{walk:0},list:[]},
   soldier:{file:'soldier',height:3.5,rotY:PI/2,clips:{walk:0},list:[]},
-  person:{file:'person',height:3.4,rotY:PI/2,clips:{walk:0},tint:true,list:[]},mummy:{file:'mummy',height:3.7,rotY:PI/2,clips:{walk:0},list:[]},yeti:{file:'yeti',height:7.2,rotY:PI/2,clips:{walk:0},list:[]},
+  person:{file:'person',height:3.4,rotY:PI/2,clips:{walk:0},tint:true,list:[]},mummy:{file:'mummy',height:3.7,rotY:PI/2,clips:{walk:0},list:[]},yeti:{file:'yeti2',height:7.2,rotY:PI/2,clips:{idle:'Idle_loop',walk:'Walk_loop',run:'Gallop_loop',wave:'Roar',throw:'Throw'},list:[]},
   fox:{file:'fox',len:3.4,axis:'z',rotY:PI/2,clips:{idle:'Survey',walk:'Walk',run:'Run'},list:[]},
   mech:{file:'mech',height:47,rotY:0,clips:{walk:0},list:[],lift:1.9},
   monkeyw:{file:'monkeyw',height:3.2,rotY:PI/2,clips:{walk:0},list:[],lift:1.6},
@@ -915,6 +915,7 @@ function animTick(dt0){
   for(const I of animInst){let dt=dt0;if(I.town!==curTown||!I.g.visible)continue;
   {const d2=I.g.position.distanceToSquared(camera.position),HIDE=isTouch?650:1000;I.m.visible=d2<HIDE*HIDE&&I.allow!==false; // walkers stay visible far out so worlds feel alive
     if(d2>230*230){I.skip=((I.skip||0)+1)%(d2>420*420?6:2);I.acc=(I.acc||0)+dt;if(!I.m.visible||I.skip){if(!I.m.visible)I.last.copy(I.g.position);continue;}dt=I.acc;}I.acc=0;} // far ones animate at a lower rate (saves phone GPU)
+  if(I.hold>0){I.hold-=dt;I.last.copy(I.g.position);I.mixer.update(dt);continue;} // a one-shot move (a yeti's throw) plays to the end
   const p=I.g.position,v=Math.hypot(p.x-I.last.x,p.z-I.last.z)/Math.max(dt,1e-3);I.last.copy(p);
   const st=I.g.userData.T&&I.g.userData.T.state;
   if(st&&st!=='ground')I.play(I.acts.wave?'wave':'run');else I.play(v>5?'run':v>0.4?'walk':'idle');
@@ -1621,7 +1622,7 @@ beginTown('ice');
       const arms=[];for(const z of[-1,1]){const pv=new THREE.Group();pv.position.set(0.2,5.6,z*2.2);body.add(pv);const arm=new THREE.Mesh(new THREE.CylinderGeometry(0.6,0.75,4,8),furM);arm.position.y=-2;pv.add(arm);arms.push(pv);}
       for(const z of[-0.9,0.9]){const leg=new THREE.Mesh(new THREE.CylinderGeometry(0.75,0.85,2.4,8),furM);leg.position.set(0,1.2,z);body.add(leg);}
       g.userData.emoji='🦍';g.userData.pts=150;g.userData.arms=arms;root.add(g);return compactCritter(g);};
-    const yetis=[];for(let i=0;i<3;i++){const T={type:'critter',mesh:useAnim('yeti',mkYeti(),'ice'),spawn:spawnCow,fl:fields.slice(1)};T.spawn(T);T.throwCd=rand(1,3);targets.push(T);yetis.push(T);}
+    const yetis=[];for(let i=0;i<3;i++){const T={type:'critter',mesh:useAnim('yeti',mkYeti(),'ice'),spawn:spawnCow,fl:fields.slice(1)};T.mesh.userData.T=T;T.spawn(T);T.throwCd=rand(1,3);targets.push(T);yetis.push(T);}
     const balls=[];const ballG=new THREE.SphereGeometry(1.1,10,8),ballM=lam(0xffffff,0x5a7a9a);
     for(let i=0;i<8;i++){const m=new THREE.Mesh(ballG,ballM);m.visible=false;root.add(m);balls.push({m,v:new V3(),on:false});}
     let slowT=0;
@@ -1633,7 +1634,7 @@ beginTown('ice');
         const wind=T.throwCd<0.6&&T.throwCd>0;A[1].rotation.z=wind?-2.6:Math.sin(t*3+m.id)*0.2;A[0].rotation.z=Math.sin(t*3+m.id+1)*0.2;
         if(play&&d<110&&pos.y<70){if(T.throwCd<=0){T.throwCd=rand(2.2,3.6);const B=balls.find(B=>!B.on);if(B){
           const st=m.position.clone().add(new V3(0,8,0)),tm=Math.max(0.6,d/65),tg=pos.clone().addScaledVector(fwd,speed*tm*0.8);
-          B.v.copy(tg).sub(st).divideScalar(tm);B.v.y+=0.5*30*tm;B.m.position.copy(st);B.on=true;B.m.visible=true;blip(300,120,0.15,'triangle',0.06);}}}
+          B.v.copy(tg).sub(st).divideScalar(tm);B.v.y+=0.5*30*tm;B.m.position.copy(st);B.on=true;B.m.visible=true;{const I=animInst.find(I=>I.g===m);if(I&&I.acts.throw){const a=I.acts.throw;a.setLoop(THREE.LoopOnce,1);a.clampWhenFinished=true;I.play('throw');I.hold=1.1;m.lookAt(pos.x,m.position.y,pos.z);m.rotateY(-PI/2);}}blip(300,120,0.15,'triangle',0.06);}}}
         else T.throwCd=Math.max(T.throwCd,1);});
       balls.forEach(B=>{if(!B.on)return;B.v.y-=30*dt;B.m.position.addScaledVector(B.v,dt);
         if(play&&B.m.position.distanceTo(pos)<4.5){B.on=false;B.m.visible=false;hurt(4);slowT=2;pop('❄️ SNOWBALL HIT!','t');
