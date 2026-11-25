@@ -13,6 +13,9 @@
 - "UFO Over the Block" (4 takes) — made by Mando with Suno.
 - Built-in tracks are generated live in the browser by the game's own synth.
 
+## Penguin Squad
+- The animated igloo-village penguins (assets/models/peng-pebble.glb, peng-slate.glb, peng-tuft.glb) are from "Penguin Squad" by Out of Tokens Studio (https://outoftokensstudio.itch.io/penguin-squad), used under its licence: free to use in commercial games; the models themselves may not be resold or redistributed as an asset pack. Trimmed to six animations and compressed with gltf-transform.
+
 ## Map data
 - The Yucatán world (Chichén Itzá) is laid out from OpenStreetMap data (baked extract in assets/data/maya-osm.json): © OpenStreetMap contributors, ODbL.
 - The New York world (Midtown Manhattan) is laid out from OpenStreetMap data (baked extract in assets/data/nyc-osm.json): © OpenStreetMap contributors, ODbL. All sign names are made up.
