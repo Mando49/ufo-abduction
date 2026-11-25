@@ -6112,6 +6112,8 @@ function realTrees(T){if(!REAL_UNIT){const C=REAL_TREE.crown(70,1,5);C.g.transla
       const [G,F]=fitCrown(m.geometry);
       const leaf=new THREE.InstancedMesh(G,REAL_TREE.leafM,m.count),fill=new THREE.InstancedMesh(F,REAL_TREE.fillM,m.count);leaf.instanceMatrix.array.set(m.instanceMatrix.array);fill.instanceMatrix.array.set(m.instanceMatrix.array);
       if(ic){const a=new Float32Array(m.count*3);for(let i=0;i<m.count;i++){col.fromArray(ic.array,i*3);const l=(col.r+col.g+col.b)/3;a[i*3]=0.75+l*0.3;a[i*3+1]=0.8+l*0.3;a[i*3+2]=0.7+l*0.2;}leaf.instanceColor=new THREE.InstancedBufferAttribute(a,3);}
+      // every leaf InstancedMesh needs an instanceColor: they share one material, and three r128 crashes the whole frame if one has colours and another doesn't (Mexico drew no ground)
+      else leaf.instanceColor=new THREE.InstancedBufferAttribute(new Float32Array(m.count*3).fill(1),3);
       leaf.customDepthMaterial=REAL_TREE.leafDepth;m.parent.add(leaf);m.parent.add(fill);m.parent.remove(m);}
     else{if(!green(M.color))return;const [G,F]=fitCrown(m.geometry),leaf=new THREE.Mesh(G,REAL_TREE.leafM),fill=new THREE.Mesh(F,REAL_TREE.fillM);
       leaf.customDepthMaterial=REAL_TREE.leafDepth;for(const q of[leaf,fill]){q.position.copy(m.position);q.rotation.copy(m.rotation);q.scale.copy(m.scale);m.parent.add(q);}m.parent.remove(m);}});}
