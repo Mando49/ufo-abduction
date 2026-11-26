@@ -200,3 +200,5 @@ Some worlds now use a "real look" instead of the neon night style: one strong su
 🦍 **New yetis:** the Antarctica yetis are a new detailed, animated model (by Out of Tokens Studio). They idle, walk, gallop on all fours, turn and do a real throwing move when they hurl a snowball at you, and roar when you beam them up.
 
 🏙️ **City details:** New York now has wooden water towers, machinery and satellite dishes on its rooftops, glowing subway entrances and bus shelters along the avenues, and two tower cranes with blinking red lights. Las Vegas gets two tower cranes, bus shelters on the Strip and rooftop machinery. (Midnight City kit by Out of Tokens Studio; the game's own people, cows and cars are kept.)
+
+🪖 **Tanks in Area 51:** two army tanks roll along the sand beside the base road. Beam one up for 90 points (it counts as an army vehicle, and it makes the army angrier). Once you have 2 or more wanted stars, the tanks fire glowing shells at a low-flying UFO (10 shield damage per hit) — fly higher than 110 m or keep moving.
