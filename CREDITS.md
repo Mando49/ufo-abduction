@@ -19,6 +19,9 @@
 ## Yeti
 - The Antarctica yetis (assets/models/yeti2.glb) are from "Yeti" by Out of Tokens Studio (https://outoftokensstudio.itch.io/yeti), used under its licence: free to use in commercial games; the model itself may not be resold or redistributed as an asset pack. Trimmed to six animations, accessories and face shapes removed, texture reduced, compressed with gltf-transform.
 
+## Midnight City kit
+- Rooftop water towers, roof machinery, satellite dishes, subway entrances, bus shelters and tower cranes in New York and Las Vegas (assets/models/mc-*.glb) are from "Midnight City - Low-Poly Night City Kit" by Out of Tokens Studio (https://outoftokensstudio.itch.io/midnight-city-lowpoly), used under its licence: free to use in commercial games, including one whose source is public, as long as the models are not offered as assets on their own.
+
 ## Map data
 - The Yucatán world (Chichén Itzá) is laid out from OpenStreetMap data (baked extract in assets/data/maya-osm.json): © OpenStreetMap contributors, ODbL.
 - The New York world (Midtown Manhattan) is laid out from OpenStreetMap data (baked extract in assets/data/nyc-osm.json): © OpenStreetMap contributors, ODbL. All sign names are made up.

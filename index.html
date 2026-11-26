@@ -891,8 +891,24 @@ function groupTown(g){let o=g;while(o){if(o===tilt)return 'fly';for(const n in t
 function bootModels(){MODELS_BOOTED=true;
   const plan=(tbl,fn)=>{for(const k in tbl){const L=tbl[k].list;if(!L.length)continue;const ts=new Set(L.map(groupTown));
     if(ts.has(null)||ts.has('city'))fn(k);else ts.forEach(n=>{(n==='fly'?['desert','seas']:[n]).forEach(n=>(MODEL_NEED[n]=MODEL_NEED[n]||[]).push([fn,k]));});}};
-  plan(MODELS,loadModel);plan(ANIM,loadAnim);}
+  plan(MODELS,loadModel);plan(ANIM,loadAnim);KIT_Q.forEach(kitQueue);KIT_Q.length=0;}
 function needModels(n){const L=MODEL_NEED[n];if(!L)return;delete MODEL_NEED[n];L.forEach(([fn,k])=>fn(k));}
+// 🏙️ Midnight City kit (Out of Tokens Studio): small static props (water towers, subway entrances...) drawn as instanced copies.
+// Every model shares one tiny palette texture; its right half is the glowing colours (lit windows, signs, lamps).
+const KIT={},KIT_Q=[];
+function kitProps(file,list,town){if(!list.length)return;const L={file,list,root,town};if(MODELS_BOOTED)kitQueue(L);else KIT_Q.push(L);}
+function kitQueue(L){if(L.town==='city')kitLoad(L);else(MODEL_NEED[L.town]=MODEL_NEED[L.town]||[]).push([kitLoad,L]);}
+function kitLoad(L){const K=KIT[L.file]=KIT[L.file]||{wait:[]};if(K.geo){kitPlace(K,L);return;}K.wait.push(L);if(K.loading)return;K.loading=true;
+  glbLoad('mc-'+L.file,gl=>{gl.scene.updateMatrixWorld(true);const G=[];let map=null;
+    gl.scene.traverse(o=>{if(o.isMesh){const g=o.geometry.clone();g.applyMatrix4(o.matrixWorld);for(const k in g.attributes)if(!['position','normal','uv'].includes(k))g.deleteAttribute(k);G.push(g);if(!map)map=o.material.map||o.material.emissiveMap;}});
+    K.geo=G.length>1&&THREE.BufferGeometryUtils?THREE.BufferGeometryUtils.mergeBufferGeometries(G,false):G[0];
+    let em=null;if(map&&map.image){map.magFilter=map.minFilter=THREE.NearestFilter;map.generateMipmaps=false;map.needsUpdate=true;
+      try{const im=map.image,w=im.width,h=im.height,cv=document.createElement('canvas');cv.width=w;cv.height=h;const x=cv.getContext('2d');x.drawImage(im,0,0);x.fillStyle='rgba(0,0,0,0.35)';x.fillRect(0,0,w/2,h);
+        em=new THREE.CanvasTexture(cv);em.magFilter=em.minFilter=THREE.NearestFilter;em.generateMipmaps=false;em.flipY=map.flipY;em.encoding=map.encoding;}catch(e){}}
+    K.mat=new THREE.MeshLambertMaterial({map,emissiveMap:em,emissive:em?0xffffff:0x101018});
+    K.wait.forEach(W=>kitPlace(K,W));K.wait.length=0;});}
+function kitPlace(K,L){const m=new THREE.InstancedMesh(K.geo,K.mat,L.list.length);L.list.forEach((it,i)=>{compose(it.x,it.y||0,it.z,it.s||1,it.s||1,it.s||1,0,it.ry||0,0);m.setMatrixAt(i,m4);});
+  m.instanceMatrix.needsUpdate=true;m.userData.keep=true;m.castShadow=false;L.root.add(m);}
 // soft round shadows under everything you can abduct (they fade as it's beamed up)
 const SHADOW_TEX=(()=>{const c=document.createElement('canvas');c.width=c.height=64;const g=c.getContext('2d');const gr=g.createRadialGradient(32,32,2,32,32,32);gr.addColorStop(0,'rgba(0,0,0,0.55)');gr.addColorStop(0.6,'rgba(0,0,0,0.25)');gr.addColorStop(1,'rgba(0,0,0,0)');g.fillStyle=gr;g.fillRect(0,0,64,64);return new THREE.CanvasTexture(c);})();
 const SHADOW_GEO=new THREE.PlaneGeometry(1,1).rotateX(-PI/2);
@@ -4472,6 +4488,16 @@ beginTown('vegas');
       if(state==='play'&&!onFoot&&slot.cd<=0&&slot.spin<=0&&knob.getWorldPosition(tmpV).distanceTo(pos)<16){slot.cd=6;slot.spin=2.4;
         const r=Math.random();slot.res=r<0.12?[6,6,6]:r<0.25?[5,5,5]:r<0.38?(()=>{const s=(Math.random()*5)|0;return[s,s,s];})():[(Math.random()*7)|0,(Math.random()*7)|0,(Math.random()*7)|0];
         pop('🎰 SPINNING…');blip(800,1200,0.15,'square',0.08);}}});}
+  // 🏗️ Vegas is always building: tower cranes on two big sites, bus shelters on the Strip, machinery on low roofs (Midnight City kit)
+  {const crane=[],bus=[],plant=[];
+    const free=(x,z,r)=>!colliders.some(c=>x>c.x0-r&&x<c.x1+r&&z>c.z0-r&&z<c.z1+r&&c.y0<1);
+    for(const [x,z] of[[-420,-520],[260,-640],[-300,520]]){if(crane.length<2&&free(x,z,6))crane.push({x,z,ry:hash(x,z)*6,s:2.4});}
+    let acc=0;D.road.forEach(s=>{if(s[4]<=5)return;const dx=s[2]-s[0],dz=s[3]-s[1],l=Math.hypot(dx,dz);acc+=l;if(acc<230||l<12)return;acc=0;
+      const sd=bus.length%2?1:-1,w=s[4]*0.5+3,x=(s[0]+s[2])/2-dz/l*w*sd,z=(s[1]+s[3])/2+dx/l*w*sd;if(free(x,z,1.5))bus.push({x,z,ry:-Math.atan2(dz,dx)+(sd>0?PI:0)+PI/2,s:1.3});});
+    SLP.forEach((P,i)=>{if(i%2===0&&P.h>4)plant.push({x:P.x+4,y:P.h,z:P.z+3,ry:hash(P.x,P.z)*6,s:1.3});});
+    kitProps('construction_crane',crane,'vegas');kitProps('bus_shelter',bus.slice(0,24),'vegas');kitProps('rooftop_plant',plant,'vegas');
+    crane.forEach(c=>{const L=glowSprite(0xff3030,c.x,24*c.s+2,c.z,10,0.9);if(L){L.userData.keep=true;planetAnim.push({town:'vegas',f:t=>{L.visible=Math.sin(t*3+c.x)>0;}});}});
+    window.__kitLV={crane:crane.length,bus:Math.min(24,bus.length),plant:plant.length};}
   // 😴 sleepers on casino and hotel rooftops around the city: a lit bed, a floating "Zzz", beam them up
   {const ZT=__ZZ(),bedOn=new THREE.MeshBasicMaterial({color:0xffe6a0}),bedOff=new THREE.MeshBasicMaterial({color:0x1a1c28}),S=[];let k=0;
     SLP.sort((a,b)=>hash(a.x,a.z)-hash(b.x,b.z));for(const P of SLP){if(S.length>=44)break;if(S.some(o=>Math.hypot(o.P.x-P.x,o.P.z-P.z)<38))continue;
@@ -4571,6 +4597,26 @@ beginTown('city');
   {const lamps=[];D.road.forEach(r=>{const w=r[0]*0.45*0.8;let acc=hash(r[1],r[2])*30;for(let i=1;i+3<r.length;i+=2){const dx=r[i+2]-r[i],dz=r[i+3]-r[i+1],l=Math.hypot(dx,dz);if(l<1)continue;while(acc<l){const t=acc/l,sd=(lamps.length%2?1:-1)*w;lamps.push({x:r[i]+dx*t-dz/l*sd,z:r[i+1]+dz*t+dx/l*sd});acc+=34;}acc-=l;}});
     const lm=inst(new THREE.BoxGeometry(0.9,0.5,0.9),new THREE.MeshBasicMaterial({color:0xffd9a0}),lamps,q=>compose(q.x,5.2,q.z,1,1,1,0,0,0));lm.userData.keep=true;
     inst(new THREE.CircleGeometry(5,10),new THREE.MeshBasicMaterial({color:0x4a3c22,transparent:true,opacity:0.3,depthWrite:false,blending:THREE.AdditiveBlending,polygonOffset:true,polygonOffsetFactor:-6,polygonOffsetUnits:-6}),lamps.filter((q,i)=>i%2===0),q=>compose(q.x,0.12,q.z,1,1,1,-PI/2,0,0)).userData.keep=true;}
+  // 🏙️ rooftop water towers, roof machinery and dishes, subway entrances, bus shelters and two tower cranes (Midnight City kit)
+  {const tow=[],plant=[],dish=[],crane=[],sub=[],bus=[];
+    const free=(x,z,r)=>!colliders.some(c=>x>c.x0-r&&x<c.x1+r&&z>c.z0-r&&z<c.z1+r&&c.y0<1)&&!inWater(x,z)&&!inP(x,z,D.cpark);
+    D.bld.forEach(b=>{const h=b[0];if(h<7||h>30)return;const n=(b.length-1)/2;let ar=0,cx=0,cz=0,ea=0,el=0;const Q=b.slice(1);
+      for(let i=0;i<n;i++){const x0=b[1+2*i],z0=b[2+2*i],x1=b[1+2*((i+1)%n)],z1=b[2+2*((i+1)%n)],l=Math.hypot(x1-x0,z1-z0);ar+=x0*z1-x1*z0;cx+=x0/n;cz+=z0/n;if(l>el){el=l;ea=Math.atan2(z1-z0,x1-x0);}}
+      if(Math.abs(ar)/2<260||!inP(cx,cz,Q))return;const r=hash(cx*1.3,cz*0.7);if(r>0.5)return;
+      const it={x:cx,y:h,z:cz,ry:-ea+Math.floor(r*40)*PI/2,s:1.25};(r<0.27?tow:r<0.4?plant:dish).push(it);
+      if(r<0.27&&hash(cz,cx)<0.35)plant.push({x:cx+Math.cos(ea)*5,y:h,z:cz+Math.sin(ea)*5,ry:-ea,s:1.2});});
+    // cranes: two building sites on mid-rise roofs near the centre
+    D.bld.filter(b=>b[0]>12&&b[0]<22&&b.length>8).sort((p,q)=>hash(p[1],p[2])-hash(q[1],q[2])).some(b=>{const n=(b.length-1)/2;let x=0,z=0;for(let i=0;i<n;i++){x+=b[1+2*i]/n;z+=b[2+2*i]/n;}
+      if(Math.hypot(x,z)>700||!inP(x,z,b.slice(1))||crane.some(c=>Math.hypot(c.x-x,c.z-z)<400)||D.bld.some(o=>o[0]>b[0]+15&&Math.hypot(o[1]-x,o[2]-z)<60))return false; // open sky around it, so the jib doesn't run into a tower
+      crane.push({x,y:b[0],z,ry:hash(x,z)*6,s:2.2});return crane.length>=2;});
+    // street furniture along the avenues: a subway stair every few blocks, bus shelters between them
+    D.road.forEach(r=>{if(r[0]<8)return;const w=r[0]*0.45*0.75+2.4;let acc=hash(r[1],r[2])*120;
+      for(let i=1;i+3<r.length;i+=2){const dx=r[i+2]-r[i],dz=r[i+3]-r[i+1],l=Math.hypot(dx,dz);if(l<1)continue;
+        while(acc<l){const t=acc/l,sd=(sub.length+bus.length)%2?1:-1,x=r[i]+dx*t-dz/l*w*sd,z=r[i+1]+dz*t+dx/l*w*sd,ry=-Math.atan2(dz,dx)+(sd>0?PI:0);
+          if(free(x,z,1.5)){((sub.length+bus.length)%3===2?bus:sub).push({x,z,ry:ry+PI/2,s:1.3});}acc+=150;}acc-=l;}});
+    kitProps('water_tower',tow,'city');kitProps('rooftop_plant',plant,'city');kitProps('satellite_farm',dish,'city');kitProps('construction_crane',crane,'city');kitProps('subway_entrance',sub.slice(0,60),'city');kitProps('bus_shelter',bus.slice(0,40),'city');
+    crane.forEach(c=>{const L=glowSprite(0xff3030,c.x,c.y+24*c.s+2,c.z,10,0.9);if(L){L.userData.keep=true;cityAnim.push(t=>{L.visible=Math.sin(t*3+c.x)>0;});}});
+    window.__kitNY={tow:tow.length,plant:plant.length,dish:dish.length,crane:crane.length,sub:Math.min(60,sub.length),bus:Math.min(40,bus.length)};}
   // 🌆 the bright square: giant glowing billboards on the real walls around the Broadway crossing (made-up names only)
   {const names=['MANDO WINDOW TINTING','COSMO COLA','STAR BURGER','ZAP!','MOON MOTORS','GALAXY TOYS','ASTRO NEWS 24','COMET PIZZA','UFO: THE MUSICAL','NEBULA PHONES','ROCKET SHOES','SATURN SODA','ORBIT GUM','LUNAR LATTE','MEGA MUNCH','PLANET POP','STARLIGHT THEATRE'],cols=['#3de1ff','#ff3fd2','#ffd040','#2dff9a','#ff8a3d','#b44dff','#ff4a5a','#ffffff'];
     const used=[],screens=[];EDG.sort((a,b)=>a.dc-b.dc);let k=0;

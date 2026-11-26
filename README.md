@@ -198,3 +198,5 @@ Some worlds now use a "real look" instead of the neon night style: one strong su
 🐧 **Animated penguins:** the igloo-village penguins in Antarctica are now three animated characters (Pebble, Slate and Tuft, by Out of Tokens Studio). They waddle around, belly-slide when they run, flap when you beam them up, and Slate and Tuft dance when they stand still.
 
 🦍 **New yetis:** the Antarctica yetis are a new detailed, animated model (by Out of Tokens Studio). They idle, walk, gallop on all fours, turn and do a real throwing move when they hurl a snowball at you, and roar when you beam them up.
+
+🏙️ **City details:** New York now has wooden water towers, machinery and satellite dishes on its rooftops, glowing subway entrances and bus shelters along the avenues, and two tower cranes with blinking red lights. Las Vegas gets two tower cranes, bus shelters on the Strip and rooftop machinery. (Midnight City kit by Out of Tokens Studio; the game's own people, cows and cars are kept.)
